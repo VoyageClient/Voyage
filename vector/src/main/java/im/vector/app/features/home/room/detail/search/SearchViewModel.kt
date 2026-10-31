@@ -17,21 +17,31 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.home.room.detail.poll.VoteToPollUseCase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.isPollStart
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
 
 class SearchViewModel @AssistedInject constructor(
         @Assisted private val initialState: SearchViewState,
-        private val session: Session
+        private val session: Session,
+        private val voteToPollUseCase: VoteToPollUseCase,
 ) : VectorViewModel<SearchViewState, SearchAction, SearchViewEvents>(initialState) {
 
     private val room = session.getRoom(initialState.roomId)
 
     private var currentTask: Job? = null
+
+    private val observedPolls = HashSet<String>()
 
     private var nextBatch: String? = null
 
@@ -47,7 +57,26 @@ class SearchViewModel @AssistedInject constructor(
             is SearchAction.SearchWith -> handleSearchWith(action)
             is SearchAction.LoadMore -> handleLoadMore()
             is SearchAction.Retry -> handleRetry()
+            is SearchAction.VoteToPoll -> voteToPollUseCase.execute(initialState.roomId, action.pollEventId, action.optionId)
         }
+    }
+
+    private fun observePolls(results: List<EventAndSender>) {
+        val room = room ?: return
+        results.mapNotNull { result -> result.event.eventId?.takeIf { result.event.isPollStart() } }
+                .filter { observedPolls.add(it) }
+                .forEach { pollEventId ->
+                    room.relationService().getEventAnnotationsSummaryFlow(pollEventId)
+                            .onEach { summary ->
+                                summary.getOrNull()?.let { setState { copy(pollSummaries = pollSummaries + (pollEventId to it)) } }
+                            }
+                            .launchIn(viewModelScope)
+                    viewModelScope.launch(Dispatchers.IO) {
+                        if (room.relationService().getEventAnnotationsSummary(pollEventId)?.pollResponseSummary == null) {
+                            tryOrNull { room.relationService().fetchPollResponses(pollEventId) }
+                        }
+                    }
+                }
     }
 
     private fun handleSearchWith(action: SearchAction.SearchWith) {
@@ -127,6 +156,7 @@ class SearchViewModel @AssistedInject constructor(
         // Note: We do not care about the highlights for the moment, but it will be the same algorithm
 
         nextBatch = searchResult.nextBatch
+        observePolls(searchResult.results.orEmpty())
 
         setState {
             copy(

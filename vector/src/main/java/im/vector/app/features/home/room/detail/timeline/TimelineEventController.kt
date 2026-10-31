@@ -196,6 +196,8 @@ class TimelineEventController @Inject constructor(
         /** Long-press on one tile of an MSC4274 gallery: open item-scoped actions. */
         fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean
 
+        fun onPollOptionLongClicked(pollStartEventId: String, optionId: String, optionAnswer: String): Boolean
+
         //        fun onFileMessageClicked(eventId: String, messageFileContent: MessageFileContent)
 //        fun onAudioMessageClicked(messageAudioContent: MessageAudioContent)
         fun onEditedDecorationClicked(informationData: MessageInformationData)

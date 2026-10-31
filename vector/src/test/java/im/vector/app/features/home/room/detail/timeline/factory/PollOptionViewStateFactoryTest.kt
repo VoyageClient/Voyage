@@ -125,24 +125,4 @@ internal class PollOptionViewStateFactoryTest {
         // Then
         result shouldBeEqualTo expectedOptions
     }
-
-    @Test
-    fun `given poll data when creating ready poll options then correct options are returned`() {
-        // Given
-        val pollCreationInfo = A_POLL_CONTENT.getBestPollCreationInfo()
-        val expectedOptions = pollCreationInfo?.answers?.map { answer ->
-            PollOptionViewState.PollReady(
-                    optionId = answer.id.orEmpty(),
-                    optionAnswer = answer.getBestAnswer().orEmpty(),
-            )
-        }
-
-        // When
-        val result = pollOptionViewStateFactory.createPollReadyOptions(
-                pollCreationInfo = pollCreationInfo,
-        )
-
-        // Then
-        result shouldBeEqualTo expectedOptions
-    }
 }

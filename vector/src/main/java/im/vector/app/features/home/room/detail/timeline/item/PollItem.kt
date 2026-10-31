@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -33,6 +34,9 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
 
     @EpoxyAttribute
     var eventId: String? = null
+
+    @EpoxyAttribute
+    var pollStartEventId: String? = null
 
     @EpoxyAttribute
     var canVote: Boolean = false
@@ -80,6 +84,7 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
             views.getOrNull(index)?.let {
                 it.render(optionViewState)
                 it.setOnClickListener { onPollItemClick(optionViewState) }
+                it.setOnLongClickListener { view -> onPollItemLongClick(optionViewState, view) }
             }
         }
 
@@ -93,6 +98,21 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
         if (canVote && relatedEventId != null) {
             callback?.onTimelineItemAction(RoomDetailAction.VoteToPoll(relatedEventId, optionViewState.optionId))
         }
+    }
+
+    private fun onPollItemLongClick(optionViewState: PollOptionViewState, view: View): Boolean {
+        // Only where counts are already shown, so undisclosed polls don't leak votes.
+        val voteCount = when (optionViewState) {
+            is PollOptionViewState.PollVoted -> optionViewState.voteCount
+            is PollOptionViewState.PollEnded -> optionViewState.voteCount
+            else -> 0
+        }
+        val startEventId = pollStartEventId
+        if (voteCount > 0 && startEventId != null &&
+                callback?.onPollOptionLongClicked(startEventId, optionViewState.optionId, optionViewState.optionAnswer) == true) {
+            return true
+        }
+        return attributes.itemLongClickListener?.onLongClick(view) ?: false
     }
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {

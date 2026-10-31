@@ -2123,10 +2123,6 @@
     </plurals>
     <string name="poll_no_votes_cast">کوئی ووٹ نہیں ڈالا گیا</string>
     <string name="poll_undisclosed_not_ended">رائے شماری ختم ہونے پر نتائج نظر آئیں گے</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$d ووٹ ڈالا گیا۔ نتائج دیکھنے کے لیے ووٹ دیں</item>
-        <item quantity="other">%1$d ووٹ ڈالے گئے۔ نتائج دیکھنے کے لیے ووٹ دیں</item>
-    </plurals>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">%1$d ووٹ کی بنیاد پر حتمی نتیجہ</item>
         <item quantity="other">%1$d ووٹوں کی بنیاد پر حتمی نتیجہ</item>
@@ -3519,4 +3515,6 @@
     <string name="homeserver_info_unavailable">دستیاب نہیں</string>
     <string name="settings_show_message_timestamps">پیغامات کا وقت دکھائیں</string>
     <string name="settings_show_message_timestamps_summary">ٹائم لائن میں پیغامات بھیجنے کا وقت دکھائیں۔</string>
+    <string name="settings_reveal_undisclosed_poll_results">پوشیدہ رائے شماری کے نتائج دکھائیں</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">ان رائے شماریوں کے ووٹ دکھائیں جن کے نتائج ختم ہونے تک پوشیدہ رہنے چاہئیں</string>
 </resources>

@@ -1926,10 +1926,6 @@
     <string name="decide_which_spaces_can_access">Entscheide, welche Spaces Zugriff auf den Raum haben sollen. Die Mitglieder der Spaces können diesen Räumen betreten.</string>
     <string name="ftue_auth_carousel_control_title">Du hast die volle Kontrolle.</string>
     <string name="room_error_access_unauthorized">Du hast nicht die Berechtigung um diesen Raum zu betreten</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$d Stimme abgegeben. Stimme ab, um die Ergebnisse zu sehen</item>
-        <item quantity="other">%1$d Stimmen abgegeben. Stimme ab, um die Ergebnisse zu sehen</item>
-    </plurals>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
         <item quantity="one">Basierend auf %1$d Stimme</item>
         <item quantity="other">Basierend auf %1$d Stimmen</item>
@@ -3624,4 +3620,6 @@
     <string name="homeserver_info_identity_server">Identitäts-Server</string>
     <string name="settings_show_message_timestamps">Nachrichtenzeitstempel anzeigen</string>
     <string name="settings_show_message_timestamps_summary">Zeigt in der Zeitleiste an, wann Nachrichten gesendet wurden.</string>
+    <string name="settings_reveal_undisclosed_poll_results">Verborgene Umfrageergebnisse anzeigen</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">Stimmen auch bei Umfragen anzeigen, deren Ergebnisse bis zum Ende verborgen bleiben sollen</string>
 </resources>

@@ -74,6 +74,12 @@
             android:title="@string/settings_skip_redaction_confirmation" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_REVEAL_UNDISCLOSED_POLL_RESULTS_KEY"
+            android:summary="@string/settings_reveal_undisclosed_poll_results_summary"
+            android:title="@string/settings_reveal_undisclosed_poll_results" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
             android:summary="@string/settings_show_join_leave_messages_summary"

@@ -2868,10 +2868,6 @@
     </plurals>
     <string name="poll_no_votes_cast">No votes cast</string>
     <string name="poll_undisclosed_not_ended">Results will be visible when the poll is ended</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$d vote cast. Vote to the see the results</item>
-        <item quantity="other">%1$d votes cast. Vote to the see the results</item>
-    </plurals>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">Final result based on %1$d vote</item>
         <item quantity="other">Final result based on %1$d votes</item>
@@ -3571,6 +3567,8 @@
     <string name="redact_event_dialog_reason_hint">Reason for redacting</string>
     <string name="settings_skip_redaction_confirmation">Skip redaction confirmation</string>
     <string name="settings_skip_redaction_confirmation_summary">Redact messages immediately without asking for confirmation</string>
+    <string name="settings_reveal_undisclosed_poll_results">Reveal hidden poll results</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">Show the votes on polls whose results are meant to stay hidden until they end</string>
     <plurals name="room_redacted_messages">
         <item quantity="one">%d message redacted</item>
         <item quantity="other">%d messages redacted</item>

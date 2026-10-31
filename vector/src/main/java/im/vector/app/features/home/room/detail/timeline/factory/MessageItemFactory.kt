@@ -316,6 +316,7 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
             isEnded: Boolean,
             canInteract: Boolean = true,
+            pollStartEventId: String? = informationData.eventId,
     ): PollItem {
         val pollViewState = pollItemViewStateFactory.create(
                 pollContent = pollContent,
@@ -326,6 +327,7 @@ class MessageItemFactory @Inject constructor(
         return PollItem_()
                 .attributes(attributes)
                 .eventId(informationData.eventId)
+                .pollStartEventId(pollStartEventId)
                 .pollTitle(createPollQuestion(informationData, pollViewState.question, callback))
                 .canVote(pollViewState.canVote)
                 .votesStatus(pollViewState.votesStatus)
@@ -375,6 +377,7 @@ class MessageItemFactory @Inject constructor(
                     callback,
                     attributes,
                     isEnded = true,
+                    pollStartEventId = pollStartEventId,
             )
         }
     }

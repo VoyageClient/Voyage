@@ -453,6 +453,7 @@ internal class PeekedRoom(
         override suspend fun fetchEditHistory(eventId: String): List<Event> = dataSource.editHistory(eventId)
 
         override suspend fun fetchReactions(eventId: String): List<Event> = emptyList()
+        override suspend fun fetchPollResponses(pollEventId: String) = Unit
 
         override suspend fun redactEventNoEcho(eventId: String, reason: String?) = readOnly()
 

@@ -23,6 +23,11 @@ class FakeVectorPreferences {
         every { instance.overrideDirectChatDisplay() } returns true
         every { instance.searchEncryptedRoomsEnabled() } returns true
         every { instance.searchUnencryptedRoomsOnServer() } returns false
+        every { instance.revealUndisclosedPollResults() } returns false
+    }
+
+    fun givenRevealUndisclosedPollResults(value: Boolean) {
+        every { instance.revealUndisclosedPollResults() } returns value
     }
 
     fun givenUseCompleteNotificationFormat(value: Boolean) {

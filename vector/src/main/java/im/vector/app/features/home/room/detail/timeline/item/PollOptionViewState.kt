@@ -20,15 +20,7 @@ sealed class PollOptionViewState(
     ) : PollOptionViewState(optionId, optionAnswer)
 
     /**
-     * Represents a poll that is sent but not voted by the user.
-     */
-    data class PollReady(
-            override val optionId: String,
-            override val optionAnswer: String
-    ) : PollOptionViewState(optionId, optionAnswer)
-
-    /**
-     * Represents a poll that user already voted.
+     * Represents a sent poll whose results are visible while it is still open.
      */
     data class PollVoted(
             override val optionId: String,

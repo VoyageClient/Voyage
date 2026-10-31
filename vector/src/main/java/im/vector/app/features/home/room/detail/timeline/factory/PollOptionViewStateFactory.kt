@@ -65,14 +65,4 @@ class PollOptionViewStateFactory @Inject constructor() {
             )
         } ?: emptyList()
     }
-
-    fun createPollReadyOptions(pollCreationInfo: PollCreationInfo?): List<PollOptionViewState.PollReady> {
-        return pollCreationInfo?.answers?.map { answer ->
-            val optionId = answer.getBestId().orEmpty()
-            PollOptionViewState.PollReady(
-                    optionId = optionId,
-                    optionAnswer = answer.getBestAnswer() ?: ""
-            )
-        } ?: emptyList()
-    }
 }

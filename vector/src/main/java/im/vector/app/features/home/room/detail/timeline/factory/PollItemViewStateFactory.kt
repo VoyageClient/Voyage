@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.item.PollResponseData
 import im.vector.app.features.poll.PollItemViewState
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class PollItemViewStateFactory @Inject constructor(
         private val stringProvider: StringProvider,
         private val pollOptionViewStateFactory: PollOptionViewStateFactory,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     fun create(
@@ -38,14 +40,11 @@ class PollItemViewStateFactory @Inject constructor(
             pollResponseData?.isClosed.orFalse() -> {
                 createEndedPollViewState(question, pollCreationInfo, pollResponseData, totalVotes)
             }
-            pollContent.getBestPollCreationInfo()?.isUndisclosed().orFalse() -> {
+            pollCreationInfo?.isUndisclosed().orFalse() && !vectorPreferences.revealUndisclosedPollResults() -> {
                 createUndisclosedPollViewState(question, pollCreationInfo, pollResponseData)
             }
-            pollResponseData?.myVote?.isNotEmpty().orFalse() -> {
-                createVotedPollViewState(question, pollCreationInfo, pollResponseData, totalVotes)
-            }
             else -> {
-                createReadyPollViewState(question, pollCreationInfo, totalVotes)
+                createOpenPollViewState(question, pollCreationInfo, pollResponseData, totalVotes)
             }
         }
     }
@@ -91,40 +90,22 @@ class PollItemViewStateFactory @Inject constructor(
         )
     }
 
-    private fun createVotedPollViewState(
+    private fun createOpenPollViewState(
             question: String,
             pollCreationInfo: PollCreationInfo?,
             pollResponseData: PollResponseData?,
             totalVotes: Int
     ): PollItemViewState {
-        val totalVotesText = if (pollResponseData?.hasEncryptedRelatedEvents.orFalse()) {
-            stringProvider.getString(CommonStrings.unable_to_decrypt_some_events_in_poll)
-        } else {
-            stringProvider.getQuantityString(CommonPlurals.poll_total_vote_count_before_ended_and_voted, totalVotes, totalVotes)
+        val totalVotesText = when {
+            pollResponseData?.hasEncryptedRelatedEvents.orFalse() -> stringProvider.getString(CommonStrings.unable_to_decrypt_some_events_in_poll)
+            totalVotes == 0 -> stringProvider.getString(CommonStrings.poll_no_votes_cast)
+            else -> stringProvider.getQuantityString(CommonPlurals.poll_total_vote_count_before_ended_and_voted, totalVotes, totalVotes)
         }
         return PollItemViewState(
                 question = question,
                 votesStatus = totalVotesText,
                 canVote = true,
                 optionViewStates = pollOptionViewStateFactory.createPollVotedOptions(pollCreationInfo, pollResponseData),
-        )
-    }
-
-    private fun createReadyPollViewState(
-            question: String,
-            pollCreationInfo: PollCreationInfo?,
-            totalVotes: Int
-    ): PollItemViewState {
-        val totalVotesText = if (totalVotes == 0) {
-            stringProvider.getString(CommonStrings.poll_no_votes_cast)
-        } else {
-            stringProvider.getQuantityString(CommonPlurals.poll_total_vote_count_before_ended_and_not_voted, totalVotes, totalVotes)
-        }
-        return PollItemViewState(
-                question = question,
-                votesStatus = totalVotesText,
-                canVote = true,
-                optionViewStates = pollOptionViewStateFactory.createPollReadyOptions(pollCreationInfo),
         )
     }
 }

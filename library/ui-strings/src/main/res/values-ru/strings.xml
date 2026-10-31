@@ -1869,12 +1869,6 @@
         <item quantity="many">Окончательный результат на основании %1$d голосов</item>
         <item quantity="other">Окончательный результат на основании %1$d голосов</item>
     </plurals>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$d голос. Проголосуйте, чтобы увидеть результаты</item>
-        <item quantity="few">%1$d голоса. Проголосуйте, чтобы увидеть результаты</item>
-        <item quantity="many">%1$d голосов. Проголосуйте, чтобы увидеть результаты</item>
-        <item quantity="other">%1$d голосов. Проголосуйте, чтобы увидеть результаты</item>
-    </plurals>
     <string name="poll_no_votes_cast">Голосов нет</string>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
         <item quantity="one">На основании %1$d голоса</item>
@@ -3749,4 +3743,6 @@
     <string name="homeserver_info_unavailable">Недоступно</string>
     <string name="settings_show_message_timestamps">Показывать время сообщений</string>
     <string name="settings_show_message_timestamps_summary">Показывать время отправки сообщений в ленте.</string>
+    <string name="settings_reveal_undisclosed_poll_results">Показывать скрытые результаты опросов</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">Показывать голоса в опросах, результаты которых должны быть скрыты до завершения</string>
 </resources>

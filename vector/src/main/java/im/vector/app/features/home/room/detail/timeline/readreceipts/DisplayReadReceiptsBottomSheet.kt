@@ -23,6 +23,7 @@ import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -31,11 +32,13 @@ import javax.inject.Inject
 
 @Parcelize
 data class DisplayReadReceiptArgs(
-        val readReceipts: List<ReadReceiptData>
+        val readReceipts: List<ReadReceiptData>,
+        val title: String? = null,
+        val includeMyself: Boolean = false,
 ) : Parcelable
 
 /**
- * Bottom sheet displaying list of read receipts for a given event ordered by descending timestamp.
+ * Bottom sheet displaying list of read receipts (or a poll option's voters) for a given event ordered by descending timestamp.
  */
 @AndroidEntryPoint
 class DisplayReadReceiptsBottomSheet :
@@ -57,13 +60,19 @@ class DisplayReadReceiptsBottomSheet :
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
         views.bottomSheetRecyclerView.configureWith(epoxyController, hasFixedSize = false)
-        views.bottomSheetTitle.text = getString(CommonStrings.seen_by)
+        views.bottomSheetTitle.text = displayReadReceiptArgs.title?.prepareForDisplay() ?: getString(CommonStrings.seen_by)
         epoxyController.listener = this
-        epoxyController.setData(DisplayReadReceiptsData(displayReadReceiptArgs.readReceipts, matrixItemColorProvider.changes.value))
+        epoxyController.setData(buildData(matrixItemColorProvider.changes.value))
         matrixItemColorProvider.changes
-                .onEach { epoxyController.setData(DisplayReadReceiptsData(displayReadReceiptArgs.readReceipts, it)) }
+                .onEach { epoxyController.setData(buildData(it)) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
+
+    private fun buildData(colorGeneration: Long) = DisplayReadReceiptsData(
+            readReceipts = displayReadReceiptArgs.readReceipts,
+            colorGeneration = colorGeneration,
+            includeMyself = displayReadReceiptArgs.includeMyself,
+    )
 
     override fun onDestroyView() {
         views.bottomSheetRecyclerView.cleanup()
@@ -81,6 +90,12 @@ class DisplayReadReceiptsBottomSheet :
         fun newInstance(readReceipts: List<ReadReceiptData>): DisplayReadReceiptsBottomSheet {
             return DisplayReadReceiptsBottomSheet().apply {
                 setArguments(DisplayReadReceiptArgs(readReceipts = readReceipts))
+            }
+        }
+
+        fun newPollVotersInstance(optionAnswer: String, voters: List<ReadReceiptData>): DisplayReadReceiptsBottomSheet {
+            return DisplayReadReceiptsBottomSheet().apply {
+                setArguments(DisplayReadReceiptArgs(readReceipts = voters, title = optionAnswer, includeMyself = true))
             }
         }
     }

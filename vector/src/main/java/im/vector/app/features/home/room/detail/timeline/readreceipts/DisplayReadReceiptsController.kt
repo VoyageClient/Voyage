@@ -19,6 +19,7 @@ import javax.inject.Inject
 data class DisplayReadReceiptsData(
         val readReceipts: List<ReadReceiptData>,
         val colorGeneration: Long,
+        val includeMyself: Boolean = false,
 )
 
 /**
@@ -43,7 +44,7 @@ class DisplayReadReceiptsController @Inject constructor(
                     .avatarRenderer(avatarRender)
                     .timestamp(timestamp)
                     .userClicked { listener?.didSelectUser(readReceiptData.userId) }
-                    .addIf(session.myUserId != readReceiptData.userId, this)
+                    .addIf(data.includeMyself || session.myUserId != readReceiptData.userId, this)
         }
     }
 

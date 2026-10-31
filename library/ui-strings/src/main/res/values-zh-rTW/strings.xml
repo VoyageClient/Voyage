@@ -1897,9 +1897,6 @@
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="other">共計 %1$d 票所獲得的投票結果</item>
     </plurals>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="other">已投 %1$d 票。投票後即可檢視結果</item>
-    </plurals>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
         <item quantity="other">獲得 %1$d 票</item>
     </plurals>
@@ -3563,4 +3560,6 @@
     <string name="homeserver_info_unavailable">無法使用</string>
     <string name="settings_show_message_timestamps">顯示訊息時間</string>
     <string name="settings_show_message_timestamps_summary">在時間軸上顯示訊息的傳送時間。</string>
+    <string name="settings_reveal_undisclosed_poll_results">顯示隱藏的投票結果</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">顯示原應在結束前隱藏結果之投票中的選票</string>
 </resources>

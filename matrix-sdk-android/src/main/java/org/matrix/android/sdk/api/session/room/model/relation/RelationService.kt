@@ -163,6 +163,12 @@ interface RelationService {
     suspend fun fetchReactions(eventId: String): List<Event>
 
     /**
+     * Fetch every response to the given poll from the server and store them, so the poll's vote summary is
+     * complete even when this device never synced the responses (e.g. a poll found through search).
+     */
+    suspend fun fetchPollResponses(pollEventId: String)
+
+    /**
      * Event ids [userId] contributed to this room that are present in the local DB (any event type, not
      * yet redacted). Used to burst-redact a user's history that's already synced, before paging the server.
      */

@@ -2045,12 +2045,6 @@
     <string name="this_space_has_no_rooms_admin">חלק מהחדרים עשויים להיות מוסתרים כי הם פרטיים ואתה זקוק להזמנה.</string>
     <string name="this_space_has_no_rooms_not_admin">חלק מהחדרים עשויים להיות מוסתרים כי הם פרטיים ואתה זקוק להזמנה.
 \nאין לך הרשאה להוסיף חדרים.</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">הצבעה %1$d. הצביעו כדי לראות את התוצאות</item>
-        <item quantity="two">הצבעות %1$d. הצביעו כדי לראות את התוצאות</item>
-        <item quantity="many">הצבעות %1$d. הצביעו כדי לראות את התוצאות</item>
-        <item quantity="other">הצבעות %1$d. הצביעו כדי לראות את התוצאות</item>
-    </plurals>
     <string name="poll_no_votes_cast">אין הצבעות</string>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
         <item quantity="one">מבוסס על %1$d הצבעה</item>
@@ -3718,4 +3712,6 @@
     <string name="homeserver_info_unavailable">לא זמין</string>
     <string name="settings_show_message_timestamps">הצג את זמן שליחת ההודעות</string>
     <string name="settings_show_message_timestamps_summary">הצג בציר הזמן מתי ההודעות נשלחו.</string>
+    <string name="settings_reveal_undisclosed_poll_results">חשיפת תוצאות סקרים מוסתרות</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">הצגת ההצבעות בסקרים שתוצאותיהם אמורות להישאר מוסתרות עד לסיומם</string>
 </resources>

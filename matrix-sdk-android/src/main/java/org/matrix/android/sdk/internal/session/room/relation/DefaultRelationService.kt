@@ -23,6 +23,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -44,6 +45,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.session.room.relation.poll.FetchPollResponseEventsTask
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
@@ -58,6 +60,7 @@ internal class DefaultRelationService @AssistedInject constructor(
         private val findReactionEventForUndoTask: FindReactionEventForUndoTask,
         private val fetchEditHistoryTask: FetchEditHistoryTask,
         private val fetchReactionsTask: FetchReactionsTask,
+        private val fetchPollResponseEventsTask: FetchPollResponseEventsTask,
         private val fetchUserEventsTask: FetchUserEventsTask,
         private val getEventTask: GetEventTask,
         private val redactEventTask: org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask,
@@ -163,6 +166,11 @@ internal class DefaultRelationService @AssistedInject constructor(
     override suspend fun fetchReactions(eventId: String): List<Event> {
         val remoteId = remoteIdOf(eventId) ?: return emptyList()
         return fetchReactionsTask.execute(FetchReactionsTask.Params(roomId, remoteId))
+    }
+
+    override suspend fun fetchPollResponses(pollEventId: String) {
+        val remoteId = remoteIdOf(pollEventId) ?: return
+        fetchPollResponseEventsTask.execute(FetchPollResponseEventsTask.Params(roomId, remoteId))
     }
 
     private fun remoteIdOf(eventId: String): String? = localEchoRepository.resolveRemoteId(eventId)
@@ -303,8 +311,12 @@ internal class DefaultRelationService @AssistedInject constructor(
     }
 
     override fun getEventAnnotationsSummaryFlow(eventId: String): Flow<Optional<EventAnnotationsSummary>> {
-        // Reactions are the dominant live-updating annotation; observe them and re-resolve the full summary.
-        return database.eventAnnotationsSummaryQueries.selectReactions(eventId).asFlow().mapToList(dispatcher)
+        // Observe the live-updating annotations (reactions, poll votes) and re-resolve the full summary.
+        val queries = database.eventAnnotationsSummaryQueries
+        return merge(
+                queries.selectReactions(eventId).asFlow().mapToList(dispatcher),
+                queries.selectPollResponse(eventId).asFlow().mapToList(dispatcher),
+        )
                 .map { stores.annotations.get(eventId)?.asDomain().toOptional() }
     }
 

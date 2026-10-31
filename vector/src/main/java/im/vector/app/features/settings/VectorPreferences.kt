@@ -213,6 +213,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
         private const val SETTINGS_SHOW_REDACTED_KEY = "SETTINGS_SHOW_REDACTED_KEY"
         private const val SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY = "SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY"
+        private const val SETTINGS_REVEAL_UNDISCLOSED_POLL_RESULTS_KEY = "SETTINGS_REVEAL_UNDISCLOSED_POLL_RESULTS_KEY"
         private const val SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY = "SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY"
         private const val SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY = "SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY"
         private const val SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY = "SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY"
@@ -1142,6 +1143,10 @@ class VectorPreferences @Inject constructor(
 
     fun skipRedactionConfirmation(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY, false)
+    }
+
+    fun revealUndisclosedPollResults(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_REVEAL_UNDISCLOSED_POLL_RESULTS_KEY, false)
     }
 
     fun autoDismissJumpToUnread(): Boolean {

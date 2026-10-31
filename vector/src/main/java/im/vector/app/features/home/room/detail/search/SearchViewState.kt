@@ -10,11 +10,14 @@ package im.vector.app.features.home.room.detail.search
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
+import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.search.EventAndSender
 
 data class SearchViewState(
         // Accumulated search result
         val searchResult: List<EventAndSender> = emptyList(),
+        // Keyed by poll start event id; search hits carry no aggregations of their own.
+        val pollSummaries: Map<String, EventAnnotationsSummary> = emptyMap(),
         val highlights: List<String> = emptyList(),
         val hasMoreResult: Boolean = false,
         // Last batch size, will help RecyclerView to position itself

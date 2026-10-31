@@ -11,6 +11,7 @@ import im.vector.app.features.home.room.detail.timeline.item.PollOptionViewState
 import im.vector.app.features.home.room.detail.timeline.item.PollVoteSummaryData
 import im.vector.app.features.poll.PollItemViewState
 import im.vector.app.test.fakes.FakeStringProvider
+import im.vector.app.test.fakes.FakeVectorPreferences
 import im.vector.app.test.fixtures.PollFixture.A_POLL_CONTENT
 import im.vector.app.test.fixtures.PollFixture.A_POLL_OPTION_IDS
 import im.vector.app.test.fixtures.PollFixture.A_POLL_RESPONSE_DATA
@@ -28,9 +29,12 @@ class PollItemViewStateFactoryTest {
     private val fakeStringProvider = FakeStringProvider()
     private val fakePollOptionViewStateFactory = mockk<PollOptionViewStateFactory>()
 
+    private val fakeVectorPreferences = FakeVectorPreferences()
+
     private val pollItemViewStateFactory = PollItemViewStateFactory(
             stringProvider = fakeStringProvider.instance,
             pollOptionViewStateFactory = fakePollOptionViewStateFactory,
+            vectorPreferences = fakeVectorPreferences.instance,
     )
 
     @Test
@@ -252,7 +256,36 @@ class PollItemViewStateFactoryTest {
     }
 
     @Test
-    fun `given a sent poll when poll type is disclosed then poll is votable and option view states are PollReady`() {
+    fun `given an undisclosed poll when revealing hidden results is enabled then option states are PollVoted`() {
+        // Given
+        fakeVectorPreferences.givenRevealUndisclosedPollResults(true)
+        val pollResponseData = A_POLL_RESPONSE_DATA
+        val optionViewStates = listOf(
+                PollOptionViewState.PollVoted(
+                        optionId = "",
+                        optionAnswer = "",
+                        voteCount = 0,
+                        votePercentage = 0.0,
+                        isSelected = false,
+                )
+        )
+        every {
+            fakePollOptionViewStateFactory.createPollVotedOptions(A_POLL_CONTENT.getBestPollCreationInfo(), pollResponseData)
+        } returns optionViewStates
+
+        // When
+        val pollViewState = pollItemViewStateFactory.create(
+                pollContent = A_POLL_CONTENT,
+                pollResponseData = pollResponseData,
+                isSent = true,
+        )
+
+        // Then
+        pollViewState.optionViewStates shouldBeEqualTo optionViewStates
+    }
+
+    @Test
+    fun `given a disclosed poll without my vote then results are shown and poll is votable`() {
         // Given
         val pollResponseData = A_POLL_RESPONSE_DATA
         val disclosedPollContent = A_POLL_CONTENT.copy(
@@ -261,14 +294,18 @@ class PollItemViewStateFactoryTest {
                 )
         )
         val optionViewStates = listOf(
-                PollOptionViewState.PollReady(
+                PollOptionViewState.PollVoted(
                         optionId = "",
                         optionAnswer = "",
+                        voteCount = 0,
+                        votePercentage = 0.0,
+                        isSelected = false,
                 )
         )
         every {
-            fakePollOptionViewStateFactory.createPollReadyOptions(
+            fakePollOptionViewStateFactory.createPollVotedOptions(
                     disclosedPollContent.getBestPollCreationInfo(),
+                    pollResponseData,
             )
         } returns optionViewStates
 
@@ -287,8 +324,9 @@ class PollItemViewStateFactoryTest {
                 optionViewStates = optionViewStates,
         )
         verify {
-            fakePollOptionViewStateFactory.createPollReadyOptions(
+            fakePollOptionViewStateFactory.createPollVotedOptions(
                     disclosedPollContent.getBestPollCreationInfo(),
+                    pollResponseData,
             )
         }
     }

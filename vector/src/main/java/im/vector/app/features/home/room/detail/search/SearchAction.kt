@@ -13,4 +13,5 @@ sealed class SearchAction : VectorViewModelAction {
     data class SearchWith(val searchTerm: String) : SearchAction()
     object LoadMore : SearchAction()
     object Retry : SearchAction()
+    data class VoteToPoll(val pollEventId: String, val optionId: String) : SearchAction()
 }

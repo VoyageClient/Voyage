@@ -47,6 +47,7 @@ import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
+import im.vector.app.features.home.room.detail.timeline.helper.PollVotersFactory
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
@@ -85,6 +86,7 @@ class SearchFragment :
 
     @Inject lateinit var controller: SearchResultController
     @Inject lateinit var session: Session
+    @Inject lateinit var pollVotersFactory: PollVotersFactory
     @Inject lateinit var audioMessageHelper: AudioMessageHelper
     @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var colorProvider: ColorProvider
@@ -277,6 +279,15 @@ class SearchFragment :
 
     override fun onAvatarClicked(userId: String) {
         navigator.openRoomMemberProfile(userId, fragmentArgs.roomId, requireContext())
+    }
+
+    override fun onVoteToPoll(pollEventId: String, optionId: String) {
+        searchViewModel.handle(SearchAction.VoteToPoll(pollEventId, optionId))
+    }
+
+    override fun onPollOptionLongClicked(pollStartEventId: String, optionId: String, optionAnswer: String): Boolean {
+        pollVotersFactory.show(this, fragmentArgs.roomId, pollStartEventId, optionId, optionAnswer)
+        return true
     }
 
     override fun onEventLongClicked(informationData: MessageInformationData): Boolean {

@@ -21,6 +21,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.noResultItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.audio.AudioGalleryData
+import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactory
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
@@ -39,10 +40,12 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.util.Calendar
@@ -100,6 +103,8 @@ class SearchResultController @Inject constructor(
         fun onAvatarClicked(userId: String)
         fun onEventLongClicked(informationData: MessageInformationData): Boolean
         fun onUrlLongClicked(url: String): Boolean
+        fun onVoteToPoll(pollEventId: String, optionId: String)
+        fun onPollOptionLongClicked(pollStartEventId: String, optionId: String, optionAnswer: String): Boolean
     }
 
     /** Must be called once before the first [setData]. */
@@ -160,7 +165,11 @@ class SearchResultController @Inject constructor(
             }
             lastDate = eventDate
 
-            val timelineEvent = event.toTimelineEvent(eventAndSender.sender?.displayName, eventAndSender.sender?.avatarUrl)
+            val timelineEvent = event.toTimelineEvent(
+                    eventAndSender.sender?.displayName,
+                    eventAndSender.sender?.avatarUrl,
+                    data.pollSummaries[eventId],
+            )
             val params = TimelineItemFactoryParams(
                     event = timelineEvent,
                     partialState = TimelineEventController.PartialState(roomSummary = roomSummary),
@@ -177,7 +186,13 @@ class SearchResultController @Inject constructor(
     private fun Calendar.isSameDayAs(other: Calendar) =
             get(Calendar.YEAR) == other.get(Calendar.YEAR) && get(Calendar.DAY_OF_YEAR) == other.get(Calendar.DAY_OF_YEAR)
 
-    private fun Event.toTimelineEvent(senderDisplayName: String?, senderAvatarUrl: String?): TimelineEvent {
+    private fun Event.toTimelineEvent(
+            senderDisplayName: String?,
+            senderAvatarUrl: String?,
+            annotations: EventAnnotationsSummary?,
+    ): TimelineEvent {
+        // Search hits come from the server, but arrive with UNKNOWN, which items render as still sending.
+        sendState = SendState.SYNCED
         return TimelineEvent(
                 root = this,
                 localId = eventId.hashCode().toLong(),
@@ -188,6 +203,7 @@ class SearchResultController @Inject constructor(
                         isUniqueDisplayName = true,
                         avatarUrl = senderAvatarUrl,
                 ),
+                annotations = annotations,
         )
     }
 
@@ -223,6 +239,15 @@ class SearchResultController @Inject constructor(
         swallowNextClick = handled
         return handled
     }
+
+    override fun onTimelineItemAction(itemAction: RoomDetailAction) {
+        if (itemAction is RoomDetailAction.VoteToPoll) {
+            listener?.onVoteToPoll(itemAction.eventId, itemAction.optionKey)
+        }
+    }
+
+    override fun onPollOptionLongClicked(pollStartEventId: String, optionId: String, optionAnswer: String): Boolean =
+            listener?.onPollOptionLongClicked(pollStartEventId, optionId, optionAnswer) == true
 
     private fun navigateTo(informationData: MessageInformationData) {
         if (swallowNextClick) {

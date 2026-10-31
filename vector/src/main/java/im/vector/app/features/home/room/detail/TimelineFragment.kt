@@ -284,6 +284,7 @@ class TimelineFragment :
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
     @Inject lateinit var reactionsSummaryFactory: ReactionsSummaryFactory
+    @Inject lateinit var pollVotersFactory: im.vector.app.features.home.room.detail.timeline.helper.PollVotersFactory
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
@@ -2268,6 +2269,11 @@ class TimelineFragment :
         showMessageActions(
                 MessageActionsBottomSheet.newInstance(timelineArgs.roomId, informationData, isThreadTimeLine(), galleryItemIndex = itemIndex)
         )
+        return true
+    }
+
+    override fun onPollOptionLongClicked(pollStartEventId: String, optionId: String, optionAnswer: String): Boolean {
+        pollVotersFactory.show(this, timelineArgs.roomId, pollStartEventId, optionId, optionAnswer)
         return true
     }
 

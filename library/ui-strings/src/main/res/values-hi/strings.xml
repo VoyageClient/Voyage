@@ -2111,10 +2111,6 @@
     </plurals>
     <string name="poll_no_votes_cast">कोई वोट नहीं डाला गया</string>
     <string name="poll_undisclosed_not_ended">पोल खत्म होने पर नतीजे दिखेंगे</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$d वोट डाला गया। नतीजे देखने के लिए वोट करें</item>
-        <item quantity="other">%1$d वोट डाले गए। नतीजे देखने के लिए वोट करें</item>
-    </plurals>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">%1$d वोट के आधार पर अंतिम नतीजा</item>
         <item quantity="other">%1$d वोट के आधार पर अंतिम नतीजा</item>
@@ -3507,4 +3503,6 @@
     <string name="homeserver_info_unavailable">उपलब्ध नहीं</string>
     <string name="settings_show_message_timestamps">संदेशों का समय दिखाएं</string>
     <string name="settings_show_message_timestamps_summary">टाइमलाइन में संदेश भेजे जाने का समय दिखाएं।</string>
+    <string name="settings_reveal_undisclosed_poll_results">छिपे हुए पोल नतीजे दिखाएं</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">उन पोल के वोट दिखाएं जिनके नतीजे खत्म होने तक छिपे रहने चाहिए</string>
 </resources>

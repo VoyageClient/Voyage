@@ -23,21 +23,21 @@ class VoteToPollUseCase @Inject constructor(
         if (LocalEcho.isLocalEchoId(pollEventId)) return
 
         runCatching {
-            val room = activeSessionHolder.getActiveSession().getRoom(roomId)
-            room?.getTimelineEvent(pollEventId)?.let { pollTimelineEvent ->
-                val currentVote = pollTimelineEvent
-                        .annotations
-                        ?.pollResponseSummary
-                        ?.aggregatedContent
-                        ?.myVote
-                if (currentVote == optionId) {
-                    room.sendService().withdrawPollVote(pollEventId)
-                } else {
-                    room.sendService().voteToPoll(
-                            pollEventId = pollEventId,
-                            answerId = optionId
-                    )
-                }
+            val room = activeSessionHolder.getActiveSession().getRoom(roomId) ?: return@runCatching
+            // A poll opened from search may not be in the local timeline, but its summary is stored apart.
+            val annotations = room.getTimelineEvent(pollEventId)?.annotations
+                    ?: room.relationService().getEventAnnotationsSummary(pollEventId)
+            val currentVote = annotations
+                    ?.pollResponseSummary
+                    ?.aggregatedContent
+                    ?.myVote
+            if (currentVote == optionId) {
+                room.sendService().withdrawPollVote(pollEventId)
+            } else {
+                room.sendService().voteToPoll(
+                        pollEventId = pollEventId,
+                        answerId = optionId
+                )
             }
         }.onFailure { Timber.w("Failed to vote in poll with id $pollEventId in room with id $roomId") }
     }

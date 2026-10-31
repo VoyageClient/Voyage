@@ -58,6 +58,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Polls**: create polls in the stable MSC3381 format, read both formats, and match votes, closure and edits to the original poll's format. Tap your selected answer to retract your votes; tallies update when responses are redacted.
 
+- **Poll voters**: long-press a poll answer to see who voted for it.
+
 - **Message pinning**: pin and unpin messages, sorted by most recent, with a pinned-messages banner you can turn off.
 
 - **Mentions list**: a searchable, filterable list of everything that has mentioned you across your rooms, newest first.

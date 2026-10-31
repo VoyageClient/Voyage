@@ -108,6 +108,7 @@ class MessagePreviewContentBuilderTest {
             pollItemViewStateFactory = PollItemViewStateFactory(
                     mockk(relaxed = true),
                     PollOptionViewStateFactory(),
+                    mockk(relaxed = true),
             ),
             pollResponseDataFactory = mockk { every { create(any()) } returns null },
             urlMapProvider = mockk { every { buildStaticMapUrl(any(), any(), any(), any(), any()) } returns "https://maps/static.png" },

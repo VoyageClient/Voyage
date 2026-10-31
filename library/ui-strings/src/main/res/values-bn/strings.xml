@@ -2171,10 +2171,6 @@
     </plurals>
     <string name="poll_no_votes_cast">কোনো ভোট দেওয়া হয়নি</string>
     <string name="poll_undisclosed_not_ended">জরিপ শেষ হলে ফলাফল দেখা যাবে</string>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="one">%1$dটি ভোট দেওয়া হয়েছে। ফলাফল দেখতে ভোট দিন</item>
-        <item quantity="other">%1$dটি ভোট দেওয়া হয়েছে। ফলাফল দেখতে ভোট দিন</item>
-    </plurals>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">%1$dটি ভোটের ভিত্তিতে চূড়ান্ত ফলাফল</item>
         <item quantity="other">%1$dটি ভোটের ভিত্তিতে চূড়ান্ত ফলাফল</item>
@@ -3579,4 +3575,6 @@
     <string name="homeserver_info_unavailable">অনুপলব্ধ</string>
     <string name="settings_show_message_timestamps">বার্তার সময় দেখান</string>
     <string name="settings_show_message_timestamps_summary">টাইমলাইনে বার্তাগুলি পাঠানোর সময় দেখান।</string>
+    <string name="settings_reveal_undisclosed_poll_results">লুকানো জরিপের ফলাফল দেখান</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">যেসব জরিপের ফলাফল শেষ না হওয়া পর্যন্ত লুকানো থাকার কথা, সেগুলোর ভোটও দেখান</string>
 </resources>

@@ -1899,9 +1899,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="other">Hasil akhir berdasarkan oleh %1$d suara</item>
     </plurals>
-    <plurals name="poll_total_vote_count_before_ended_and_not_voted">
-        <item quantity="other">%1$d suara diberikan. Berikan suara untuk melihat hasilnya</item>
-    </plurals>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
         <item quantity="other">Berdasarkan oleh %1$d suara</item>
     </plurals>
@@ -3561,4 +3558,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="homeserver_info_unavailable">Tidak tersedia</string>
     <string name="settings_show_message_timestamps">Tampilkan waktu pesan</string>
     <string name="settings_show_message_timestamps_summary">Tampilkan waktu pesan dikirim di linimasa.</string>
+    <string name="settings_reveal_undisclosed_poll_results">Tampilkan hasil poll tersembunyi</string>
+    <string name="settings_reveal_undisclosed_poll_results_summary">Tampilkan suara pada poll yang hasilnya seharusnya tetap tersembunyi hingga berakhir</string>
 </resources>
