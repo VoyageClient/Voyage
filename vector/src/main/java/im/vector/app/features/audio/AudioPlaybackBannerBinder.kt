@@ -61,9 +61,14 @@ internal fun AudioPlaybackController.State.credits(context: Context): String =
         if (error) errorMessage(context) else AudioDetails.credits(title, artist, album).orEmpty().neutralizeDirectionOverrides()
 
 object AudioPlaybackBannerBinder {
-    fun bind(banner: AudioPlaybackBannerView, fragment: Fragment, controller: AudioPlaybackController) {
+    fun bind(
+            banner: AudioPlaybackBannerView,
+            fragment: Fragment,
+            controller: AudioPlaybackController,
+            openControls: (open: () -> Unit) -> Unit = { it() },
+    ) {
         banner.controller = controller
-        banner.onControls = { showControls(fragment, controller) }
+        banner.onControls = { openControls { if (fragment.view != null) showControls(fragment, controller) } }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 controller.state.collect { banner.render(it) }

@@ -414,7 +414,7 @@ class TimelineFragment :
         setupJumpToBottomView()
         setupPinnedMessagesBanner()
         setupMassRedactionBanner()
-        AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
+        AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController) { openAfterKeyboardDismissal(open = it) }
         setupUserIdentityWarning()
         setupLiveLocationIndicator()
         setupBackPressHandling()
