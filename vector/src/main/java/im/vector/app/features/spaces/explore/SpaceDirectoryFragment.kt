@@ -15,14 +15,12 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
-import androidx.core.text.toSpannable
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyVisibilityTracker
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.alignWithToolbarTitle
@@ -32,10 +30,7 @@ import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
-import im.vector.app.core.resources.ColorProvider
-import im.vector.app.core.utils.colorizeMatchingText
-import im.vector.app.core.utils.isValidUrl
-import im.vector.app.core.utils.openUrlInExternalBrowser
+import im.vector.app.core.utils.openExternalLinkWithConfirmation
 import im.vector.app.databinding.FragmentSpaceDirectoryBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.permalink.PermalinkHandler
@@ -46,7 +41,6 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
-import java.net.URL
 import javax.inject.Inject
 
 @Parcelize
@@ -64,7 +58,6 @@ class SpaceDirectoryFragment :
 
     @Inject lateinit var epoxyController: SpaceDirectoryController
     @Inject lateinit var permalinkHandler: PermalinkHandler
-    @Inject lateinit var colorProvider: ColorProvider
 
     override fun getMenuRes() = R.menu.menu_space_directory
 
@@ -252,30 +245,7 @@ class SpaceDirectoryFragment :
         viewLifecycleOwner.lifecycleScope.launch {
             val isHandled = permalinkHandler.launch(requireActivity(), url, null)
             if (!isHandled) {
-                if (title.isValidUrl() && url.isValidUrl() && URL(title).host != URL(url).host) {
-                    MaterialAlertDialogBuilder(requireActivity(), im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_Destructive)
-                            .setTitle(CommonStrings.external_link_confirmation_title)
-                            .setMessage(
-                                    getString(CommonStrings.external_link_confirmation_message, title, url)
-                                            .toSpannable()
-                                            .colorizeMatchingText(
-                                                    url,
-                                                    colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
-                                            )
-                                            .colorizeMatchingText(
-                                                    title,
-                                                    colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
-                                            )
-                            )
-                            .setPositiveButton(CommonStrings._continue) { _, _ ->
-                                openUrlInExternalBrowser(requireContext(), url)
-                            }
-                            .setNegativeButton(CommonStrings.action_cancel, null)
-                            .show()
-                } else {
-                    // Open in external browser, in a new Tab
-                    openUrlInExternalBrowser(requireContext(), url)
-                }
+                openExternalLinkWithConfirmation(requireActivity(), url, title)
             }
         }
         // In fact it is always managed

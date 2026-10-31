@@ -84,7 +84,7 @@ class RoomProfileController @Inject constructor(
         fun onRoomAclClicked()
         fun onRoomIdClicked()
         fun onRoomDevToolsClicked()
-        fun onUrlInTopicClicked(url: String): Boolean
+        fun onUrlInTopicClicked(url: String, title: String): Boolean
         fun onUrlInTopicLongClicked(url: String)
         fun doMigrateToVersion(newVersion: String)
         fun restoreEncryptionState()
@@ -108,7 +108,7 @@ class RoomProfileController @Inject constructor(
                     buildProfileSection(stringProvider.getString(CommonStrings.room_settings_topic))
                     val topicCallback = object : TimelineEventController.UrlClickCallback {
                         override fun onUrlClicked(url: String, title: String): Boolean {
-                            return host.callback?.onUrlInTopicClicked(url) ?: false
+                            return host.callback?.onUrlInTopicClicked(url, title) ?: false
                         }
 
                         override fun onUrlLongClicked(url: String): Boolean {

@@ -421,7 +421,7 @@ class RoomProfileFragment :
         navigator.openDevTools(requireContext(), roomProfileArgs.roomId)
     }
 
-    override fun onUrlInTopicClicked(url: String): Boolean {
+    override fun onUrlInTopicClicked(url: String, title: String): Boolean {
         viewLifecycleOwner.lifecycleScope.launch {
             // PermalinkHandler opens a room you're already in directly; if it can't (e.g. an unjoined alias
             // whose server lookup fails, which it swallows as "not managed") fall back to the in-app matrix.to
@@ -431,7 +431,7 @@ class RoomProfileFragment :
                 if (isSupportedPermalink(url)) {
                     navigator.openMatrixToBottomSheet(requireActivity(), url, im.vector.app.features.matrixto.OriginOfMatrixTo.LINK)
                 } else {
-                    im.vector.app.core.utils.openUrlInExternalBrowser(requireContext(), url)
+                    im.vector.app.core.utils.openExternalLinkWithConfirmation(requireActivity(), url, title)
                 }
             }
         }

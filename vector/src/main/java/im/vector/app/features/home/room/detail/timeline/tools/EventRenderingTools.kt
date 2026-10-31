@@ -14,6 +14,7 @@ import android.text.style.ClickableSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.text.style.StyleSpan
+import android.text.style.URLSpan
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
@@ -25,6 +26,8 @@ import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.isTappableLink
+import im.vector.app.core.utils.isValidUrl
+import im.vector.app.core.utils.openExternalLinkWithConfirmation
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.html.EmoteImageSpan
@@ -281,8 +284,11 @@ fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickC
             LinkClickSourceHolder.record(textView.findContainingTimelineEventId())
             if (url.isTappableLink() && urlClickCallback?.onUrlClicked(url, actualText) == true) return true
             // Nothing on this screen claimed it (a biography, a room topic in a preview, …): a matrix
-            // permalink still belongs in the app rather than in the system's URI handler.
-            return openPermalinkInApp(textView.context, url)
+            // permalink still belongs in the app, and a web link gets the same label check as the timeline.
+            if (openPermalinkInApp(textView.context, url)) return true
+            if (span !is URLSpan || !url.isValidUrl()) return false
+            openExternalLinkWithConfirmation(textView.context, url, actualText)
+            return true
         }
 
         override fun onLinkLongClicked(textView: TextView, url: String, actualText: String): Boolean {

@@ -35,7 +35,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
-import androidx.core.text.toSpannable
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -75,9 +74,6 @@ import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.collectBatched
 import im.vector.app.core.extensions.commitTransaction
-import im.vector.app.core.extensions.containsRtLOverride
-import im.vector.app.core.extensions.ensureEndsLeftToRight
-import im.vector.app.core.extensions.filterDirectionOverrides
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -105,17 +101,14 @@ import im.vector.app.core.utils.KeyboardStateUtils
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.checkPermissions
-import im.vector.app.core.utils.colorizeMatchingText
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.core.utils.createUIHandler
 import im.vector.app.core.utils.hideImeQuickly
-import im.vector.app.core.utils.isExpectedMscLink
 import im.vector.app.core.utils.isTappableLink
-import im.vector.app.core.utils.isValidUrl
 import im.vector.app.core.utils.onPermissionDeniedDialog
+import im.vector.app.core.utils.openExternalLinkWithConfirmation
 import im.vector.app.core.utils.openLocation
-import im.vector.app.core.utils.openUrlInExternalBrowser
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.safeStartActivity
 import im.vector.app.core.utils.saveMedia
@@ -274,7 +267,6 @@ import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
-import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
 
@@ -2085,61 +2077,17 @@ class TimelineFragment :
                     })
             if (!isActive || !isAdded) return@launch
             if (!isManaged) {
-                when {
-                    // A matrix.to / permalink that we recognise but couldn't resolve (e.g. offline). Opening it in a
-                    // browser doesn't help joining, so surface the error with a retry instead.
-                    isSupportedPermalink(url) -> {
-                        displayPermalinkRetryDialog(url, title)
-                    }
-                    url.containsRtLOverride() -> {
-                        displayUrlConfirmationDialog(
-                                seenUrl = title.ensureEndsLeftToRight(),
-                                actualUrl = url.filterDirectionOverrides(),
-                                continueTo = url
-                        )
-                    }
-                    title.isValidUrl() && url.isValidUrl() && URL(title).host != URL(url).host -> {
-                        displayUrlConfirmationDialog(title, url)
-                    }
-                    !title.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(title) &&
-                            url != "http://$title" && url != "https://$title" -> {
-                        displayLinkDestinationDialog(url)
-                    }
-                    else -> {
-                        openUrlInExternalBrowser(requireContext(), url)
-                    }
+                // A matrix.to / permalink that we recognise but couldn't resolve (e.g. offline). Opening it in a
+                // browser doesn't help joining, so surface the error with a retry instead.
+                if (isSupportedPermalink(url)) {
+                    displayPermalinkRetryDialog(url, title)
+                } else {
+                    openExternalLinkWithConfirmation(requireActivity(), url, title)
                 }
             }
         }
         // In fact it is always managed
         return true
-    }
-
-    private fun displayUrlConfirmationDialog(seenUrl: String, actualUrl: String, continueTo: String = actualUrl) {
-        MaterialAlertDialogBuilder(requireActivity(), im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_NegativeDestructive)
-                .setTitle(CommonStrings.external_link_confirmation_title)
-                .setMessage(
-                        getString(CommonStrings.external_link_confirmation_message, seenUrl, actualUrl)
-                                .toSpannable()
-                                .colorizeMatchingText(actualUrl, colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
-                                .colorizeMatchingText(seenUrl, colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
-                )
-                .setPositiveButton(CommonStrings._continue) { _, _ ->
-                    context?.let { openUrlInExternalBrowser(it, continueTo) }
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
-    }
-
-    private fun displayLinkDestinationDialog(url: String) {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.external_link_destination_title)
-                .setMessage(getString(CommonStrings.external_link_destination_message, url))
-                .setPositiveButton(CommonStrings._continue) { _, _ ->
-                    context?.let { openUrlInExternalBrowser(it, url) }
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
     }
 
     private fun isSupportedPermalink(url: String): Boolean {
