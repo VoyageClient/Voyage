@@ -580,7 +580,16 @@ class ImageContentRenderer @Inject constructor(
                         else -> it.optionalTransform(cornerTransformation)
                     }
                 }
-                .let { if (data.isLocalContent) it.override(size.width, size.height) else it }
+                .let {
+                    when {
+                        data.isLocalContent -> it.override(size.width, size.height)
+                        // Decoding against the loading square bakes corners that magnify once sizeToPicture
+                        // grows the view. Stickers are sized from their decoded pixels, so left as is.
+                        !data.hasKnownDimensions() && mode != Mode.STICKER ->
+                            (rememberedBox(data, mode) ?: Size(data.maxWidth, data.maxHeight)).let { box -> it.override(box.width, box.height) }
+                        else -> it
+                    }
+                }
     }
 
     private fun <T> GlideRequest<T>.withFreshKey(needsFreshKey: Boolean): GlideRequest<T> =
