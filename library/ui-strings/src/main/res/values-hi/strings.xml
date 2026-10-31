@@ -1143,7 +1143,6 @@
     <string name="create_room_unknown_users_dialog_submit">फिर भी चैट शुरू करें</string>
     <string name="keys_backup_unable_to_get_trust_info">भरोसे की जानकारी प्राप्त करते समय एक त्रुटि हुई</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">कुंजी बैकअप डेटा प्राप्त करते समय एक त्रुटि हुई</string>
-    <string name="import_e2e_keys_from_file">फ़ाइल \"%1$s\" से e2e कुंजियां इम्पोर्ट करें।</string>
     <string name="settings_sdk_version">Matrix SDK वर्शन</string>
     <string name="settings_other_third_party_notices">अन्य थर्ड पार्टी नोटिस</string>
     <string name="navigate_to_room_when_already_in_the_room">आप पहले से यह रूम देख रहे हैं!</string>
@@ -3505,4 +3504,5 @@
     <string name="settings_show_message_timestamps_summary">टाइमलाइन में संदेश भेजे जाने का समय दिखाएं।</string>
     <string name="settings_reveal_undisclosed_poll_results">छिपे हुए पोल नतीजे दिखाएं</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">उन पोल के वोट दिखाएं जिनके नतीजे खत्म होने तक छिपे रहने चाहिए</string>
+    <string name="import_e2e_keys_from_file">फ़ाइल \"%1$s\" से E2E कुंजियां इम्पोर्ट करें।</string>
 </resources>

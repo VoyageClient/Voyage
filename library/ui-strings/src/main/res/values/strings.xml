@@ -1557,7 +1557,7 @@
     <string name="keys_backup_unable_to_get_trust_info">"An error occurred getting trust info"</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">"An error occurred getting keys backup data"</string>
 
-    <string name="import_e2e_keys_from_file">"Import e2e keys from file \"%1$s\"."</string>
+    <string name="import_e2e_keys_from_file">"Import E2E keys from file \"%1$s\"."</string>
 
     <string name="settings_sdk_version">Matrix SDK Version</string>
     <string name="settings_other_third_party_notices">Other third party notices</string>

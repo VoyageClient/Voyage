@@ -931,7 +931,6 @@
     <string name="navigate_to_room_when_already_in_the_room">אתה כבר צופה בחדר הזה!</string>
     <string name="settings_other_third_party_notices">הודעות צד שלישי אחרות</string>
     <string name="settings_sdk_version">גרסת SDK של מטריקס</string>
-    <string name="import_e2e_keys_from_file">ייבא מפתחות e2e מהקובץ \"%1$s\".</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">אירעה שגיאה בקבלת נתוני גיבוי למפתחות</string>
     <string name="keys_backup_unable_to_get_trust_info">אירעה שגיאה בקבלת פרטי אמון</string>
     <string name="create_room_federation_error">החדר נוצר, אך כמה הזמנות לא נשלחו מהסיבה הבאה:
@@ -3714,4 +3713,5 @@
     <string name="settings_show_message_timestamps_summary">הצג בציר הזמן מתי ההודעות נשלחו.</string>
     <string name="settings_reveal_undisclosed_poll_results">חשיפת תוצאות סקרים מוסתרות</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">הצגת ההצבעות בסקרים שתוצאותיהם אמורות להישאר מוסתרות עד לסיומם</string>
+    <string name="import_e2e_keys_from_file">ייבא מפתחות E2E מהקובץ \"%1$s\".</string>
 </resources>

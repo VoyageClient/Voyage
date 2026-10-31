@@ -884,7 +884,6 @@
     <string name="create_room_public_description">Qualquer pessoa poderá entrar nesta sala</string>
     <string name="keys_backup_unable_to_get_trust_info">Um erro ocorreu ao obter info de confiança</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Um erro ocorreu ao obter dados de backup de chaves</string>
-    <string name="import_e2e_keys_from_file">Importar as chaves e2e de arquivo \"%1$s\".</string>
     <string name="settings_sdk_version">Versão de SDK de Matrix</string>
     <string name="settings_other_third_party_notices">Outras notas de terceiros</string>
     <string name="navigate_to_room_when_already_in_the_room">Você já está visualizando esta sala!</string>
@@ -3623,4 +3622,5 @@
     <string name="settings_show_message_timestamps_summary">Exibir na linha do tempo o horário em que as mensagens foram enviadas.</string>
     <string name="settings_reveal_undisclosed_poll_results">Revelar resultados ocultos de enquetes</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Mostrar os votos de enquetes cujos resultados deveriam ficar ocultos até o fim</string>
+    <string name="import_e2e_keys_from_file">Importar chaves E2E do arquivo \"%1$s\".</string>
 </resources>

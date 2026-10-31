@@ -1200,7 +1200,6 @@
     <string name="create_room_unknown_users_dialog_submit">তবুও চ্যাট শুরু করুন</string>
     <string name="keys_backup_unable_to_get_trust_info">বিশ্বস্ততার তথ্য পেতে একটি ত্রুটি হয়েছে</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">কী ব্যাকআপের ডেটা পেতে একটি ত্রুটি হয়েছে</string>
-    <string name="import_e2e_keys_from_file">\"%1$s\" ফাইল থেকে e2e কী ইমপোর্ট করুন।</string>
     <string name="settings_sdk_version">Matrix SDK সংস্করণ</string>
     <string name="settings_other_third_party_notices">অন্যান্য তৃতীয় পক্ষের বিজ্ঞপ্তি</string>
     <string name="navigate_to_room_when_already_in_the_room">আপনি ইতিমধ্যে এই রুমটি দেখছেন!</string>
@@ -3577,4 +3576,5 @@
     <string name="settings_show_message_timestamps_summary">টাইমলাইনে বার্তাগুলি পাঠানোর সময় দেখান।</string>
     <string name="settings_reveal_undisclosed_poll_results">লুকানো জরিপের ফলাফল দেখান</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">যেসব জরিপের ফলাফল শেষ না হওয়া পর্যন্ত লুকানো থাকার কথা, সেগুলোর ভোটও দেখান</string>
+    <string name="import_e2e_keys_from_file">\"%1$s\" ফাইল থেকে E2E কী ইম্পোর্ট করুন।</string>
 </resources>

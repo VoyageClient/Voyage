@@ -758,7 +758,6 @@
     <string name="create_room_public_description">Каждый сможет присоединиться к этой комнате</string>
     <string name="keys_backup_unable_to_get_trust_info">Произошла ошибка при получении информации о доверии</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Произошла ошибка при получении ключей резервного копирования данных</string>
-    <string name="import_e2e_keys_from_file">Импорт ключей сквозного шифрования из файла \"%1$s\".</string>
     <string name="settings_sdk_version">Версия Matrix SDK</string>
     <string name="settings_other_third_party_notices">Другие уведомления третьих лиц</string>
     <string name="navigate_to_room_when_already_in_the_room">Вы уже просмотрели эту комнату!</string>
@@ -3745,4 +3744,5 @@
     <string name="settings_show_message_timestamps_summary">Показывать время отправки сообщений в ленте.</string>
     <string name="settings_reveal_undisclosed_poll_results">Показывать скрытые результаты опросов</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Показывать голоса в опросах, результаты которых должны быть скрыты до завершения</string>
+    <string name="import_e2e_keys_from_file">Импорт ключей сквозного шифрования из файла \"%1$s\".</string>
 </resources>

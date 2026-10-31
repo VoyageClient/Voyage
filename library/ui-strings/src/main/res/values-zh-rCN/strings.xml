@@ -835,7 +835,6 @@
     <string name="create_room_public_description">任何人都可以加入此房间</string>
     <string name="keys_backup_unable_to_get_trust_info">获取信任信息时发生错误</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">获取密钥备份数据时发生错误</string>
-    <string name="import_e2e_keys_from_file">从文件“%1$s”导入端到端密钥。</string>
     <string name="settings_other_third_party_notices">其它第三方通知</string>
     <string name="navigate_to_room_when_already_in_the_room">你已经在查看此房间！</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">注册令牌</string>
@@ -3560,4 +3559,5 @@
     <string name="settings_show_message_timestamps_summary">在时间线上显示消息的发送时间。</string>
     <string name="settings_reveal_undisclosed_poll_results">显示隐藏的投票结果</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">显示本应在结束前隐藏结果的投票中的选票</string>
+    <string name="import_e2e_keys_from_file">从文件“%1$s”导入端到端密钥。</string>
 </resources>

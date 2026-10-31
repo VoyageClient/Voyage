@@ -1180,6 +1180,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/DeviceListManager.kt',
         'org/matrix/android/sdk/internal/crypto/IncomingKeyRequestManager.kt',
         'org/matrix/android/sdk/internal/crypto/MegolmSessionMerge.kt',
+        'org/matrix/android/sdk/internal/crypto/FluffyChatBackup.kt',
         'org/matrix/android/sdk/internal/crypto/MXOlmDevice.kt',
         'org/matrix/android/sdk/internal/crypto/MyDeviceInfoHolder.kt',
         'org/matrix/android/sdk/internal/crypto/ObjectSigner.kt',

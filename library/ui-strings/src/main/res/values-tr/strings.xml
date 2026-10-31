@@ -1433,7 +1433,6 @@
     <string name="preference_help">Yardım</string>
     <string name="preference_root_legals">Yasal</string>
     <string name="push_gateway_item_app_id">app_id:</string>
-    <string name="import_e2e_keys_from_file">\"%1$s\" dosyasından e2e anahtarlarını içe aktarın.</string>
     <string name="create_new_space">Yeni Alan Yarat</string>
     <string name="command_description_whois">Bir kullanıcı hakkında bilgi görüntüler</string>
     <string name="command_description_avatar_for_room">Avatarınızı yalnızca bu odadaki değiştirir</string>
@@ -3581,4 +3580,5 @@
     <string name="settings_show_message_timestamps_summary">Zaman çizelgesinde mesajların gönderildiği saati göster.</string>
     <string name="settings_reveal_undisclosed_poll_results">Gizli anket sonuçlarını göster</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Sonuçları bitene kadar gizli kalması gereken anketlerdeki oyları göster</string>
+    <string name="import_e2e_keys_from_file">\"%1$s\" dosyasından E2E anahtarlarını içe aktar.</string>
 </resources>

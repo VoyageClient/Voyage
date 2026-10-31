@@ -1182,6 +1182,14 @@ internal class DefaultCryptoService @Inject constructor(
         return withContext(coroutineDispatchers.crypto) {
             Timber.tag(loggerTag.value).v("importRoomKeys starts")
 
+            if (FluffyChatBackup.isFluffyChatBackup(roomKeysAsArray)) {
+                return@withContext megolmSessionDataImporter.handle(
+                        megolmSessionsData = FluffyChatBackup.readMegolmSessions(roomKeysAsArray, userId),
+                        fromBackup = false,
+                        progressListener = progressListener
+                )
+            }
+
             val t0 = clock.epochMillis()
             val roomKeys = MXMegolmExportEncryption.decryptMegolmKeyFile(roomKeysAsArray, password)
             val t1 = clock.epochMillis()

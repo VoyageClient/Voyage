@@ -1124,7 +1124,6 @@
     <string name="navigate_to_room_when_already_in_the_room">既にこのルームを表示しています！</string>
     <string name="settings_other_third_party_notices">その他の外部ライブラリーのライセンス</string>
     <string name="settings_sdk_version">Matrix SDKのバージョン</string>
-    <string name="import_e2e_keys_from_file">ファイル\"%1$s\"からエンドツーエンド暗号鍵をインポート。</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">鍵のバックアップデータの取得中にエラーが発生しました</string>
     <string name="keys_backup_unable_to_get_trust_info">信頼情報の取得中にエラーが発生しました</string>
     <string name="create_room_federation_error">ルームが作成されましたが、一部の招待が送信されていません。理由：
@@ -3558,4 +3557,5 @@
     <string name="settings_show_message_timestamps_summary">タイムラインにメッセージの送信時刻を表示します。</string>
     <string name="settings_reveal_undisclosed_poll_results">非公開のアンケート結果を表示</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">終了まで結果を非公開にする設定のアンケートでも投票を表示</string>
+    <string name="import_e2e_keys_from_file">ファイル\"%1$s\"からエンドツーエンド暗号鍵をインポート。</string>
 </resources>

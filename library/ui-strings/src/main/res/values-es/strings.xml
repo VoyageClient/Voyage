@@ -844,7 +844,6 @@
     <string name="widget_integration_review_terms">Para continuar es necesario que aceptes los Términos de este servicio.</string>
     <string name="identity_server_not_defined">No estás usando ningún Servidor de Identidad</string>
     <string name="error_user_already_logged_in">Parece que estás intentando conectarte a otro servidor doméstico. ¿Quieres cerrar sesión\?</string>
-    <string name="import_e2e_keys_from_file">Importar llaves E2E des del fichero \"%1$s\".</string>
     <string name="settings_sdk_version">Versión del SDK de Matrix</string>
     <string name="settings_other_third_party_notices">Otros avisos de terceros</string>
     <string name="navigate_to_room_when_already_in_the_room">¡Ya estas viendo esta sala!</string>
@@ -3611,4 +3610,5 @@
     <string name="settings_show_message_timestamps_summary">Muestra en la cronología la hora a la que se enviaron los mensajes.</string>
     <string name="settings_reveal_undisclosed_poll_results">Revelar resultados ocultos de encuestas</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Mostrar los votos de las encuestas cuyos resultados deberían permanecer ocultos hasta que finalicen</string>
+    <string name="import_e2e_keys_from_file">Importar claves E2E desde el archivo \"%1$s\".</string>
 </resources>

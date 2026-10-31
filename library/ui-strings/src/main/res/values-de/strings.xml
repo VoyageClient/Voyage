@@ -826,7 +826,6 @@
     <string name="link_copied_to_clipboard">Link in die Zwischenablage kopiert</string>
     <string name="creating_direct_room">Raum erstellen …</string>
     <string name="message_view_edit_history">Bearbeitungsverlauf anzeigen</string>
-    <string name="import_e2e_keys_from_file">E2E-Schlüssel aus der Datei \"%1$s\" importieren.</string>
     <string name="send_file_step_sending_thumbnail">Miniaturbild wird gesendet (%1$s / %2$s)</string>
     <string name="send_file_step_sending_file">Datei wird gesendet (%1$s / %2$s)</string>
     <string name="downloaded_file">Die Datei %1$s wurde heruntergeladen!</string>
@@ -3622,4 +3621,5 @@
     <string name="settings_show_message_timestamps_summary">Zeigt in der Zeitleiste an, wann Nachrichten gesendet wurden.</string>
     <string name="settings_reveal_undisclosed_poll_results">Verborgene Umfrageergebnisse anzeigen</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Stimmen auch bei Umfragen anzeigen, deren Ergebnisse bis zum Ende verborgen bleiben sollen</string>
+    <string name="import_e2e_keys_from_file">E2E-Schlüssel aus der Datei \"%1$s\" importieren.</string>
 </resources>

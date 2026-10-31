@@ -1164,7 +1164,6 @@
     <string name="create_room_unknown_users_dialog_submit">پھر بھی گفتگو شروع کریں</string>
     <string name="keys_backup_unable_to_get_trust_info">اعتماد کی معلومات حاصل کرتے وقت خرابی پیش آئی</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">چابیوں کے پشتارے کا ڈیٹا حاصل کرتے وقت خرابی پیش آئی</string>
-    <string name="import_e2e_keys_from_file">فائل \"%1$s\" سے e2e چابیاں درآمد کریں۔</string>
     <string name="settings_sdk_version">Matrix SDK ورژن</string>
     <string name="settings_other_third_party_notices">فریقِ ثالث کے دیگر نوٹس</string>
     <string name="navigate_to_room_when_already_in_the_room">آپ پہلے ہی یہ کمرہ دیکھ رہے ہیں!</string>
@@ -3517,4 +3516,5 @@
     <string name="settings_show_message_timestamps_summary">ٹائم لائن میں پیغامات بھیجنے کا وقت دکھائیں۔</string>
     <string name="settings_reveal_undisclosed_poll_results">پوشیدہ رائے شماری کے نتائج دکھائیں</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">ان رائے شماریوں کے ووٹ دکھائیں جن کے نتائج ختم ہونے تک پوشیدہ رہنے چاہئیں</string>
+    <string name="import_e2e_keys_from_file">فائل \"%1$s\" سے E2E چابیاں درآمد کریں۔</string>
 </resources>

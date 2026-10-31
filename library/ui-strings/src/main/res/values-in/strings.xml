@@ -1163,7 +1163,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="navigate_to_room_when_already_in_the_room">Anda telah menampilkan ruangan ini!</string>
     <string name="settings_other_third_party_notices">Pemberitahuan pihak ketiga lainnya</string>
     <string name="settings_sdk_version">Versi SDK Matrix</string>
-    <string name="import_e2e_keys_from_file">Impor kunci E2E dari file \"%1$s\".</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Sebuah kesalahan terjadi mendapatkan data cadangan kunci</string>
     <string name="keys_backup_unable_to_get_trust_info">Sebuah kesalahan terjadi mendapatkan info kepercyaan</string>
     <string name="create_room_federation_error">Ruangan telah dibuat, tetapi beberapa undangan belum terkirim karena alasan berikut:
@@ -3560,4 +3559,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_show_message_timestamps_summary">Tampilkan waktu pesan dikirim di linimasa.</string>
     <string name="settings_reveal_undisclosed_poll_results">Tampilkan hasil poll tersembunyi</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Tampilkan suara pada poll yang hasilnya seharusnya tetap tersembunyi hingga berakhir</string>
+    <string name="import_e2e_keys_from_file">Impor kunci E2E dari file \"%1$s\".</string>
 </resources>

@@ -1420,7 +1420,6 @@
     <string name="create_room_unknown_users_dialog_submit">ابدأ المحادثة على أي حال</string>
     <string name="keys_backup_unable_to_get_trust_info">حدث خطأ أثناء جلب معلومات الثقة</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">حدث خطأ أثناء جلب بيانات النسخة الاحتياطية للمفاتيح</string>
-    <string name="import_e2e_keys_from_file">استورد مفاتيح تعمية الطرفين من الملف ”%1$s“.</string>
     <string name="settings_sdk_version">إصدارة Matrix SDK</string>
     <string name="settings_other_third_party_notices">إشعارات أطراف ثالثة أخرى</string>
     <string name="settings_push_rules">قواعد الدفع</string>
@@ -3768,4 +3767,5 @@
     <string name="settings_show_message_timestamps_summary">اعرض وقت إرسال الرسائل في التسلسل الزمني.</string>
     <string name="settings_reveal_undisclosed_poll_results">كشف نتائج الاستطلاعات المخفية</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">إظهار الأصوات في الاستطلاعات التي يُفترض أن تبقى نتائجها مخفية حتى انتهائها</string>
+    <string name="import_e2e_keys_from_file">استورد مفاتيح تعمية الطرفين من الملف ”%1$s“.</string>
 </resources>

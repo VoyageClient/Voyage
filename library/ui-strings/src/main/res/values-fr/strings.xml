@@ -776,7 +776,6 @@
     <string name="create_room_public_description">Tout le monde pourra rejoindre ce salon</string>
     <string name="keys_backup_unable_to_get_trust_info">Une erreur est survenue lors de la récupération des informations de confiance</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Une erreur est survenue lors de la récupération des données de sauvegarde de clés</string>
-    <string name="import_e2e_keys_from_file">Importer les clés de chiffrement depuis le fichier « %1$s ».</string>
     <string name="settings_sdk_version">Version du SDK de Matrix</string>
     <string name="settings_other_third_party_notices">Licences tierces</string>
     <string name="navigate_to_room_when_already_in_the_room">Vous êtes déjà en train de visualiser ce salon !</string>
@@ -3623,4 +3622,5 @@
     <string name="settings_show_message_timestamps_summary">Afficher l\'heure d\'envoi des messages dans la chronologie.</string>
     <string name="settings_reveal_undisclosed_poll_results">Révéler les résultats masqués des sondages</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Afficher les votes des sondages dont les résultats doivent rester masqués jusqu\'à leur fin</string>
+    <string name="import_e2e_keys_from_file">Importer les clés de chiffrement depuis le fichier « %1$s ».</string>
 </resources>

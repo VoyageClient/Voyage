@@ -819,76 +819,74 @@ class VectorSettingsSecurityPrivacyFragment :
                 views.dialogE2eKeysPassphraseFilename.isVisible = true
                 views.dialogE2eKeysPassphraseFilename.text = getString(CommonStrings.import_e2e_keys_from_file, filename)
             }
+            // FluffyChat session exports are unencrypted.
+            views.importDialogTil.isVisible = filename?.endsWith(".fluffybackup", ignoreCase = true) != true
 
-            val builder = MaterialAlertDialogBuilder(thisActivity)
+            MaterialAlertDialogBuilder(thisActivity)
                     .setTitle(CommonStrings.encryption_import_room_keys)
                     .setView(dialogLayout)
+                    .setPositiveButton(CommonStrings.encryption_import_import) { _, _ ->
+                        runKeysImport(uri, mimetype, views.dialogE2eKeysPassphraseEditText.text.toString())
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
+    }
 
-            // The passphrase is optional (files can be exported without one), so keep import enabled
-            // even with an empty field.
-            views.dialogE2eKeysImportButton.isEnabled = true
+    private fun runKeysImport(uri: Uri, mimetype: String?, password: String) {
+        val thisActivity = activity ?: return
+        val appContext = thisActivity.applicationContext
 
-            val importDialog = builder.show()
-
-            views.dialogE2eKeysImportButton.debouncedClicks {
-                val password = views.dialogE2eKeysPassphraseEditText.text.toString()
-
-                val progressLayout = thisActivity.layoutInflater.inflate(R.layout.dialog_import_e2e_keys_progress, null)
-                val progressViews = DialogImportE2eKeysProgressBinding.bind(progressLayout)
-                progressViews.importKeysProgressStatus.text = getString(CommonStrings.import_e2e_keys_progress)
-                val progressDialog = MaterialAlertDialogBuilder(thisActivity)
-                        .setTitle(CommonStrings.encryption_import_room_keys)
-                        .setView(progressLayout)
-                        .setCancelable(false)
-                        .show()
-                // Update the dialog's OWN views (not the fragment view) and no-op once the dialog window is
-                // gone, so a rotation / backgrounding mid-import can never poke a detached view.
-                val progressListener = object : ProgressListener {
-                    override fun onProgress(progress: Int, total: Int) {
-                        progressViews.root.post {
-                            if (progressDialog.isShowing) {
-                                progressViews.importKeysProgress.max = total
-                                progressViews.importKeysProgress.setProgressCompat(progress, true)
-                                progressViews.importKeysProgressCount.text =
-                                        appContext.getString(CommonStrings.import_e2e_keys_progress_count, progress, total)
-                            }
-                        }
+        val progressLayout = thisActivity.layoutInflater.inflate(R.layout.dialog_import_e2e_keys_progress, null)
+        val progressViews = DialogImportE2eKeysProgressBinding.bind(progressLayout)
+        progressViews.importKeysProgressStatus.text = getString(CommonStrings.import_e2e_keys_progress)
+        val progressDialog = MaterialAlertDialogBuilder(thisActivity)
+                .setTitle(CommonStrings.encryption_import_room_keys)
+                .setView(progressLayout)
+                .setCancelable(false)
+                .show()
+        // Only the dialog's own views, and only while it shows: the import outlives rotation.
+        val progressListener = object : ProgressListener {
+            override fun onProgress(progress: Int, total: Int) {
+                progressViews.root.post {
+                    if (progressDialog.isShowing) {
+                        progressViews.importKeysProgress.max = total
+                        progressViews.importKeysProgress.setProgressCompat(progress, true)
+                        progressViews.importKeysProgressCount.text =
+                                appContext.getString(CommonStrings.import_e2e_keys_progress_count, progress, total)
                     }
                 }
+            }
+        }
 
-                // Run on the session scope, not the fragment's: the import must keep running across a screen
-                // rotation or the app being backgrounded (the fragment scope would cancel it). Everything that
-                // touches the UI afterwards is best-effort — the Activity/window may be gone by the time we finish.
-                val importScope = activeSessionHolder.getSafeActiveSession()?.coroutineScope ?: lifecycleScope
-                importScope.launch {
-                    val data = try {
-                        keysImporter.import(uri, mimetype, password, progressListener)
-                    } catch (failure: Throwable) {
-                        appContext.toast(errorFormatter.toHumanReadable(failure))
-                        null
-                    }
-                    withContext(Dispatchers.Main) {
-                        tryOrNull { progressDialog.dismiss() }
-                        if (data != null) {
-                            val message = appContext.resources.getQuantityString(
-                                    CommonPlurals.encryption_import_room_keys_success,
-                                    data.successfullyNumberOfImportedKeys,
-                                    data.successfullyNumberOfImportedKeys,
-                                    data.totalNumberOfKeys,
-                            )
-                            val current = activity
-                            if (isResumed && current != null && !current.isFinishing) {
-                                MaterialAlertDialogBuilder(current)
-                                        .setMessage(message)
-                                        .setPositiveButton(CommonStrings.ok) { dialog, _ -> dialog.dismiss() }
-                                        .show()
-                            } else {
-                                appContext.toast(message)
-                            }
-                        }
+        // Session scope so rotation or backgrounding can't cancel the import; the UI below is best-effort.
+        val importScope = activeSessionHolder.getSafeActiveSession()?.coroutineScope ?: lifecycleScope
+        importScope.launch {
+            val data = try {
+                keysImporter.import(uri, mimetype, password, progressListener)
+            } catch (failure: Throwable) {
+                appContext.toast(errorFormatter.toHumanReadable(failure))
+                null
+            }
+            withContext(Dispatchers.Main) {
+                tryOrNull { progressDialog.dismiss() }
+                if (data != null) {
+                    val message = appContext.resources.getQuantityString(
+                            CommonPlurals.encryption_import_room_keys_success,
+                            data.successfullyNumberOfImportedKeys,
+                            data.successfullyNumberOfImportedKeys,
+                            data.totalNumberOfKeys,
+                    )
+                    val current = activity
+                    if (isResumed && current != null && !current.isFinishing) {
+                        MaterialAlertDialogBuilder(current)
+                                .setMessage(message)
+                                .setPositiveButton(CommonStrings.ok) { dialog, _ -> dialog.dismiss() }
+                                .show()
+                    } else {
+                        appContext.toast(message)
                     }
                 }
-                tryOrNull { importDialog.dismiss() }
             }
         }
     }
