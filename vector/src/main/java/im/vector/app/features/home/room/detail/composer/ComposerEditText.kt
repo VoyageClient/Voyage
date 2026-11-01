@@ -19,6 +19,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatEditText
+import androidx.core.view.ContentInfoCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
@@ -60,19 +61,19 @@ class ComposerEditText @JvmOverloads constructor(
     private var pillRestorePosition = -1
 
     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection? {
-        var ic = super.onCreateInputConnection(editorInfo) ?: return null
-        val mimeTypes = ViewCompat.getOnReceiveContentMimeTypes(this) ?: arrayOf("image/*")
+        val ic = super.onCreateInputConnection(editorInfo) ?: return null
+        EditorInfoCompat.setContentMimeTypes(editorInfo, RICH_CONTENT_MIME_TYPES)
+        return InputConnectionCompat.createWrapper(this, ic, editorInfo)
+    }
 
-        EditorInfoCompat.setContentMimeTypes(editorInfo, mimeTypes)
-        ic = InputConnectionCompat.createWrapper(this, ic, editorInfo)
-
-        ViewCompat.setOnReceiveContentListener(
-                this,
-                mimeTypes,
-                UriContentListener { callback?.onRichContentSelected(it) }
-        )
-
-        return ic
+    // Having a listener also routes menu paste and drops through it; their formatting is dropped at send anyway.
+    private fun setUpReceiveContent() {
+        val uriListener = UriContentListener { callback?.onRichContentSelected(it) }
+        ViewCompat.setOnReceiveContentListener(this, RICH_CONTENT_MIME_TYPES) { view, payload ->
+            uriListener.onReceiveContent(view, payload)?.let {
+                ContentInfoCompat.Builder(it).setFlags(it.flags or ContentInfoCompat.FLAG_CONVERT_TO_PLAIN_TEXT).build()
+            }
+        }
     }
 
     override fun onTextContextMenuItem(id: Int): Boolean {
@@ -158,6 +159,7 @@ class ComposerEditText @JvmOverloads constructor(
     }
 
     init {
+        setUpReceiveContent()
         addTextChangedListener(
                 object : SimpleTextWatcher() {
                     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
@@ -254,5 +256,9 @@ class ComposerEditText @JvmOverloads constructor(
         findMentions(editable, selectionEnd, requireTerminator = !pasting).asReversed().forEach { range ->
             pillify(editable, range.first, range.last + 1)
         }
+    }
+
+    private companion object {
+        val RICH_CONTENT_MIME_TYPES = arrayOf("image/*")
     }
 }
