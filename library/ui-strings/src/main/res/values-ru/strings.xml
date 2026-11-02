@@ -3749,4 +3749,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Это сообщение было отправлено до входа с этого устройства. Заверьте это устройство, чтобы восстановить его из резервной копии ключей.</string>
     <string name="decryption_failure_user_not_joined">У вас нет доступа к этому сообщению</string>
     <string name="decryption_failure_user_not_joined_desc">Это сообщение было отправлено, когда вы не были участником комнаты.</string>
+    <string name="settings_show_floating_date_header">Показывать дату при прокрутке</string>
+    <string name="settings_show_floating_date_header_summary">Ненадолго показывать дату сообщений в верхней части экрана во время прокрутки ленты</string>
 </resources>

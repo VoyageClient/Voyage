@@ -145,6 +145,7 @@ import im.vector.app.features.home.room.detail.timeline.action.jumpToRelationAct
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.home.room.detail.timeline.helper.FloatingDateHeader
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ReactionsSummaryFactory
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
@@ -346,6 +347,7 @@ class TimelineFragment :
 
     private lateinit var scrollOnNewMessageCallback: ScrollOnNewMessageCallback
     private lateinit var scrollOnHighlightedEventCallback: ScrollOnHighlightedEventCallback
+    private var floatingDateHeader: FloatingDateHeader? = null
 
     /** Hosts the strip below the composer that the emoji panel reserves; see EmojiKeyboardController. */
     val emojiPanelHost: EmojiPanelHostLayout get() = views.root
@@ -900,6 +902,8 @@ class TimelineFragment :
 
     override fun onDestroyView() {
         if (::scrollOnHighlightedEventCallback.isInitialized) scrollOnHighlightedEventCallback.dispose()
+        floatingDateHeader?.release()
+        floatingDateHeader = null
         mediaContentRevealManager.clearAll()
         voiceRecorderStackLayoutListener?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -1586,6 +1590,15 @@ class TimelineFragment :
                 }
             }
         })
+
+        if (vectorPreferences.showFloatingDateHeader()) {
+            floatingDateHeader = FloatingDateHeader(
+                    views.floatingDateView,
+                    layoutManager,
+                    timelineEventController.adapter,
+                    obstruction = views.jumpToReadMarkerView,
+            ).also { views.timelineRecyclerView.addOnScrollListener(it) }
+        }
 
         // The banner check reads scroll position but is otherwise only re-run on layout/unread changes
         views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {

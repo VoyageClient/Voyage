@@ -3772,4 +3772,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">أُرسلت هذه الرسالة قبل تسجيل الدخول على هذا الجهاز. تحقّق من هذا الجهاز لاستعادتها من النسخة الاحتياطية لمفاتيحك.</string>
     <string name="decryption_failure_user_not_joined">لا يمكنك الوصول إلى هذه الرسالة</string>
     <string name="decryption_failure_user_not_joined_desc">أُرسلت هذه الرسالة عندما لم تكن عضوًا في الغرفة.</string>
+    <string name="settings_show_floating_date_header">إظهار التاريخ أثناء التمرير</string>
+    <string name="settings_show_floating_date_header_summary">اعرض لفترة وجيزة تاريخ الرسائل أعلى الشاشة أثناء التمرير في الخط الزمني</string>
 </resources>

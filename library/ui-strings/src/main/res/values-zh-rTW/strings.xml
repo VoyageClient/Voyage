@@ -3566,4 +3566,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">此訊息是在此裝置登入之前傳送的。驗證此裝置即可從您的金鑰備份還原它。</string>
     <string name="decryption_failure_user_not_joined">您無權存取此訊息</string>
     <string name="decryption_failure_user_not_joined_desc">此訊息是在您不是聊天室成員時傳送的。</string>
+    <string name="settings_show_floating_date_header">捲動時顯示日期</string>
+    <string name="settings_show_floating_date_header_summary">在時間軸中捲動時，於畫面頂端短暫顯示訊息的日期</string>
 </resources>

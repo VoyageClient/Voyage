@@ -3585,4 +3585,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Bu mesaj, bu cihazda oturum açılmadan önce gönderildi. Anahtar yedeğinizden geri yüklemek için bu cihazı doğrulayın.</string>
     <string name="decryption_failure_user_not_joined">Bu mesaja erişiminiz yok</string>
     <string name="decryption_failure_user_not_joined_desc">Bu mesaj, siz odanın üyesi değilken gönderildi.</string>
+    <string name="settings_show_floating_date_header">Kaydırırken tarihi göster</string>
+    <string name="settings_show_floating_date_header_summary">Zaman akışında kaydırırken mesajların tarihini ekranın üstünde kısa süreliğine göster</string>
 </resources>

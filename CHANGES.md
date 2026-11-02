@@ -110,6 +110,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Hide "Jump to unread"**: an optional mode that hides the banner and marks the room read when opening it at the bottom or scrolling down to the end of the timeline.
 
+- **Floating date while scrolling**: a date pill at the top of the timeline that shows the day you are scrolling through and fades away once you stop.
+
 - **Media galleries (MSC4274)**: send several photos, videos, files and audio as a single message that renders as a grid of thumbnails with a caption underneath. Each tile opens, saves, shares and forwards on its own, the whole message can be saved at once, and every item appears individually in the room's media viewer and Uploads tab. Galleries from other clients always display; sending them is opt-in under Settings → Labs.
 
 - **Attachments send before the upload finishes (MSC2246)**: a photo or video counts as sent as soon as the message itself reaches the server, with the bytes following behind, so a large video no longer holds the message mid-send. Recipients see the message straight away and the media fills in. Falls back to upload-then-send on servers without support.

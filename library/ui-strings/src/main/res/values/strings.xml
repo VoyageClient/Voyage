@@ -3268,6 +3268,8 @@
     <string name="notice_room_pinned_changed">%1$s changed the pinned messages.</string>
     <string name="settings_show_pinned_messages_banner">Show pinned messages banner</string>
     <string name="settings_show_pinned_messages_banner_summary">Display a banner with pinned messages at the top of the timeline</string>
+    <string name="settings_show_floating_date_header">Show date while scrolling</string>
+    <string name="settings_show_floating_date_header_summary">Briefly show the date of the messages at the top of the screen while you scroll through the timeline</string>
     <string name="settings_profile_banner">Banner</string>
     <string name="a11y_banner">Banner</string>
     <string name="a11y_change_banner">Change banner</string>

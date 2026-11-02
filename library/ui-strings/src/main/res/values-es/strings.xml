@@ -3615,4 +3615,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Este mensaje se envió antes de que este dispositivo iniciara sesión. Verifica este dispositivo para restaurarlo desde tu copia de seguridad de claves.</string>
     <string name="decryption_failure_user_not_joined">No tienes acceso a este mensaje</string>
     <string name="decryption_failure_user_not_joined_desc">Este mensaje se envió cuando no eras miembro de la sala.</string>
+    <string name="settings_show_floating_date_header">Mostrar la fecha al desplazarse</string>
+    <string name="settings_show_floating_date_header_summary">Mostrar brevemente la fecha de los mensajes en la parte superior de la pantalla mientras te desplazas por la cronología</string>
 </resources>

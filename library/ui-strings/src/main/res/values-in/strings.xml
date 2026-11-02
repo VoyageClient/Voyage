@@ -3564,4 +3564,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="decryption_failure_historical_unverified_device_desc">Pesan ini dikirim sebelum perangkat ini masuk. Verifikasi perangkat ini untuk memulihkannya dari cadangan kunci Anda.</string>
     <string name="decryption_failure_user_not_joined">Anda tidak memiliki akses ke pesan ini</string>
     <string name="decryption_failure_user_not_joined_desc">Pesan ini dikirim saat Anda bukan anggota ruangan.</string>
+    <string name="settings_show_floating_date_header">Tampilkan tanggal saat menggulir</string>
+    <string name="settings_show_floating_date_header_summary">Tampilkan sebentar tanggal pesan di bagian atas layar saat Anda menggulir lini masa</string>
 </resources>

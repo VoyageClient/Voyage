@@ -3627,4 +3627,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Esta mensagem foi enviada antes de este dispositivo entrar. Verifique este dispositivo para restaurá-la do seu backup de chaves.</string>
     <string name="decryption_failure_user_not_joined">Você não tem acesso a esta mensagem</string>
     <string name="decryption_failure_user_not_joined_desc">Esta mensagem foi enviada quando você não era membro da sala.</string>
+    <string name="settings_show_floating_date_header">Mostrar data ao rolar</string>
+    <string name="settings_show_floating_date_header_summary">Exibir brevemente a data das mensagens no topo da tela enquanto você rola pela timeline</string>
 </resources>

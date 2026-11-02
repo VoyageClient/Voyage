@@ -3562,4 +3562,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">このメッセージはこの端末がサインインする前に送信されたものです。鍵のバックアップから復元するには、この端末を認証してください。</string>
     <string name="decryption_failure_user_not_joined">このメッセージにはアクセスできません</string>
     <string name="decryption_failure_user_not_joined_desc">このメッセージは、あなたがルームのメンバーでなかったときに送信されました。</string>
+    <string name="settings_show_floating_date_header">スクロール中に日付を表示</string>
+    <string name="settings_show_floating_date_header_summary">タイムラインをスクロールしている間、画面上部にメッセージの日付を一時的に表示</string>
 </resources>

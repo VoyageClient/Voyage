@@ -3521,4 +3521,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">یہ پیغام اس آلے کے سائن ان ہونے سے پہلے بھیجا گیا تھا۔ اسے اپنی کلیدوں کے پشتارے سے بحال کرنے کے لیے اس آلے کی تصدیق کریں۔</string>
     <string name="decryption_failure_user_not_joined">آپ کو اس پیغام تک رسائی حاصل نہیں ہے</string>
     <string name="decryption_failure_user_not_joined_desc">یہ پیغام اس وقت بھیجا گیا تھا جب آپ کمرے کے رکن نہیں تھے۔</string>
+    <string name="settings_show_floating_date_header">اسکرول کرتے وقت تاریخ دکھائیں</string>
+    <string name="settings_show_floating_date_header_summary">ٹائم لائن میں اسکرول کرتے وقت اسکرین کے اوپر مختصر وقت کے لیے پیغامات کی تاریخ دکھائیں</string>
 </resources>

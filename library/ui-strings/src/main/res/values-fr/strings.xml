@@ -3627,4 +3627,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Ce message a été envoyé avant la connexion de cet appareil. Vérifiez cet appareil pour le restaurer depuis votre sauvegarde des clés.</string>
     <string name="decryption_failure_user_not_joined">Vous n’avez pas accès à ce message</string>
     <string name="decryption_failure_user_not_joined_desc">Ce message a été envoyé lorsque vous n’étiez pas membre du salon.</string>
+    <string name="settings_show_floating_date_header">Afficher la date pendant le défilement</string>
+    <string name="settings_show_floating_date_header_summary">Afficher brièvement la date des messages en haut de l\'écran pendant que vous faites défiler la chronologie</string>
 </resources>

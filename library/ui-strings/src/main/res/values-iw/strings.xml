@@ -3718,4 +3718,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">הודעה זו נשלחה לפני שמכשיר זה התחבר. אמת מכשיר זה כדי לשחזר אותה מגיבוי המפתחות שלך.</string>
     <string name="decryption_failure_user_not_joined">אין לך גישה להודעה זו</string>
     <string name="decryption_failure_user_not_joined_desc">הודעה זו נשלחה כשלא היית חבר בחדר.</string>
+    <string name="settings_show_floating_date_header">הצג תאריך בזמן גלילה</string>
+    <string name="settings_show_floating_date_header_summary">הצג לזמן קצר את תאריך ההודעות בראש המסך בזמן הגלילה בציר הזמן</string>
 </resources>

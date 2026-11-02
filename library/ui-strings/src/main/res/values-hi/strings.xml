@@ -3509,4 +3509,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">यह मैसेज इस डिवाइस के साइन इन करने से पहले भेजा गया था। इसे अपने कुंजी बैकअप से बहाल करने के लिए इस डिवाइस को सत्यापित करें।</string>
     <string name="decryption_failure_user_not_joined">आपको इस मैसेज तक पहुंच नहीं है</string>
     <string name="decryption_failure_user_not_joined_desc">यह मैसेज तब भेजा गया था जब आप रूम के सदस्य नहीं थे।</string>
+    <string name="settings_show_floating_date_header">स्क्रॉल करते समय तारीख दिखाएं</string>
+    <string name="settings_show_floating_date_header_summary">टाइमलाइन में स्क्रॉल करते समय स्क्रीन के ऊपर कुछ देर के लिए मैसेज की तारीख दिखाएं</string>
 </resources>

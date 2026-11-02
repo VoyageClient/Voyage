@@ -22,6 +22,8 @@ abstract class DaySeparatorItem : VectorEpoxyModel<DaySeparatorItem.Holder>(R.la
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.dayTextView.text = formattedDay
+        // FloatingDateHeader fades the divider it covers.
+        holder.view.alpha = 1f
     }
 
     class Holder : VectorEpoxyHolder() {

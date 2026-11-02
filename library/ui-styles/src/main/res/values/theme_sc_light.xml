@@ -129,6 +129,7 @@
         <item name="android:navigationBarColor">@color/background_black_sc</item>
 
         <item name="vctr_jump_to_unread_style">@style/Widget.Vector.JumpToUnread.SC.Light</item>
+        <item name="vctr_floating_date_background">@color/background_floating_sc_light</item>
 
         <!-- Voice Message -->
         <item name="vctr_toast_background">@color/background_floating_sc</item> <!-- needs dark background -->

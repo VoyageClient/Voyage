@@ -3581,4 +3581,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">এই ডিভাইসে সাইন ইন করার আগে বার্তাটি পাঠানো হয়েছিল। আপনার কী ব্যাকআপ থেকে এটি পুনরুদ্ধার করতে এই ডিভাইসটি যাচাই করুন।</string>
     <string name="decryption_failure_user_not_joined">এই বার্তাটি দেখার অনুমতি আপনার নেই</string>
     <string name="decryption_failure_user_not_joined_desc">আপনি যখন রুমের সদস্য ছিলেন না তখন এই বার্তাটি পাঠানো হয়েছিল।</string>
+    <string name="settings_show_floating_date_header">স্ক্রল করার সময় তারিখ দেখান</string>
+    <string name="settings_show_floating_date_header_summary">টাইমলাইনে স্ক্রল করার সময় স্ক্রিনের উপরে কিছুক্ষণের জন্য বার্তাগুলোর তারিখ দেখান</string>
 </resources>

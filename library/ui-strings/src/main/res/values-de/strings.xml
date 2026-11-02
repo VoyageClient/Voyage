@@ -3626,4 +3626,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">Diese Nachricht wurde gesendet, bevor sich dieses Gerät angemeldet hat. Verifiziere dieses Gerät, um sie aus deiner Schlüsselsicherung wiederherzustellen.</string>
     <string name="decryption_failure_user_not_joined">Du hast keinen Zugriff auf diese Nachricht</string>
     <string name="decryption_failure_user_not_joined_desc">Diese Nachricht wurde gesendet, als du kein Mitglied des Raums warst.</string>
+    <string name="settings_show_floating_date_header">Datum beim Scrollen anzeigen</string>
+    <string name="settings_show_floating_date_header_summary">Beim Scrollen durch den Verlauf kurz das Datum der Nachrichten oben auf dem Bildschirm anzeigen</string>
 </resources>

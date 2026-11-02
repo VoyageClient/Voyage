@@ -3564,4 +3564,6 @@
     <string name="decryption_failure_historical_unverified_device_desc">此消息是在此设备登录之前发送的。验证此设备即可从你的密钥备份中恢复它。</string>
     <string name="decryption_failure_user_not_joined">你无权访问此消息</string>
     <string name="decryption_failure_user_not_joined_desc">此消息是在你不是房间成员时发送的。</string>
+    <string name="settings_show_floating_date_header">滚动时显示日期</string>
+    <string name="settings_show_floating_date_header_summary">在时间线中滚动时，在屏幕顶部短暂显示消息的日期</string>
 </resources>

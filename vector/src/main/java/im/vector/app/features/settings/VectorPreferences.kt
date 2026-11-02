@@ -152,6 +152,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_TIMELINE_LINE_WRAP_KEY = "SETTINGS_TIMELINE_LINE_WRAP_KEY"
         const val SETTINGS_CODE_PALETTE_KEY = "SETTINGS_CODE_PALETTE_KEY"
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
+        const val SETTINGS_SHOW_FLOATING_DATE_HEADER_KEY = "SETTINGS_SHOW_FLOATING_DATE_HEADER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
         private const val SETTINGS_QUICK_REACTIONS_SYNCED_KEY = "SETTINGS_QUICK_REACTIONS_SYNCED_KEY"
@@ -1869,6 +1870,10 @@ class VectorPreferences @Inject constructor(
 
     fun showPinnedMessagesBanner(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY, true)
+    }
+
+    fun showFloatingDateHeader(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_FLOATING_DATE_HEADER_KEY, true)
     }
 
     /**

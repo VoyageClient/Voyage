@@ -130,6 +130,12 @@
             android:title="@string/settings_show_pinned_messages_banner" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_FLOATING_DATE_HEADER_KEY"
+            android:summary="@string/settings_show_floating_date_header_summary"
+            android:title="@string/settings_show_floating_date_header" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY"
             android:summary="@string/settings_auto_dismiss_jump_to_unread_summary"
