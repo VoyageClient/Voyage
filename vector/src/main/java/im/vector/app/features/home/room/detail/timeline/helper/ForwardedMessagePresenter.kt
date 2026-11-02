@@ -90,7 +90,7 @@ class ForwardedMessagePresenter @Inject constructor(
     fun framed(event: TimelineEvent, body: CharSequence): CharSequence {
         val description = describe(event) ?: return body
         val text = header(description).append("\n").append(body).append("\n").append(footer(description))
-        text.setSpan(barSpan(), 0, text.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+        text.setBarSpan()
         return text
     }
 
@@ -115,7 +115,7 @@ class ForwardedMessagePresenter @Inject constructor(
         val text = SpannableStringBuilder()
         if (body.isNotEmpty()) text.append(body).append("\n")
         text.append(footer(description))
-        text.setSpan(barSpan(), 0, text.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+        text.setBarSpan()
         return text
     }
 
@@ -175,11 +175,15 @@ class ForwardedMessagePresenter @Inject constructor(
 
     private fun barColor() = ThemeUtils.getColor(themed(), im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
 
-    private fun barSpan() = ForwardBarSpan(
-            barWidth = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
-            gap = barGap(),
-            color = barColor(),
-    )
+    // Leading margins stack in getSpans order; top priority keeps the bar outside the body's blockquotes.
+    private fun SpannableStringBuilder.setBarSpan() {
+        val span = ForwardBarSpan(
+                barWidth = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
+                gap = barGap(),
+                color = barColor(),
+        )
+        setSpan(span, 0, length, Spanned.SPAN_INCLUSIVE_INCLUSIVE or Spanned.SPAN_PRIORITY)
+    }
 
     /** [body] as an emote, by the original sender when [event] is a forward and otherwise by [ownName]. */
     fun emoteBody(event: TimelineEvent, body: CharSequence, ownName: CharSequence, ownItem: MatrixItem): CharSequence {
