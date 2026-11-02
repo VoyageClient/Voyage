@@ -84,7 +84,6 @@ class MessageComposerEditStashTest {
             is SendMode.Regular -> mode.text
             is SendMode.Edit -> mode.text
             is SendMode.Reply -> mode.text
-            is SendMode.Quote -> mode.text
             is SendMode.Voice -> mode.text
         }.toString()
     }

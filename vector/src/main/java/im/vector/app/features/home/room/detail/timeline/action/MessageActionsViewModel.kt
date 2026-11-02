@@ -758,21 +758,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private fun canQuote(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
-        // Only event of type EventType.MESSAGE are supported for the moment
-        if (event.root.getClearType() != EventType.MESSAGE) return false
-        if (!actionPermissions.canSendMessage) return false
-        return when (messageContent?.msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_NOTICE,
-            MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_LOCATION -> {
-                true
-            }
-            else -> false
-        }
-    }
-
     private fun canRedact(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
         return checkIfCanRedactEventUseCase.execute(event, actionPermissions)
     }

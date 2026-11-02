@@ -159,7 +159,6 @@
     <string name="notice_direct_room_guest_access_can_join_by_you">你已允许访客加入这里。</string>
     <string name="notice_direct_room_guest_access_can_join">%1$s 已允许访客加入这里。</string>
     <string name="call_notification_hangup">挂断</string>
-    <string name="action_quote">引用</string>
     <string name="action_share">分享</string>
     <string name="action_mark_all_as_read">全部标记为已读</string>
     <string name="action_quick_reply">快速回复</string>

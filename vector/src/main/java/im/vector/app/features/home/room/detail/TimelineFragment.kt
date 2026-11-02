@@ -2583,7 +2583,6 @@ class TimelineFragment :
         return when (this) {
             PendingEventAction.REPLY -> EventSharedAction.Reply(eventId)
             PendingEventAction.REPLY_IN_THREAD -> EventSharedAction.ReplyInThread(eventId, startsThread = event.root.getRootThreadEventId() == null)
-            PendingEventAction.QUOTE -> EventSharedAction.Quote(eventId)
             PendingEventAction.EDIT -> EventSharedAction.Edit(eventId, event.root.getClearType())
             PendingEventAction.REACT -> EventSharedAction.AddReaction(eventId)
             PendingEventAction.FORWARD -> event.takeIf { it.root.getClearType() in setOf(EventType.MESSAGE, EventType.STICKER) }?.let {
@@ -2705,9 +2704,6 @@ class TimelineFragment :
                 } else {
                     requireActivity().toast(CommonStrings.error_voice_message_cannot_reply_or_edit)
                 }
-            }
-            is EventSharedAction.Quote -> {
-                messageComposerViewModel.handle(MessageComposerAction.EnterQuoteMode(action.eventId))
             }
             is EventSharedAction.Reply -> {
                 if (withState(messageComposerViewModel) { it.isVoiceMessageIdle }) {

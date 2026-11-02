@@ -88,25 +88,6 @@ interface SendService {
     ): Cancelable
 
     /**
-     * Method to quote an events content.
-     * @param quotedEvent The event to which we will quote it's content.
-     * @param text the plain text message to send
-     * @param formattedText the formatted text message to send
-     * @param autoMarkdown If true, the SDK will generate a formatted HTML message from the body text if markdown syntax is present
-     * @param rootThreadEventId when this param is not null, the message will be sent in this specific thread
-     * @param additionalContent additional content to put in the event content
-     * @return a [Cancelable]
-     */
-    fun sendQuotedTextMessage(
-            quotedEvent: TimelineEvent,
-            text: CharSequence,
-            formattedText: String? = null,
-            autoMarkdown: Boolean,
-            rootThreadEventId: String? = null,
-            additionalContent: Content? = null,
-    ): Cancelable
-
-    /**
      * Method to send a media asynchronously.
      * @param attachment the media to send
      * @param compressBeforeSending set to true to compress images before sending them

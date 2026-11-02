@@ -208,7 +208,6 @@
     <string name="action_save">Сохранить</string>
     <string name="action_leave">Покинуть</string>
     <string name="action_send">Отправить</string>
-    <string name="action_quote">Цитировать</string>
     <string name="action_share">Поделиться</string>
     <string name="permalink">Постоянная ссылка</string>
     <string name="view_source">Просмотр исходного кода</string>

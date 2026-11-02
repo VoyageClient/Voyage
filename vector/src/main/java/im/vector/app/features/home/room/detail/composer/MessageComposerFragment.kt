@@ -325,7 +325,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             when (mode) {
                 is SendMode.Regular -> renderRegularMode(mode.text)
                 is SendMode.Edit -> renderSpecialMode(MessageComposerMode.Edit(mode.timelineEvent, mode.text))
-                is SendMode.Quote -> renderSpecialMode(MessageComposerMode.Quote(mode.timelineEvent, mode.text))
                 is SendMode.Reply -> renderSpecialMode(MessageComposerMode.Reply(mode.timelineEvent, mode.text))
                 is SendMode.Voice -> renderVoiceMessageMode(mode.text)
             }
@@ -777,7 +776,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
         // After sending, popDraft emits Regular("") here; on a slow device the user may have already typed
         // into the cleared composer, so don't re-apply "" over it. (sendTextMessage does the real clear.)
-        // Leaving reply/edit/quote is not that race though: what the box holds is the mode's own text,
+        // Leaving reply/edit is not that race though: what the box holds is the mode's own text,
         // and an edit which took over an empty composer has an empty composer to give back.
         if (content.isBlank() && !composer.text.isNullOrBlank() && !composerInSpecialMode) return
         composerInSpecialMode = false
@@ -789,8 +788,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         when (val mode = state.sendMode) {
             is SendMode.Edit -> mode.timelineEvent.takeIf { it.eventId == eventId }
                     ?.let { renderSpecialMode(MessageComposerMode.Edit(it, mode.text)) }
-            is SendMode.Quote -> mode.timelineEvent.takeIf { it.eventId == eventId }
-                    ?.let { renderSpecialMode(MessageComposerMode.Quote(it, mode.text)) }
             is SendMode.Reply -> mode.timelineEvent.takeIf { it.eventId == eventId }
                     ?.let { renderSpecialMode(MessageComposerMode.Reply(it, mode.text)) }
             else -> Unit

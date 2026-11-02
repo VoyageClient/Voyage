@@ -14,6 +14,5 @@ sealed interface MessageComposerMode {
 
     sealed class Special(open val event: TimelineEvent, open val defaultContent: CharSequence) : MessageComposerMode
     data class Edit(override val event: TimelineEvent, override val defaultContent: CharSequence) : Special(event, defaultContent)
-    data class Quote(override val event: TimelineEvent, override val defaultContent: CharSequence) : Special(event, defaultContent)
     data class Reply(override val event: TimelineEvent, override val defaultContent: CharSequence) : Special(event, defaultContent)
 }

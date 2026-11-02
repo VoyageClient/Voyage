@@ -39,9 +39,6 @@ sealed class EventSharedAction(
     data class Edit(val eventId: String, val eventType: String) :
             EventSharedAction(CommonStrings.edit, R.drawable.ic_edit)
 
-    data class Quote(val eventId: String) :
-            EventSharedAction(CommonStrings.action_quote, R.drawable.ic_quote)
-
     data class Reply(val eventId: String) :
             EventSharedAction(CommonStrings.reply, R.drawable.ic_reply)
 

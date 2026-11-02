@@ -342,15 +342,6 @@ internal class PeekedRoom(
 
         override fun sendFormattedTextMessage(text: CharSequence, formattedText: String, msgType: String, additionalContent: Content?): Cancelable = readOnly()
 
-        override fun sendQuotedTextMessage(
-                quotedEvent: TimelineEvent,
-                text: CharSequence,
-                formattedText: String?,
-                autoMarkdown: Boolean,
-                rootThreadEventId: String?,
-                additionalContent: Content?,
-        ): Cancelable = readOnly()
-
         override fun sendMedia(
                 attachment: ContentAttachmentData,
                 compressBeforeSending: Boolean,

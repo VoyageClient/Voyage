@@ -439,7 +439,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val iconRes: Int = when (specialMode) {
             is MessageComposerMode.Reply -> R.drawable.ic_reply
             is MessageComposerMode.Edit -> R.drawable.ic_edit
-            is MessageComposerMode.Quote -> R.drawable.ic_quote
         }
 
         val renderedProfile = event.renderPerMessageProfile(

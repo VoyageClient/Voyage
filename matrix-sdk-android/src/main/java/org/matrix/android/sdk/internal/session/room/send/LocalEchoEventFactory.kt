@@ -1190,85 +1190,6 @@ internal class LocalEchoEventFactory @Inject constructor(
         localEchoRepository.createLocalEcho(event)
     }
 
-    fun createQuotedTextEvent(
-            roomId: String,
-            quotedEvent: TimelineEvent,
-            text: CharSequence,
-            formattedText: String?,
-            autoMarkdown: Boolean,
-            rootThreadEventId: String?,
-            additionalContent: Content? = null,
-    ): Event {
-        val messageContent = quotedEvent.getLastMessageContent()
-        val formattedQuotedText = (messageContent as? MessageContentWithFormattedBody)?.formattedBody
-        val textContent = createQuoteTextContent(messageContent?.body, formattedQuotedText, text.toString(), formattedText, autoMarkdown)
-        return if (rootThreadEventId != null) {
-            createMessageEvent(
-                    roomId,
-                    textContent.toThreadTextContent(
-                            rootThreadEventId = rootThreadEventId,
-                            latestThreadEventId = localEchoRepository.getLatestThreadEvent(rootThreadEventId),
-                            msgType = MessageType.MSGTYPE_TEXT,
-                            selfUserId = userId,
-                            mentionSource = text,
-                            literalMentions = literalMentions(text),
-                    ),
-                    additionalContent,
-            )
-        } else {
-            createFormattedTextEvent(
-                    roomId,
-                    textContent,
-                    MessageType.MSGTYPE_TEXT,
-                    additionalContent,
-                    mentionSource = text,
-            )
-        }
-    }
-
-    private fun createQuoteTextContent(
-            quotedText: String?,
-            formattedQuotedText: String?,
-            text: String,
-            formattedText: String?,
-            autoMarkdown: Boolean
-    ): TextContent {
-        val currentFormattedText = formattedText ?: if (autoMarkdown) {
-            val parsed = markdownParser.parse(text, force = true, advanced = true)
-            // If formattedText == text, formattedText is returned as null
-            parsed.formattedText ?: parsed.text
-        } else {
-            text
-        }
-        val processedFormattedQuotedText = formattedQuotedText ?: quotedText
-
-        val plainTextBody = buildString {
-            val plainMessageParagraphs = quotedText?.split("\n\n".toRegex())?.dropLastWhile { it.isEmpty() }?.toTypedArray().orEmpty()
-            plainMessageParagraphs.forEachIndexed { index, paragraph ->
-                if (paragraph.isNotBlank()) {
-                    append("> ")
-                    append(paragraph)
-                }
-
-                if (index != plainMessageParagraphs.lastIndex) {
-                    append("\n\n")
-                }
-            }
-            append("\n\n")
-            append(markdownBody(text, formattedText == null && autoMarkdown))
-        }
-        val formattedTextBody = buildString {
-            if (!processedFormattedQuotedText.isNullOrBlank()) {
-                append("<blockquote>")
-                append(processedFormattedQuotedText)
-                append("</blockquote>")
-            }
-            append("<br/>")
-            append(currentFormattedText)
-        }
-        return TextContent(plainTextBody, formattedTextBody)
-    }
-
     companion object {
         // <mx-reply>
         //     <blockquote>
@@ -1280,6 +1201,5 @@ internal class LocalEchoEventFactory @Inject constructor(
         // </mx-reply>
         // No whitespace because currently breaks temporary formatted text to Span
         const val REPLY_PATTERN = """<mx-reply><blockquote><a href="%s">In reply to</a> <a href="%s">%s</a><br />%s</blockquote></mx-reply>%s"""
-        const val QUOTE_PATTERN = """<blockquote><p>%s</p></blockquote><p>%s</p>"""
     }
 }

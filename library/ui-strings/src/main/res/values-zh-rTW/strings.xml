@@ -214,7 +214,6 @@
     <string name="view_source">檢視原始碼</string>
     <string name="notification_noisy_notifications">吵雜通知</string>
     <string name="notification_silent_notifications">靜音通知</string>
-    <string name="action_quote">引用</string>
     <string name="permalink">永久連結</string>
     <string name="view_decrypted_source">檢視解密的原始碼</string>
     <string name="action_delete">刪除</string>

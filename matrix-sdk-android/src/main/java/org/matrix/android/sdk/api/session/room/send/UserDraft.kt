@@ -19,13 +19,11 @@ package org.matrix.android.sdk.api.session.room.send
 /**
  * Describes a user draft:
  * REGULAR: draft of a classical message
- * QUOTE: draft of a message which quotes another message
  * EDIT: draft of an edition of a message
  * REPLY: draft of a reply of another message.
  */
 sealed interface UserDraft {
     data class Regular(val content: String) : UserDraft
-    data class Quote(val linkedEventId: String, val content: String) : UserDraft
     data class Edit(val linkedEventId: String, val content: String) : UserDraft
     data class Reply(val linkedEventId: String, val content: String) : UserDraft
     data class Voice(val content: String) : UserDraft

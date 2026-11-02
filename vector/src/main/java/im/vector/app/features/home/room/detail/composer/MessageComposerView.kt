@@ -57,6 +57,6 @@ interface Callback : ComposerEditText.Callback {
     fun onFullScreenModeChanged()
     fun onSetLink(isTextSupported: Boolean, initialLink: String?)
 
-    /** The composer is about to raise the soft keyboard by itself (entering reply/edit/quote). */
+    /** The composer is about to raise the soft keyboard by itself (entering reply/edit). */
     fun onSoftKeyboardRequested()
 }

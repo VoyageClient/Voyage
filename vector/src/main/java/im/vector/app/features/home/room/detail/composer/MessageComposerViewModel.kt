@@ -194,7 +194,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         val room = this.room ?: return
         when (action) {
             is MessageComposerAction.EnterEditMode -> handleEnterEditMode(room, action)
-            is MessageComposerAction.EnterQuoteMode -> handleEnterQuoteMode(room, action)
             is MessageComposerAction.EnterRegularMode -> handleEnterRegularMode(action)
             is MessageComposerAction.EnterReplyMode -> handleEnterReplyMode(room, action)
             is MessageComposerAction.SendMessage -> handleSendMessage(room, action)
@@ -527,8 +526,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun MessageComposerViewState.computeIsSendButtonVisible(): Boolean = isComposerVisible && (
             isVoiceRecording ||
                     currentComposerText.isNotBlank() ||
-                    sendMode is SendMode.Edit ||
-                    sendMode is SendMode.Quote
+                    sendMode is SendMode.Edit
             )
 
     private fun updateIsSendButtonVisibility(triggerAnimation: Boolean) = setState {
@@ -699,13 +697,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleEnterQuoteMode(room: Room, action: MessageComposerAction.EnterQuoteMode) {
-        room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
-            val text = textAfterEditing()
-            setState { copy(sendMode = SendMode.Quote(timelineEvent, text)) }
-        }
-    }
-
     private fun handleEnterReplyMode(room: Room, action: MessageComposerAction.EnterReplyMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             val text = textAfterEditing()
@@ -727,7 +718,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             viewModelScope.launch(sendPreparationLane) {
             im.vector.app.core.utils.PerfTrace.report("send.withState", 0)
             setState { copy(startsThread = false) }
-            // Tag literal `:shortcode:` text as custom emotes for every send mode (regular, reply, quote, edit).
+            // Tag literal `:shortcode:` text as custom emotes for every send mode (regular, reply, edit).
             // The rich-text path already carries its own formatted body, so only touch the plain-text path.
             val action = if (action.formattedText == null) {
                 action.copy(text = emoteShortcodeProcessor.process(room.roomId, action.text))
@@ -1380,17 +1371,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                     _viewEvents.post(MessageComposerViewEvents.MessageSent)
                     popDraft(room, editMode)
                 }
-                is SendMode.Quote -> {
-                    room.sendService().sendQuotedTextMessage(
-                            quotedEvent = state.sendMode.timelineEvent,
-                            text = action.text,
-                            formattedText = action.formattedText,
-                            autoMarkdown = action.autoMarkdown,
-                            rootThreadEventId = state.rootThreadEventId
-                    )
-                    _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                    popDraft(room, state.sendMode)
-                }
                 is SendMode.Reply -> {
                     val timelineEvent = state.sendMode.timelineEvent
                     val rootThreadEventId = fallbackThreadRootFor(timelineEvent, state)
@@ -1521,7 +1501,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         is SendMode.Regular -> "regular"
         is SendMode.Reply -> "reply:${timelineEvent.eventId}"
         is SendMode.Edit -> "edit:${timelineEvent.eventId}"
-        is SendMode.Quote -> "quote:${timelineEvent.eventId}"
         is SendMode.Voice -> "voice"
     }
 
@@ -1577,11 +1556,6 @@ class MessageComposerViewModel @AssistedInject constructor(
             copy(
                     sendMode = when (currentDraft) {
                         is UserDraft.Regular -> SendMode.Regular(currentDraft.content, false)
-                        is UserDraft.Quote -> {
-                            room.getTimelineEvent(currentDraft.linkedEventId)?.let { timelineEvent ->
-                                SendMode.Quote(timelineEvent, currentDraft.content)
-                            }
-                        }
                         is UserDraft.Reply -> {
                             room.getTimelineEvent(currentDraft.linkedEventId)?.let { timelineEvent ->
                                 SendMode.Reply(timelineEvent, currentDraft.content)
@@ -1696,26 +1670,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                 // the composer waits forever for a navigation that will never come.
                 _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(command))
             }
-        }
-    }
-
-    private fun legacyRiotQuoteText(quotedText: String?, myText: String): String {
-        val messageParagraphs = quotedText?.split("\n\n".toRegex())?.dropLastWhile { it.isEmpty() }?.toTypedArray()
-        return buildString {
-            if (messageParagraphs != null) {
-                for (i in messageParagraphs.indices) {
-                    if (messageParagraphs[i].isNotBlank()) {
-                        append("> ")
-                        append(messageParagraphs[i])
-                    }
-
-                    if (i != messageParagraphs.lastIndex) {
-                        append("\n\n")
-                    }
-                }
-            }
-            append("\n\n")
-            append(myText)
         }
     }
 
@@ -2613,10 +2567,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                     setState { copy(sendMode = it.sendMode.copy(text = draft)) }
                     room.draftService().saveDraft(UserDraft.Reply(it.sendMode.timelineEvent.root.eventId!!, draft))
                 }
-                it.sendMode is SendMode.Quote -> {
-                    setState { copy(sendMode = it.sendMode.copy(text = draft)) }
-                    room.draftService().saveDraft(UserDraft.Quote(it.sendMode.timelineEvent.root.eventId!!, draft))
-                }
                 it.sendMode is SendMode.Edit -> {
                     setState { copy(sendMode = it.sendMode.copy(text = draft)) }
                     val edit = UserDraft.Edit(it.sendMode.timelineEvent.root.eventId!!, draft)
@@ -2651,7 +2601,6 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun SendMode.withSyncedText(text: CharSequence): SendMode = when (this) {
         is SendMode.Regular -> copy(text = text)
         is SendMode.Reply -> copy(text = text)
-        is SendMode.Quote -> copy(text = text)
         is SendMode.Edit -> copy(text = text)
         is SendMode.Voice -> this
     }

@@ -358,7 +358,6 @@ class SearchFragment :
     private fun EventSharedAction.toPendingEventAction() = when (this) {
         is EventSharedAction.Reply -> PendingEventAction.REPLY
         is EventSharedAction.ReplyInThread -> PendingEventAction.REPLY_IN_THREAD
-        is EventSharedAction.Quote -> PendingEventAction.QUOTE
         is EventSharedAction.Edit -> PendingEventAction.EDIT
         is EventSharedAction.AddReaction, is EventSharedAction.QuickReact -> PendingEventAction.REACT
         is EventSharedAction.Forward -> PendingEventAction.FORWARD
@@ -379,7 +378,6 @@ class SearchFragment :
     private fun EventSharedAction.targetEventId() = when (this) {
         is EventSharedAction.Reply -> eventId
         is EventSharedAction.ReplyInThread -> eventId
-        is EventSharedAction.Quote -> eventId
         is EventSharedAction.Edit -> eventId
         is EventSharedAction.AddReaction -> eventId
         is EventSharedAction.QuickReact -> eventId

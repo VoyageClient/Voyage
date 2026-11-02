@@ -104,7 +104,6 @@
     <string name="light_theme">明るいテーマ</string>
     <string name="dark_theme">暗いテーマ</string>
     <string name="black_theme">黒いテーマ</string>
-    <string name="action_quote">引用</string>
     <string name="permalink">直リンク</string>
     <string name="view_source">ソースコードを表示</string>
     <string name="or">または</string>

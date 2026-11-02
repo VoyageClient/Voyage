@@ -213,7 +213,6 @@
     <string name="action_save">Guardar</string>
     <string name="action_leave">Salir</string>
     <string name="action_send">Enviar</string>
-    <string name="action_quote">Citar</string>
     <string name="action_share">Compartir</string>
     <string name="permalink">Enlace Permanente</string>
     <string name="view_source">Ver Fuente</string>

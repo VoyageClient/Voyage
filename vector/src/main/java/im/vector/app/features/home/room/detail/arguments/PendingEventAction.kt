@@ -14,7 +14,6 @@ package im.vector.app.features.home.room.detail.arguments
 enum class PendingEventAction {
     REPLY,
     REPLY_IN_THREAD,
-    QUOTE,
     EDIT,
     REACT,
     FORWARD,

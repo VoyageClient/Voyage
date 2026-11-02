@@ -18,7 +18,6 @@ sealed class MessageComposerAction : VectorViewModelAction {
     data class SendMessage(val text: CharSequence, val formattedText: String?, val autoMarkdown: Boolean) : MessageComposerAction()
     data class ScheduleMessage(val text: CharSequence, val formattedText: String?, val autoMarkdown: Boolean, val sendTs: Long) : MessageComposerAction()
     data class EnterEditMode(val eventId: String) : MessageComposerAction()
-    data class EnterQuoteMode(val eventId: String) : MessageComposerAction()
     data class EnterReplyMode(val eventId: String) : MessageComposerAction()
     data class EnterRegularMode(val fromSharing: Boolean) : MessageComposerAction()
     data class UserIsTyping(val isTyping: Boolean) : MessageComposerAction()

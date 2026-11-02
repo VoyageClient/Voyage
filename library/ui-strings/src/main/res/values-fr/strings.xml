@@ -335,7 +335,6 @@
     <string name="auth_reset_password_error_unauthorized">Impossible de vérifier l’adresse électronique : assurez-vous d’avoir cliqué sur le lien dans le courriel</string>
     <string name="login_error_limit_exceeded">Trop de requêtes ont été envoyées</string>
     <string name="action_leave">Quitter</string>
-    <string name="action_quote">Citer</string>
     <string name="permissions_rationale_popup_title">Information</string>
     <string name="room_jump_to_first_unread">Aller au premier message non lu</string>
     <string name="room_participants_leave_prompt_msg">Voulez-vous vraiment quitter le salon \?</string>

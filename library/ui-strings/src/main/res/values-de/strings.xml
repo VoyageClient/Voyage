@@ -214,7 +214,6 @@
     <string name="action_save">Speichern</string>
     <string name="action_leave">Verlassen</string>
     <string name="action_send">Senden</string>
-    <string name="action_quote">Zitieren</string>
     <string name="action_share">Teilen</string>
     <string name="permalink">Permalink</string>
     <string name="view_source">Rohdaten anzeigen</string>

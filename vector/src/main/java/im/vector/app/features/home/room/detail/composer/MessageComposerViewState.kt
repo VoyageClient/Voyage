@@ -18,7 +18,6 @@ import kotlin.random.Random
 /**
  * Describes the current send mode:
  * REGULAR: sends the text as a regular message;
- * QUOTE: User is currently quoting a message;
  * EDIT: User is currently editing an existing message.
  *
  * Depending on the state the bottom toolbar will change (icons/preview/actions...).
@@ -31,7 +30,6 @@ sealed interface SendMode {
             private val random: Int = Random.nextInt()
     ) : SendMode
 
-    data class Quote(val timelineEvent: TimelineEvent, val text: CharSequence) : SendMode
     data class Edit(val timelineEvent: TimelineEvent, val text: CharSequence) : SendMode
     data class Reply(val timelineEvent: TimelineEvent, val text: CharSequence) : SendMode
     data class Voice(val text: String) : SendMode
