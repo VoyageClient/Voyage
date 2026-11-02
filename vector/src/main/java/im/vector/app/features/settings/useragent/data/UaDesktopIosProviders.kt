@@ -45,6 +45,47 @@ fun parseElectronReleases(json: String, limit: Int = 60): List<ElectronRelease> 
             .toList()
 }
 
+// -- StatCounter fallbacks (recency only, no shares) ---------------------------------------------
+
+private val CHROME_VERSION = Regex("\"version\"\\s*:\\s*\"(\\d+)\\.")
+
+/** Parses Google's VersionHistory API into distinct Chrome majors, newest-first, in StatCounter's option format. */
+fun parseChromeVersionHistory(json: String, limit: Int = 30): List<UaOption> =
+        CHROME_VERSION.findAll(json)
+                .map { it.groupValues[1] }
+                .distinct()
+                .sortedByDescending { it.toIntOrNull() ?: 0 }
+                .take(limit)
+                .map { UaOption("$it.0.0.0", "Chrome $it", null) }
+                .toList()
+
+@JsonClass(generateAdapter = true)
+internal data class EolCycle(val cycle: String?, val latest: String?, val codename: String?) {
+    val version: String get() = latest ?: cycle.orEmpty()
+}
+
+private fun parseEolCycles(json: String, limit: Int): List<EolCycle> {
+    val type = Types.newParameterizedType(List::class.java, EolCycle::class.java)
+    return runCatching { moshi.adapter<List<EolCycle>>(type).fromJson(json) }.getOrNull().orEmpty()
+            .filter { it.version.firstOrNull()?.isDigit() == true }
+            .take(limit)
+}
+
+/** Parses endoflife.date's iOS cycles into each major's latest release, newest-first. */
+fun parseEolIos(json: String, limit: Int = 12): List<UaOption> =
+        parseEolCycles(json, limit)
+                .map { UaOption(it.version, "iOS ${it.version}", null) }
+                .sortedWith(VersionSort.descending)
+
+/** Parses endoflife.date's macOS cycles into UA tokens (27.2 → 27_2), newest-first. */
+fun parseEolMacos(json: String, limit: Int = 12): List<UaOption> =
+        parseEolCycles(json, limit)
+                .map {
+                    val label = if (it.codename != null) "macOS ${it.codename} (${it.version})" else "macOS ${it.version}"
+                    UaOption(it.version.replace('.', '_'), label, null)
+                }
+                .sortedWith(VersionSort.descending)
+
 // -- iOS devices (marketing names from ipsw.me) -------------------------------------------------
 
 @JsonClass(generateAdapter = true)

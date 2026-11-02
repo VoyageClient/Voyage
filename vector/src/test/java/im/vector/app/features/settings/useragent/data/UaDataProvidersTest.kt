@@ -12,14 +12,91 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import java.io.IOException
 
 class UaDataProvidersTest {
 
     private val http = mockk<UaHttp>()
 
     private fun provide(csvOrJson: String, provider: UaDataProvider): List<UaOption> {
-        coEvery { http.get(any()) } returns csvOrJson
+        coEvery { http.get(any(), any(), any()) } returns csvOrJson
         return runBlocking { provider.fetch(http) }
+    }
+
+    private fun fixed(vararg values: String) = object : UaDataProvider {
+        override val id = "fixed"
+        override val primaryUrl: String? = null
+        override suspend fun fetch(http: UaHttp) = values.map { UaOption(it, it, null) }
+    }
+
+    private fun throwing(e: Exception) = object : UaDataProvider {
+        override val id = "throwing"
+        override val primaryUrl: String? = null
+        override suspend fun fetch(http: UaHttp): List<UaOption> = throw e
+    }
+
+    @Test
+    fun `statcounter skips the all-zero current month`() {
+        val csv = """
+            "Date","16.0","15.0","Other"
+            2026-09,37.0,16.0,1.0
+            2026-10,38.0,15.0,1.0
+            2026-11,0,0,0
+        """.trimIndent()
+        val options = provide(csv, StatCounterProvider("android", "url", UaMappers::android))
+        options.map { it.value } shouldBeEqualTo listOf("16", "15")
+        options.first().share shouldBeEqualTo 38.0
+    }
+
+    @Test
+    fun `fallback is used when the primary parses to nothing`() {
+        runBlocking { FallbackProvider(fixed(), fixed("2")).fetch(http) }.map { it.value } shouldBeEqualTo listOf("2")
+    }
+
+    @Test
+    fun `fallback is used when the primary throws`() {
+        runBlocking { FallbackProvider(throwing(IOException("HTTP 500")), fixed("2")).fetch(http) }.map { it.value } shouldBeEqualTo listOf("2")
+    }
+
+    @Test
+    fun `fallback is skipped when the primary has data`() {
+        runBlocking { FallbackProvider(fixed("1"), throwing(IOException("unused"))).fetch(http) }.map { it.value } shouldBeEqualTo listOf("1")
+    }
+
+    @Test(expected = UaNotModified::class)
+    fun `primary not-modified propagates instead of falling back`() {
+        runBlocking { FallbackProvider(throwing(UaNotModified("u")), fixed("2")).fetch(http) }
+    }
+
+    @Test
+    fun `android distributions become percentage shares`() {
+        val json = """[
+            {"name":"KitKat","version":"4.4","apiLevel":19,"distributionPercentage":0.001,"descriptionBlocks":[{"title":"t","body":"b"}]},
+            {"name":"Pie","version":"9.0","apiLevel":28,"distributionPercentage":0.02},
+            {"name":"Baklava","version":"16","apiLevel":36,"distributionPercentage":0.254}
+        ]"""
+        val options = provide(json, ParsedProvider("android", "u", ::parseAndroidDistributions))
+        options.map { it.value } shouldBeEqualTo listOf("16", "9", "4.4")
+        options.first().label shouldBeEqualTo "Android 16 (25.4%)"
+        mostPopularValue(options) shouldBeEqualTo "16"
+    }
+
+    @Test
+    fun `chrome version history collapses builds to majors`() {
+        val json = """{"versions":[{"version":"157.0.8103.27"},{"version":"157.0.8103.26"},{"version":"156.0.8000.1"}]}"""
+        val options = provide(json, ParsedProvider("chrome", "u") { parseChromeVersionHistory(it) })
+        options.map { it.value } shouldBeEqualTo listOf("157.0.0.0", "156.0.0.0")
+        options.first().label shouldBeEqualTo "Chrome 157"
+    }
+
+    @Test
+    fun `endoflife cycles map to ios versions and macos tokens`() {
+        val ios = """[{"cycle":"27","latest":"27.2","eol":false,"support":true},{"cycle":"26","latest":"26.7.2","eol":false,"support":"2026-09-14"}]"""
+        provide(ios, ParsedProvider("ios", "u") { parseEolIos(it) }).map { it.value } shouldBeEqualTo listOf("27.2", "26.7.2")
+        val macos = """[{"cycle":"27","codename":"Golden Gate","latest":"27.2","eol":false},{"cycle":"10.15","codename":"Catalina","latest":"10.15.8","eol":"2026-02-02"}]"""
+        val options = provide(macos, ParsedProvider("macos", "u") { parseEolMacos(it) })
+        options.map { it.value } shouldBeEqualTo listOf("27_2", "10_15_8")
+        options.first().label shouldBeEqualTo "macOS Golden Gate (27.2)"
     }
 
     @Test

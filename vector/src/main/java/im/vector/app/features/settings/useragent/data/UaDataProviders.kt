@@ -7,6 +7,8 @@
 
 package im.vector.app.features.settings.useragent.data
 
+import kotlinx.coroutines.CancellationException
+import timber.log.Timber
 import java.util.Locale
 
 /** A source of selectable values for a fetched field. [fetch] returns options newest-first. */
@@ -40,22 +42,18 @@ class StatCounterProvider(
         if (lines.size < 2) return emptyList()
         val header = parseCsvLine(lines.first())
         // StatCounter CSV rows are NOT in chronological order, so pick the newest month by date, not the last row.
+        // The current month is listed as all zeros until StatCounter has data for it, so skip empty rows.
         val row = lines.drop(1)
                 .map { it.split(',') }
                 .filter { it.size == header.size && DATE.matches(it.first()) }
+                .filter { cells -> cells.drop(1).any { (it.toDoubleOrNull() ?: 0.0) > 0.0 } }
                 .maxByOrNull { it.first() } ?: return emptyList()
 
         val raw = (1 until header.size).mapNotNull { i ->
             val share = row.getOrNull(i)?.toDoubleOrNull()?.takeIf { it > 0.0 } ?: return@mapNotNull null
             map(header[i], share)
         }
-        return raw.groupBy { it.value }
-                .map { (value, group) ->
-                    val share = group.mapNotNull { it.share }.takeIf { it.isNotEmpty() }?.sum()
-                    val name = group.first().label
-                    UaOption(value, if (share != null) "$name (${formatShare(share)})" else name, share)
-                }
-                .sortedWith(VersionSort.descending)
+        return mergeShares(raw)
     }
 
     companion object {
@@ -73,6 +71,60 @@ class StatCounterProvider(
         private fun yearMonth(cal: java.util.Calendar): String =
                 String.format(Locale.US, "%04d-%02d", cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH) + 1)
     }
+}
+
+/** Merges options that collapse to the same value (shares summed, share shown in the label), newest-first. */
+internal fun mergeShares(raw: List<UaOption>): List<UaOption> =
+        raw.groupBy { it.value }
+                .map { (value, group) ->
+                    val share = group.mapNotNull { it.share }.takeIf { it.isNotEmpty() }?.sum()
+                    val name = group.first().label
+                    UaOption(value, if (share != null) "$name (${formatShare(share)})" else name, share)
+                }
+                .sortedWith(VersionSort.descending)
+
+/**
+ * Uses [primary] unless it fails or parses to nothing, then [fallback]. A 304 from the primary still
+ * propagates, since it means the cache is current.
+ */
+class FallbackProvider(
+        private val primary: UaDataProvider,
+        private val fallback: UaDataProvider,
+) : UaDataProvider {
+
+    override val id: String get() = primary.id
+    override val primaryUrl: String? get() = primary.primaryUrl
+
+    override suspend fun fetch(http: UaHttp): List<UaOption> {
+        val options = try {
+            primary.fetch(http)
+        } catch (e: UaNotModified) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "UA %s: primary source failed", id)
+            emptyList()
+        }
+        if (options.isNotEmpty()) return options
+        Timber.i("UA %s: using fallback source", id)
+        return fallback.fetch(http)
+    }
+}
+
+/**
+ * Fetches [url] and hands the body to [parse]. Unconditional, because as a fallback a 304 could strand a
+ * validator the repository never clears (it only forgets the primary's).
+ */
+class ParsedProvider(
+        override val id: String,
+        private val url: String,
+        private val parse: (String) -> List<UaOption>,
+) : UaDataProvider {
+
+    override val primaryUrl: String get() = url
+
+    override suspend fun fetch(http: UaHttp): List<UaOption> = parse(http.get(url, conditional = false))
 }
 
 /** GitHub releases/tags source. Pulls a single string field per entry and keeps the API's newest-first order. */

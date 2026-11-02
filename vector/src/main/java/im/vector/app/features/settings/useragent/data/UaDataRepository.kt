@@ -75,11 +75,20 @@ class UaDataRepository @Inject constructor(
     @Volatile private var electronMem: List<ElectronRelease>? = null
 
     private val providers: Map<String, UaDataProvider> = listOf(
-            StatCounterProvider(UaProviderIds.ANDROID_VERSION, URL_ANDROID, UaMappers::android),
-            StatCounterProvider(UaProviderIds.CHROME_VERSION, URL_BROWSER, UaMappers::chrome),
+            FallbackProvider(
+                    StatCounterProvider(UaProviderIds.ANDROID_VERSION, URL_ANDROID, UaMappers::android),
+                    ParsedProvider(UaProviderIds.ANDROID_VERSION, URL_ANDROID_FALLBACK, ::parseAndroidDistributions),
+            ),
+            FallbackProvider(
+                    StatCounterProvider(UaProviderIds.CHROME_VERSION, URL_BROWSER, UaMappers::chrome),
+                    ParsedProvider(UaProviderIds.CHROME_VERSION, URL_CHROME_FALLBACK) { parseChromeVersionHistory(it) },
+            ),
             // Modern Firefox hides its version from usage stats, so use Mozilla's release history (recency).
             JsonKeyVersionProvider(UaProviderIds.FIREFOX_VERSION, URL_FIREFOX) { UaOption("$it.0", "Firefox $it", null) },
-            StatCounterProvider(UaProviderIds.MACOS_VERSION, URL_MACOS, UaMappers::macos),
+            FallbackProvider(
+                    StatCounterProvider(UaProviderIds.MACOS_VERSION, URL_MACOS, UaMappers::macos),
+                    ParsedProvider(UaProviderIds.MACOS_VERSION, URL_MACOS_FALLBACK) { parseEolMacos(it) },
+            ),
             GithubVersionProvider(UaProviderIds.CURL_VERSION, URL_CURL, "tag_name") { tag ->
                 CURL_TAG.find(tag)?.let { "${it.groupValues[1]}.${it.groupValues[2]}.${it.groupValues[3]}" }
             },
@@ -89,7 +98,10 @@ class UaDataRepository @Inject constructor(
                 tag.removePrefix("sc_v").takeIf { it != tag }
             },
             DeviceModelProvider(UaProviderIds.DEVICE_MODEL, URL_DEVICES, perBrandCap = 5000),
-            StatCounterProvider(UaProviderIds.IOS_VERSION, URL_IOS, UaMappers::ios),
+            FallbackProvider(
+                    StatCounterProvider(UaProviderIds.IOS_VERSION, URL_IOS, UaMappers::ios),
+                    ParsedProvider(UaProviderIds.IOS_VERSION, URL_IOS_FALLBACK) { parseEolIos(it) },
+            ),
             IosDeviceProvider(UaProviderIds.IOS_DEVICE, URL_IOS_DEVICES),
             GithubVersionProvider(UaProviderIds.MTXCLIENT_VERSION, url("Nheko-Reborn/mtxclient", "tags"), "name") { stripV(it) },
             GithubVersionProvider(UaProviderIds.GOMUKS_VERSION, url("gomuks/gomuks", "releases"), "tag_name") { stripV(it) },
@@ -300,6 +312,11 @@ class UaDataRepository @Inject constructor(
                 "worldwide/chart.php?device=Mobile%20%26%20Tablet&device_hidden=mobile%2Btablet&" +
                 "statType_hidden=ios_version&region_hidden=ww&granularity=monthly&statType=iOS+Version&region=Worldwide&csv=1"
         private const val URL_IOS_DEVICES = "https://api.ipsw.me/v4/devices"
+
+        private const val URL_ANDROID_FALLBACK = "https://dl.google.com/android/studio/metadata/distributions.json"
+        private const val URL_CHROME_FALLBACK = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions?pageSize=100"
+        private const val URL_IOS_FALLBACK = "https://endoflife.date/api/ios.json"
+        private const val URL_MACOS_FALLBACK = "https://endoflife.date/api/macos.json"
 
         // electron-to-chromium's compact {electronVersion: chromeVersion} map: ~50 KB vs lite.json's ~1 MB.
         private const val URL_ELECTRON = "https://raw.githubusercontent.com/Kilian/electron-to-chromium/master/full-versions.json"

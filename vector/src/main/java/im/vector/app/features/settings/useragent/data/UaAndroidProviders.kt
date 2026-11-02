@@ -8,6 +8,8 @@
 package im.vector.app.features.settings.useragent.data
 
 import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import java.util.Locale
 
 /**
@@ -61,6 +63,21 @@ class DeviceModelProvider(
                 "asus" to "ASUS", "nokia" to "Nokia", "lenovo" to "Lenovo",
         )
     }
+}
+
+@JsonClass(generateAdapter = true)
+internal data class AndroidDistribution(val version: String?, val distributionPercentage: Double?)
+
+private val distributionsAdapter = Moshi.Builder().build()
+        .adapter<List<AndroidDistribution>>(Types.newParameterizedType(List::class.java, AndroidDistribution::class.java))
+
+/** Parses Android Studio's distributions.json (fractions per Android version) into options with % shares. */
+fun parseAndroidDistributions(json: String): List<UaOption> {
+    val list = runCatching { distributionsAdapter.fromJson(json) }.getOrNull().orEmpty()
+    return mergeShares(list.mapNotNull {
+        val share = it.distributionPercentage?.takeIf { s -> s > 0.0 } ?: return@mapNotNull null
+        UaMappers.android(it.version ?: return@mapNotNull null, share * 100)
+    })
 }
 
 /** One row of the AOSP build-numbers table: a build id, its Android major, and the devices it shipped to. */
