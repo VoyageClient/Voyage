@@ -8,6 +8,7 @@
 package im.vector.app.features.signout.soft.epoxy
 
 import android.widget.ImageView
+import androidx.appcompat.content.res.AppCompatResources
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -19,7 +20,8 @@ abstract class LoginHeaderItem : VectorEpoxyModel<LoginHeaderItem.Holder>(R.layo
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.logo.setImageResource(AppLogo.current(holder.view.context).logoRes)
+        val context = holder.view.context
+        holder.logo.setImageDrawable(AppCompatResources.getDrawable(context, AppLogo.current(context).logoRes))
     }
 
     class Holder : VectorEpoxyHolder() {

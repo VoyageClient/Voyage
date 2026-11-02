@@ -16,6 +16,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySignedOutBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
+import im.vector.app.features.settings.applySelectedAppLogo
 import org.matrix.android.sdk.api.failure.GlobalError
 import timber.log.Timber
 
@@ -37,6 +38,7 @@ class SignedOutActivity : VectorBaseActivity<ActivitySignedOutBinding>() {
     }
 
     private fun setupViews() {
+        views.signedOut.applySelectedAppLogo()
         views.signedOutSubmit.debouncedClicks { submit() }
     }
 

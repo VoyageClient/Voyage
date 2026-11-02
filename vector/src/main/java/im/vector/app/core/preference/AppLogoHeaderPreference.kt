@@ -12,17 +12,18 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.PorterDuff
-import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.Interpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import im.vector.app.R
 import im.vector.app.features.settings.AppIconColor
 import im.vector.app.features.settings.AppLogo
+import im.vector.app.features.settings.wordmarkTypeface
 
 /**
  * Non-interactive header showing the current app-logo glyph tinted like the launcher icon, with the
@@ -46,15 +47,13 @@ class AppLogoHeaderPreference @JvmOverloads constructor(
         val itemContext = holder.itemView.context
 
         (holder.findViewById(R.id.appLogoHeaderImage) as? ImageView)?.apply {
-            setImageResource(AppLogo.current(itemContext).logoRes)
+            setImageDrawable(AppCompatResources.getDrawable(itemContext, AppLogo.current(itemContext).logoRes))
             setColorFilter(AppIconColor.current(itemContext).asMarkColor(itemContext), PorterDuff.Mode.SRC_IN)
             setOnClickListener { spin(it) }
         }
 
         (holder.findViewById(R.id.appLogoHeaderText) as? TextView)?.let { text ->
-            runCatching { Typeface.createFromAsset(itemContext.assets, "fonts/linux_libertine.otf") }
-                    .getOrNull()
-                    ?.let { text.typeface = it }
+            wordmarkTypeface(itemContext)?.let { text.typeface = it }
         }
     }
 

@@ -55,17 +55,18 @@ internal class CleanupSession @Inject constructor(
     }
 
     suspend fun cleanup() {
-        Timber.d("Cleanup: release session...")
-        sessionManager.releaseSession(sessionId)
-
         Timber.d("Cleanup: delete session params...")
         sessionParamsStore.delete(sessionId)
 
+        // Before the release: releasing the session closes the drivers these tasks write through.
         Timber.d("Cleanup: clear session data...")
         clearSessionDataTask.execute(Unit)
 
         Timber.d("Cleanup: clear crypto data...")
         clearCryptoDataTask.execute(Unit)
+
+        Timber.d("Cleanup: release session...")
+        sessionManager.releaseSession(sessionId)
 
         Timber.d("Cleanup: clear the database keys")
         realmKeysUtils.clear(SessionModule.getKeyAlias(userMd5))

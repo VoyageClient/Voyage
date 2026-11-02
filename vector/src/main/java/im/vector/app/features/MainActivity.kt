@@ -16,6 +16,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.ContextThemeWrapper
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.BlendModeColorFilterCompat
@@ -56,6 +57,7 @@ import im.vector.app.features.start.StartAppViewEvent
 import im.vector.app.features.start.StartAppViewModel
 import im.vector.app.features.start.StartAppViewState
 import im.vector.app.features.themes.ActivityOtherThemes
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.ui.UiStateRepository
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -431,7 +433,8 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             onboardingStore: VectorSessionStore,
     ) {
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            MaterialAlertDialogBuilder(this)
+            // The launcher theme's colorPrimary is the black splash background, which the buttons would inherit.
+            MaterialAlertDialogBuilder(ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)))
                     .setTitle(CommonStrings.dialog_title_error)
                     .setMessage(CommonStrings.sign_out_failed_dialog_message)
                     .setPositiveButton(CommonStrings.sign_out_anyway) { _, _ ->
