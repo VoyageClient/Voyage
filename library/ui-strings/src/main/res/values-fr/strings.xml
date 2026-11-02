@@ -3628,4 +3628,8 @@
     <string name="decryption_failure_user_not_joined_desc">Ce message a été envoyé lorsque vous n’étiez pas membre du salon.</string>
     <string name="settings_show_floating_date_header">Afficher la date pendant le défilement</string>
     <string name="settings_show_floating_date_header_summary">Afficher brièvement la date des messages en haut de l\'écran pendant que vous faites défiler la chronologie</string>
+    <string name="settings_compact_replies_edits">Réponses et modifications compactes</string>
+    <string name="settings_compact_replies_edits_summary">Afficher au-dessus du compositeur uniquement la personne à qui vous répondez, sans son avatar ni son message</string>
+    <string name="composer_replying_to">En réponse à %1$s</string>
+    <string name="composer_editing_message">Modification du message</string>
 </resources>

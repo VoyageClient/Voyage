@@ -3522,4 +3522,8 @@
     <string name="decryption_failure_user_not_joined_desc">یہ پیغام اس وقت بھیجا گیا تھا جب آپ کمرے کے رکن نہیں تھے۔</string>
     <string name="settings_show_floating_date_header">اسکرول کرتے وقت تاریخ دکھائیں</string>
     <string name="settings_show_floating_date_header_summary">ٹائم لائن میں اسکرول کرتے وقت اسکرین کے اوپر مختصر وقت کے لیے پیغامات کی تاریخ دکھائیں</string>
+    <string name="settings_compact_replies_edits">مختصر جوابات اور ترامیم</string>
+    <string name="settings_compact_replies_edits_summary">کمپوزر کے اوپر صرف یہ دکھائیں کہ آپ کسے جواب دے رہے ہیں، ان کے اوتار یا پیغام کے بغیر</string>
+    <string name="composer_replying_to">%1$s کو جواب دے رہے ہیں</string>
+    <string name="composer_editing_message">پیغام میں ترمیم ہو رہی ہے</string>
 </resources>

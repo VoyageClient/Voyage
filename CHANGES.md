@@ -78,6 +78,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default, and can be turned off for the boxed composer.
 
+- **Compact replies and edits**: an option to shrink the bar above the composer to a single "Replying to Alice" or "Editing message" line, without the avatar or message preview.
+
 - **Slash commands**: added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/view`, `/encrypt`, `/raw`, `/rawmsg` and `/rawstate` for sending an event from raw JSON, and `/trans`/`/transme` for trans-flag gradient messages, plus the ability to run slash commands on a reply or an edit. `/rainbow` paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
 - **Composer suggestions**: the `/`, `@`, `#` and `:` suggestion lists span the full width above the composer and slide out from behind it, showing three separated entries at a time.

@@ -8,17 +8,23 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
+import android.graphics.Typeface
 import android.net.Uri
 import android.text.Editable
 import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.text.toSpannable
+import androidx.core.view.MarginLayoutParamsCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.transition.ChangeBounds
@@ -101,6 +107,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     // Kept so the media can be re-rendered in place when revealed elsewhere.
     private var relatedMessagePreview: MessagePreviewContent? = null
 
+    private val fullActionIconParams: ConstraintLayout.LayoutParams
+    private val fullTitleParams: ConstraintLayout.LayoutParams
+
     // Lets a reconstructed pill resolve its member (and so its room display name) the way the timeline does.
     var roomId: String? = null
     var isThreadTimeline = false
@@ -152,6 +161,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.composerEditText.transformationMethod = DirectionOverridesTransformation
 
         views.composerRelatedMessagePreview.style = MessagePreviewView.Style(mediaMarginTop = dimensionConverter.dpToPx(6))
+        fullActionIconParams = ConstraintLayout.LayoutParams(views.composerRelatedMessageActionIcon.layoutParams as ConstraintLayout.LayoutParams)
+        fullTitleParams = ConstraintLayout.LayoutParams(views.composerRelatedMessageTitle.layoutParams as ConstraintLayout.LayoutParams)
 
         collapse(animate = false)
 
@@ -174,6 +185,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 callback?.onTextChanged(text)
             }
         }
+        val openRelatedMessage: (View) -> Unit = { lastSpecialMode?.let { callback?.onRelatedMessageClicked(it.event.eventId) } }
+        views.relatedMessageGroup.setOnClickListener(openRelatedMessage)
+        views.composerRelatedMessagePreview.onRichClick = openRelatedMessage
         views.composerRelatedMessageCloseButton.setOnClickListener {
             collapse()
             callback?.onCloseRelatedMessage()
@@ -440,6 +454,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             is MessageComposerMode.Reply -> R.drawable.ic_reply
             is MessageComposerMode.Edit -> R.drawable.ic_edit
         }
+        val compact = vectorPreferences.useCompactRepliesAndEdits()
+        applyRelatedMessageLayout(compact)
 
         val renderedProfile = event.renderPerMessageProfile(
                 event.senderInfo.disambiguatedDisplayName,
@@ -454,10 +470,23 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         )
 
         // switch to expanded bar
+        val senderName = renderedProfile.senderName.prepareForDisplay()
+        val nameColor = matrixItemColorProvider.getNameColor(senderItem)
+        val nameColored = matrixItemColorProvider.isNameColored()
         views.composerRelatedMessageTitle.apply {
-            text = renderedProfile.senderName.prepareForDisplay()
-            setTextColor(matrixItemColorProvider.getNameColor(senderItem))
-            setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
+            if (compact) {
+                text = if (specialMode is MessageComposerMode.Edit) {
+                    resources.getString(CommonStrings.composer_editing_message)
+                } else {
+                    replyingToTitle(senderName, nameColor, nameColored)
+                }
+                setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+                setSenderNameEmphasis(false)
+            } else {
+                text = senderName
+                setTextColor(nameColor)
+                setSenderNameEmphasis(nameColored)
+            }
         }
 
         val preview = previewBuilder.build(
@@ -471,22 +500,29 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                         senderItem = senderItem,
                 )
         )
-        relatedMessagePreview = preview
-        views.composerRelatedMessagePreview.bind(
-                preview,
-                hidden = isMediaHidden(preview),
-                hiddenAsSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
-                renderers = MessagePreviewView.Renderers(
-                        imageContentRenderer,
-                        richMessageBodyRenderer,
-                        arrayOf(pillsPostProcessorFactory.create(event.roomId)),
-                        locationPinProvider,
-                ),
-        )
+        val shownPreview = preview.takeUnless { compact }
+        relatedMessagePreview = shownPreview
+        if (shownPreview != null) {
+            views.composerRelatedMessagePreview.bind(
+                    shownPreview,
+                    hidden = isMediaHidden(shownPreview),
+                    hiddenAsSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
+                    renderers = MessagePreviewView.Renderers(
+                            imageContentRenderer,
+                            richMessageBodyRenderer,
+                            arrayOf(pillsPostProcessorFactory.create(event.roomId)),
+                            locationPinProvider,
+                    ),
+            )
+        } else {
+            views.composerRelatedMessagePreview.isVisible = false
+        }
+        // Alone, the title line must still fill the cancel button's height.
+        views.composerRelatedMessageTitle.minHeight = if (shownPreview == null) dimensionConverter.dpToPx(32) else 0
 
-        views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))
+        views.composerRelatedMessageActionIcon.setImageDrawable(AppCompatResources.getDrawable(context, iconRes))
 
-        avatarRenderer.render(senderItem, views.composerRelatedMessageAvatar)
+        if (!compact) avatarRenderer.render(senderItem, views.composerRelatedMessageAvatar)
 
         val content = if (specialMode is MessageComposerMode.Edit) {
             // Edit against the plain body — the markdown source the user typed. The rendered
@@ -510,6 +546,43 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (!isRefresh) {
                 views.composerEditText.post(::requestSpecialModeKeyboard)
             }
+        }
+    }
+
+    private fun applyRelatedMessageLayout(compact: Boolean) {
+        views.composerRelatedMessageAvatar.isVisible = !compact
+        views.composerRelatedMessageActionIcon.layoutParams = ConstraintLayout.LayoutParams(fullActionIconParams).apply {
+            if (compact) {
+                val iconSize = dimensionConverter.dpToPx(16)
+                width = iconSize
+                height = iconSize
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.UNSET
+                topToBottom = ConstraintLayout.LayoutParams.UNSET
+                topToTop = R.id.composerRelatedMessageTitle
+                bottomToBottom = R.id.composerRelatedMessageTitle
+                leftMargin = dimensionConverter.dpToPx(16)
+                MarginLayoutParamsCompat.setMarginStart(this, leftMargin)
+                topMargin = 0
+                bottomMargin = 0
+            }
+        }
+        views.composerRelatedMessageTitle.layoutParams = ConstraintLayout.LayoutParams(fullTitleParams).apply {
+            if (compact) startToEnd = R.id.composerRelatedMessageActionIcon
+        }
+    }
+
+    // Splices the name in rather than formatting, so its color and weight spans survive.
+    private fun replyingToTitle(senderName: CharSequence, nameColor: Int, nameColored: Boolean): CharSequence {
+        val template = resources.getString(CommonStrings.composer_replying_to)
+        val placeholder = "%1\$s"
+        val start = template.indexOf(placeholder)
+        if (start < 0) return template
+        return SpannableStringBuilder(template).apply {
+            replace(start, start + placeholder.length, senderName)
+            val end = start + senderName.length
+            setSpan(ForegroundColorSpan(nameColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if (nameColored) setSpan(StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 

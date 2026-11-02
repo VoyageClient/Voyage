@@ -605,6 +605,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 messageComposerViewModel.handle(MessageComposerAction.EnterRegularMode(false))
             }
 
+            override fun onRelatedMessageClicked(eventId: String) {
+                timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+            }
+
             override fun onRichContentSelected(contentUri: Uri): Boolean {
                 return sendUri(contentUri)
             }

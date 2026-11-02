@@ -3616,4 +3616,8 @@
     <string name="decryption_failure_user_not_joined_desc">Este mensaje se envió cuando no eras miembro de la sala.</string>
     <string name="settings_show_floating_date_header">Mostrar la fecha al desplazarse</string>
     <string name="settings_show_floating_date_header_summary">Mostrar brevemente la fecha de los mensajes en la parte superior de la pantalla mientras te desplazas por la cronología</string>
+    <string name="settings_compact_replies_edits">Respuestas y ediciones compactas</string>
+    <string name="settings_compact_replies_edits_summary">Mostrar sobre el compositor solo a quién respondes, sin su avatar ni su mensaje</string>
+    <string name="composer_replying_to">Respondiendo a %1$s</string>
+    <string name="composer_editing_message">Editando mensaje</string>
 </resources>

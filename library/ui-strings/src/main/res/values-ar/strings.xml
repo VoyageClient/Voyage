@@ -3773,4 +3773,8 @@
     <string name="decryption_failure_user_not_joined_desc">أُرسلت هذه الرسالة عندما لم تكن عضوًا في الغرفة.</string>
     <string name="settings_show_floating_date_header">إظهار التاريخ أثناء التمرير</string>
     <string name="settings_show_floating_date_header_summary">اعرض لفترة وجيزة تاريخ الرسائل أعلى الشاشة أثناء التمرير في الخط الزمني</string>
+    <string name="settings_compact_replies_edits">ردود وتعديلات مضغوطة</string>
+    <string name="settings_compact_replies_edits_summary">اعرض فوق المحرّر فقط من تردّ عليه، دون صورته الرمزية أو رسالته</string>
+    <string name="composer_replying_to">ردًّا على %1$s</string>
+    <string name="composer_editing_message">تحرير الرسالة</string>
 </resources>

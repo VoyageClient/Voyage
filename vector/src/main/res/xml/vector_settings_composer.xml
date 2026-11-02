@@ -40,6 +40,12 @@
         android:title="@string/settings_classic_composer" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_COMPACT_REPLIES_EDITS"
+        android:summary="@string/settings_compact_replies_edits_summary"
+        android:title="@string/settings_compact_replies_edits" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="true"
         android:key="SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON"
         android:summary="@string/settings_enable_voice_message_button_summary"

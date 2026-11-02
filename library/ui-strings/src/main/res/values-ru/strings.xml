@@ -3750,4 +3750,8 @@
     <string name="decryption_failure_user_not_joined_desc">Это сообщение было отправлено, когда вы не были участником комнаты.</string>
     <string name="settings_show_floating_date_header">Показывать дату при прокрутке</string>
     <string name="settings_show_floating_date_header_summary">Ненадолго показывать дату сообщений в верхней части экрана во время прокрутки ленты</string>
+    <string name="settings_compact_replies_edits">Компактные ответы и изменения</string>
+    <string name="settings_compact_replies_edits_summary">Показывать над полем ввода только того, кому вы отвечаете, без аватара и сообщения</string>
+    <string name="composer_replying_to">Ответ для %1$s</string>
+    <string name="composer_editing_message">Изменение сообщения</string>
 </resources>

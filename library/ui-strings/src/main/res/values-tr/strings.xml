@@ -3586,4 +3586,8 @@
     <string name="decryption_failure_user_not_joined_desc">Bu mesaj, siz odanın üyesi değilken gönderildi.</string>
     <string name="settings_show_floating_date_header">Kaydırırken tarihi göster</string>
     <string name="settings_show_floating_date_header_summary">Zaman akışında kaydırırken mesajların tarihini ekranın üstünde kısa süreliğine göster</string>
+    <string name="settings_compact_replies_edits">Kompakt yanıtlar ve düzenlemeler</string>
+    <string name="settings_compact_replies_edits_summary">Yazma alanının üstünde yalnızca kime yanıt verdiğini göster, avatarı veya mesajı olmadan</string>
+    <string name="composer_replying_to">%1$s yanıtlanıyor</string>
+    <string name="composer_editing_message">Mesaj düzenleniyor</string>
 </resources>

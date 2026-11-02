@@ -48,6 +48,7 @@ interface MessageComposerView {
 
 interface Callback : ComposerEditText.Callback {
     fun onCloseRelatedMessage()
+    fun onRelatedMessageClicked(eventId: String)
     fun onSendMessage(text: CharSequence)
 
     /** @return true when the long press was consumed, e.g. to schedule the message */

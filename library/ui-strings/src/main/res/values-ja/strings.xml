@@ -3563,4 +3563,8 @@
     <string name="decryption_failure_user_not_joined_desc">このメッセージは、あなたがルームのメンバーでなかったときに送信されました。</string>
     <string name="settings_show_floating_date_header">スクロール中に日付を表示</string>
     <string name="settings_show_floating_date_header_summary">タイムラインをスクロールしている間、画面上部にメッセージの日付を一時的に表示</string>
+    <string name="settings_compact_replies_edits">返信と編集をコンパクトに表示</string>
+    <string name="settings_compact_replies_edits_summary">入力欄の上には返信先の名前だけを表示し、アバターやメッセージは表示しない</string>
+    <string name="composer_replying_to">%1$sに返信中</string>
+    <string name="composer_editing_message">メッセージを編集中</string>
 </resources>

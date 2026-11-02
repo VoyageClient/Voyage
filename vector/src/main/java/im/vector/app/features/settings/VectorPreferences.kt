@@ -229,6 +229,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
         private const val SETTINGS_CLASSIC_COMPOSER = "SETTINGS_CLASSIC_COMPOSER"
+        private const val SETTINGS_COMPACT_REPLIES_EDITS = "SETTINGS_COMPACT_REPLIES_EDITS"
         private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY"
         private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA_KEY = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
@@ -422,6 +423,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SEND_MESSAGE_WITH_ENTER,
                 SETTINGS_SHOW_EMOJI_KEYBOARD,
                 SETTINGS_CLASSIC_COMPOSER,
+                SETTINGS_COMPACT_REPLIES_EDITS,
                 SETTINGS_ENABLE_SED_REPLACEMENT_KEY,
 
                 SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY,
@@ -1410,6 +1412,10 @@ class VectorPreferences @Inject constructor(
      */
     fun useClassicComposer(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_CLASSIC_COMPOSER, true)
+    }
+
+    fun useCompactRepliesAndEdits(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_COMPACT_REPLIES_EDITS, false)
     }
 
     /**

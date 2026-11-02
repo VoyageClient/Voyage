@@ -60,6 +60,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:gravity="center_vertical"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/composerRelatedMessageCloseButton"
             app:layout_constraintStart_toEndOf="@id/composerRelatedMessageAvatar"
@@ -110,7 +111,7 @@
             android:layout_height="0dp"
             app:barrierDirection="bottom"
             app:barrierMargin="8dp"
-            app:constraint_referenced_ids="composerRelatedMessagePreview,composerRelatedMessageActionIcon"
+            app:constraint_referenced_ids="composerRelatedMessageTitle,composerRelatedMessagePreview,composerRelatedMessageActionIcon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
