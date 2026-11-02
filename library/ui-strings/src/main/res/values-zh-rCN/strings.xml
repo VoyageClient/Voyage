@@ -24,8 +24,6 @@
     <string name="notice_avatar_changed_too">（头像也被更改）</string>
     <string name="notice_room_name_removed">%1$s 移除了房间名称</string>
     <string name="notice_room_topic_removed">%1$s 移除了房间话题</string>
-    <string name="notice_crypto_unable_to_decrypt">** 无法解密：%s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">发送者的设备没有向我们发送此消息的密钥。</string>
     <string name="unable_to_send_message">无法发送消息</string>
     <string name="matrix_error">Matrix 错误</string>
     <string name="medium_email">电子邮件地址</string>
@@ -1329,8 +1327,6 @@
     <string name="room_settings_name_hint">房间名称</string>
     <string name="room_settings_topic_hint">话题</string>
     <string name="room_settings_save_success">你已成功更改房间设置</string>
-    <string name="notice_crypto_unable_to_decrypt_final">你无法访问此消息</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">正在等待此消息，可能会花费一些时间</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">由于端到端加密，你可能需要等待某人的消息到达，因为加密密钥未正确发送给你。</string>
     <string name="crypto_error_withheld_blacklisted">你无法访问此消息因为你已屏蔽此发送者</string>
     <string name="crypto_error_withheld_unverified">你无法访问此消息，因为你的会话不被发送者信任</string>
@@ -3560,4 +3556,12 @@
     <string name="settings_reveal_undisclosed_poll_results">显示隐藏的投票结果</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">显示本应在结束前隐藏结果的投票中的选票</string>
     <string name="import_e2e_keys_from_file">从文件“%1$s”导入端到端密钥。</string>
+    <string name="decryption_failure_unable_to_decrypt">无法解密消息</string>
+    <string name="decryption_failure_blocked">由于你的设备未经验证，发送者已阻止你接收此消息</string>
+    <string name="decryption_failure_historical_no_key_backup">此设备上无法查看历史消息</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">此消息是在此设备登录之前发送的，且没有可用于恢复它的密钥备份。</string>
+    <string name="decryption_failure_historical_unverified_device">你需要验证此设备才能访问历史消息</string>
+    <string name="decryption_failure_historical_unverified_device_desc">此消息是在此设备登录之前发送的。验证此设备即可从你的密钥备份中恢复它。</string>
+    <string name="decryption_failure_user_not_joined">你无权访问此消息</string>
+    <string name="decryption_failure_user_not_joined_desc">此消息是在你不是房间成员时发送的。</string>
 </resources>

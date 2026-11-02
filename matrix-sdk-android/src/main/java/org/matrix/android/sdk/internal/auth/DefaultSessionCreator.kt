@@ -21,6 +21,8 @@ import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.SessionManager
+import org.matrix.android.sdk.internal.crypto.DeviceCreationTimeStore
+import org.matrix.android.sdk.internal.util.time.Clock
 import javax.inject.Inject
 
 internal class DefaultSessionCreator @Inject constructor(
@@ -28,6 +30,8 @@ internal class DefaultSessionCreator @Inject constructor(
         private val sessionManager: SessionManager,
         private val pendingSessionStore: PendingSessionStore,
         private val sessionParamsCreator: SessionParamsCreator,
+        private val deviceCreationTimeStore: DeviceCreationTimeStore,
+        private val clock: Clock,
 ) : SessionCreator {
 
     /**
@@ -43,6 +47,7 @@ internal class DefaultSessionCreator @Inject constructor(
         pendingSessionStore.delete()
         val sessionParams = sessionParamsCreator.create(credentials, homeServerConnectionConfig, loginType)
         sessionParamsStore.save(sessionParams)
+        deviceCreationTimeStore.recordIfAbsent(credentials.userId, credentials.deviceId, clock.epochMillis())
         return sessionManager.getOrCreateSession(sessionParams)
     }
 }

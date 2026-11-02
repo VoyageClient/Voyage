@@ -87,6 +87,7 @@ class MessagePreviewContentBuilderTest {
             },
             vectorPreferences = mockk(relaxed = true),
             noticeEventFormatter = noticeEventFormatter,
+            decryptionFailureFormatter = mockk(relaxed = true),
             htmlRenderer = { htmlRenderer },
             htmlCompressor = mockk { every { compress(any()) } answers { firstArg() } },
             pillsPostProcessorFactory = mockk(relaxed = true),

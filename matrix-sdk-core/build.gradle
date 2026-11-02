@@ -1401,6 +1401,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/registration/DefaultRegistrationWizard.kt',
         // Crypto service impl; its paged devtools views live on the android AndroidCryptoService.
         'org/matrix/android/sdk/internal/crypto/DefaultCryptoService.kt',
+        'org/matrix/android/sdk/internal/crypto/DeviceCreationTimeStore.kt',
         'org/matrix/android/sdk/internal/crypto/crosssigning/DefaultCrossSigningService.kt',
         'org/matrix/android/sdk/internal/crypto/verification/DefaultVerificationService.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationMessageProcessor.kt',

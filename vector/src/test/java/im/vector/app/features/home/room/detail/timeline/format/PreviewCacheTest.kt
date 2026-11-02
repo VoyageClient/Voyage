@@ -54,6 +54,7 @@ class PreviewCacheTest {
             colorProvider = ColorProvider(context),
             drawableProvider = mockk(relaxed = true),
             noticeEventFormatter = mockk(relaxed = true),
+            decryptionFailureFormatter = mockk(relaxed = true),
             reactionFormatter = mockk(relaxed = true),
             htmlRenderer = { htmlRenderer },
             pgpDecryptor = mockk<im.vector.app.features.pgp.PgpDecryptor>(relaxed = true).also {

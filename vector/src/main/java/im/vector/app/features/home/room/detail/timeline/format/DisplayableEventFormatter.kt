@@ -57,6 +57,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val colorProvider: ColorProvider,
         private val drawableProvider: DrawableProvider,
         private val noticeEventFormatter: NoticeEventFormatter,
+        private val decryptionFailureFormatter: DecryptionFailureFormatter,
         private val reactionFormatter: ReactionFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
@@ -109,6 +110,12 @@ class DisplayableEventFormatter @Inject constructor(
 
     fun formatDebugOrUnhandled(event: Event): CharSequence = noticeEventFormatter.formatDebugOrUnhandled(event)
 
+    private fun formatUndecrypted(event: Event): CharSequence = if (event.mCryptoError == null) {
+        stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
+    } else {
+        decryptionFailureFormatter.format(event)
+    }
+
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
             return formatRedacted(timelineEvent.root)
@@ -116,7 +123,7 @@ class DisplayableEventFormatter @Inject constructor(
 
         if (timelineEvent.root.isEncrypted() &&
                 timelineEvent.root.mxDecryptionResult == null) {
-            return stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
+            return formatUndecrypted(timelineEvent.root)
         }
 
         val renderedProfile = timelineEvent.renderPerMessageProfile(
@@ -259,7 +266,7 @@ class DisplayableEventFormatter @Inject constructor(
         // The event is encrypted
         if (event.isEncrypted() &&
                 event.mxDecryptionResult == null) {
-            return stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
+            return formatUndecrypted(event)
         }
 
         return when (event.getClearType()) {

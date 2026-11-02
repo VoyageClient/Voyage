@@ -31,8 +31,6 @@
     <string name="notice_room_topic_removed">%1$sがルームのトピックを削除しました</string>
     <string name="notice_room_third_party_invite">%1$sが%2$sにルームへの招待を送りました</string>
     <string name="notice_room_third_party_registered_invite">%1$sが%2$sの招待を受け入れました</string>
-    <string name="notice_crypto_unable_to_decrypt">** 復号化できません：%s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">送信者の端末からこのメッセージ用の鍵が送信されていません。</string>
     <string name="unable_to_send_message">メッセージを送信できません</string>
     <string name="matrix_error">Matrixエラー</string>
     <string name="medium_email">メールアドレス</string>
@@ -1709,7 +1707,6 @@
     <string name="three_pid_revoke_invite_dialog_content">%1$sへの招待を取り消しますか？</string>
     <string name="loading_contact_book">連絡先を取得しています…</string>
     <string name="disclaimer_title">RiotはElementになりました！</string>
-    <string name="notice_crypto_unable_to_decrypt_final">このメッセージにアクセスできません</string>
     <string name="room_settings_set_avatar">アバターを設定</string>
     <string name="identity_server_set_alternative_notice_no_default">IDサーバーのURLを入力してください</string>
     <string name="identity_server_set_default_submit">%1$sを使用</string>
@@ -1944,7 +1941,6 @@
     <string name="notice_crypto_unable_to_decrypt_merged">暗号化の履歴を待機しています</string>
     <string name="crypto_error_withheld_unverified">送信者があなたのセッションを信頼していないため、このメッセージにアクセスすることができません</string>
     <string name="crypto_error_withheld_blacklisted">送信者によりブロックされているため、このメッセージにアクセスすることができません</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">このメッセージを待機しています。時間がかかる可能性があります</string>
     <string name="room_settings_save_success">ルームの設定の変更に成功しました</string>
     <string name="set_a_security_phrase_again_notice">確認のため、セキュリティーフレーズを再入力してください。</string>
     <string name="identity_server_set_default_notice">ホームサーバー（%1$s）は、IDサーバーに%2$sを設定するように提案しています</string>
@@ -3558,4 +3554,12 @@
     <string name="settings_reveal_undisclosed_poll_results">非公開のアンケート結果を表示</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">終了まで結果を非公開にする設定のアンケートでも投票を表示</string>
     <string name="import_e2e_keys_from_file">ファイル\"%1$s\"からエンドツーエンド暗号鍵をインポート。</string>
+    <string name="decryption_failure_unable_to_decrypt">メッセージを復号化できません</string>
+    <string name="decryption_failure_blocked">この端末が認証されていないため、送信者はこのメッセージの受信をブロックしています</string>
+    <string name="decryption_failure_historical_no_key_backup">過去のメッセージはこの端末では利用できません</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">このメッセージはこの端末がサインインする前に送信されたもので、復元に使える鍵のバックアップがありません。</string>
+    <string name="decryption_failure_historical_unverified_device">過去のメッセージにアクセスするには、この端末を認証する必要があります</string>
+    <string name="decryption_failure_historical_unverified_device_desc">このメッセージはこの端末がサインインする前に送信されたものです。鍵のバックアップから復元するには、この端末を認証してください。</string>
+    <string name="decryption_failure_user_not_joined">このメッセージにはアクセスできません</string>
+    <string name="decryption_failure_user_not_joined_desc">このメッセージは、あなたがルームのメンバーでなかったときに送信されました。</string>
 </resources>

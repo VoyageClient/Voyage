@@ -28,8 +28,6 @@
     <string name="notice_room_topic_removed">%1$s removeu o tópico da sala</string>
     <string name="notice_room_third_party_invite">%1$s convidou %2$s para entrar na sala</string>
     <string name="notice_room_third_party_registered_invite">%1$s aceitou o convite para %2$s</string>
-    <string name="notice_crypto_unable_to_decrypt">** Incapaz de decriptar: %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">O dispositivo do remetente não nos enviou as chaves para esta mensagem.</string>
     <string name="unable_to_send_message">Não foi possível enviar mensagem</string>
     <string name="matrix_error">Erro de Matrix</string>
     <string name="medium_email">Endereço de email</string>
@@ -1400,8 +1398,6 @@
     <string name="room_settings_name_hint">Nome de Sala</string>
     <string name="room_settings_topic_hint">Tópico</string>
     <string name="room_settings_save_success">Você mudou configurações de sala com sucesso</string>
-    <string name="notice_crypto_unable_to_decrypt_final">Você não pode acessar esta mensagem</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Esperando por esta mensagem, isto pode levar algum tempo</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Devido a encriptação ponta-a-ponta, pode ser que você precise esperar para que a mensagem de alguém chegue porque as chaves de encriptação não foram enviadas apropriadamente para você.</string>
     <string name="crypto_error_withheld_blacklisted">Você não pode acessar esta mensagem porque você foi bloqueado pelo remetente</string>
     <string name="crypto_error_withheld_unverified">Você não pode acessar esta mensagem porque sua sessão não é confiada pelo remetente</string>
@@ -3623,4 +3619,12 @@
     <string name="settings_reveal_undisclosed_poll_results">Revelar resultados ocultos de enquetes</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Mostrar os votos de enquetes cujos resultados deveriam ficar ocultos até o fim</string>
     <string name="import_e2e_keys_from_file">Importar chaves E2E do arquivo \"%1$s\".</string>
+    <string name="decryption_failure_unable_to_decrypt">Não foi possível descriptografar a mensagem</string>
+    <string name="decryption_failure_blocked">O remetente bloqueou o recebimento desta mensagem porque seu dispositivo não está verificado</string>
+    <string name="decryption_failure_historical_no_key_backup">Mensagens antigas não estão disponíveis neste dispositivo</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Esta mensagem foi enviada antes de este dispositivo entrar, e não há backup de chaves para restaurá-la.</string>
+    <string name="decryption_failure_historical_unverified_device">Você precisa verificar este dispositivo para acessar mensagens antigas</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Esta mensagem foi enviada antes de este dispositivo entrar. Verifique este dispositivo para restaurá-la do seu backup de chaves.</string>
+    <string name="decryption_failure_user_not_joined">Você não tem acesso a esta mensagem</string>
+    <string name="decryption_failure_user_not_joined_desc">Esta mensagem foi enviada quando você não era membro da sala.</string>
 </resources>

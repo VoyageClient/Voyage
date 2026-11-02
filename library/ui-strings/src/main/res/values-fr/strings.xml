@@ -28,8 +28,6 @@
     <string name="notice_room_topic_removed">%1$s a supprimé le sujet du salon</string>
     <string name="notice_room_third_party_invite">%1$s a envoyé une invitation à %2$s pour rejoindre le salon</string>
     <string name="notice_room_third_party_registered_invite">%1$s a accepté l’invitation de %2$s</string>
-    <string name="notice_crypto_unable_to_decrypt">** Déchiffrement impossible : %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">L’appareil de l’expéditeur ne nous a pas envoyé les clés pour ce message.</string>
     <string name="unable_to_send_message">Envoi du message impossible</string>
     <string name="matrix_error">Erreur de Matrix</string>
     <string name="medium_email">Adresse électronique</string>
@@ -1349,8 +1347,6 @@
     <string name="crypto_error_withheld_unverified">Vous ne pouvez pas accéder à ce message car l’envoyeur n’a pas confiance en votre session</string>
     <string name="crypto_error_withheld_blacklisted">Impossible d’accéder à ce message car vous avez été bloqué par l’envoyeur</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">À cause du chiffrement de bout en bout, vous pouvez avoir besoin d’attendre l’arrivée du message de quelqu’un car les clés de chiffrement ne vous ont pas été correctement envoyées.</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Attente du message, cela peut prendre du temps</string>
-    <string name="notice_crypto_unable_to_decrypt_final">Vous n’avez pas accès à ce message</string>
     <string name="room_settings_save_success">Vous avez bien changé les paramètres du salon</string>
     <string name="room_settings_topic_hint">Sujet</string>
     <string name="room_settings_name_hint">Nom du salon</string>
@@ -3623,4 +3619,12 @@
     <string name="settings_reveal_undisclosed_poll_results">Révéler les résultats masqués des sondages</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Afficher les votes des sondages dont les résultats doivent rester masqués jusqu\'à leur fin</string>
     <string name="import_e2e_keys_from_file">Importer les clés de chiffrement depuis le fichier « %1$s ».</string>
+    <string name="decryption_failure_unable_to_decrypt">Impossible de déchiffrer le message</string>
+    <string name="decryption_failure_blocked">L’expéditeur vous empêche de recevoir ce message car votre appareil n’est pas vérifié</string>
+    <string name="decryption_failure_historical_no_key_backup">Les messages plus anciens ne sont pas disponibles sur cet appareil</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Ce message a été envoyé avant la connexion de cet appareil, et il n’existe aucune sauvegarde des clés pour le restaurer.</string>
+    <string name="decryption_failure_historical_unverified_device">Vous devez vérifier cet appareil pour accéder aux messages plus anciens</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Ce message a été envoyé avant la connexion de cet appareil. Vérifiez cet appareil pour le restaurer depuis votre sauvegarde des clés.</string>
+    <string name="decryption_failure_user_not_joined">Vous n’avez pas accès à ce message</string>
+    <string name="decryption_failure_user_not_joined_desc">Ce message a été envoyé lorsque vous n’étiez pas membre du salon.</string>
 </resources>

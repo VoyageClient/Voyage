@@ -187,6 +187,7 @@ internal class DefaultCryptoService @Inject constructor(
         private val uploadKeysTask: UploadKeysTask,
         private val loadRoomMembersTask: LoadRoomMembersTask,
         private val cryptoSessionInfoProvider: CryptoSessionInfoProvider,
+        private val deviceCreationTimeStore: DeviceCreationTimeStore,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val cryptoCoroutineScope: CoroutineScope,
         private val eventDecryptor: EventDecryptor,
@@ -1290,6 +1291,8 @@ internal class DefaultCryptoService @Inject constructor(
      *
      * @return true to unilaterally blacklist all unverified devices.
      */
+    override fun getDeviceCreationTs(): Long? = deviceCreationTimeStore.get(userId, deviceId)
+
     override fun getGlobalBlacklistUnverifiedDevices(): Boolean {
         return cryptoStore.getGlobalBlacklistUnverifiedDevices()
     }

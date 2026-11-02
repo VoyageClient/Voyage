@@ -234,7 +234,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
-import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -576,7 +575,7 @@ class TimelineFragment :
                 is RoomDetailViewEvents.NavigateToEvent -> navigateToEvent(it)
                 is RoomDetailViewEvents.NavigateToThreadEvent -> navigateToThreadTimeline(it.rootThreadEventId, eventIdToNavigate = it.eventId)
                 is RoomDetailViewEvents.DownloadFileState -> handleDownloadFileState(it)
-                is RoomDetailViewEvents.ShowE2EErrorMessage -> displayE2eError(it.withHeldCode)
+                is RoomDetailViewEvents.ShowE2EErrorMessage -> displayE2eError(it)
                 RoomDetailViewEvents.DisplayPromptForIntegrationManager -> displayPromptForIntegrationManager()
                 is RoomDetailViewEvents.OpenStickerPicker -> openStickerPicker(it)
                 is RoomDetailViewEvents.DisplayEnableIntegrationsWarning -> displayDisabledIntegrationDialog()
@@ -1964,16 +1963,9 @@ class TimelineFragment :
         }
     }
 
-    private fun displayE2eError(withHeldCode: WithHeldCode?) {
-        val msgId = when (withHeldCode) {
-            WithHeldCode.BLACKLISTED -> CommonStrings.crypto_error_withheld_blacklisted
-            WithHeldCode.UNVERIFIED -> CommonStrings.crypto_error_withheld_unverified
-            WithHeldCode.UNAUTHORISED,
-            WithHeldCode.UNAVAILABLE -> CommonStrings.crypto_error_withheld_generic
-            else -> CommonStrings.notice_crypto_unable_to_decrypt_friendly_desc
-        }
+    private fun displayE2eError(event: RoomDetailViewEvents.ShowE2EErrorMessage) {
         MaterialAlertDialogBuilder(requireActivity())
-                .setMessage(msgId)
+                .setMessage(listOfNotNull(event.message, event.technicalDetails).joinToString("\n\n"))
                 .setPositiveButton(CommonStrings.ok, null)
                 .show()
     }

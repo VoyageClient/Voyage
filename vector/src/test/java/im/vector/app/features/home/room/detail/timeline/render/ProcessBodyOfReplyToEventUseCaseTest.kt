@@ -86,6 +86,7 @@ class ProcessBodyOfReplyToEventUseCaseTest {
             stringProvider = fakeStringProvider.instance,
             noticeEventFormatter = fakeNoticeEventFormatter,
             colorProvider = fakeColorProvider,
+            decryptionFailureFormatter = mockk(relaxed = true),
     )
 
     private lateinit var fakeRepliedEvent: Event

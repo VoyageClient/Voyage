@@ -14,6 +14,7 @@ import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.factory.PollItemViewStateFactory
+import im.vector.app.features.home.room.detail.timeline.format.DecryptionFailureFormatter
 import im.vector.app.features.home.room.detail.timeline.format.EventDetailsFormatter
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
@@ -83,6 +84,7 @@ class MessagePreviewContentBuilder @Inject constructor(
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
         private val noticeEventFormatter: NoticeEventFormatter,
+        private val decryptionFailureFormatter: DecryptionFailureFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val htmlCompressor: VectorHtmlCompressor,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
@@ -124,6 +126,9 @@ class MessagePreviewContentBuilder @Inject constructor(
         val base = empty(event)
         if (event.root.isRedacted()) {
             return base.copy(text = noticeEventFormatter.formatRedactedEvent(event.root).toEpoxyCharSequence(), textStyle = TextStyle.REDACTED)
+        }
+        if (event.root.getClearType() == EventType.ENCRYPTED) {
+            return base.notice(decryptionFailureFormatter.formatStyled(event.root))
         }
         if (event.rendersAsDebugMessage(vectorPreferences.areThreadMessagesEnabled(), options.isThreadTimeline)) {
             return base.notice(noticeEventFormatter.formatDebugOrUnhandled(event.root))

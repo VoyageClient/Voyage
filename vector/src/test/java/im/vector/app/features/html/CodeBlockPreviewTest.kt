@@ -67,6 +67,7 @@ class CodeBlockPreviewTest {
             colorProvider = ColorProvider(context),
             drawableProvider = mockk(relaxed = true),
             noticeEventFormatter = mockk(relaxed = true),
+            decryptionFailureFormatter = mockk(relaxed = true),
             reactionFormatter = mockk(relaxed = true),
             htmlRenderer = { renderer },
             pgpDecryptor = mockk<im.vector.app.features.pgp.PgpDecryptor>(relaxed = true).also {

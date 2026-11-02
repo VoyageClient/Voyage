@@ -106,8 +106,6 @@
     <string name="notice_power_level_changed_by_you">आपने %1$s का पावर लेवल बदला।</string>
     <string name="notice_power_level_changed">%1$s ने %2$s का पावर लेवल बदला।</string>
     <string name="notice_power_level_diff">%1$s %2$s से %3$s</string>
-    <string name="notice_crypto_unable_to_decrypt">** डिक्रिप्ट नहीं किया जा सका: %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">भेजने वाले के डिवाइस ने इस मैसेज की कुंजियां हमें नहीं भेजी हैं।</string>
     <string name="notice_voice_broadcast_ended">%1$s ने वॉइस ब्रॉडकास्ट समाप्त किया।</string>
     <string name="notice_voice_broadcast_ended_by_you">आपने वॉइस ब्रॉडकास्ट समाप्त किया।</string>
     <string name="unable_to_send_message">मैसेज नहीं भेजा जा सका</string>
@@ -1865,8 +1863,6 @@
     <string name="room_settings_topic_hint">विषय</string>
     <string name="room_settings_save_success">आपने रूम सेटिंग सफलतापूर्वक बदल दीं</string>
     <string name="room_settings_set_avatar">अवतार सेट करें</string>
-    <string name="notice_crypto_unable_to_decrypt_final">आप इस मैसेज तक नहीं पहुंच सकते</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">इस मैसेज की प्रतीक्षा की जा रही है, इसमें कुछ समय लग सकता है</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">एंड-टू-एंड एन्क्रिप्शन की वजह से, आपको किसी के मैसेज के आने की प्रतीक्षा करनी पड़ सकती है, क्योंकि एन्क्रिप्शन कुंजियां आपको ठीक से नहीं भेजी गई थीं।</string>
     <string name="crypto_error_withheld_blacklisted">आप इस मैसेज तक नहीं पहुंच सकते, क्योंकि भेजने वाले ने आपको ब्लॉक किया है</string>
     <string name="crypto_error_withheld_unverified">आप इस मैसेज तक नहीं पहुंच सकते, क्योंकि भेजने वाला आपके सेशन पर भरोसा नहीं करता</string>
@@ -3505,4 +3501,12 @@
     <string name="settings_reveal_undisclosed_poll_results">छिपे हुए पोल नतीजे दिखाएं</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">उन पोल के वोट दिखाएं जिनके नतीजे खत्म होने तक छिपे रहने चाहिए</string>
     <string name="import_e2e_keys_from_file">फ़ाइल \"%1$s\" से E2E कुंजियां इम्पोर्ट करें।</string>
+    <string name="decryption_failure_unable_to_decrypt">मैसेज को डिक्रिप्ट नहीं किया जा सका</string>
+    <string name="decryption_failure_blocked">आपका डिवाइस सत्यापित नहीं है, इसलिए भेजने वाले ने आपको यह मैसेज पाने से रोक दिया है</string>
+    <string name="decryption_failure_historical_no_key_backup">पुराने मैसेज इस डिवाइस पर उपलब्ध नहीं हैं</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">यह मैसेज इस डिवाइस के साइन इन करने से पहले भेजा गया था, और इसे बहाल करने के लिए कोई कुंजी बैकअप नहीं है।</string>
+    <string name="decryption_failure_historical_unverified_device">पुराने मैसेज देखने के लिए आपको इस डिवाइस को सत्यापित करना होगा</string>
+    <string name="decryption_failure_historical_unverified_device_desc">यह मैसेज इस डिवाइस के साइन इन करने से पहले भेजा गया था। इसे अपने कुंजी बैकअप से बहाल करने के लिए इस डिवाइस को सत्यापित करें।</string>
+    <string name="decryption_failure_user_not_joined">आपको इस मैसेज तक पहुंच नहीं है</string>
+    <string name="decryption_failure_user_not_joined_desc">यह मैसेज तब भेजा गया था जब आप रूम के सदस्य नहीं थे।</string>
 </resources>

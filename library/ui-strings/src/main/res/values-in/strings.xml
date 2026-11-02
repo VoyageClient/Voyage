@@ -654,8 +654,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="medium_email">Surel</string>
     <string name="matrix_error">Kesalahan Matrix</string>
     <string name="unable_to_send_message">Tidak dapat mengirim pesan</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">Perangkat pengirim belum mengirimi kami kunci untuk pesan ini.</string>
-    <string name="notice_crypto_unable_to_decrypt">** Tidak dapat mendekripsi: %s **</string>
     <string name="notice_power_level_diff">%1$s dari %2$s ke %3$s</string>
     <string name="notice_power_level_changed_by_you">Anda mengubah tingkat daya %1$s.</string>
     <string name="power_level_default">Standar</string>
@@ -1617,8 +1615,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="crypto_error_withheld_unverified">Anda tidak dapat mengakses pesan ini karena sesi Anda tidak dipercayai oleh pengirim</string>
     <string name="crypto_error_withheld_blacklisted">Anda tidak dapat mengakses pesan ini karena Anda telah diblokir oleh pengirim</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Karena adanya enkripsi ujung ke ujung, Anda mungkin harus menunggu untuk pesan dari seseorang untuk datang karena kunci enkripsinya tidak dikirim secara benar ke Anda.</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Menunggu untuk pesan ini, mungkin membutuhkan beberapa waktu</string>
-    <string name="notice_crypto_unable_to_decrypt_final">Anda tidak dapat mengakses pesan ini</string>
     <string name="room_settings_set_avatar">Atur avatar</string>
     <string name="room_settings_save_success">Anda berhasil mengubah pengaturan ruangan</string>
     <string name="room_settings_topic_hint">Topik</string>
@@ -3560,4 +3556,12 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_reveal_undisclosed_poll_results">Tampilkan hasil poll tersembunyi</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Tampilkan suara pada poll yang hasilnya seharusnya tetap tersembunyi hingga berakhir</string>
     <string name="import_e2e_keys_from_file">Impor kunci E2E dari file \"%1$s\".</string>
+    <string name="decryption_failure_unable_to_decrypt">Tidak dapat mendekripsi pesan</string>
+    <string name="decryption_failure_blocked">Pengirim telah memblokir Anda dari menerima pesan ini karena perangkat Anda belum diverifikasi</string>
+    <string name="decryption_failure_historical_no_key_backup">Pesan lama tidak tersedia di perangkat ini</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Pesan ini dikirim sebelum perangkat ini masuk, dan tidak ada cadangan kunci untuk memulihkannya.</string>
+    <string name="decryption_failure_historical_unverified_device">Anda perlu memverifikasi perangkat ini untuk mengakses pesan lama</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Pesan ini dikirim sebelum perangkat ini masuk. Verifikasi perangkat ini untuk memulihkannya dari cadangan kunci Anda.</string>
+    <string name="decryption_failure_user_not_joined">Anda tidak memiliki akses ke pesan ini</string>
+    <string name="decryption_failure_user_not_joined_desc">Pesan ini dikirim saat Anda bukan anggota ruangan.</string>
 </resources>

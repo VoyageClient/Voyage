@@ -11,6 +11,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.format.DecryptionFailureFormatter
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.isEditEvent
 import im.vector.lib.strings.CommonStrings
@@ -68,6 +69,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         private val stringProvider: StringProvider,
         private val noticeEventFormatter: NoticeEventFormatter,
         private val colorProvider: ColorProvider,
+        private val decryptionFailureFormatter: DecryptionFailureFormatter,
 ) {
 
     // Theme's muted/notice colour as a #AARRGGBB string for the <font> reply previews, so they
@@ -228,10 +230,11 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             isPollStart() -> escapeHtml(
                     getPollQuestion() ?: stringProvider.getString(CommonStrings.message_reply_to_sender_created_poll)
             )
-            // Encrypted target that isn't decrypted locally yet: leave the preview empty so it
-            // fills in once decryption lands, rather than showing a notice/placeholder. We can't
+            // Not decrypted yet: leave the preview empty so it fills in once decryption lands. We can't
             // tell whether it's a message or a reaction/etc until it's decrypted.
-            getClearType() == EventType.ENCRYPTED -> null
+            getClearType() == EventType.ENCRYPTED && mCryptoError == null -> null
+            getClearType() == EventType.ENCRYPTED ->
+                "<font color=\"${noticeColorHex()}\"><em>" + escapeHtml(decryptionFailureFormatter.format(this)) + "</em></font>"
             // An edit event shows as a debug line in the timeline, so it does here too.
             timelineEvent?.isEditEvent() == true ->
                 "<font color=\"${noticeColorHex()}\">" + escapeHtml(noticeEventFormatter.formatDebugOrUnhandled(this).toString()) + "</font>"

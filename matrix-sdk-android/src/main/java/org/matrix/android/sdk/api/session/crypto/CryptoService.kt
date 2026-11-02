@@ -74,6 +74,11 @@ interface CryptoService {
 
     suspend fun getMyCryptoDevice(): CryptoDeviceInfo
 
+    /**
+     * When this device logged in, or null if it logged in before this was recorded.
+     */
+    fun getDeviceCreationTs(): Long?
+
     fun getGlobalBlacklistUnverifiedDevices(): Boolean
 
     fun setGlobalBlacklistUnverifiedDevices(block: Boolean)

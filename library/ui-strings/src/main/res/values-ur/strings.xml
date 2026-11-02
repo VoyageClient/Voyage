@@ -131,8 +131,6 @@
     <string name="notice_widget_removed">%1$s نے %2$s وجیٹ ہٹا دیا</string>
     <string name="notice_widget_removed_by_you">آپنے %1$s وجیٹ ہٹا دیا</string>
     <string name="notice_widget_modified_by_you">آپنے %1$s وجیٹ ترمیم کیا</string>
-    <string name="notice_crypto_unable_to_decrypt">**ناقابل رمز کشائی: %s**</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">ارسال کنندہ کے آلے نے ہمیں اس پیغام کیلئے چابیاں نہیں بھیجیں۔</string>
     <string name="unable_to_send_message">پیغام بھیجنے کے قابل نہیں</string>
     <string name="matrix_error">میٹرکس کا مسئلہ</string>
     <string name="room_error_access_unauthorized">آپ کو اس کمرے میں شامل ہونے کی اجازت نہیں ہے</string>
@@ -1877,8 +1875,6 @@
     <string name="room_settings_topic_hint">موضوع</string>
     <string name="room_settings_save_success">آپ نے کمرے کی ترتیبات کامیابی سے تبدیل کر دیں</string>
     <string name="room_settings_set_avatar">اوتار مقرر کریں</string>
-    <string name="notice_crypto_unable_to_decrypt_final">آپ اس پیغام تک رسائی نہیں کر سکتے</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">اس پیغام کا انتظار ہے، اس میں کچھ وقت لگ سکتا ہے</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">آخر تا آخر مرموزکاری کی وجہ سے، آپ کو کسی کے پیغام کے پہنچنے کا انتظار کرنا پڑ سکتا ہے کیونکہ مرموزکاری کی چابیاں آپ کو درست طریقے سے نہیں بھیجی گئیں۔</string>
     <string name="crypto_error_withheld_blacklisted">آپ اس پیغام تک رسائی نہیں کر سکتے کیونکہ ارسال کنندہ نے آپ کو مسدود کر دیا ہے</string>
     <string name="crypto_error_withheld_unverified">آپ اس پیغام تک رسائی نہیں کر سکتے کیونکہ ارسال کنندہ آپ کے جلسے پر اعتماد نہیں کرتا</string>
@@ -3517,4 +3513,12 @@
     <string name="settings_reveal_undisclosed_poll_results">پوشیدہ رائے شماری کے نتائج دکھائیں</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">ان رائے شماریوں کے ووٹ دکھائیں جن کے نتائج ختم ہونے تک پوشیدہ رہنے چاہئیں</string>
     <string name="import_e2e_keys_from_file">فائل \"%1$s\" سے E2E چابیاں درآمد کریں۔</string>
+    <string name="decryption_failure_unable_to_decrypt">پیغام کو غیر مرموز نہیں کیا جا سکا</string>
+    <string name="decryption_failure_blocked">آپ کا آلہ تصدیق شدہ نہیں ہے، اس لیے ارسال کنندہ نے آپ کو یہ پیغام وصول کرنے سے روک دیا ہے</string>
+    <string name="decryption_failure_historical_no_key_backup">پرانے پیغامات اس آلے پر دستیاب نہیں ہیں</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">یہ پیغام اس آلے کے سائن ان ہونے سے پہلے بھیجا گیا تھا، اور اسے بحال کرنے کے لیے کلیدوں کا کوئی پشتارہ موجود نہیں ہے۔</string>
+    <string name="decryption_failure_historical_unverified_device">پرانے پیغامات تک رسائی کے لیے آپ کو اس آلے کی تصدیق کرنی ہوگی</string>
+    <string name="decryption_failure_historical_unverified_device_desc">یہ پیغام اس آلے کے سائن ان ہونے سے پہلے بھیجا گیا تھا۔ اسے اپنی کلیدوں کے پشتارے سے بحال کرنے کے لیے اس آلے کی تصدیق کریں۔</string>
+    <string name="decryption_failure_user_not_joined">آپ کو اس پیغام تک رسائی حاصل نہیں ہے</string>
+    <string name="decryption_failure_user_not_joined_desc">یہ پیغام اس وقت بھیجا گیا تھا جب آپ کمرے کے رکن نہیں تھے۔</string>
 </resources>

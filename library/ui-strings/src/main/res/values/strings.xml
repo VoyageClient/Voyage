@@ -120,8 +120,14 @@
     <!-- First parameter will be a userId or display name, the two last ones will be value of power_level_* -->
     <string name="notice_power_level_diff">%1$s from %2$s to %3$s</string>
 
-    <string name="notice_crypto_unable_to_decrypt">** Unable to decrypt: %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">The sender\'s device has not sent us the keys for this message.</string>
+    <string name="decryption_failure_unable_to_decrypt">Unable to decrypt message</string>
+    <string name="decryption_failure_blocked">The sender has blocked you from receiving this message because your device is unverified</string>
+    <string name="decryption_failure_historical_no_key_backup">Historical messages are not available on this device</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">This message was sent before this device signed in, and there is no key backup to restore it from.</string>
+    <string name="decryption_failure_historical_unverified_device">You need to verify this device for access to historical messages</string>
+    <string name="decryption_failure_historical_unverified_device_desc">This message was sent before this device signed in. Verify this device to restore it from your key backup.</string>
+    <string name="decryption_failure_user_not_joined">You don\'t have access to this message</string>
+    <string name="decryption_failure_user_not_joined_desc">This message was sent while you were not a member of the room.</string>
 
     <string name="notice_voice_broadcast_ended">%1$s ended a voice broadcast.</string>
     <string name="notice_voice_broadcast_ended_by_you">You ended a voice broadcast.</string>
@@ -2560,8 +2566,6 @@
     <string name="room_settings_save_success">You changed room settings successfully</string>
     <string name="room_settings_set_avatar">Set avatar</string>
 
-    <string name="notice_crypto_unable_to_decrypt_final">You cannot access this message</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Waiting for this message, this may take a while</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Due to end-to-end encryption, you might need to wait for someone\'s message to arrive because the encryption keys were not properly sent to you.</string>
     <string name="crypto_error_withheld_blacklisted">You cannot access this message because you have been blocked by the sender</string>
     <string name="crypto_error_withheld_unverified">You cannot access this message because your session is not trusted by the sender</string>

@@ -48,8 +48,14 @@ data class UnsignedData(
         /**
          * Optional. The eventId of the previous state event being replaced.
          */
-        @Json(name = "replaces_state") val replacesState: String? = null
-
+        @Json(name = "replaces_state") val replacesState: String? = null,
+        /**
+         * MSC4115: the requesting user's membership at the time of this event.
+         */
+        @Json(name = "membership") val membership: String? = null,
+        @Json(name = "io.element.msc4115.membership") val unstableMembership: String? = null,
 )
 
 fun UnsignedData?.isRedacted() = this?.redactedEvent != null || this?.redactedBy != null
+
+fun UnsignedData?.membershipAtEvent(): String? = this?.membership ?: this?.unstableMembership

@@ -22,8 +22,6 @@
     <string name="notice_room_name_removed">أزالَ %1$s اسم الغُرفة</string>
     <string name="notice_room_topic_removed">أزالَ %1$s موضوع الغُرفة</string>
     <string name="notice_room_third_party_invite">أرسلَ %1$s دعوة إلى %2$s للإنضمام إلى الغُرفة</string>
-    <string name="notice_crypto_unable_to_decrypt">** يتعذَّر فك التشفير: ⁨%s⁩ **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">لم يُرسل جِهاز المُرسل مفاتيحًا لهذه الرِّسالة.</string>
     <string name="unable_to_send_message">تعذَّر إرسال الرِّسالة</string>
     <string name="matrix_error">خطأ في مايتركس</string>
     <string name="medium_email">عُنوان البريد الإلكتروني</string>
@@ -2053,8 +2051,6 @@
     <string name="room_settings_topic_hint">الموضوع</string>
     <string name="room_settings_save_success">غيّرت إعدادات الغرفة بنجاح</string>
     <string name="room_settings_set_avatar">اضبط الصورة الرمزية</string>
-    <string name="notice_crypto_unable_to_decrypt_final">لا يمكنك النفاذ إلى هذه الرسالة</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">بانتظار هذه الرسالة، قد يستغرق هذا بعض الوقت</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">بسبب تعمية الطرفين، قد تحتاج إلى انتظار وصول رسالة أحدهم لأن مفاتيح التعمية لم تُرسل إليك بشكل صحيح.</string>
     <string name="crypto_error_withheld_blacklisted">لا يمكنك النفاذ إلى هذه الرسالة لأن المرسل حظرك</string>
     <string name="crypto_error_withheld_unverified">لا يمكنك النفاذ إلى هذه الرسالة لأن المرسل لا يثق بجلستك</string>
@@ -3768,4 +3764,12 @@
     <string name="settings_reveal_undisclosed_poll_results">كشف نتائج الاستطلاعات المخفية</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">إظهار الأصوات في الاستطلاعات التي يُفترض أن تبقى نتائجها مخفية حتى انتهائها</string>
     <string name="import_e2e_keys_from_file">استورد مفاتيح تعمية الطرفين من الملف ”%1$s“.</string>
+    <string name="decryption_failure_unable_to_decrypt">تعذّر فك تعمية الرسالة</string>
+    <string name="decryption_failure_blocked">منعك المرسل من استلام هذه الرسالة لأن جهازك غير متحقَّق منه</string>
+    <string name="decryption_failure_historical_no_key_backup">الرسائل السابقة غير متاحة على هذا الجهاز</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">أُرسلت هذه الرسالة قبل تسجيل الدخول على هذا الجهاز، ولا توجد نسخة احتياطية للمفاتيح لاستعادتها منها.</string>
+    <string name="decryption_failure_historical_unverified_device">عليك التحقق من هذا الجهاز للوصول إلى الرسائل السابقة</string>
+    <string name="decryption_failure_historical_unverified_device_desc">أُرسلت هذه الرسالة قبل تسجيل الدخول على هذا الجهاز. تحقّق من هذا الجهاز لاستعادتها من النسخة الاحتياطية لمفاتيحك.</string>
+    <string name="decryption_failure_user_not_joined">لا يمكنك الوصول إلى هذه الرسالة</string>
+    <string name="decryption_failure_user_not_joined_desc">أُرسلت هذه الرسالة عندما لم تكن عضوًا في الغرفة.</string>
 </resources>

@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.pinned.GetPinnedEventsUseCase
 import im.vector.app.features.home.room.detail.poll.VoteToPollUseCase
 import im.vector.app.features.home.room.detail.sticker.StickerPickerActionHandler
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
+import im.vector.app.features.home.room.detail.timeline.format.DecryptionFailureFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
@@ -93,12 +94,10 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.crosssigning.UserIdentityChangeState
 import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
@@ -151,6 +150,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val vectorDataStore: VectorDataStore,
         private val stringProvider: StringProvider,
         private val errorFormatter: ErrorFormatter,
+        private val decryptionFailureFormatter: DecryptionFailureFormatter,
         private val session: Session,
         private val rawService: RawService,
         private val supportedVerificationMethodsProvider: SupportedVerificationMethodsProvider,
@@ -1673,14 +1673,12 @@ private fun handleSelectStickerAttachment() {
     private fun handleTapOnFailedToDecrypt(action: RoomDetailAction.TapOnFailedToDecrypt) {
         if (room == null) return
         room.getTimelineEvent(action.eventId)?.let {
-            val code = when (it.root.mCryptoError) {
-                MXCryptoError.ErrorType.KEYS_WITHHELD -> {
-                    WithHeldCode.fromCode(it.root.mCryptoErrorReason)
-                }
-                else -> null
-            }
-
-            _viewEvents.post(RoomDetailViewEvents.ShowE2EErrorMessage(code))
+            _viewEvents.post(
+                    RoomDetailViewEvents.ShowE2EErrorMessage(
+                            message = decryptionFailureFormatter.explanation(it.root),
+                            technicalDetails = decryptionFailureFormatter.technicalDetails(it.root).takeIf { vectorPreferences.developerMode() },
+                    )
+            )
         }
     }
 

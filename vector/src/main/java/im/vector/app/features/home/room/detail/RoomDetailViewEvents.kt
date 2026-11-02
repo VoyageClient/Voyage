@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
-import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.io.File
@@ -28,7 +27,7 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
 
     data class ShowMessage(val message: String) : RoomDetailViewEvents()
     data class ShowInfoOkDialog(val message: String) : RoomDetailViewEvents()
-    data class ShowE2EErrorMessage(val withHeldCode: WithHeldCode?) : RoomDetailViewEvents()
+    data class ShowE2EErrorMessage(val message: String, val technicalDetails: String?) : RoomDetailViewEvents()
 
     data class OpenRoom(val roomId: String, val closeCurrentRoom: Boolean = false) : RoomDetailViewEvents()
 

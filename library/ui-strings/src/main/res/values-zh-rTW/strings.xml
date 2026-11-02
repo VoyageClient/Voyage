@@ -28,8 +28,6 @@
     <string name="notice_room_topic_removed">%1$s 已移除聊天室的主題</string>
     <string name="notice_room_third_party_invite">%1$s 已傳送邀請給 %2$s 以加入聊天室</string>
     <string name="notice_room_third_party_registered_invite">%1$s 已接受 %2$s 的邀請</string>
-    <string name="notice_crypto_unable_to_decrypt">** 無法解密：%s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">傳送者的裝置並未將此訊息的金鑰傳給我們。</string>
     <string name="unable_to_send_message">無法傳送訊息</string>
     <string name="matrix_error">Matrix 錯誤</string>
     <string name="medium_email">電子郵件地址</string>
@@ -1371,8 +1369,6 @@
     <string name="room_settings_name_hint">聊天室名稱</string>
     <string name="room_settings_topic_hint">主題</string>
     <string name="room_settings_save_success">您成功變更了聊天室設定</string>
-    <string name="notice_crypto_unable_to_decrypt_final">您無法存取此訊息</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">正在等待此訊息，可能需要花一點時間</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">由於端對端加密，您可能要等待某人的訊息抵達，因為加密金鑰未正確地傳送給您。</string>
     <string name="crypto_error_withheld_blacklisted">您無法存取此訊息，因為您被傳送者封鎖</string>
     <string name="crypto_error_withheld_unverified">您無法存取此訊息，因為您的工作階段未被傳送者所信任</string>
@@ -3562,4 +3558,12 @@
     <string name="settings_reveal_undisclosed_poll_results">顯示隱藏的投票結果</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">顯示原應在結束前隱藏結果之投票中的選票</string>
     <string name="import_e2e_keys_from_file">從檔案「%1$s」匯入端對端加密金鑰。</string>
+    <string name="decryption_failure_unable_to_decrypt">無法解密訊息</string>
+    <string name="decryption_failure_blocked">由於您的裝置未經驗證，傳送者已封鎖您接收此訊息</string>
+    <string name="decryption_failure_historical_no_key_backup">此裝置上無法查看歷史訊息</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">此訊息是在此裝置登入之前傳送的，且沒有可用來還原它的金鑰備份。</string>
+    <string name="decryption_failure_historical_unverified_device">您需要驗證此裝置才能存取歷史訊息</string>
+    <string name="decryption_failure_historical_unverified_device_desc">此訊息是在此裝置登入之前傳送的。驗證此裝置即可從您的金鑰備份還原它。</string>
+    <string name="decryption_failure_user_not_joined">您無權存取此訊息</string>
+    <string name="decryption_failure_user_not_joined_desc">此訊息是在您不是聊天室成員時傳送的。</string>
 </resources>

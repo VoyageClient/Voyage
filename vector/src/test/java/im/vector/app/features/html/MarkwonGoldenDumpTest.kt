@@ -86,7 +86,7 @@ class MarkwonGoldenDumpTest {
     private val avatarRenderer = mockk<AvatarRenderer>(relaxed = true)
     private val pillsPostProcessor = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), mockk(relaxed = true))
     private val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), mockk(relaxed = true))
-    private val replyStripper = ProcessBodyOfReplyToEventUseCase(sessionHolder, mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true))
+    private val replyStripper = ProcessBodyOfReplyToEventUseCase(sessionHolder, mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true))
 
     private val moshi = Moshi.Builder().build()
     private val jsonAdapter = moshi.adapter(Any::class.java).indent("  ")

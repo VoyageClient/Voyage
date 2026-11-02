@@ -28,8 +28,6 @@
     <string name="notice_room_topic_removed">%1$s hat das Raumthema entfernt</string>
     <string name="notice_room_third_party_invite">%1$s hat eine Einladung an %2$s gesendet</string>
     <string name="notice_room_third_party_registered_invite">%1$s hat die Einladung in %2$s akzeptiert</string>
-    <string name="notice_crypto_unable_to_decrypt">** Nicht entschlüsselbar: %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">Das absendende Gerät hat uns keine Schlüssel für diese Nachricht übermittelt.</string>
     <string name="unable_to_send_message">Nachricht kann nicht gesendet werden</string>
     <string name="matrix_error">Matrix-Fehler</string>
     <string name="medium_email">E-Mail-Adresse</string>
@@ -1399,8 +1397,6 @@
     <string name="room_settings_name_hint">Raumname</string>
     <string name="room_settings_topic_hint">Thema</string>
     <string name="room_settings_save_success">Du hast die Raumeinstellungen erfolgreich geändert</string>
-    <string name="notice_crypto_unable_to_decrypt_final">Du kannst auf diese Nachricht nicht zugreifen</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Warte auf diese Nachricht. Das könnte eine Weile dauern</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Wegen der Ende-zu-Ende-Verschlüsselung könnte es sein, dass du auf jemandes Nachricht warten musst, weil die Schlüssel nicht ordnungsgemäß gesendet wurden.</string>
     <string name="crypto_error_withheld_blacklisted">Du kannst auf diese Nachricht nicht zugreifen, weil der Sender dich blockiert hat</string>
     <string name="crypto_error_withheld_unverified">Du kannst auf diese Nachricht nicht zugreifen, weil der Sender deiner Sitzung nicht vertraut</string>
@@ -3622,4 +3618,12 @@
     <string name="settings_reveal_undisclosed_poll_results">Verborgene Umfrageergebnisse anzeigen</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Stimmen auch bei Umfragen anzeigen, deren Ergebnisse bis zum Ende verborgen bleiben sollen</string>
     <string name="import_e2e_keys_from_file">E2E-Schlüssel aus der Datei \"%1$s\" importieren.</string>
+    <string name="decryption_failure_unable_to_decrypt">Nachricht kann nicht entschlüsselt werden</string>
+    <string name="decryption_failure_blocked">Der Sender hat dich vom Empfang dieser Nachricht ausgeschlossen, weil dein Gerät nicht verifiziert ist</string>
+    <string name="decryption_failure_historical_no_key_backup">Ältere Nachrichten sind auf diesem Gerät nicht verfügbar</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Diese Nachricht wurde gesendet, bevor sich dieses Gerät angemeldet hat, und es gibt keine Schlüsselsicherung, aus der sie wiederhergestellt werden kann.</string>
+    <string name="decryption_failure_historical_unverified_device">Du musst dieses Gerät verifizieren, um auf ältere Nachrichten zuzugreifen</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Diese Nachricht wurde gesendet, bevor sich dieses Gerät angemeldet hat. Verifiziere dieses Gerät, um sie aus deiner Schlüsselsicherung wiederherzustellen.</string>
+    <string name="decryption_failure_user_not_joined">Du hast keinen Zugriff auf diese Nachricht</string>
+    <string name="decryption_failure_user_not_joined_desc">Diese Nachricht wurde gesendet, als du kein Mitglied des Raums warst.</string>
 </resources>

@@ -55,6 +55,7 @@ class TranslatedPreviewTest {
             colorProvider = ColorProvider(context),
             drawableProvider = mockk(relaxed = true),
             noticeEventFormatter = mockk(relaxed = true),
+            decryptionFailureFormatter = mockk(relaxed = true),
             reactionFormatter = mockk(relaxed = true),
             htmlRenderer = { htmlRenderer },
             pgpDecryptor = mockk(relaxed = true),

@@ -28,8 +28,6 @@
     <string name="notice_room_topic_removed">%1$s удалил(а) тему комнаты</string>
     <string name="notice_room_third_party_invite">%1$s отправил(а) приглашение %2$s присоединиться к комнате</string>
     <string name="notice_room_third_party_registered_invite">%1$s принял(а) приглашение от %2$s</string>
-    <string name="notice_crypto_unable_to_decrypt">** Невозможно расшифровать: %s **</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">Устройство отправителя не предоставило нам ключ для расшифровки этого сообщения.</string>
     <string name="unable_to_send_message">Не удалось отправить сообщение</string>
     <string name="matrix_error">Ошибка Matrix</string>
     <string name="medium_email">Адрес электронной почты</string>
@@ -1336,8 +1334,6 @@
     <string name="room_settings_name_hint">Название комнаты</string>
     <string name="room_settings_topic_hint">Тема</string>
     <string name="room_settings_save_success">Вы успешно изменили настройки комнаты</string>
-    <string name="notice_crypto_unable_to_decrypt_final">У вас нет доступа к этому сообщению</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Расшифровка этого сообщения может занять некоторое время</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Из-за сквозного шифрования вам, возможно, придется ждать прибытие чьего-либо сообщения, потому что ключи шифрования не были отправлены вам должным образом.</string>
     <string name="crypto_error_withheld_blacklisted">Вы не можете получить доступ к этому сообщению, потому что вы были заблокированы отправителем</string>
     <string name="crypto_error_withheld_unverified">Нет доступа к этому сообщению, так как отправитель не доверяет вашей сессии</string>
@@ -3745,4 +3741,12 @@
     <string name="settings_reveal_undisclosed_poll_results">Показывать скрытые результаты опросов</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Показывать голоса в опросах, результаты которых должны быть скрыты до завершения</string>
     <string name="import_e2e_keys_from_file">Импорт ключей сквозного шифрования из файла \"%1$s\".</string>
+    <string name="decryption_failure_unable_to_decrypt">Не удалось расшифровать сообщение</string>
+    <string name="decryption_failure_blocked">Отправитель запретил вам получать это сообщение, потому что ваше устройство не заверено</string>
+    <string name="decryption_failure_historical_no_key_backup">Старые сообщения недоступны на этом устройстве</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Это сообщение было отправлено до входа с этого устройства, а резервной копии ключей, из которой его можно восстановить, нет.</string>
+    <string name="decryption_failure_historical_unverified_device">Чтобы получить доступ к старым сообщениям, заверьте это устройство</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Это сообщение было отправлено до входа с этого устройства. Заверьте это устройство, чтобы восстановить его из резервной копии ключей.</string>
+    <string name="decryption_failure_user_not_joined">У вас нет доступа к этому сообщению</string>
+    <string name="decryption_failure_user_not_joined_desc">Это сообщение было отправлено, когда вы не были участником комнаты.</string>
 </resources>

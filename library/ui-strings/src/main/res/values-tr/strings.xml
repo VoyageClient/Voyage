@@ -1187,8 +1187,6 @@
     <string name="room_displayname_4_members">%1$s, %2$s, %3$s ve %4$s</string>
     <string name="room_displayname_two_members">%1$s ve %2$s</string>
     <string name="room_error_access_unauthorized">Bu odaya katılmanıza izin verilmiyor</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">Gönderenin cihazı bize bu mesajın anahtarlarını göndermedi.</string>
-    <string name="notice_crypto_unable_to_decrypt">** Şifre çözülemiyor: %s **</string>
     <string name="notice_power_level_diff">%1$s, %2$s ile %3$s arasında</string>
     <string name="notice_power_level_changed">%1$s, %2$s\'nin güç seviyesini değiştirdi.</string>
     <string name="notice_power_level_changed_by_you">%1$s\'nin güç seviyesini değiştirdiniz.</string>
@@ -1946,8 +1944,6 @@
     <string name="room_settings_topic_hint">Konu</string>
     <string name="room_settings_save_success">Oda ayarlarını başarıyla değiştirdiniz</string>
     <string name="room_settings_set_avatar">Avatar belirle</string>
-    <string name="notice_crypto_unable_to_decrypt_final">Bu mesaja erişemezsiniz</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">Bu mesaj bekleniyor, bu biraz zaman alabilir</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Uçtan uca şifreleme nedeniyle, şifreleme anahtarları size düzgün gönderilmediği için birinin mesajının gelmesini beklemeniz gerekebilir.</string>
     <string name="crypto_error_withheld_blacklisted">Gönderen sizi engellediği için bu mesaja erişemezsiniz</string>
     <string name="crypto_error_withheld_unverified">Oturumunuz gönderen tarafından güvenilir kabul edilmediği için bu mesaja erişemezsiniz</string>
@@ -3581,4 +3577,12 @@
     <string name="settings_reveal_undisclosed_poll_results">Gizli anket sonuçlarını göster</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">Sonuçları bitene kadar gizli kalması gereken anketlerdeki oyları göster</string>
     <string name="import_e2e_keys_from_file">\"%1$s\" dosyasından E2E anahtarlarını içe aktar.</string>
+    <string name="decryption_failure_unable_to_decrypt">Mesajın şifresi çözülemedi</string>
+    <string name="decryption_failure_blocked">Cihazınız doğrulanmadığı için gönderen bu mesajı almanızı engelledi</string>
+    <string name="decryption_failure_historical_no_key_backup">Geçmiş mesajlar bu cihazda kullanılamıyor</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">Bu mesaj, bu cihazda oturum açılmadan önce gönderildi ve geri yüklenebileceği bir anahtar yedeği yok.</string>
+    <string name="decryption_failure_historical_unverified_device">Geçmiş mesajlara erişmek için bu cihazı doğrulamanız gerekiyor</string>
+    <string name="decryption_failure_historical_unverified_device_desc">Bu mesaj, bu cihazda oturum açılmadan önce gönderildi. Anahtar yedeğinizden geri yüklemek için bu cihazı doğrulayın.</string>
+    <string name="decryption_failure_user_not_joined">Bu mesaja erişiminiz yok</string>
+    <string name="decryption_failure_user_not_joined_desc">Bu mesaj, siz odanın üyesi değilken gönderildi.</string>
 </resources>

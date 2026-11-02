@@ -1365,8 +1365,6 @@
     <string name="crypto_error_withheld_unverified">אינך יכול לגשת להודעה זו מכיוון שהשולח אינו מהימן על ההפעלה שלך</string>
     <string name="crypto_error_withheld_blacklisted">אינך יכול לגשת להודעה זו מכיוון שנחסמת על ידי השולח</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">עקב הצפנה מקצה לקצה, ייתכן שיהיה עליך להמתין להגעת ההודעה של מישהו מכיוון שמפתחות ההצפנה לא נשלחו אליך כראוי.</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">בהמתנה להודעה זו, זה עשוי לקחת זמן מה</string>
-    <string name="notice_crypto_unable_to_decrypt_final">אינך יכול לגשת להודעה זו</string>
     <string name="room_settings_set_avatar">הגדר אווטר</string>
     <string name="room_settings_save_success">שינית בהצלחה את הגדרות החדר</string>
     <string name="room_settings_topic_hint">נושא</string>
@@ -1528,8 +1526,6 @@
     <string name="room_error_access_unauthorized">אינך רשאי להצטרף לחדר זה</string>
     <string name="matrix_error">שגיאת מטריקס</string>
     <string name="unable_to_send_message">לא ניתן לשלוח הודעה</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">מכשיר השולח לא שלח לנו את המפתחות להודעה זו.</string>
-    <string name="notice_crypto_unable_to_decrypt">** לא ניתן לפענח: %s **</string>
     <string name="notice_power_level_diff">%1$s מ-%2$s עד %3$s</string>
     <string name="notice_power_level_changed">%1$s שינה את רמת העוצמה של %2$s.</string>
     <string name="notice_power_level_changed_by_you">שינית את רמת העוצמה של %1$s.</string>
@@ -3714,4 +3710,12 @@
     <string name="settings_reveal_undisclosed_poll_results">חשיפת תוצאות סקרים מוסתרות</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">הצגת ההצבעות בסקרים שתוצאותיהם אמורות להישאר מוסתרות עד לסיומם</string>
     <string name="import_e2e_keys_from_file">ייבא מפתחות E2E מהקובץ \"%1$s\".</string>
+    <string name="decryption_failure_unable_to_decrypt">לא ניתן לפענח את ההודעה</string>
+    <string name="decryption_failure_blocked">השולח חסם אותך מלקבל הודעה זו מכיוון שהמכשיר שלך אינו מאומת</string>
+    <string name="decryption_failure_historical_no_key_backup">הודעות קודמות אינן זמינות במכשיר זה</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">הודעה זו נשלחה לפני שמכשיר זה התחבר, ואין גיבוי מפתחות שממנו ניתן לשחזר אותה.</string>
+    <string name="decryption_failure_historical_unverified_device">עליך לאמת מכשיר זה כדי לגשת להודעות קודמות</string>
+    <string name="decryption_failure_historical_unverified_device_desc">הודעה זו נשלחה לפני שמכשיר זה התחבר. אמת מכשיר זה כדי לשחזר אותה מגיבוי המפתחות שלך.</string>
+    <string name="decryption_failure_user_not_joined">אין לך גישה להודעה זו</string>
+    <string name="decryption_failure_user_not_joined_desc">הודעה זו נשלחה כשלא היית חבר בחדר.</string>
 </resources>

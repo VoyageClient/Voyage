@@ -603,8 +603,6 @@
     <string name="medium_email">ইমেল ঠিকানা</string>
     <string name="matrix_error">ম্যাট্রিক্স ত্রুটি</string>
     <string name="unable_to_send_message">বার্তা পাঠাতে অক্ষম</string>
-    <string name="notice_crypto_error_unknown_inbound_session_id">প্রেরকের ডিভাইস আমাদের এই বার্তার জন্য কীগুলি প্রেরণ করেনি।</string>
-    <string name="notice_crypto_unable_to_decrypt">** ডিক্রিপ্ট করতে অক্ষম: %s **</string>
     <string name="notice_power_level_diff">%1$s %2$s থেকে %3$s পর্যন্ত</string>
     <string name="notice_power_level_changed">%1$s %2$s এর পাওয়ার স্তর পরিবর্তন করেছে।</string>
     <string name="notice_power_level_changed_by_you">আপনি %1$s এর পাওয়ার স্তর পরিবর্তন করেছেন।</string>
@@ -1917,8 +1915,6 @@
     <string name="room_settings_topic_hint">বিষয়</string>
     <string name="room_settings_save_success">আপনি সফলভাবে রুমের সেটিংস পরিবর্তন করেছেন</string>
     <string name="room_settings_set_avatar">অবতার সেট করুন</string>
-    <string name="notice_crypto_unable_to_decrypt_final">আপনি এই বার্তাটি অ্যাক্সেস করতে পারবেন না</string>
-    <string name="notice_crypto_unable_to_decrypt_friendly">এই বার্তার অপেক্ষা করা হচ্ছে, এতে কিছু সময় লাগতে পারে</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">এন্ড-টু-এন্ড এনক্রিপশনের কারণে কারও বার্তা আসার জন্য আপনাকে অপেক্ষা করতে হতে পারে, কারণ এনক্রিপশন কী আপনার কাছে সঠিকভাবে পাঠানো হয়নি।</string>
     <string name="crypto_error_withheld_blacklisted">প্রেরক আপনাকে ব্লক করেছেন বলে আপনি এই বার্তাটি অ্যাক্সেস করতে পারবেন না</string>
     <string name="crypto_error_withheld_unverified">প্রেরক আপনার সেশনকে বিশ্বাস করেন না বলে আপনি এই বার্তাটি অ্যাক্সেস করতে পারবেন না</string>
@@ -3577,4 +3573,12 @@
     <string name="settings_reveal_undisclosed_poll_results">লুকানো জরিপের ফলাফল দেখান</string>
     <string name="settings_reveal_undisclosed_poll_results_summary">যেসব জরিপের ফলাফল শেষ না হওয়া পর্যন্ত লুকানো থাকার কথা, সেগুলোর ভোটও দেখান</string>
     <string name="import_e2e_keys_from_file">\"%1$s\" ফাইল থেকে E2E কী ইম্পোর্ট করুন।</string>
+    <string name="decryption_failure_unable_to_decrypt">বার্তাটি ডিক্রিপ্ট করা যায়নি</string>
+    <string name="decryption_failure_blocked">আপনার ডিভাইস যাচাই করা নেই বলে প্রেরক আপনাকে এই বার্তাটি পেতে বাধা দিয়েছেন</string>
+    <string name="decryption_failure_historical_no_key_backup">পুরোনো বার্তাগুলি এই ডিভাইসে উপলব্ধ নয়</string>
+    <string name="decryption_failure_historical_no_key_backup_desc">এই ডিভাইসে সাইন ইন করার আগে বার্তাটি পাঠানো হয়েছিল, এবং এটি পুনরুদ্ধার করার মতো কোনো কী ব্যাকআপ নেই।</string>
+    <string name="decryption_failure_historical_unverified_device">পুরোনো বার্তাগুলি দেখতে আপনাকে এই ডিভাইসটি যাচাই করতে হবে</string>
+    <string name="decryption_failure_historical_unverified_device_desc">এই ডিভাইসে সাইন ইন করার আগে বার্তাটি পাঠানো হয়েছিল। আপনার কী ব্যাকআপ থেকে এটি পুনরুদ্ধার করতে এই ডিভাইসটি যাচাই করুন।</string>
+    <string name="decryption_failure_user_not_joined">এই বার্তাটি দেখার অনুমতি আপনার নেই</string>
+    <string name="decryption_failure_user_not_joined_desc">আপনি যখন রুমের সদস্য ছিলেন না তখন এই বার্তাটি পাঠানো হয়েছিল।</string>
 </resources>
