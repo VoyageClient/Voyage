@@ -19,20 +19,14 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.SingletonEntryPoint
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
-import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
-import org.matrix.android.sdk.api.session.getUserOrDefault
-import org.matrix.android.sdk.api.util.MatrixItem
-import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 
 data class DeviceListViewState(
         val userId: String,
         val myUserId: String,
-        val userItem: MatrixItem? = null,
         val memberCrossSigningKey: MXCrossSigningInfo? = null,
         val myDeviceId: String = "",
         val cryptoDevices: Async<List<CryptoDeviceInfo>> = Loading(),
@@ -59,7 +53,6 @@ class DeviceListBottomSheetViewModel @AssistedInject constructor(
             return DeviceListViewState(
                     userId = userId,
                     myUserId = session.myUserId,
-                    userItem = session.getUserOrDefault(userId).toMatrixItem(),
                     myDeviceId = session.sessionParams.deviceId,
             )
         }
@@ -77,16 +70,6 @@ class DeviceListBottomSheetViewModel @AssistedInject constructor(
                 .execute {
                     copy(memberCrossSigningKey = it.invoke()?.getOrNull())
                 }
-
-        updateMatrixItem()
-    }
-
-    private fun updateMatrixItem() {
-        viewModelScope.launch {
-            tryOrNull { session.userService().resolveUser(initialState.userId) }
-                    ?.toMatrixItem()
-                    ?.let { setState { copy(userItem = it) } }
-        }
     }
 
     override fun handle(action: DeviceListAction) {

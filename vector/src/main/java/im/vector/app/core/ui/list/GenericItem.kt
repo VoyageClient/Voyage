@@ -97,6 +97,8 @@ abstract class GenericItem : VectorEpoxyModel<GenericItem.Holder>(R.layout.item_
         holder.destructiveButton.onClick(destructiveButtonAction?.listener)
 
         holder.root.onClick(itemClickAction)
+        // A null click listener still leaves the view clickable, rippling a dead row.
+        holder.root.isClickable = itemClickAction != null
     }
 
     class Holder : VectorEpoxyHolder() {

@@ -1834,10 +1834,7 @@
     <string name="room_member_profile_sessions_section_title">الجلسات</string>
     <string name="trusted">موثوق</string>
     <string name="not_trusted">غير موثوق</string>
-    <string name="verification_profile_device_verified_because">هذه الجلسة موثوقة للمراسلة الآمنة لأن %1$s (%2$s) تحقّق منها:</string>
-    <string name="verification_profile_device_new_signing">ولج %1$s (%2$s) باستخدام جلسة جديدة:</string>
     <string name="verification_profile_device_untrust_info">إلى أن يثق هذا المستخدم بهذه الجلسة، ستُوسم الرسائل المرسلة منها وإليها بتحذيرات. أو يمكنك التحقق منها يدويًا.</string>
-    <string name="verification_profile_other_device_untrust_info">إلى أن يثق هذا المستخدم بهذه الجلسة، ستُوسم الرسائل المرسلة منها وإليها بتحذيرات.</string>
     <string name="initialize_cross_signing">هيّئ التوقيع المتبادل</string>
     <string name="reset_cross_signing">صفّر المفاتيح</string>
     <string name="a11y_qr_code_for_verification">رمز QR</string>
@@ -1877,7 +1874,6 @@
     <string name="_resume">استأنِف</string>
     <string name="verify_cancel_self_verification_from_untrusted">إن ألغيت، فلن تتمكّن من قراءة الرسائل المعمّاة على هذا الجهاز، ولن يثق به المستخدمون الآخرون</string>
     <string name="verify_cancel_self_verification_from_trusted">إن ألغيت، فلن تتمكّن من قراءة الرسائل المعمّاة على جهازك الجديد، ولن يثق به المستخدمون الآخرون</string>
-    <string name="verify_cancel_other">لن تتحقّق من %1$s (%2$s) إن ألغيت الآن. ابدأ من جديد من ملفه الشخصي.</string>
     <string name="verify_not_me_self_verification">
         قد يكون أحد التالي مُخترقًا:\n\n- كلمة السر\n- خادوم المنزل الخاص بك\n- هذا الجهاز أو الجهاز الآخر\n- اتصال الإنترنت الذي يستخدمه أيٌّ من الجهازين\n\nننصحك بتغيير كلمة السر ومفتاح الاسترداد من الإعدادات فورًا.
     </string>
@@ -3777,4 +3773,18 @@
     <string name="settings_compact_replies_edits_summary">اعرض فوق المحرّر فقط من تردّ عليه، دون صورته الرمزية أو رسالته</string>
     <string name="composer_replying_to">ردًّا على %1$s</string>
     <string name="composer_editing_message">تحرير الرسالة</string>
+    <string name="verification_profile_not_verified">غير مُتحقّق منه</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="zero">لا جلسات</item>
+        <item quantity="one">جلسة واحدة</item>
+        <item quantity="two">جلستان</item>
+        <item quantity="few">%d جلسات</item>
+        <item quantity="many">%d جلسة</item>
+        <item quantity="other">%d جلسة</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">الجهاز غير المتصل مُفعّل</string>
+    <string name="verification_profile_device_verified_because">هذه الجلسة موثوقة للمراسلة الآمنة لأن %1$s تحقّق منها.</string>
+    <string name="verification_profile_device_new_signing">سجّل %1$s الدخول باستخدام هذه الجلسة.</string>
+    <string name="verification_profile_other_device_untrust_info">إلى أن يثق هذا المستخدم بهذه الجلسة، ستُوسم الرسائل المرسلة منها بتحذيرات.</string>
+    <string name="verify_cancel_other">لن تتحقّق من %1$s إن ألغيت الآن. ابدأ من جديد من ملفه الشخصي.</string>
 </resources>

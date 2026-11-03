@@ -88,7 +88,8 @@ internal class DehydratedDeviceCreator @Inject constructor(
                 keys = mapOf(
                         "curve25519:$deviceId" to curve25519Key,
                         "ed25519:$deviceId" to ed25519Key
-                )
+                ),
+                dehydrated = true,
         )
         val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, device.signalableJSONDictionary())
 

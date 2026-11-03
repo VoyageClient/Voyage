@@ -1704,10 +1704,7 @@
     <string name="room_member_profile_sessions_section_title">সেশন</string>
     <string name="trusted">বিশ্বস্ত</string>
     <string name="not_trusted">বিশ্বস্ত নয়</string>
-    <string name="verification_profile_device_verified_because">%1$s (%2$s) যাচাই করেছেন বলে এই সেশনটি নিরাপদ বার্তা আদান-প্রদানের জন্য বিশ্বস্ত:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) একটি নতুন সেশন দিয়ে সাইন ইন করেছেন:</string>
     <string name="verification_profile_device_untrust_info">এই ব্যবহারকারী এই সেশনটিকে বিশ্বাস না করা পর্যন্ত এতে পাঠানো ও এখান থেকে আসা বার্তাগুলিতে সতর্কতা দেখানো হবে। বিকল্প হিসেবে আপনি নিজে এটি যাচাই করতে পারেন।</string>
-    <string name="verification_profile_other_device_untrust_info">এই ব্যবহারকারী এই সেশনটিকে বিশ্বাস না করা পর্যন্ত এতে পাঠানো ও এখান থেকে আসা বার্তাগুলিতে সতর্কতা দেখানো হবে।</string>
     <string name="initialize_cross_signing">ক্রস-সাইনিং শুরু করুন</string>
     <string name="reset_cross_signing">কী রিসেট করুন</string>
     <string name="a11y_qr_code_for_verification">QR কোড</string>
@@ -1745,7 +1742,6 @@
     <string name="_resume">আবার শুরু করুন</string>
     <string name="verify_cancel_self_verification_from_untrusted">বাতিল করলে আপনি এই ডিভাইসে এনক্রিপ্ট করা বার্তা পড়তে পারবেন না এবং অন্য ব্যবহারকারীরা এটিকে বিশ্বাস করবেন না</string>
     <string name="verify_cancel_self_verification_from_trusted">বাতিল করলে আপনি আপনার নতুন ডিভাইসে এনক্রিপ্ট করা বার্তা পড়তে পারবেন না এবং অন্য ব্যবহারকারীরা এটিকে বিশ্বাস করবেন না</string>
-    <string name="verify_cancel_other">এখন বাতিল করলে আপনি %1$s (%2$s)-কে যাচাই করবেন না। তাঁর ব্যবহারকারী প্রোফাইল থেকে আবার শুরু করুন।</string>
     <string name="verify_not_me_self_verification">
         নিচের যেকোনো একটি ঝুঁকিতে থাকতে পারে:\n\n- আপনার পাসওয়ার্ড\n- আপনার হোমসার্ভার\n- এই ডিভাইস, বা অন্য ডিভাইসটি\n- যেকোনো ডিভাইসের ব্যবহৃত ইন্টারনেট সংযোগ\n\nআমরা এখনই সেটিংসে আপনার পাসওয়ার্ড ও পুনরুদ্ধার কী পরিবর্তন করার পরামর্শ দিচ্ছি।
     </string>
@@ -3586,4 +3582,14 @@
     <string name="settings_compact_replies_edits_summary">কম্পোজারের উপরে শুধু দেখান আপনি কাকে উত্তর দিচ্ছেন, তার অবতার বা বার্তা ছাড়া</string>
     <string name="composer_replying_to">%1$s-কে উত্তর দেওয়া হচ্ছে</string>
     <string name="composer_editing_message">বার্তা সম্পাদনা করা হচ্ছে</string>
+    <string name="verification_profile_not_verified">যাচাই করা হয়নি</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%dটি সেশন</item>
+        <item quantity="other">%dটি সেশন</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">অফলাইন ডিভাইস চালু আছে</string>
+    <string name="verification_profile_device_verified_because">এই সেশনটি নিরাপদ বার্তার জন্য বিশ্বস্ত, কারণ %1$s এটি যাচাই করেছেন।</string>
+    <string name="verification_profile_device_new_signing">%1$s এই সেশন ব্যবহার করে সাইন ইন করেছেন।</string>
+    <string name="verification_profile_other_device_untrust_info">এই ব্যবহারকারী এই সেশনটিকে বিশ্বাস না করা পর্যন্ত এখান থেকে পাঠানো বার্তাগুলিতে সতর্কতা দেখানো হবে।</string>
+    <string name="verify_cancel_other">এখন বাতিল করলে আপনি %1$s-কে যাচাই করবেন না। তাদের ব্যবহারকারী প্রোফাইল থেকে আবার শুরু করুন।</string>
 </resources>

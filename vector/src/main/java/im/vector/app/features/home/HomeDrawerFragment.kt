@@ -7,6 +7,8 @@
 
 package im.vector.app.features.home
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -79,6 +81,7 @@ class HomeDrawerFragment :
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var accountAdapter: AccountSwitcherAdapter
     private var hasPendingJoinRequests = false
+    private var switcherExpanded = false
     private var headerUser: User? = null
     private var isSwitchingAccount = false
 
@@ -105,7 +108,7 @@ class HomeDrawerFragment :
                 views.homeDrawerUsernameView.text = (user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).prepareForDisplay()
                 views.homeDrawerUserIdView.text = user.userId
                 // Keep the switcher's active row in sync with profile edits when the panel is up.
-                if (views.homeDrawerAccountList.isVisible) refreshAccountList()
+                if (switcherExpanded) refreshAccountList()
             }
         }
         // The header avatar is a plain ImageView, so the base activity's recycler rebind on color
@@ -116,7 +119,7 @@ class HomeDrawerFragment :
                     headerUser?.let { avatarRenderer.render(it.toMatrixItem(), views.homeDrawerHeaderAvatarView) }
                     // The switcher rows carry the color in their entry data, so a plain rebind
                     // would keep the stale value — rebuild the entries instead.
-                    if (views.homeDrawerAccountList.isVisible) refreshAccountList()
+                    if (switcherExpanded) refreshAccountList()
                 }
             }
         }
@@ -171,7 +174,7 @@ class HomeDrawerFragment :
                 .getRoomSummariesLive(roomSummaryQueryParams { memberships = listOf(Membership.KNOCK) })
                 .observeK(viewLifecycleOwner) { summaries ->
                     hasPendingJoinRequests = !summaries.isNullOrEmpty()
-                    val showPending = hasPendingJoinRequests && !views.homeDrawerAccountList.isVisible
+                    val showPending = hasPendingJoinRequests && !switcherExpanded
                     views.homeDrawerPendingRequestsView.isVisible = showPending
                     views.homeDrawerPendingRequestsDivider.isVisible = showPending
                 }
@@ -193,25 +196,54 @@ class HomeDrawerFragment :
         )
         views.homeDrawerAccountList.layoutManager = LinearLayoutManager(requireContext())
         views.homeDrawerAccountList.adapter = accountAdapter
+        switcherExpanded = false
         refreshAccountList()
 
         views.homeDrawerAccountSwitcherToggle.debouncedClicks {
-            val expanded = !views.homeDrawerAccountList.isVisible
+            val expanded = !switcherExpanded
             setSwitcherExpanded(expanded)
             if (expanded) refreshAccountList()
         }
     }
 
     private fun setSwitcherExpanded(expanded: Boolean) {
-        views.homeDrawerAccountList.isVisible = expanded
-        views.homeDrawerGroupListContainer.isVisible = !expanded
+        if (expanded == switcherExpanded) return
+        switcherExpanded = expanded
         // The pending-requests entry belongs to the spaces list; hide it while the account switcher is up.
         val showPending = hasPendingJoinRequests && !expanded
         views.homeDrawerPendingRequestsView.isVisible = showPending
         views.homeDrawerPendingRequestsDivider.isVisible = showPending
-        views.homeDrawerAccountSwitcherToggle.setImageResource(
-                if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
-        )
+        views.homeDrawerAccountSwitcherToggle.animate().rotation(if (expanded) 180f else 0f).setDuration(SWITCHER_ANIMATION_MS).start()
+
+        val list = views.homeDrawerAccountList
+        val spaces = views.homeDrawerGroupListContainer
+        val offset = -SWITCHER_SLIDE_DP * resources.displayMetrics.density
+        list.animate().cancel()
+        spaces.animate().cancel()
+        if (expanded) {
+            if (!list.isVisible) {
+                list.alpha = 0f
+                list.translationY = offset
+                list.isVisible = true
+            }
+            list.animate().alpha(1f).translationY(0f).setDuration(SWITCHER_ANIMATION_MS).setListener(null).start()
+            spaces.animate().alpha(0f).setDuration(SWITCHER_ANIMATION_MS).setListener(object : AnimatorListenerAdapter() {
+                // Also fires when a quick re-toggle cancels this animation.
+                override fun onAnimationEnd(animation: Animator) {
+                    if (switcherExpanded) spaces.isVisible = false
+                }
+            }).start()
+        } else {
+            spaces.isVisible = true
+            spaces.animate().alpha(1f).setDuration(SWITCHER_ANIMATION_MS).setListener(null).start()
+            list.animate().alpha(0f).translationY(offset).setDuration(SWITCHER_ANIMATION_MS).setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (switcherExpanded) return
+                    list.isVisible = false
+                    list.translationY = 0f
+                }
+            }).start()
+        }
     }
 
     private fun refreshAccountList() {
@@ -357,6 +389,11 @@ class HomeDrawerFragment :
         views.homeDrawerHeaderDebugView.isVisible = buildMeta.isDebug && vectorPreferences.developerMode()
         // Only refresh when the switcher is the current view — keeps the cost off the
         // common path of opening the drawer with the spaces list visible.
-        if (views.homeDrawerAccountList.isVisible) refreshAccountList()
+        if (switcherExpanded) refreshAccountList()
+    }
+
+    private companion object {
+        const val SWITCHER_ANIMATION_MS = 200L
+        const val SWITCHER_SLIDE_DP = 16
     }
 }

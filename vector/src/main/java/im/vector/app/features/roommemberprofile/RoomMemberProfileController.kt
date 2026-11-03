@@ -20,7 +20,6 @@ import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.epoxy.profiles.profileSectionActionItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
-import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.features.delayedevents.ScheduleTimePicker
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.form.formSwitchItem
@@ -31,7 +30,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovement
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.app.features.themes.ThemeUtils
-import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.profile.UserBio
@@ -208,6 +207,10 @@ class RoomMemberProfileController @Inject constructor(
 
     private fun buildUserActions(state: RoomMemberProfileViewState) {
         val ignoreActionTitle = state.buildIgnoreActionTitle()
+        if (state.userDevices.isNotEmpty()) {
+            buildSecurityHeader()
+            buildSessions(state)
+        }
         if (ignoreActionTitle == null && state.isMine) return
         // More
         buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
@@ -333,14 +336,15 @@ class RoomMemberProfileController @Inject constructor(
 
     private fun buildSecuritySection(state: RoomMemberProfileViewState) {
         // Security
-        val host = this
+        val hasSessions = state.userDevices.isNotEmpty()
 
         if (state.isRoomEncrypted) {
             if (!state.isAlgorithmSupported) {
                 // TODO find sensible message to display here
                 // For now we just remove the verify actions as well as the Security status
+                if (hasSessions) buildSecurityHeader()
             } else if (state.userMXCrossSigningInfo != null) {
-                buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_security))
+                buildSecurityHeader()
                 // Cross signing is enabled for this user
                 if (state.userMXCrossSigningInfo.isTrusted()) {
                     // User is trusted
@@ -356,7 +360,7 @@ class RoomMemberProfileController @Inject constructor(
                             editable = true,
                             icon = icon,
                             tintIcon = false,
-                            divider = false,
+                            divider = hasSessions,
                             action = { callback?.onShowDeviceList() }
                     )
                 } else {
@@ -367,7 +371,7 @@ class RoomMemberProfileController @Inject constructor(
                                 title = stringProvider.getString(CommonStrings.verification_profile_verify),
                                 editable = true,
                                 icon = R.drawable.ic_shield_black,
-                                divider = false,
+                                divider = hasSessions,
                                 action = { callback?.onTapVerify() }
                         )
                     } else {
@@ -375,38 +379,49 @@ class RoomMemberProfileController @Inject constructor(
                                 id = "learn_more",
                                 title = stringProvider.getString(CommonStrings.room_profile_section_security_learn_more),
                                 editable = false,
-                                divider = false,
+                                divider = hasSessions,
                                 action = { callback?.onShowDeviceListNoCrossSigning() }
                         )
                     }
-
-                    genericFooterItem {
-                        id("verify_footer")
-                        text(host.stringProvider.getString(CommonStrings.room_profile_encrypted_subtitle).toEpoxyCharSequence())
-                        centered(false)
-                    }
                 }
             } else {
-                buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_security))
+                buildSecurityHeader()
 
                 buildProfileAction(
                         id = "learn_more",
                         title = stringProvider.getString(CommonStrings.room_profile_section_security_learn_more),
                         editable = false,
-                        divider = false,
-                        subtitle = stringProvider.getString(CommonStrings.room_profile_encrypted_subtitle),
+                        divider = hasSessions,
                         action = { callback?.onShowDeviceListNoCrossSigning() }
                 )
             }
-        } else {
-            buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_security))
-
-            genericFooterItem {
-                id("verify_footer_not_encrypted")
-                text(host.stringProvider.getString(CommonStrings.room_profile_not_encrypted_subtitle).toEpoxyCharSequence())
-                centered(false)
-            }
+        } else if (hasSessions) {
+            buildSecurityHeader()
         }
+        buildSessions(state)
+    }
+
+    private fun buildSecurityHeader() {
+        buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_security))
+    }
+
+    private fun buildSessions(state: RoomMemberProfileViewState) {
+        if (state.userDevices.isEmpty()) return
+        val isUserVerified = state.userMXCrossSigningInfo?.isTrusted() == true
+        val sessions = orderMemberSessions(state.userDevices, state.isMine, isUserVerified)
+        val count = sessions.sessions.size
+        buildProfileAction(
+                id = "sessions",
+                title = stringProvider.getQuantityString(CommonPlurals.room_member_profile_sessions_count, count, count),
+                icon = when {
+                    !isUserVerified -> R.drawable.ic_shield_unknown
+                    sessions.hasUnverified -> R.drawable.ic_shield_warning
+                    else -> R.drawable.ic_shield_trusted
+                },
+                tintIcon = false,
+                divider = false,
+                action = { callback?.onShowDeviceList() }
+        )
     }
 
     private fun buildMoreSection(state: RoomMemberProfileViewState) {

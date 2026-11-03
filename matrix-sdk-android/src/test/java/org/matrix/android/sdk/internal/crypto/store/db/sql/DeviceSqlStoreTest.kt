@@ -58,6 +58,18 @@ class DeviceSqlStoreTest {
     }
 
     @Test
+    fun `the dehydrated flag round-trips, unset staying unset`() {
+        store.storeUserDevices(
+                "@a:hs",
+                mapOf("D1" to device("@a:hs", "D1").copy(dehydrated = true), "D2" to device("@a:hs", "D2")),
+                nowMs = 1000
+        )
+
+        store.getUserDevice("@a:hs", "D1")!!.dehydrated shouldBeEqualTo true
+        store.getUserDevice("@a:hs", "D2")!!.dehydrated shouldBe null
+    }
+
+    @Test
     fun `unknown user returns null`() {
         store.getUserDevices("@unknown:hs") shouldBe null
         store.getUserDeviceList("@unknown:hs") shouldBe null

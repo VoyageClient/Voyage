@@ -1190,8 +1190,6 @@
     <string name="reset_cross_signing">אפס מקשים</string>
     <string name="initialize_cross_signing">אתחל את CrossSigning</string>
     <string name="verification_profile_device_untrust_info">עד שמשתמש זה בוטח בהפעלה זו, הודעות שנשלחות אליה וממנה מתויגות באזהרות. לחילופין, ניתן לאמת זאת ידנית.</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) נכנס באמצעות הפעלה חדשה:</string>
-    <string name="verification_profile_device_verified_because">הפעלה זו מהימנה להודעות מאובטחות מכיוון ש-%1$s (%2$s) אימת אותה:</string>
     <string name="not_trusted">לא מהימן</string>
     <string name="trusted">מהימן</string>
     <string name="room_member_profile_sessions_section_title">מושבים</string>
@@ -1331,7 +1329,6 @@
 \n- חיבור האינטרנט שמשני המכשירים משתמשים בו
 \n
 \nאנו ממליצים לך לשנות את הסיסמה ומפתח השחזור שלך בהגדרות באופן מיידי.</string>
-    <string name="verify_cancel_other">לא תאמת את %1$s (%2$s) אם תבטל עכשיו. התחל שוב בפרופיל המשתמש שלהם.</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">שלח תמונה בגודל המקורי</item>
         <item quantity="two">שלח תמוננות בגודל המקורי</item>
@@ -2255,7 +2252,6 @@
     <string name="crosssigning_cannot_verify_this_session_desc">לא תוכל לגשת להיסטוריית ההודעות המוצפנות. אפס את גיבוי המפתח ואת מפתחות האימות כדי להתחיל מחדש.</string>
     <string name="verification_verify_with_another_device">אמת באמצעות מכשיר אחר</string>
     <string name="verification_verify_identity">אמת את זהותך כדי לגשת להודעות מוצפנות ולהוכיח את זהותך לאחרים.</string>
-    <string name="verification_profile_other_device_untrust_info">עד שמשתמש זה יסמוך על מושב זה, הודעות שנשלחות אליו וממנו יסומנו באזהרות.</string>
     <string name="settings_nightly_build">גרסה לילית</string>
     <string name="settings_nightly_build_update">קבל את הגרסה העדכנית ביותר (שים לב: ייתכן שתתקשה להיכנס)</string>
     <string name="verification_request_was_sent">נשלחה בקשת אימות. פתח את אחד המושבים האחרים שלך כדי לאשר ולהתחיל את האימות.</string>
@@ -3723,4 +3719,16 @@
     <string name="settings_compact_replies_edits_summary">הצג מעל עורך ההודעות רק למי אתה משיב, בלי התמונה או ההודעה שלו</string>
     <string name="composer_replying_to">משיב ל%1$s</string>
     <string name="composer_editing_message">עריכת הודעה</string>
+    <string name="verification_profile_not_verified">לא מאומת</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">מושב אחד</item>
+        <item quantity="two">%d מושבים</item>
+        <item quantity="many">%d מושבים</item>
+        <item quantity="other">%d מושבים</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">מכשיר לא מקוון מופעל</string>
+    <string name="verification_profile_device_verified_because">מושב זה מהימן להעברת הודעות מאובטחת כי %1$s אימת אותו.</string>
+    <string name="verification_profile_device_new_signing">%1$s התחבר באמצעות מושב זה.</string>
+    <string name="verification_profile_other_device_untrust_info">עד שמשתמש זה יבטח במושב זה, הודעות שנשלחות ממנו מתויגות באזהרות.</string>
+    <string name="verify_cancel_other">אם תבטל עכשיו, לא תאמת את %1$s. התחל מחדש בפרופיל המשתמש שלו.</string>
 </resources>

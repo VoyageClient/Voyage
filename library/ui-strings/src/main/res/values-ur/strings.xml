@@ -1658,10 +1658,7 @@
     <string name="room_member_profile_sessions_section_title">جلسات</string>
     <string name="trusted">قابلِ اعتماد</string>
     <string name="not_trusted">ناقابلِ اعتماد</string>
-    <string name="verification_profile_device_verified_because">یہ جلسہ محفوظ پیغام رسانی کے لیے قابلِ اعتماد ہے کیونکہ %1$s (%2$s) نے اس کی تصدیق کی ہے:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) ایک نئے جلسے سے داخل ہوئے:</string>
     <string name="verification_profile_device_untrust_info">جب تک یہ صارف اس جلسے پر اعتماد نہیں کرتا، اس سے بھیجے اور وصول کیے گئے پیغامات پر انتباہ کا نشان ہوگا۔ متبادل طور پر، آپ دستی طور پر اس کی تصدیق کر سکتے ہیں۔</string>
-    <string name="verification_profile_other_device_untrust_info">جب تک یہ صارف اس جلسے پر اعتماد نہیں کرتا، اس سے بھیجے اور وصول کیے گئے پیغامات پر انتباہ کا نشان ہوگا۔</string>
     <string name="initialize_cross_signing">باہمی دستخط شروع کریں</string>
     <string name="reset_cross_signing">چابیاں دوبارہ ترتیب دیں</string>
     <string name="a11y_qr_code_for_verification">QR کوڈ</string>
@@ -1699,7 +1696,6 @@
     <string name="_resume">دوبارہ شروع کریں</string>
     <string name="verify_cancel_self_verification_from_untrusted">اگر آپ منسوخ کریں تو اس آلے پر مرموز شدہ پیغامات نہیں پڑھ سکیں گے، اور دوسرے صارفین اس پر اعتماد نہیں کریں گے</string>
     <string name="verify_cancel_self_verification_from_trusted">اگر آپ منسوخ کریں تو اپنے نئے آلے پر مرموز شدہ پیغامات نہیں پڑھ سکیں گے، اور دوسرے صارفین اس پر اعتماد نہیں کریں گے</string>
-    <string name="verify_cancel_other">اگر آپ ابھی منسوخ کریں تو %1$s (%2$s) کی تصدیق نہیں ہوگی۔ ان کے صارف پروفائل میں دوبارہ شروع کریں۔</string>
     <string name="verify_not_me_self_verification">درج ذیل میں سے کوئی ایک متاثر ہو سکتا ہے:\n\n- آپ کا رمز عبور\n- آپ کا منزلی خادم\n- یہ آلہ، یا دوسرا آلہ\n- دونوں میں سے کسی آلے کا انٹرنیٹ کنکشن\n\nہم مشورہ دیتے ہیں کہ آپ فوراً ترتیبات میں اپنا رمز عبور اور بازیابی کی چابی بدلیں۔</string>
     <string name="verify_cancelled_notice">تصدیق منسوخ کر دی گئی ہے۔ آپ دوبارہ تصدیق شروع کر سکتے ہیں۔</string>
     <string name="verification_not_found">تصدیق کی درخواست نہیں ملی۔ ممکن ہے اسے منسوخ کر دیا گیا ہو، یا کسی دوسرے جلسے نے سنبھال لیا ہو۔</string>
@@ -3526,4 +3522,14 @@
     <string name="settings_compact_replies_edits_summary">کمپوزر کے اوپر صرف یہ دکھائیں کہ آپ کسے جواب دے رہے ہیں، ان کے اوتار یا پیغام کے بغیر</string>
     <string name="composer_replying_to">%1$s کو جواب دے رہے ہیں</string>
     <string name="composer_editing_message">پیغام میں ترمیم ہو رہی ہے</string>
+    <string name="verification_profile_not_verified">غیر تصدیق شدہ</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d جلسہ</item>
+        <item quantity="other">%d جلسات</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">آف لائن آلہ فعال ہے</string>
+    <string name="verification_profile_device_verified_because">یہ جلسہ محفوظ پیغام رسانی کے لیے قابلِ اعتماد ہے کیونکہ %1$s نے اس کی تصدیق کی ہے۔</string>
+    <string name="verification_profile_device_new_signing">%1$s نے اس جلسے کے ذریعے سائن ان کیا۔</string>
+    <string name="verification_profile_other_device_untrust_info">جب تک یہ صارف اس جلسے پر اعتماد نہیں کرتا، اس سے بھیجے گئے پیغامات پر انتباہ کا نشان ہوگا۔</string>
+    <string name="verify_cancel_other">اگر آپ ابھی منسوخ کریں تو %1$s کی تصدیق نہیں کریں گے۔ ان کی صارف پروفائل سے دوبارہ شروع کریں۔</string>
 </resources>

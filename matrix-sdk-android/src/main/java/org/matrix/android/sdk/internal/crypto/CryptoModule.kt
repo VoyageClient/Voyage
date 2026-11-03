@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.crypto
 
+import app.cash.sqldelight.db.QueryResult
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -127,6 +128,12 @@ internal abstract class CryptoModule {
                     "CREATE TABLE IF NOT EXISTS room_pending_key_bundle (room_id TEXT NOT NULL PRIMARY KEY, inviter TEXT NOT NULL, " +
                             "accepted_at INTEGER NOT NULL)",
             ).forEach { driver.execute(null, it, 0) }
+            val hasDehydrated = driver.executeQuery(null, "PRAGMA table_info(device_info)", { cursor ->
+                var found = false
+                while (cursor.next().value) if (cursor.getString(1) == "dehydrated") found = true
+                QueryResult.Value(found)
+            }, 0).value
+            if (!hasDehydrated) driver.execute(null, "ALTER TABLE device_info ADD COLUMN dehydrated INTEGER", 0)
             return CryptoSqlDatabase(driver)
         }
 

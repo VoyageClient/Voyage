@@ -236,6 +236,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Identity-change banner**: backported from Element Web. A banner at the top of an encrypted room warns when a member's cross-signing identity changes, in red for someone you had previously verified. Dismissing it, or "Withdraw verification" for the verified case, pins their current identity, so it only reappears if their identity resets again. Identity pinning is tracked in the crypto store, and a toggle can hide the banner outright while still accepting any current changes.
 
+- **Session viewer**: a user's profile lists their sessions under Security, each with its trust status. A dehydrated device is noted rather than listed.
+
 - **Media hiding and spoilers**: hide timeline media, inline images and emoji until tapped, by room or privacy category. Send individual media messages as spoilers, which stay hidden until revealed even where media previews are otherwise enabled.
 
 - **Ignored users fully silenced**: read receipts and presence from ignored users are dropped during sync, alongside the typing notifications already filtered.

@@ -1169,8 +1169,6 @@
     <string name="room_member_profile_sessions_section_title">Sitzungen</string>
     <string name="trusted">Vertraut</string>
     <string name="not_trusted">Nicht vertraut</string>
-    <string name="verification_profile_device_verified_because">Diese Sitzung ist für sichere Kommunikation vertrauenswürdig, weil %1$s (%2$s) sie verifiziert hat:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) hat sich in einer neuen Sitzung angemeldet:</string>
     <string name="verification_profile_device_untrust_info">Bis dieser Benutzer dieser Sitzung vertraut, werden an und von ihm gesendete Nachrichten mit Warnungen gekennzeichnet. Alternativ kannst du dies manuell überprüfen.</string>
     <string name="initialize_cross_signing">Quersignierung initialisieren</string>
     <string name="reset_cross_signing">Schlüssel zurücksetzen</string>
@@ -1198,7 +1196,6 @@
     <string name="verify_new_session_compromized">Dein Account ist möglicherweise kompromittiert</string>
     <string name="verify_cancel_self_verification_from_untrusted">Wenn du abbrichst, wirst du auf diesem Gerät keine verschlüsselten Nachrichten lesen können, und andere Benutzer werden ihm nicht vertrauen</string>
     <string name="verify_cancel_self_verification_from_trusted">Wenn du abbrichst, wirst du auf deinem neuen Gerät keine verschlüsselten Nachrichten lesen können, und andere Benutzer werden ihm nicht vertrauen</string>
-    <string name="verify_cancel_other">Du wirst %1$s (%2$s) nicht verifizieren, wenn du jetzt abbrichst. Beginne in deren Nutzerprofil erneut.</string>
     <string name="verify_not_me_self_verification">Eines der folgenden könnte kom­pro­mit­tie­rt sein:
 \n
 \n- Dein Passwort
@@ -2376,7 +2373,6 @@
     <string name="avatar_of_room">Raum-Avatar von %1$s</string>
     <string name="avatar_of_space">Space-Avatar von %1$s</string>
     <string name="confirm_your_identity_after_update">Verschlüsselte Kommunikation wurde mit der neuesten Aktualisierung verbessert. Bitte verifiziere deine Geräte erneut.</string>
-    <string name="verification_profile_other_device_untrust_info">Solange der Benutzer dieser Sitzung nicht vertraut, werden Nachrichten mit Warnungen versehen.</string>
     <string name="crosssigning_verify_after_update">App aktualisiert</string>
     <string name="sign_out_failed_dialog_message">Dein Heim-Server ist nicht erreichbar. Falls du dich dennoch abmeldest, wird dieses Gerät nicht von deiner Geräteliste entfernt, also müsstest du dies mit einer anderen Sitzung selbst machen.</string>
     <string name="sign_out_anyway">Dennoch abmelden</string>
@@ -3631,4 +3627,14 @@
     <string name="settings_compact_replies_edits_summary">Über der Nachrichteneingabe nur anzeigen, wem du antwortest, ohne Avatar oder Nachricht</string>
     <string name="composer_replying_to">Antwort an %1$s</string>
     <string name="composer_editing_message">Nachricht bearbeiten</string>
+    <string name="verification_profile_not_verified">Nicht verifiziert</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d Sitzung</item>
+        <item quantity="other">%d Sitzungen</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">Offline-Gerät aktiviert</string>
+    <string name="verification_profile_device_verified_because">Diese Sitzung ist für sichere Kommunikation vertrauenswürdig, weil %1$s sie verifiziert hat.</string>
+    <string name="verification_profile_device_new_signing">%1$s hat sich mit dieser Sitzung angemeldet.</string>
+    <string name="verification_profile_other_device_untrust_info">Bis dieser Benutzer dieser Sitzung vertraut, werden von ihr gesendete Nachrichten mit Warnungen gekennzeichnet.</string>
+    <string name="verify_cancel_other">Wenn du jetzt abbrichst, wirst du %1$s nicht verifizieren. Beginne erneut in deren Benutzerprofil.</string>
 </resources>

@@ -211,10 +211,16 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                         userCryptoInfoLoaded = true,
                         userMXCrossSigningInfo = crossSigningInfo.getOrNull(),
                         allDevicesAreTrusted = devices.all { it.isVerified },
-                        allDevicesAreCrossSignedTrusted = devices.all { it.trustLevel?.crossSigningVerified == true }
+                        allDevicesAreCrossSignedTrusted = devices.all { it.trustLevel?.crossSigningVerified == true },
+                        userDevices = devices
                 )
             }
         }.launchIn(viewModelScope)
+
+        // Users with no shared encrypted room aren't tracked, so we'd have no devices for them.
+        viewModelScope.launch {
+            tryOrNull { session.cryptoService().downloadKeysIfNeeded(listOf(initialState.userId), false) }
+        }
     }
 
     private fun observeAccountData() {

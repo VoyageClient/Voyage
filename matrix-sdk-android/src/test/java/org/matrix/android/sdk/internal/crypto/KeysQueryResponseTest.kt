@@ -18,9 +18,19 @@ package org.matrix.android.sdk.internal.crypto
 
 import org.amshove.kluent.internal.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.matrix.android.sdk.internal.crypto.model.CryptoInfoMapper
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysQueryResponse
 import org.matrix.android.sdk.internal.di.MoshiProvider
+import org.matrix.android.sdk.internal.util.JsonCanonicalizer
+import org.robolectric.RobolectricTestRunner
+import java.security.KeyFactory
+import java.security.Signature
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
 
+// Robolectric for the real org.json that JsonCanonicalizer uses.
+@RunWith(RobolectricTestRunner::class)
 class KeysQueryResponseTest {
 
     private val moshi = MoshiProvider.providesMoshi()
@@ -99,5 +109,39 @@ class KeysQueryResponseTest {
         val dehydratedDevice = deviceKeys["Y2gISVBZ024gKKAe6Xos44cDbNlO/49YjaOyiqFwjyQ"] as Map<*, *>
 
         assertEquals(dehydratedDevice["dehydrated"] as? Boolean, true)
+    }
+
+    @Test
+    fun `the signed JSON of a dehydrated device covers its dehydrated flag`() {
+        val userId = "@dehydration2:localhost"
+        val deviceId = "Y2gISVBZ024gKKAe6Xos44cDbNlO/49YjaOyiqFwjyQ"
+        val device = CryptoInfoMapper.map(aKwysQueryResponseWithDehydrated().deviceKeys!![userId]!![deviceId]!!)
+
+        assertEquals(true, device.isDehydrated)
+        val canonical = JsonCanonicalizer.getCanonicalJson(Map::class.java, device.signalableJSONDictionary())
+        assertEquals(true, verifyEd25519(device.fingerprint()!!, canonical, device.signatures!![userId]!!["ed25519:$deviceId"]!!))
+        val ssk = "YZ0EmlbDX+t/m/MB5EWkQLw8cEDg7hX4Zy9699h3hd8"
+        assertEquals(true, verifyEd25519(ssk, canonical, device.signatures!![userId]!!["ed25519:$ssk"]!!))
+    }
+
+    @Test
+    fun `a device without the flag keeps it out of the signed JSON`() {
+        val userId = "@dehydration2:localhost"
+        val device = CryptoInfoMapper.map(aKwysQueryResponseWithDehydrated().deviceKeys!![userId]!!["TDHZGMDVNO"]!!)
+
+        assertEquals(false, device.isDehydrated)
+        assertEquals(false, device.signalableJSONDictionary().containsKey("dehydrated"))
+        val canonical = JsonCanonicalizer.getCanonicalJson(Map::class.java, device.signalableJSONDictionary())
+        assertEquals(true, verifyEd25519(device.fingerprint()!!, canonical, device.signatures!![userId]!!["ed25519:TDHZGMDVNO"]!!))
+    }
+
+    private fun verifyEd25519(unpaddedPublicKey: String, message: String, unpaddedSignature: String): Boolean {
+        val spkiPrefix = byteArrayOf(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00)
+        val publicKey = KeyFactory.getInstance("Ed25519").generatePublic(X509EncodedKeySpec(spkiPrefix + Base64.getDecoder().decode(unpaddedPublicKey)))
+        return Signature.getInstance("Ed25519").run {
+            initVerify(publicKey)
+            update(message.toByteArray(Charsets.UTF_8))
+            verify(Base64.getDecoder().decode(unpaddedSignature))
+        }
     }
 }

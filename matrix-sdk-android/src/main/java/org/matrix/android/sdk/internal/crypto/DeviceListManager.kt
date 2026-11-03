@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.extensions.measureMetric
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.metrics.DownloadDeviceKeysMetricsPlugin
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
 import org.matrix.android.sdk.api.session.crypto.crosssigning.UserIdentity
@@ -408,6 +409,14 @@ internal class DeviceListManager @Inject constructor(
                         workingCopy[deviceId]!!.trustLevel = previouslyStoredDeviceKeys.trustLevel
                     }
                 }
+                // MSC3814: never encrypt to a dehydrated device that isn't cross-signed.
+                val sskPublicKey = (response.selfSigningKeys?.get(userId)?.toCryptoModel() ?: cryptoStore.getCrossSigningInfo(userId)?.selfSigningKey())
+                        ?.unpaddedBase64PublicKey
+                workingCopy.values.removeAll { device ->
+                    val drop = device.isDehydrated && !isSignedBy(device, sskPublicKey)
+                    if (drop) Timber.w("## CRYPTO | doKeyDownloadForUsers() : dropping dehydrated device ${device.shortDebugString()} not signed by its owner")
+                    drop
+                }
                 // Update the store
                 // Note that devices which aren't in the response will be removed from the stores
                 userDataToStore.userDevices[userId] = workingCopy
@@ -435,6 +444,12 @@ internal class DeviceListManager @Inject constructor(
         // dispatchDeviceChange(downloadUsers)
 
         return onKeysDownloadSucceed(filteredUsers, response.failures)
+    }
+
+    private fun isSignedBy(device: CryptoDeviceInfo, ed25519PublicKey: String?): Boolean {
+        ed25519PublicKey ?: return false
+        val signature = device.signatures?.get(device.userId)?.get("ed25519:$ed25519PublicKey") ?: return false
+        return tryOrNull { olmDevice.verifySignature(ed25519PublicKey, device.signalableJSONDictionary(), signature) } != null
     }
 
     /**

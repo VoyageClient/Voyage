@@ -31,7 +31,8 @@ internal object CryptoInfoMapper {
                 keys = deviceKeysWithUnsigned.keys,
                 signatures = deviceKeysWithUnsigned.signatures,
                 unsigned = deviceKeysWithUnsigned.unsigned,
-                trustLevel = null
+                trustLevel = null,
+                dehydrated = deviceKeysWithUnsigned.dehydrated,
         )
     }
 
@@ -41,7 +42,8 @@ internal object CryptoInfoMapper {
                 algorithms = cryptoDeviceInfo.algorithms,
                 keys = cryptoDeviceInfo.keys,
                 signatures = cryptoDeviceInfo.signatures,
-                userId = cryptoDeviceInfo.userId
+                userId = cryptoDeviceInfo.userId,
+                dehydrated = cryptoDeviceInfo.dehydrated,
         )
     }
 

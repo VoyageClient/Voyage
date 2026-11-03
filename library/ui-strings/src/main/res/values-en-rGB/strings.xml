@@ -27,7 +27,7 @@
     <string name="verification_request_other_cancelled">%s cancelled</string>
     <string name="verification_request_you_cancelled">You cancelled</string>
     <string name="verification_profile_device_untrust_info">Until this user trusts this session, messages sent to and from it are labelled with warnings. Alternatively, you can manually verify it.</string>
-    <string name="verification_profile_other_device_untrust_info">Until this user trusts this session, messages sent to and from it are labelled with warnings.</string>
+    <string name="verification_profile_other_device_untrust_info">Until this user trusts this session, messages sent from it are labelled with warnings.</string>
     <string name="delete_account_data_warning">Delete the account data of type %1$s?\n\nUse with caution, it may lead to unexpected behaviour.</string>
     <string name="verify_cancelled_notice">Verification has been cancelled. You can start verification again.</string>
     <string name="verification_cancelled">Verification Cancelled</string>

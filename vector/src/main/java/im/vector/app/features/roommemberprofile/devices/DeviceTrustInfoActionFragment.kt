@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -36,7 +37,9 @@ class DeviceTrustInfoActionFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        views.bottomSheetRecyclerView.setPadding(0, dimensionConverter.dpToPx(16), 0, dimensionConverter.dpToPx(16))
+        // Activity-themed, so its colorSurface isn't the sheet's; let the sheet's show through.
+        views.bottomSheetRecyclerView.backgroundCompat = null
+        views.bottomSheetRecyclerView.setPadding(0, dimensionConverter.dpToPx(8), 0, dimensionConverter.dpToPx(16))
         views.bottomSheetRecyclerView.configureWith(
                 epoxyController,
                 hasFixedSize = false

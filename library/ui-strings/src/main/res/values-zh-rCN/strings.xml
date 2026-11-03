@@ -1158,8 +1158,6 @@
     <string name="room_member_profile_sessions_section_title">会话</string>
     <string name="trusted">已信任</string>
     <string name="not_trusted">未信任</string>
-    <string name="verification_profile_device_verified_because">可信任此会话用于安全地收发消息，因为%1$s（%2$s）已验证了它：</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) 使用新会话登录：</string>
     <string name="verification_profile_device_untrust_info">在此用户信任此会话之前，发送到该会话和从该会话发送的消息均标有警告。或者，你可以手动进行验证。</string>
     <string name="initialize_cross_signing">初始化交叉签名</string>
     <string name="reset_cross_signing">重置密钥</string>
@@ -1186,7 +1184,6 @@
     <string name="verify_new_session_compromized">你的账户可能已被盗用</string>
     <string name="verify_cancel_self_verification_from_untrusted">如果你取消，你将无法在此设备上读取加密消息，其他用户不会信任它</string>
     <string name="verify_cancel_self_verification_from_trusted">如果你取消，你将无法在新设备上读取加密消息，其他用户不会信任它</string>
-    <string name="verify_cancel_other">如果你现在取消将不会验证 %1$s (%2$s)。在他们的用户个人档案中重新开始。</string>
     <string name="verify_not_me_self_verification">以下其中一项可能有风险：
 \n
 \n- 你的密码
@@ -2286,7 +2283,6 @@
     <string name="room_profile_section_more_polls">投票历史</string>
     <string name="crosssigning_verify_after_update">应用已更新</string>
     <string name="verification_verify_identity">验证你的身份以访问加密消息并向他人证明你的身份。</string>
-    <string name="verification_profile_other_device_untrust_info">发送至和发送自此会话的消息带有警告标签，直至此用户信任此会话。</string>
     <string name="settings_notification_error_on_update">更新你的通知偏好时出错。请再试一次。</string>
     <string name="settings_external_account_management">你的账户详细信息于%1$s单独管理。</string>
     <string name="settings_crypto_version">加密版本</string>
@@ -3569,4 +3565,13 @@
     <string name="settings_compact_replies_edits_summary">在输入框上方只显示你在回复谁，不显示其头像或消息</string>
     <string name="composer_replying_to">正在回复 %1$s</string>
     <string name="composer_editing_message">正在编辑消息</string>
+    <string name="verification_profile_not_verified">未验证</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="other">%d 个会话</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">已启用离线设备</string>
+    <string name="verification_profile_device_verified_because">此会话可信，可用于安全通信，因为 %1$s 已验证它。</string>
+    <string name="verification_profile_device_new_signing">%1$s 使用此会话登录。</string>
+    <string name="verification_profile_other_device_untrust_info">在此用户信任此会话之前，从该会话发送的消息均标有警告。</string>
+    <string name="verify_cancel_other">如果现在取消，你将不会验证 %1$s。请在其用户资料中重新开始。</string>
 </resources>

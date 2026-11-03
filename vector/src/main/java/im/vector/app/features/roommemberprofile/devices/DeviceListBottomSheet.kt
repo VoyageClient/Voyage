@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.commitTransaction
@@ -34,8 +35,13 @@ class DeviceListBottomSheet :
 
     private val viewModel: DeviceListBottomSheetViewModel by fragmentViewModel(DeviceListBottomSheetViewModel::class)
 
+    override val showExpanded = true
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        views.bottomSheetFragmentHost.maxHeightFraction = MAX_HEIGHT_FRACTION
+        // Swiping down dismisses instead of collapsing.
+        (dialog as? BottomSheetDialog)?.behavior?.skipCollapsed = true
         viewModel.observeViewEvents {
             // nop
         }
@@ -93,6 +99,8 @@ class DeviceListBottomSheet :
     ) : Parcelable
 
     companion object {
+        private const val MAX_HEIGHT_FRACTION = 0.5f
+
         fun newInstance(userId: String): DeviceListBottomSheet {
             return DeviceListBottomSheet().apply {
                 setArguments(Args(userId))

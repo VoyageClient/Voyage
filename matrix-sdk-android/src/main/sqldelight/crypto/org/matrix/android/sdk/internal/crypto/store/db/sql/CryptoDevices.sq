@@ -20,7 +20,9 @@ CREATE TABLE device_info (
     has_trust_level INTEGER NOT NULL DEFAULT 0,
     trust_cross_signed_verified INTEGER,
     trust_locally_verified INTEGER,
-    first_time_seen_local_ts INTEGER
+    first_time_seen_local_ts INTEGER,
+    -- CryptoModule ALTERs this onto older databases, so it must stay last.
+    dehydrated INTEGER
 );
 
 CREATE INDEX device_info_user_id ON device_info(user_id);
@@ -70,8 +72,8 @@ deviceSelectByUserIdAndKeysMapContains:
 SELECT * FROM device_info WHERE user_id = ? AND keys_map_json LIKE ('%' || ? || '%');
 
 deviceUpsert:
-INSERT OR REPLACE INTO device_info(primary_key, device_id, identity_key, user_id, is_blocked, algorithm_list_json, keys_map_json, signature_map_json, unsigned_map_json, has_trust_level, trust_cross_signed_verified, trust_locally_verified, first_time_seen_local_ts)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO device_info(primary_key, device_id, identity_key, user_id, is_blocked, algorithm_list_json, keys_map_json, signature_map_json, unsigned_map_json, has_trust_level, trust_cross_signed_verified, trust_locally_verified, first_time_seen_local_ts, dehydrated)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deviceDeleteByPrimaryKey:
 DELETE FROM device_info WHERE primary_key = ?;

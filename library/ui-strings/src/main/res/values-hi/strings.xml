@@ -1652,10 +1652,7 @@
     <string name="room_member_profile_sessions_section_title">सेशन</string>
     <string name="trusted">भरोसेमंद</string>
     <string name="not_trusted">भरोसेमंद नहीं</string>
-    <string name="verification_profile_device_verified_because">यह सेशन सुरक्षित मैसेजिंग के लिए भरोसेमंद है, क्योंकि %1$s (%2$s) ने इसे सत्यापित किया है:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) ने एक नए सेशन से साइन इन किया:</string>
     <string name="verification_profile_device_untrust_info">जब तक यह उपयोगकर्ता इस सेशन पर भरोसा नहीं करता, इसे भेजे गए और इससे आए मैसेज पर चेतावनी दिखेगी। आप चाहें तो इसे मैन्युअल रूप से सत्यापित कर सकते हैं।</string>
-    <string name="verification_profile_other_device_untrust_info">जब तक यह उपयोगकर्ता इस सेशन पर भरोसा नहीं करता, इसे भेजे गए और इससे आए मैसेज पर चेतावनी दिखेगी।</string>
     <string name="initialize_cross_signing">क्रॉस-साइनिंग शुरू करें</string>
     <string name="reset_cross_signing">कुंजियां रीसेट करें</string>
     <string name="a11y_qr_code_for_verification">QR कोड</string>
@@ -1693,7 +1690,6 @@
     <string name="_resume">फिर से शुरू करें</string>
     <string name="verify_cancel_self_verification_from_untrusted">अगर आप रद्द करते हैं, तो आप इस डिवाइस पर एन्क्रिप्टेड मैसेज नहीं पढ़ पाएंगे, और दूसरे उपयोगकर्ता इस पर भरोसा नहीं करेंगे</string>
     <string name="verify_cancel_self_verification_from_trusted">अगर आप रद्द करते हैं, तो आप अपने नए डिवाइस पर एन्क्रिप्टेड मैसेज नहीं पढ़ पाएंगे, और दूसरे उपयोगकर्ता उस पर भरोसा नहीं करेंगे</string>
-    <string name="verify_cancel_other">अगर आप अभी रद्द करते हैं, तो आप %1$s (%2$s) को सत्यापित नहीं करेंगे। उनकी उपयोगकर्ता प्रोफ़ाइल से फिर से शुरू करें।</string>
     <string name="verify_not_me_self_verification">इनमें से किसी के साथ छेड़छाड़ हुई हो सकती है:\n\n- आपका पासवर्ड\n- आपका होमसर्वर\n- यह डिवाइस या दूसरा डिवाइस\n- दोनों में से किसी डिवाइस का इंटरनेट कनेक्शन\n\nहम सुझाव देते हैं कि आप सेटिंग में तुरंत अपना पासवर्ड &amp; रिकवरी कुंजी बदलें।</string>
     <string name="verify_cancelled_notice">सत्यापन रद्द कर दिया गया है। आप फिर से सत्यापन शुरू कर सकते हैं।</string>
     <string name="verification_not_found">सत्यापन अनुरोध नहीं मिला। हो सकता है वह रद्द कर दिया गया हो, या किसी दूसरे सेशन ने उसे संभाल लिया हो।</string>
@@ -3514,4 +3510,14 @@
     <string name="settings_compact_replies_edits_summary">कंपोज़र के ऊपर सिर्फ़ यह दिखाएँ कि आप किसे जवाब दे रहे हैं, उनके अवतार या मैसेज के बिना</string>
     <string name="composer_replying_to">%1$s को जवाब दे रहे हैं</string>
     <string name="composer_editing_message">मैसेज संपादित कर रहे हैं</string>
+    <string name="verification_profile_not_verified">सत्यापित नहीं</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d सेशन</item>
+        <item quantity="other">%d सेशन</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">ऑफ़लाइन डिवाइस चालू है</string>
+    <string name="verification_profile_device_verified_because">यह सेशन सुरक्षित मैसेजिंग के लिए भरोसेमंद है क्योंकि %1$s ने इसे सत्यापित किया है।</string>
+    <string name="verification_profile_device_new_signing">%1$s ने इस सेशन से साइन इन किया है।</string>
+    <string name="verification_profile_other_device_untrust_info">जब तक यह उपयोगकर्ता इस सेशन पर भरोसा नहीं करता, इससे भेजे गए मैसेज पर चेतावनी दिखेगी।</string>
+    <string name="verify_cancel_other">अगर आप अभी रद्द करते हैं, तो आप %1$s को सत्यापित नहीं करेंगे। उनकी उपयोगकर्ता प्रोफ़ाइल से फिर से शुरू करें।</string>
 </resources>

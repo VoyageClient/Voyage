@@ -15,6 +15,9 @@ import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericItem
 import im.vector.app.core.ui.list.genericWithValueItem
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.roommemberprofile.distinctDisplayName
+import im.vector.app.features.roommemberprofile.sessionCopyText
 import im.vector.app.features.settings.devices.TrustUtils
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -53,60 +56,48 @@ class DeviceTrustInfoEpoxyController @Inject constructor(
                 RoomEncryptionTrustLevel.Trusted -> R.drawable.ic_shield_trusted
                 RoomEncryptionTrustLevel.E2EWithUnsupportedAlgorithm -> R.drawable.ic_warning_badge
             }
+            // An unverified user's sessions can't be trusted yet, which isn't a warning.
+            val (headerIcon, headerTitle) = when {
+                isVerified -> shield to CommonStrings.verification_profile_verified
+                !trustMSK && !isMyDevice -> R.drawable.ic_shield_unknown to CommonStrings.verification_profile_not_verified
+                else -> shield to CommonStrings.verification_profile_warning
+            }
+            val description = host.stringProvider.getString(
+                    if (isVerified) CommonStrings.verification_profile_device_verified_because else CommonStrings.verification_profile_device_new_signing,
+                    data.userId
+            )
             genericItem {
                 id("title")
                 style(ItemStyle.BIG_TEXT)
-                titleIconResourceId(shield)
-                title(
-                        host.stringProvider
-                                .getString(if (isVerified) CommonStrings.verification_profile_verified else CommonStrings.verification_profile_warning)
-                                .toEpoxyCharSequence()
-                )
-            }
-            genericFooterItem {
-                id("desc")
-                centered(false)
-                textColor(host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-                apply {
-                    if (isVerified) {
-                        // TODO FORMAT
-                        text(
-                                host.stringProvider.getString(
-                                        CommonStrings.verification_profile_device_verified_because,
-                                        data.userItem?.displayName ?: "",
-                                        data.userItem?.id ?: ""
-                                ).toEpoxyCharSequence()
-                        )
-                    } else {
-                        // TODO what if mine
-                        text(
-                                host.stringProvider.getString(
-                                        CommonStrings.verification_profile_device_new_signing,
-                                        data.userItem?.displayName ?: "",
-                                        data.userItem?.id ?: ""
-                                ).toEpoxyCharSequence()
-                        )
-                    }
-                }
-//                    text(stringProvider.getString(CommonStrings.verification_profile_device_untrust_info))
+                titleIconResourceId(headerIcon)
+                title(host.stringProvider.getString(headerTitle).toEpoxyCharSequence())
+                description(description.prepareForDisplay().toEpoxyCharSequence())
             }
 
             genericWithValueItem {
                 id(cryptoDeviceInfo.deviceId)
                 titleIconResourceId(shield)
+                val name = cryptoDeviceInfo.distinctDisplayName()
+                // Raw, unlike the title's neutralized direction overrides.
+                copyValue { cryptoDeviceInfo.sessionCopyText() }
                 title(
-                        span {
-                            +(cryptoDeviceInfo.displayName() ?: "")
+                        if (name == null) {
+                            cryptoDeviceInfo.deviceId.prepareForDisplay().toEpoxyCharSequence()
+                        } else {
                             span {
-                                text = " (${cryptoDeviceInfo.deviceId})"
-                                textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                                textSize = host.dimensionConverter.spToPx(14)
-                            }
-                        }.toEpoxyCharSequence()
+                                +name
+                                span {
+                                    text = " (${cryptoDeviceInfo.deviceId})"
+                                    textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                                    textSize = host.dimensionConverter.spToPx(14)
+                                }
+                            }.prepareForDisplay().toEpoxyCharSequence()
+                        }
                 )
             }
 
-            if (!isVerified && !isMyDevice) {
+            // The timeline only flags unverified sessions of users you've verified.
+            if (!isVerified && !isMyDevice && trustMSK) {
                 genericFooterItem {
                     id("warn")
                     centered(false)

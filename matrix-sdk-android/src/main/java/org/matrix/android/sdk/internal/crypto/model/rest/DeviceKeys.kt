@@ -51,5 +51,9 @@ internal data class DeviceKeys(
          * The signature is calculated using the process described at https://matrix.org/docs/spec/appendices.html#signing-json.
          */
         @Json(name = "signatures")
-        val signatures: Map<String, Map<String, String>>?
+        val signatures: Map<String, Map<String, String>>?,
+
+        /** MSC3814 dehydrated-device flag, covered by the signatures. */
+        @Json(name = "dehydrated")
+        val dehydrated: Boolean? = null,
 )

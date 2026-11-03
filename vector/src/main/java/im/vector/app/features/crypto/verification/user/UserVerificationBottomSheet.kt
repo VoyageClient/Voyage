@@ -14,7 +14,6 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.text.toSpannable
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
@@ -24,14 +23,12 @@ import im.vector.app.R
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
-import im.vector.app.core.utils.colorizeMatchingText
 import im.vector.app.databinding.BottomSheetVerificationBinding
 import im.vector.app.features.crypto.verification.VerificationAction
 import im.vector.app.features.crypto.verification.VerificationBottomSheetViewEvents
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
@@ -104,14 +101,7 @@ class UserVerificationBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSh
                 is VerificationBottomSheetViewEvents.ConfirmCancel -> {
                     MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(CommonStrings.dialog_title_confirmation))
-                            .setMessage(
-                                    getString(CommonStrings.verify_cancel_other, event.otherUserId, event.deviceId ?: "*")
-                                            .toSpannable()
-                                            .colorizeMatchingText(
-                                                    event.otherUserId,
-                                                    ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_notice_text_color)
-                                            )
-                            )
+                            .setMessage(getString(CommonStrings.verify_cancel_other, event.otherUserId).prepareForDisplay())
                             .setCancelable(false)
                             .setPositiveButton(CommonStrings._resume, null)
                             .setNegativeButton(CommonStrings.action_cancel) { _, _ ->

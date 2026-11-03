@@ -1831,7 +1831,6 @@
     <string name="bootstrap_dont_reuse_pwd">アカウントパスワードと違うものにしてください。</string>
     <string name="enter_account_password">続行するには%sを入力してください。</string>
     <string name="verification_cancelled">認証を中止しました</string>
-    <string name="verify_cancel_other">中止すると、%1$s（%2$s）を認証しません。認証は、相手のユーザープロフィール画面から改めて開始できます。</string>
     <string name="verify_cancel_self_verification_from_trusted">中止すると、新しい端末では暗号化されたメッセージが読めず、他のユーザーに信頼されません</string>
     <string name="verify_cancel_self_verification_from_untrusted">中止すると、この端末では暗号化されたメッセージが読めず、他のユーザーに信頼されません</string>
     <string name="verify_new_session_was_not_me">ログインしていません</string>
@@ -1841,8 +1840,6 @@
     <string name="delete_account_data_warning">%1$sというタイプのアカウントデータを削除しますか？
 \n
 \n予期しない動作が起こる可能性があるため、注意して使用してください。</string>
-    <string name="verification_profile_device_new_signing">%1$s（%2$s）が新しいセッションでサインインしました：</string>
-    <string name="verification_profile_device_verified_because">このセッションは%1$s（%2$s）によって認証されているので、メッセージのセキュリティーは信頼できます。</string>
     <string name="verification_open_other_to_verify">既存のセッションでこのセッションを認証して、暗号化されたメッセージにアクセスできるようにしましょう。</string>
     <string name="settings_active_sessions_verified_device_desc">あなたはこのセッションを認証しているので、メッセージのセキュリティーは信頼できます。</string>
     <string name="settings_server_default_room_version">既定のバージョン</string>
@@ -2324,7 +2321,6 @@
     <string name="crosssigning_verify_after_update">アプリが更新されました</string>
     <string name="verification_verify_with_another_device">別の端末で認証</string>
     <string name="verification_verify_identity">本人確認を行うと、暗号化されたメッセージにアクセスでき、他のユーザーにあなたの身元を証明できます。</string>
-    <string name="verification_profile_other_device_untrust_info">このユーザーがこのセッションを信頼するまで、このセッションとの間で送受信されるメッセージには警告が表示されます。</string>
     <string name="verification_request_was_sent">認証リクエストを送信しました。他のセッションのいずれかを開いて、リクエストを承認し認証を開始してください。</string>
     <string name="_resume">再開</string>
     <string name="verification_not_found">認証リクエストが見つかりません。キャンセルされたか、別のセッションで処理された可能性があります。</string>
@@ -3567,4 +3563,13 @@
     <string name="settings_compact_replies_edits_summary">入力欄の上には返信先の名前だけを表示し、アバターやメッセージは表示しない</string>
     <string name="composer_replying_to">%1$sに返信中</string>
     <string name="composer_editing_message">メッセージを編集中</string>
+    <string name="verification_profile_not_verified">未認証</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="other">%d個のセッション</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">オフライン端末が有効</string>
+    <string name="verification_profile_device_verified_because">%1$s が認証したため、このセッションは安全なメッセージのやり取りに信頼されています。</string>
+    <string name="verification_profile_device_new_signing">%1$s はこのセッションでサインインしました。</string>
+    <string name="verification_profile_other_device_untrust_info">このユーザーがこのセッションを信頼するまで、このセッションから送信されたメッセージには警告マークが付きます。</string>
+    <string name="verify_cancel_other">今中止すると %1$s を認証しません。ユーザーのプロフィールからやり直してください。</string>
 </resources>

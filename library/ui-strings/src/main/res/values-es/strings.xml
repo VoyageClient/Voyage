@@ -1312,8 +1312,6 @@
         <item quantity="other">%d sesiones activas</item>
     </plurals>
     <string name="verification_open_other_to_verify">Utilice una sesión existente para verificar ésta, otorgándole acceso a los mensajes cifrados.</string>
-    <string name="verification_profile_device_verified_because">Esta sesión es de confianza para mensajería segura porque %1$s (%2$s) la ha verificado:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) iniciado sesión con una nueva sesión:</string>
     <string name="verification_profile_device_untrust_info">Hasta que este usuario confíe en esta sesión, los mensajes enviados hacia y desde ella se etiquetan con advertencias. Alternativamente, puede verificarlo manualmente.</string>
     <string name="qr_code_scanned_by_other_notice">¡Casi estamos! ¿Muestra %s el mismo tick\?</string>
     <string name="verification_cannot_access_other_session">Use una contraseña o clave de recuperación</string>
@@ -1328,7 +1326,6 @@
     <string name="verify_new_session_notice">Utilice esta sesión para verificar su nuevo, otorgándole acceso a mensajes cifrados.</string>
     <string name="verify_cancel_self_verification_from_untrusted">Si cancelas, no podrás leer mensajes cifrados en este dispositivo y otros usuarios no confiarán en este</string>
     <string name="verify_cancel_self_verification_from_trusted">Si cancelas, no podrás leer mensajes cifrados en tu nuevo dispositivo y otros usuarios no confiarán en este</string>
-    <string name="verify_cancel_other">No verificarás %1$s (%2$s) si cancelas ahora. Comience de nuevo en su perfil de usuario.</string>
     <string name="verify_not_me_self_verification">Uno de los siguientes puede verse comprometido: 
 \n
 \n- Tu contraseña 
@@ -2272,7 +2269,6 @@
     <string name="crosssigning_verify_after_update">Aplicación actualizada</string>
     <string name="verification_verify_with_another_device">Verificar con otro dispositivo</string>
     <string name="verification_verify_identity">Verifica tu identidad para acceder a los mensajes cifrados y demostrar tu identidad a los demás.</string>
-    <string name="verification_profile_other_device_untrust_info">Hasta que este usuario confíe en esta sesión, los mensajes enviados desde y hacia ella se marcarán con advertencias.</string>
     <string name="settings_nightly_build">Versión nocturna</string>
     <string name="settings_nightly_build_update">Obtener la última versión (nota: es posible que tengas problemas para iniciar sesión)</string>
     <string name="verification_request_was_sent">Se ha enviado una solicitud de verificación. Abre una de tus otras sesiones para aceptarla e iniciar la verificación.</string>
@@ -3620,4 +3616,14 @@
     <string name="settings_compact_replies_edits_summary">Mostrar sobre el compositor solo a quién respondes, sin su avatar ni su mensaje</string>
     <string name="composer_replying_to">Respondiendo a %1$s</string>
     <string name="composer_editing_message">Editando mensaje</string>
+    <string name="verification_profile_not_verified">No verificada</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d sesión</item>
+        <item quantity="other">%d sesiones</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">Dispositivo sin conexión activado</string>
+    <string name="verification_profile_device_verified_because">Esta sesión es confiable para mensajería segura porque %1$s la verificó.</string>
+    <string name="verification_profile_device_new_signing">%1$s inició sesión con esta sesión.</string>
+    <string name="verification_profile_other_device_untrust_info">Hasta que este usuario confíe en esta sesión, los mensajes enviados desde ella se marcan con advertencias.</string>
+    <string name="verify_cancel_other">Si cancelas ahora, no verificarás a %1$s. Vuelve a empezar desde su perfil de usuario.</string>
 </resources>

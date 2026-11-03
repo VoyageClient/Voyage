@@ -75,6 +75,7 @@ internal object CryptoMapper {
         }
         // We store the device name if present now
         entity.unsignedMapJson = deviceInfo.unsigned?.deviceDisplayName
+        entity.dehydrated = deviceInfo.dehydrated
     }
 
     internal fun mapToModel(deviceInfoEntity: DeviceInfoEntity): CryptoDeviceInfo {
@@ -116,7 +117,8 @@ internal object CryptoMapper {
                         null
                     }
                 },
-                firstTimeSeenLocalTs = deviceInfoEntity.firstTimeSeenLocalTs
+                firstTimeSeenLocalTs = deviceInfoEntity.firstTimeSeenLocalTs,
+                dehydrated = deviceInfoEntity.dehydrated,
         )
     }
 }

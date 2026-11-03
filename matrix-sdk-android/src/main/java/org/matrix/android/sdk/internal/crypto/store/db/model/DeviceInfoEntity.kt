@@ -34,7 +34,8 @@ internal open class DeviceInfoEntity(
          * We use that to make distinction between old devices (there before mine)
          * and new ones. Used for example to detect new unverified login
          */
-        var firstTimeSeenLocalTs: Long? = null
+        var firstTimeSeenLocalTs: Long? = null,
+        var dehydrated: Boolean? = null,
 ) {
 
     companion object

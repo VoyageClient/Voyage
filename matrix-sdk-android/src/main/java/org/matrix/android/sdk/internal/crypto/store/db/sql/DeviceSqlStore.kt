@@ -158,6 +158,7 @@ internal class DeviceSqlStore(
                 e.trustLevelEntity?.crossSignedVerified?.toLong(),
                 e.trustLevelEntity?.locallyVerified?.toLong(),
                 e.firstTimeSeenLocalTs,
+                e.dehydrated?.toLong(),
         )
     }
 
@@ -180,6 +181,7 @@ internal class DeviceSqlStore(
                 null
             },
             firstTimeSeenLocalTs = first_time_seen_local_ts,
+            dehydrated = dehydrated?.let { it != 0L },
     )
 
     private fun My_device_last_seen_info.toEntity(): MyDeviceLastSeenInfoEntity = MyDeviceLastSeenInfoEntity(

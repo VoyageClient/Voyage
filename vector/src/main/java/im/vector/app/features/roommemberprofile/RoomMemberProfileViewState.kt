@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.delayedevents.DelayedEvent
 import org.matrix.android.sdk.api.session.delayedevents.PowerLevelRestore
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
@@ -40,6 +41,7 @@ data class RoomMemberProfileViewState(
         val userCryptoInfoLoaded: Boolean = false,
         val allDevicesAreTrusted: Boolean = false,
         val allDevicesAreCrossSignedTrusted: Boolean = false,
+        val userDevices: List<CryptoDeviceInfo> = emptyList(),
         val asyncMembership: Async<Membership> = Uninitialized,
         val hasReadReceipt: Boolean = false,
         // im.vector.setting.override_colors: the pre-MSC4522 per-user color spec, a fallback for overrides set by older clients

@@ -1769,7 +1769,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
 \n- Koneksi internet yang digunakan oleh perangkat Anda
 \n
 \nKami menyarankan Anda untuk segera mengubah kata sandi &amp; kunci pemulihan Anda dalam Pengaturan.</string>
-    <string name="verify_cancel_other">Anda tidak akan memverifikasi %1$s (%2$s) jika Anda membatalkan. Mulai lagi di profil pengguna.</string>
     <string name="verify_cancel_self_verification_from_trusted">Jika Anda batalkan, Anda tidak dapat membaca pesan terenkripsi di perangkat baru Anda dan pengguna lain tidak akan mempercayainya</string>
     <string name="verify_cancel_self_verification_from_untrusted">Jika Anda batalkan, Anda tidak dapat membaca pesan terenkripsi di perangkat ini dan pengguna lain tidak akan mempercayainya</string>
     <string name="verify_new_session_compromized">Akun Anda mungkin dikompromikan</string>
@@ -1822,8 +1821,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="reset_cross_signing">Atur Ulang Kunci</string>
     <string name="initialize_cross_signing">Memulai Tanda Tangan Silang</string>
     <string name="verification_profile_device_untrust_info">Sampai pengguna ini mempercayai sesi ini, pesan yang dikirim ke dan dari itu diberi peringatan. Atau, Anda dapat memverifikasinya secara manual.</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) masuk dengan menggunakan sesi baru:</string>
-    <string name="verification_profile_device_verified_because">Sesi ini telah dipercaya untuk perpesanan yang aman karena %1$s (%2$s) memverifikasinya:</string>
     <string name="create_space_in_progress">Membuat space…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Tampilkan info yang berguna untuk membantu debugging aplikasi</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Tampilkan info debug di layar</string>
@@ -2324,7 +2321,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="avatar_of_room">Avatar ruangan %1$s</string>
     <string name="avatar_of_space">Avatar space %1$s</string>
     <string name="confirm_your_identity_after_update">Perpesanan aman telah ditingkatkan dengan pembaruan terkini. Silakan verifikasi ulang perangkat Anda.</string>
-    <string name="verification_profile_other_device_untrust_info">Sampai pengguna ini mempercayai sesi ini, pesan yang dikirim dan diterima akan ditandai dengan peringatan.</string>
     <string name="crosssigning_verify_after_update">Aplikasi diperbarui</string>
     <string name="sign_out_failed_dialog_message">Tidak dapat mencapai homeserver. Jika Anda tetap keluar, perangkat ini tidak akan dihapus dari daftar perangkat. Anda dapat menghapusnya menggunakan klien lain.</string>
     <string name="sign_out_anyway">Tetap keluar</string>
@@ -3569,4 +3565,13 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_compact_replies_edits_summary">Tampilkan hanya siapa yang Anda balas di atas penyusun, tanpa avatar atau pesannya</string>
     <string name="composer_replying_to">Membalas %1$s</string>
     <string name="composer_editing_message">Mengedit pesan</string>
+    <string name="verification_profile_not_verified">Belum terverifikasi</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="other">%d sesi</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">Perangkat luring diaktifkan</string>
+    <string name="verification_profile_device_verified_because">Sesi ini dipercaya untuk pesan aman karena %1$s telah memverifikasinya.</string>
+    <string name="verification_profile_device_new_signing">%1$s masuk menggunakan sesi ini.</string>
+    <string name="verification_profile_other_device_untrust_info">Sampai pengguna ini mempercayai sesi ini, pesan yang dikirim dari sesi ini diberi peringatan.</string>
+    <string name="verify_cancel_other">Anda tidak akan memverifikasi %1$s jika Anda batalkan sekarang. Mulai lagi dari profil penggunanya.</string>
 </resources>

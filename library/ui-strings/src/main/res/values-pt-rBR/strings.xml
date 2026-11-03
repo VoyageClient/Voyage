@@ -1231,8 +1231,6 @@
     <string name="room_member_profile_sessions_section_title">Sessões</string>
     <string name="trusted">Confiada</string>
     <string name="not_trusted">Não Confiada</string>
-    <string name="verification_profile_device_verified_because">Esta sessão está confiada para mensageria segura porque %1$s (%2$s) a verificou:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) fez signin usando uma nova sessão:</string>
     <string name="verification_profile_device_untrust_info">Até que esta(e) usuária(o) confie nesta sessão, mensagens enviadas para e desde ela são etiquetadas com avisos. Alternativamente, você pode verificá-la manualmente.</string>
     <string name="initialize_cross_signing">Inicializar AssinaturaCruzada</string>
     <string name="reset_cross_signing">Resettar Chaves</string>
@@ -1261,7 +1259,6 @@
     <string name="verify_new_session_compromized">Sua conta pode estar comprometida</string>
     <string name="verify_cancel_self_verification_from_untrusted">Se você cancelar, você não vai ser capaz de ler mensagens encriptadas neste dispositivo, e outras(os) usuárias(os) não vão confiar nele</string>
     <string name="verify_cancel_self_verification_from_trusted">Se você cancelar, você não vai ser capaz de ler mensagens encriptadas em seu novo dispositivo, e outras(os) usuárias(os) não vão confiar nele</string>
-    <string name="verify_cancel_other">Você não vai verificar %1$s (%2$s) se cancelar agora. Comece de novo no perfil de usuária(o) dela(e).</string>
     <string name="verify_not_me_self_verification">Um dos seguintes pode estar comprometido:
 \n
 \n- Sua senha
@@ -2340,7 +2337,6 @@
     <string name="direct_room_user_list_only_invite_one_email">Só é possível convidar um email de cada vez</string>
     <string name="sign_out_anyway">Terminar sessão ainda assim</string>
     <string name="verification_request_waiting_for_recovery">Verificação a partir de Chave ou Frase Segura…</string>
-    <string name="verification_profile_other_device_untrust_info">Até que este utilizador confie nesta sessão, as mensagens enviadas para e a partir dela são marcadas com avisos.</string>
     <string name="pill_message_in_unknown_room">Mensagem na sala</string>
     <string name="room_polls_active">Votações ativas</string>
     <string name="room_poll_details_go_to_timeline">Ver votação na linha do tempo</string>
@@ -3632,4 +3628,14 @@
     <string name="settings_compact_replies_edits_summary">Mostrar acima do compositor apenas para quem você está respondendo, sem o avatar ou a mensagem</string>
     <string name="composer_replying_to">Respondendo a %1$s</string>
     <string name="composer_editing_message">Editando mensagem</string>
+    <string name="verification_profile_not_verified">Não verificada(o)</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d sessão</item>
+        <item quantity="other">%d sessões</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">Dispositivo offline ativado</string>
+    <string name="verification_profile_device_verified_because">Esta sessão é confiada para mensagens seguras porque %1$s a verificou.</string>
+    <string name="verification_profile_device_new_signing">%1$s entrou usando esta sessão.</string>
+    <string name="verification_profile_other_device_untrust_info">Até que esta(e) usuária(o) confie nesta sessão, mensagens enviadas a partir dela são marcadas com avisos.</string>
+    <string name="verify_cancel_other">Você não vai verificar %1$s se cancelar agora. Comece novamente no perfil de usuária(o).</string>
 </resources>

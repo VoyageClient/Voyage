@@ -243,7 +243,7 @@ class UserVerificationViewModel @AssistedInject constructor(
             EVerificationState.WeStarted,
             EVerificationState.WaitingForDone -> {
                 // query confirmation
-                _viewEvents.post(VerificationBottomSheetViewEvents.ConfirmCancel(request.otherUserId, request.otherDeviceId))
+                _viewEvents.post(VerificationBottomSheetViewEvents.ConfirmCancel(request.otherUserId))
             }
 //            EVerificationState.Done,
 //            EVerificationState.Cancelled,

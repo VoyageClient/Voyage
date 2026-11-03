@@ -185,7 +185,8 @@ class MessagePreviewContentBuilder @Inject constructor(
             content is MessagePollContent -> stringProvider.getString(CommonStrings.message_reply_to_poll_preview)
             content is MessageEndPollContent -> stringProvider.getString(CommonStrings.message_reply_to_ended_poll_preview)
             content is MessageBeaconInfoContent -> stringProvider.getString(CommonStrings.live_location_description)
-            content is MessageVerificationRequestContent -> stringProvider.getString(CommonStrings.verification_request_room_list_preview)
+            content is MessageVerificationRequestContent ->
+                return withMedia.notice(stringProvider.getString(CommonStrings.verification_request_room_list_preview))
             content.msgType == MessageType.MSGTYPE_LOCATION ->
                 return withMedia.copy(
                         // Only shown where the map can't be.

@@ -1735,10 +1735,7 @@
     <string name="room_member_profile_sessions_section_title">Oturumlar</string>
     <string name="trusted">Güvenilir</string>
     <string name="not_trusted">Güvenilmiyor</string>
-    <string name="verification_profile_device_verified_because">Bu oturum, %1$s (%2$s) doğruladığı için güvenli mesajlaşma açısından güvenilir:</string>
-    <string name="verification_profile_device_new_signing">%1$s (%2$s) yeni bir oturumla giriş yaptı:</string>
     <string name="verification_profile_device_untrust_info">Bu kullanıcı bu oturuma güvenene kadar, oturuma gönderilen ve oturumdan gelen mesajlar uyarılarla etiketlenir. Alternatif olarak oturumu elle doğrulayabilirsiniz.</string>
-    <string name="verification_profile_other_device_untrust_info">Bu kullanıcı bu oturuma güvenene kadar, oturuma gönderilen ve oturumdan gelen mesajlar uyarılarla etiketlenir.</string>
     <string name="initialize_cross_signing">Çapraz İmzalamayı Başlat</string>
     <string name="reset_cross_signing">Anahtarları Sıfırla</string>
     <string name="a11y_qr_code_for_verification">QR kodu</string>
@@ -1776,7 +1773,6 @@
     <string name="_resume">Devam et</string>
     <string name="verify_cancel_self_verification_from_untrusted">İptal ederseniz bu cihazda şifrelenmiş mesajları okuyamazsınız ve diğer kullanıcılar ona güvenmez</string>
     <string name="verify_cancel_self_verification_from_trusted">İptal ederseniz yeni cihazınızda şifrelenmiş mesajları okuyamazsınız ve diğer kullanıcılar ona güvenmez</string>
-    <string name="verify_cancel_other">Şimdi iptal ederseniz %1$s (%2$s) doğrulanmayacak. Kullanıcı profilinden yeniden başlatın.</string>
     <string name="verify_not_me_self_verification">Aşağıdakilerden biri tehlikede olabilir:\n\n- Parolanız\n- Ana sunucunuz\n- Bu cihaz veya diğer cihaz\n- Cihazlardan birinin kullandığı internet bağlantısı\n\nAyarlar\'dan parolanızı ve kurtarma anahtarınızı hemen değiştirmenizi öneririz.</string>
     <string name="verify_cancelled_notice">Doğrulama iptal edildi. Doğrulamayı yeniden başlatabilirsiniz.</string>
     <string name="verification_not_found">Doğrulama isteği bulunamadı. İptal edilmiş veya başka bir oturum tarafından işlenmiş olabilir.</string>
@@ -3590,4 +3586,14 @@
     <string name="settings_compact_replies_edits_summary">Yazma alanının üstünde yalnızca kime yanıt verdiğini göster, avatarı veya mesajı olmadan</string>
     <string name="composer_replying_to">%1$s yanıtlanıyor</string>
     <string name="composer_editing_message">Mesaj düzenleniyor</string>
+    <string name="verification_profile_not_verified">Doğrulanmadı</string>
+    <plurals name="room_member_profile_sessions_count">
+        <item quantity="one">%d oturum</item>
+        <item quantity="other">%d oturum</item>
+    </plurals>
+    <string name="room_member_profile_dehydrated_device_enabled">Çevrimdışı cihaz etkin</string>
+    <string name="verification_profile_device_verified_because">%1$s bu oturumu doğruladığı için oturum güvenli mesajlaşma için güvenilir.</string>
+    <string name="verification_profile_device_new_signing">%1$s bu oturumla giriş yaptı.</string>
+    <string name="verification_profile_other_device_untrust_info">Bu kullanıcı bu oturuma güvenene kadar, oturumdan gönderilen mesajlar uyarılarla etiketlenir.</string>
+    <string name="verify_cancel_other">Şimdi iptal ederseniz %1$s kullanıcısını doğrulamayacaksınız. Kullanıcı profilinden yeniden başlayın.</string>
 </resources>

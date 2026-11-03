@@ -28,8 +28,13 @@ data class CryptoDeviceInfo(
         val unsigned: UnsignedDeviceInfo? = null,
         var trustLevel: DeviceTrustLevel? = null,
         val isBlocked: Boolean = false,
-        val firstTimeSeenLocalTs: Long? = null
+        val firstTimeSeenLocalTs: Long? = null,
+        // MSC3814; nullable because absent and false sign differently
+        val dehydrated: Boolean? = null,
 ) : CryptoInfo {
+
+    val isDehydrated: Boolean
+        get() = dehydrated == true
 
     val isVerified: Boolean
         get() = trustLevel?.isVerified() == true
@@ -71,6 +76,7 @@ data class CryptoDeviceInfo(
         map["user_id"] = userId
         algorithms?.let { map["algorithms"] = it }
         keys?.let { map["keys"] = it }
+        dehydrated?.let { map["dehydrated"] = it }
         return map
     }
 
