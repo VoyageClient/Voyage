@@ -42,7 +42,7 @@ class FloatingDateHeader(
     init {
         // Theme attributes in drawable XML need API 21.
         view.backgroundCompat = GradientDrawable().apply {
-            cornerRadius = density * 100
+            cornerRadius = density * CORNER_RADIUS_DP
             setColor(MaterialColors.getColor(view, im.vector.lib.ui.styles.R.attr.vctr_floating_date_background))
         }
         render()
@@ -170,5 +170,6 @@ class FloatingDateHeader(
         const val FADE_MS = 200L
         const val SLIDE_DP = 8
         const val GAP_DP = 8
+        const val CORNER_RADIUS_DP = 6
     }
 }
