@@ -1054,6 +1054,11 @@ class TimelineFragment :
         timelineEventController.setBuildFocusEventId(null)
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         views.jumpToBottomView.visibility = View.INVISIBLE
+        // The scroll listener ignores programmatic scrolls.
+        withState(timelineViewModel) { state ->
+            state.pinnedEvents.maxByOrNull { it.root.originServerTs ?: 0 }
+                    ?.let { views.pinnedMessagesBanner.setSelectedEventId(it.eventId) }
+        }
         if (timelineViewModel.timeline?.isLive == false) {
             scrollOnNewMessageCallback.forceScrollOnNextUpdate()
             // Snap to the newest loaded row right away: the restart's list replacement takes a
