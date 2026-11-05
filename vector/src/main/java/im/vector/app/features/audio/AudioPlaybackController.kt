@@ -245,7 +245,7 @@ class AudioPlaybackController @Inject constructor(
                 }
             } catch (failure: CancellationException) {
                 throw failure
-            } catch (failure: Exception) {
+            } catch (failure: Throwable) {
                 Timber.w(failure, "Cannot load audio playlist")
             } finally {
                 if (timeline === activeTimeline) mutableState.value = state.value?.copy(loadingTracks = false)
@@ -286,7 +286,7 @@ class AudioPlaybackController @Inject constructor(
                 }
             } catch (failure: CancellationException) {
                 throw failure
-            } catch (failure: Exception) {
+            } catch (failure: Throwable) {
                 ensureActive()
                 Timber.w(failure, "Cannot advance audio queue")
                 mutableState.value = state.value?.copy(error = true)
@@ -325,7 +325,7 @@ class AudioPlaybackController @Inject constructor(
                 }
             } catch (failure: CancellationException) {
                 throw failure
-            } catch (failure: Exception) {
+            } catch (failure: Throwable) {
                 Timber.w(failure, "Cannot prepare audio metadata")
                 null
             }
@@ -334,7 +334,7 @@ class AudioPlaybackController @Inject constructor(
             loadArtwork(track, preparedFile, details)
         } catch (failure: CancellationException) {
             throw failure
-        } catch (failure: Exception) {
+        } catch (failure: Throwable) {
             Timber.w(failure, "Cannot prepare audio artwork")
             null
         }
@@ -408,7 +408,7 @@ class AudioPlaybackController @Inject constructor(
                             ?.also { AudioDetails.keepCoverArt(url, it) }
                 } catch (failure: CancellationException) {
                     throw failure
-                } catch (failure: Exception) {
+                } catch (failure: Throwable) {
                     Timber.w(failure, "Cannot load audio cover art")
                     null
                 }

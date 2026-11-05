@@ -147,7 +147,7 @@ class AudioPlaybackActions @Inject constructor(
                 action()
             } catch (failure: CancellationException) {
                 throw failure
-            } catch (failure: Exception) {
+            } catch (failure: Throwable) {
                 Timber.w(failure, "Audio track action failed")
                 anchor.showOptimizedSnackbar(errorFormatter.toHumanReadable(failure))
             }
