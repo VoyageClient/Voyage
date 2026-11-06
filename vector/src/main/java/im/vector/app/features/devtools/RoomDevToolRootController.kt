@@ -35,6 +35,7 @@ class RoomDevToolRootController @Inject constructor(
         val host = this
         genericButtonItem {
             id("explore")
+            fullRowClick(true)
             text(host.stringProvider.getString(CommonStrings.dev_tools_explore_room_state))
             buttonClickAction {
                 host.interactionListener?.processAction(RoomDevToolAction.ExploreRoomState)
@@ -42,6 +43,7 @@ class RoomDevToolRootController @Inject constructor(
         }
         genericButtonItem {
             id("account_data")
+            fullRowClick(true)
             text(host.stringProvider.getString(CommonStrings.dev_tools_explore_room_account_data))
             buttonClickAction {
                 host.interactionListener?.processAction(RoomDevToolAction.ExploreRoomAccountData)
@@ -50,6 +52,7 @@ class RoomDevToolRootController @Inject constructor(
         if (canEditState) {
             genericButtonItem {
                 id("send")
+                fullRowClick(true)
                 text(host.stringProvider.getString(CommonStrings.dev_tools_send_custom_event))
                 buttonClickAction {
                     host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.MESSAGE))
@@ -57,6 +60,7 @@ class RoomDevToolRootController @Inject constructor(
             }
             genericButtonItem {
                 id("send_state")
+                fullRowClick(true)
                 text(host.stringProvider.getString(CommonStrings.dev_tools_send_state_event))
                 buttonClickAction {
                     host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.STATE))
@@ -64,6 +68,7 @@ class RoomDevToolRootController @Inject constructor(
             }
             genericButtonItem {
                 id("send_account_data")
+                fullRowClick(true)
                 text(host.stringProvider.getString(CommonStrings.dev_tools_send_room_account_data))
                 buttonClickAction {
                     host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.ACCOUNT_DATA))
