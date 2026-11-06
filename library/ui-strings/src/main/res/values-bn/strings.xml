@@ -1999,10 +1999,6 @@
     <string name="a11y_rule_notify_off">বিজ্ঞপ্তি দেবেন না</string>
     <string name="a11y_view_read_receipts">পঠিত রসিদ দেখুন</string>
     <string name="a11y_public_room">সর্বজনীন রুম</string>
-    <string name="a11y_presence_online">অনলাইন</string>
-    <string name="a11y_presence_offline">অফলাইন</string>
-    <string name="a11y_presence_busy">ব্যস্ত</string>
-    <string name="a11y_presence_unavailable">দূরে</string>
     <string name="dev_tools_menu_name">ডেভ টুলস</string>
     <string name="dev_tools_explore_room_state">রুমের স্টেট দেখুন</string>
     <string name="dev_tools_send_custom_event">কাস্টম ইভেন্ট পাঠান</string>
@@ -3592,4 +3588,11 @@
     <string name="verification_profile_device_new_signing">%1$s এই সেশন ব্যবহার করে সাইন ইন করেছেন।</string>
     <string name="verification_profile_other_device_untrust_info">এই ব্যবহারকারী এই সেশনটিকে বিশ্বাস না করা পর্যন্ত এখান থেকে পাঠানো বার্তাগুলিতে সতর্কতা দেখানো হবে।</string>
     <string name="verify_cancel_other">এখন বাতিল করলে আপনি %1$s-কে যাচাই করবেন না। তাদের ব্যবহারকারী প্রোফাইল থেকে আবার শুরু করুন।</string>
+    <string name="settings_rooms_spaces_category_badges">অবতার ব্যাজ</string>
+    <string name="settings_room_encryption_badge">এনক্রিপশন ব্যাজ</string>
+    <string name="settings_room_encryption_badge_summary">এনক্রিপ্ট করা রুমের অবতারে একটি ঢাল দেখান</string>
+    <string name="settings_room_public_badge">সর্বজনীন ব্যাজ</string>
+    <string name="settings_room_public_badge_summary">সর্বজনীন রুমের অবতারে একটি গ্লোব দেখান</string>
+    <string name="settings_room_list_badges">রুমের তালিকায় ব্যাজ</string>
+    <string name="settings_room_list_badges_summary">উপরে চালু করা ব্যাজগুলো রুমের তালিকাতেও দেখান</string>
 </resources>

@@ -1959,10 +1959,6 @@
     <string name="a11y_rule_notify_off">مطلع نہ کریں</string>
     <string name="a11y_view_read_receipts">پڑھنے کی رسیدیں دیکھیں</string>
     <string name="a11y_public_room">عوامی کمرہ</string>
-    <string name="a11y_presence_online">آن لائن</string>
-    <string name="a11y_presence_offline">آف لائن</string>
-    <string name="a11y_presence_busy">مصروف</string>
-    <string name="a11y_presence_unavailable">غیر حاضر</string>
     <string name="dev_tools_menu_name">ڈیولپر ٹولز</string>
     <string name="dev_tools_explore_room_state">کمرے کی حالت دریافت کریں</string>
     <string name="dev_tools_send_custom_event">حسبِ ضرورت واقعہ بھیجیں</string>
@@ -3532,4 +3528,11 @@
     <string name="verification_profile_device_new_signing">%1$s نے اس جلسے کے ذریعے سائن ان کیا۔</string>
     <string name="verification_profile_other_device_untrust_info">جب تک یہ صارف اس جلسے پر اعتماد نہیں کرتا، اس سے بھیجے گئے پیغامات پر انتباہ کا نشان ہوگا۔</string>
     <string name="verify_cancel_other">اگر آپ ابھی منسوخ کریں تو %1$s کی تصدیق نہیں کریں گے۔ ان کی صارف پروفائل سے دوبارہ شروع کریں۔</string>
+    <string name="settings_rooms_spaces_category_badges">اوتار بیجز</string>
+    <string name="settings_room_encryption_badge">خفیہ کاری کا بیج</string>
+    <string name="settings_room_encryption_badge_summary">مرموز شدہ کمروں کے اوتار پر ایک ڈھال دکھائیں</string>
+    <string name="settings_room_public_badge">عوامی بیج</string>
+    <string name="settings_room_public_badge_summary">عوامی کمروں کے اوتار پر ایک گلوب دکھائیں</string>
+    <string name="settings_room_list_badges">کمروں کی فہرست میں بیجز</string>
+    <string name="settings_room_list_badges_summary">اوپر فعال کیے گئے بیجز کمروں کی فہرست میں بھی دکھائیں</string>
 </resources>

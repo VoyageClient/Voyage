@@ -1,0 +1,20 @@
+<!--
+  Copyright 2026 Voyage Client
+
+  SPDX-License-Identifier: AGPL-3.0-only
+  Please see LICENSE files in the repository root for full details.
+-->
+<!-- The globe sits on a padded background circle, so its box is larger than the shield's for the same visual size. -->
+<resources>
+    <dimen name="room_badge_list_shield_size">16dp</dimen>
+    <dimen name="room_badge_list_globe_size">18dp</dimen>
+    <dimen name="room_badge_list_globe_padding">1dp</dimen>
+
+    <dimen name="room_badge_toolbar_shield_size">16dp</dimen>
+    <dimen name="room_badge_toolbar_globe_size">18dp</dimen>
+    <dimen name="room_badge_toolbar_globe_padding">1dp</dimen>
+
+    <dimen name="room_badge_info_shield_size">26dp</dimen>
+    <dimen name="room_badge_info_globe_size">28dp</dimen>
+    <dimen name="room_badge_info_globe_padding">2dp</dimen>
+</resources>

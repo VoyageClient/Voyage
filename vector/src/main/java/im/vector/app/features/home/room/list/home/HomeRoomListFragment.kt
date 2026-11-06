@@ -64,6 +64,7 @@ class HomeRoomListFragment :
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
     @Inject lateinit var codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
     private lateinit var sharedQuickActionsViewModel: RoomListQuickActionsSharedActionViewModel
@@ -141,6 +142,10 @@ class HomeRoomListFragment :
 
         // Flip the room-list PGP lock the moment the global/per-room toggle changes.
         pgpKeyStore.changes
+                .onEach { requestForcedRebuildWhenVisible() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        vectorPreferences.roomBadgeChanges()
                 .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 

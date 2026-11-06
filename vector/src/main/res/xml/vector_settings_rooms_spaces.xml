@@ -30,6 +30,28 @@
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_rooms_spaces_category_badges">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ROOM_ENCRYPTION_BADGE_KEY"
+            android:summary="@string/settings_room_encryption_badge_summary"
+            android:title="@string/settings_room_encryption_badge" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ROOM_PUBLIC_BADGE_KEY"
+            android:summary="@string/settings_room_public_badge_summary"
+            android:title="@string/settings_room_public_badge" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ROOM_LIST_BADGES_KEY"
+            android:summary="@string/settings_room_list_badges_summary"
+            android:title="@string/settings_room_list_badges" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_room_directory">
 
         <im.vector.app.core.preference.VectorSwitchPreference

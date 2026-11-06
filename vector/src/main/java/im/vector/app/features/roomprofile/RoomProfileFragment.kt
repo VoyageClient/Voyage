@@ -36,6 +36,8 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.ui.views.badgeTrustLevel
+import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.DialogEnableEncryptionBinding
@@ -83,6 +85,7 @@ class RoomProfileFragment :
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var bannerRenderer: BannerRenderer
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
     @Inject lateinit var permalinkHandler: im.vector.app.features.permalink.PermalinkHandler
     @Inject lateinit var activeSessionHolder: im.vector.app.core.di.ActiveSessionHolder
@@ -138,7 +141,8 @@ class RoomProfileFragment :
                 listOf(
                         views.matrixProfileToolbarAvatarImageView,
                         views.matrixProfileToolbarTitleView,
-                        views.matrixProfileDecorationToolbarAvatarImageView
+                        views.matrixProfileDecorationToolbarAvatarImageView,
+                        views.matrixProfilePublicToolbarImageView,
                 )
         )
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(appBarStateChangeListener)
@@ -306,11 +310,20 @@ class RoomProfileFragment :
                 }
                 bannerRenderer.applyAvatarStroke(headerViews.roomProfileAvatarView, matrixItem, state.bannerUrl != null)
                 val isPgp = pgpKeyStore.isEnabled && !it.isEncrypted && pgpKeyStore.isRoomPgpEnabled(it.roomId)
-                headerViews.roomProfileDecorationImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
-                views.matrixProfileDecorationToolbarAvatarImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
-                headerViews.roomProfilePresenceImageView.render(it.isDirect, it.directUserPresence)
-                headerViews.roomProfilePublicImageView.isVisible = it.isPublic && !it.isDirect
+                val trustLevel = it.badgeTrustLevel()
+                val shieldShown = renderRoomAvatarBadges(
+                        vectorPreferences.roomBadgeConfig(),
+                        trustLevel,
+                        isPgp = isPgp,
+                        isPublic = it.isPublic,
+                        isDirect = it.isDirect,
+                        avatarShield = headerViews.roomProfileAvatarShieldImageView,
+                        publicBadge = headerViews.roomProfilePublicImageView,
+                )
+                views.matrixProfileDecorationToolbarAvatarImageView.renderRoomShield(trustLevel.takeIf { shieldShown }, isPgp && shieldShown)
                 headerViews.roomProfilePublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
+                views.matrixProfilePublicToolbarImageView.isVisible = headerViews.roomProfilePublicImageView.isVisible
+                views.matrixProfilePublicToolbarImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
             }
         }
         roomProfileController.setData(state)

@@ -26,6 +26,7 @@ import im.vector.app.R
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.shareMedia
 import im.vector.app.databinding.FragmentRoomUploadsBinding
@@ -45,6 +46,7 @@ class RoomUploadsFragment :
         VectorMenuProvider {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
     @Inject lateinit var notificationUtils: NotificationUtils
     @Inject lateinit var clock: Clock
 
@@ -154,7 +156,7 @@ class RoomUploadsFragment :
     private fun renderRoomSummary(state: RoomUploadsViewState) {
         state.roomSummary()?.let {
             views.roomUploadsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            views.roomUploadsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomUploadsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
             avatarRenderer.render(it.toDisplayMatrixItem(), views.roomUploadsToolbarAvatarImageView)
         }
     }

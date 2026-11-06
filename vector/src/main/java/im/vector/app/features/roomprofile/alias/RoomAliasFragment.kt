@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.core.utils.shareText
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
@@ -47,6 +48,7 @@ class RoomAliasFragment :
 
     @Inject lateinit var controller: RoomAliasController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val viewModel: RoomAliasViewModel by fragmentViewModel()
     private lateinit var sharedActionViewModel: RoomAliasBottomSheetSharedActionViewModel
@@ -127,7 +129,7 @@ class RoomAliasFragment :
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
-            views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }
 

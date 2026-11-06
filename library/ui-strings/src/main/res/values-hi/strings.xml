@@ -1947,10 +1947,6 @@
     <string name="a11y_rule_notify_off">सूचित न करें</string>
     <string name="a11y_view_read_receipts">पढ़ने की रसीदें देखें</string>
     <string name="a11y_public_room">सार्वजनिक रूम</string>
-    <string name="a11y_presence_online">ऑनलाइन</string>
-    <string name="a11y_presence_offline">ऑफ़लाइन</string>
-    <string name="a11y_presence_busy">व्यस्त</string>
-    <string name="a11y_presence_unavailable">दूर</string>
     <string name="dev_tools_menu_name">डेवलपर टूल</string>
     <string name="dev_tools_explore_room_state">रूम स्टेट देखें</string>
     <string name="dev_tools_send_custom_event">कस्टम इवेंट भेजें</string>
@@ -3520,4 +3516,11 @@
     <string name="verification_profile_device_new_signing">%1$s ने इस सेशन से साइन इन किया है।</string>
     <string name="verification_profile_other_device_untrust_info">जब तक यह उपयोगकर्ता इस सेशन पर भरोसा नहीं करता, इससे भेजे गए मैसेज पर चेतावनी दिखेगी।</string>
     <string name="verify_cancel_other">अगर आप अभी रद्द करते हैं, तो आप %1$s को सत्यापित नहीं करेंगे। उनकी उपयोगकर्ता प्रोफ़ाइल से फिर से शुरू करें।</string>
+    <string name="settings_rooms_spaces_category_badges">अवतार बैज</string>
+    <string name="settings_room_encryption_badge">एन्क्रिप्शन बैज</string>
+    <string name="settings_room_encryption_badge_summary">एन्क्रिप्ट किए गए रूम के अवतार पर एक ढाल दिखाएं</string>
+    <string name="settings_room_public_badge">सार्वजनिक बैज</string>
+    <string name="settings_room_public_badge_summary">सार्वजनिक रूम के अवतार पर एक ग्लोब दिखाएं</string>
+    <string name="settings_room_list_badges">रूम लिस्ट में बैज</string>
+    <string name="settings_room_list_badges_summary">ऊपर चालू किए गए बैज रूम लिस्ट में भी दिखाएं</string>
 </resources>

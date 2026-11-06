@@ -31,6 +31,7 @@ import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -63,6 +64,7 @@ class SpaceSettingsFragment :
     @Inject lateinit var epoxyController: SpaceSettingsController
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val viewModel: RoomSettingsViewModel by fragmentViewModel()
     private val sharedViewModel: SpaceManageSharedViewModel by activityViewModel()
@@ -135,7 +137,7 @@ class SpaceSettingsFragment :
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
-            views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
 
         invalidateOptionsMenu()

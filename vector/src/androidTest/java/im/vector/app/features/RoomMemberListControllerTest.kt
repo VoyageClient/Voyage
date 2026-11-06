@@ -8,7 +8,7 @@
 package im.vector.app.features
 
 import com.airbnb.mvrx.Success
-import im.vector.app.core.epoxy.profiles.ProfileMatrixItemWithPowerLevelWithPresence
+import im.vector.app.core.epoxy.profiles.ProfileMatrixItemWithPowerLevel
 import im.vector.app.features.roomprofile.members.RoomMemberListCategories
 import im.vector.app.features.roomprofile.members.RoomMemberListController
 import im.vector.app.features.roomprofile.members.RoomMemberListViewState
@@ -117,7 +117,7 @@ class RoomMemberListControllerTest {
 
         val models = roomListController.adapter.copyOfModels
 
-        val profileItems = models.filterIsInstance<ProfileMatrixItemWithPowerLevelWithPresence>()
+        val profileItems = models.filterIsInstance<ProfileMatrixItemWithPowerLevel>()
 
         profileItems.firstOrNull {
             it.matrixItem.id == "@alice:example.com"

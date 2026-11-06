@@ -21,14 +21,14 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.applyThemeShapeColorCompat
-import im.vector.app.core.ui.views.PresenceStateImageView
+import im.vector.app.core.ui.views.RoomBadgeConfig
 import im.vector.app.core.ui.views.ShieldImageView
+import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
-import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -47,16 +47,16 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
     var encryptionTrustLevel: RoomEncryptionTrustLevel? = null
 
     @EpoxyAttribute
-    var userPresence: UserPresence? = null
-
-    @EpoxyAttribute
-    var showPresence: Boolean = false
+    var izDirect: Boolean = false
 
     @EpoxyAttribute
     var izPublic: Boolean = false
 
     @EpoxyAttribute
     var izPgp: Boolean = false
+
+    @EpoxyAttribute
+    var badgeConfig: RoomBadgeConfig = RoomBadgeConfig.NONE
 
     @EpoxyAttribute
     var unreadNotificationCount: Int = 0
@@ -101,13 +101,13 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         }
         holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
         avatarRenderer.render(matrixItem, holder.avatarImageView)
-        // PGP-on rooms show the padlock in the encryption-shield slot (same place olm rooms show theirs).
-        holder.roomAvatarDecorationImageView.renderRoomShield(encryptionTrustLevel, izPgp)
-        holder.roomAvatarPublicDecorationImageView.isVisible = izPublic
+        renderRoomAvatarBadges(
+                badgeConfig, encryptionTrustLevel, izPgp, izPublic, izDirect,
+                holder.roomAvatarDecorationImageView, holder.roomAvatarPublicDecorationImageView,
+        )
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending
         renderSelection(holder, checkboxStateProvider?.invoke() ?: showSelected)
-        holder.roomAvatarPresenceImageView.render(showPresence, userPresence)
     }
 
     override fun unbind(holder: Holder) {
@@ -136,7 +136,6 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         val roomAvatarDecorationImageView by bind<ShieldImageView>(R.id.roomAvatarDecorationImageView)
         val roomAvatarPublicDecorationImageView by bind<ImageView>(R.id.roomAvatarPublicDecorationImageView)
         val roomAvatarFailSendingImageView by bind<ImageView>(R.id.roomAvatarFailSendingImageView)
-        val roomAvatarPresenceImageView by bind<PresenceStateImageView>(R.id.roomAvatarPresenceImageView)
         val rootView by bind<ConstraintLayout>(R.id.itemRoomLayout)
     }
 }

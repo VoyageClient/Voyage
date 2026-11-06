@@ -18,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -35,6 +36,7 @@ class RoomNotificationSettingsFragment :
     @Inject lateinit var viewModelFactory: RoomNotificationSettingsViewModel.Factory
     @Inject lateinit var roomNotificationSettingsController: RoomNotificationSettingsController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val viewModel: RoomNotificationSettingsViewModel by fragmentViewModel()
 
@@ -93,7 +95,7 @@ class RoomNotificationSettingsFragment :
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
-            views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }
 }

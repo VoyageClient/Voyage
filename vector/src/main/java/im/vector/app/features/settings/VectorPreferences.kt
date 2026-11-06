@@ -20,6 +20,7 @@ import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.colorpicker.ColorPalette
+import im.vector.app.core.ui.views.RoomBadgeConfig
 import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
@@ -33,6 +34,9 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONArray
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
@@ -257,6 +261,14 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
         const val SETTINGS_HIDE_AVATARS_KEY = "SETTINGS_HIDE_AVATARS_KEY"
         const val SETTINGS_HIDE_INVITE_AVATARS_KEY = "SETTINGS_HIDE_INVITE_AVATARS_KEY"
+        const val SETTINGS_ROOM_ENCRYPTION_BADGE_KEY = "SETTINGS_ROOM_ENCRYPTION_BADGE_KEY"
+        const val SETTINGS_ROOM_PUBLIC_BADGE_KEY = "SETTINGS_ROOM_PUBLIC_BADGE_KEY"
+        const val SETTINGS_ROOM_LIST_BADGES_KEY = "SETTINGS_ROOM_LIST_BADGES_KEY"
+        private val ROOM_BADGE_KEYS = setOf(
+                SETTINGS_ROOM_ENCRYPTION_BADGE_KEY,
+                SETTINGS_ROOM_PUBLIC_BADGE_KEY,
+                SETTINGS_ROOM_LIST_BADGES_KEY,
+        )
 
         // MSC4380: server-side, mirrored from m.invite_permission_config rather than stored locally.
         const val SETTINGS_BLOCK_INVITES_KEY = "SETTINGS_BLOCK_INVITES_KEY"
@@ -1305,6 +1317,22 @@ class VectorPreferences @Inject constructor(
      */
     fun hideInviteAvatars(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_HIDE_INVITE_AVATARS_KEY, false)
+    }
+
+    fun roomBadgeConfig() = RoomBadgeConfig(
+            showEncryption = defaultPrefs.getBoolean(SETTINGS_ROOM_ENCRYPTION_BADGE_KEY, true),
+            showPublic = defaultPrefs.getBoolean(SETTINGS_ROOM_PUBLIC_BADGE_KEY, true),
+    )
+
+    fun roomListBadgeConfig() =
+            if (defaultPrefs.getBoolean(SETTINGS_ROOM_LIST_BADGES_KEY, true)) roomBadgeConfig() else RoomBadgeConfig.NONE
+
+    fun roomBadgeChanges(): Flow<Unit> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key in ROOM_BADGE_KEYS) trySend(Unit)
+        }
+        subscribeToChanges(listener)
+        awaitClose { unsubscribeToChanges(listener) }
     }
 
     /**

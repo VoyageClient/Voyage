@@ -29,7 +29,6 @@ class RoomSummaryRoomListDiffCallback @Inject constructor(
         if (oldItem.canonicalAlias != newItem.canonicalAlias) return false
         if (oldItem.aliases != newItem.aliases) return false
         if (oldItem.isDirect != newItem.isDirect) return false
-        if (oldItem.directUserPresence != newItem.directUserPresence) return false
         if (oldItem.latestPreviewableEvent != newItem.latestPreviewableEvent) return false
         if (oldItem.notificationCount != newItem.notificationCount) return false
         if (oldItem.highlightCount != newItem.highlightCount) return false
@@ -38,6 +37,8 @@ class RoomSummaryRoomListDiffCallback @Inject constructor(
         if (oldItem.hasUnreadMessages != newItem.hasUnreadMessages) return false
         if (oldItem.userDrafts != newItem.userDrafts) return false
         if (oldItem.isEncrypted != newItem.isEncrypted) return false
+        if (oldItem.roomEncryptionTrustLevel != newItem.roomEncryptionTrustLevel) return false
+        if (oldItem.isPublic != newItem.isPublic) return false
         if (oldItem.typingUsers != newItem.typingUsers) return false
         if (oldItem.hasFailedSending != newItem.hasFailedSending) return false
         return true

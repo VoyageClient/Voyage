@@ -30,6 +30,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -43,6 +44,7 @@ import javax.inject.Inject
 class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(), RoomAclController.Callback, OnBackPressed {
     @Inject lateinit var controller: RoomAclController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
     private val viewModel: RoomAclViewModel by fragmentViewModel()
     private var draggedEntries: List<RoomAclEntry>? = null
     private var loading = false
@@ -127,7 +129,7 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
         state.roomSummary()?.let { summary ->
             views.roomSettingsToolbarTitleView.text = summary.displayName.prepareForDisplay()
             avatarRenderer.render(summary.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
-            views.roomSettingsDecorationToolbarAvatarImageView.render(summary.roomEncryptionTrustLevel)
+            views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), summary)
         }
         val enabled = state.canEdit && viewModel.hasUnsavedChanges() && !state.saving
         if (applyEnabled != enabled) {

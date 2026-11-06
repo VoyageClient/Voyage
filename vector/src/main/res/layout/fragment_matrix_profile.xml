@@ -67,13 +67,28 @@
 
                     <im.vector.app.core.ui.views.ShieldImageView
                         android:id="@+id/matrixProfileDecorationToolbarAvatarImageView"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="@dimen/room_badge_toolbar_shield_size"
+                        android:layout_height="@dimen/room_badge_toolbar_shield_size"
                         android:alpha="0"
                         app:layout_constraintCircle="@id/matrixProfileToolbarAvatarImageView"
                         app:layout_constraintCircleAngle="135"
                         app:layout_constraintCircleRadius="20dp"
                         tools:alpha="1"
+                        tools:ignore="MissingConstraints" />
+
+                    <ImageView
+                        android:id="@+id/matrixProfilePublicToolbarImageView"
+                        android:layout_width="@dimen/room_badge_toolbar_globe_size"
+                        android:layout_height="@dimen/room_badge_toolbar_globe_size"
+                        android:alpha="0"
+                        android:background="@drawable/background_circle"
+                        android:contentDescription="@string/a11y_public_room"
+                        android:padding="@dimen/room_badge_toolbar_globe_padding"
+                        android:visibility="gone"
+                        app:layout_constraintCircle="@id/matrixProfileToolbarAvatarImageView"
+                        app:layout_constraintCircleAngle="135"
+                        app:layout_constraintCircleRadius="20dp"
+                        app:srcCompat="@drawable/ic_public_room"
                         tools:ignore="MissingConstraints" />
 
                     <TextView

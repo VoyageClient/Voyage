@@ -52,11 +52,11 @@
         app:layout_constraintCircleRadius="30dp"
         tools:ignore="MissingConstraints" />
 
-    <!-- Note: this is always gone now -->
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/roomAvatarDecorationImageView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/room_badge_list_shield_size"
+        android:layout_height="@dimen/room_badge_list_shield_size"
+        android:visibility="gone"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
         app:layout_constraintCircleRadius="28dp"
@@ -65,33 +65,17 @@
 
     <ImageView
         android:id="@+id/roomAvatarPublicDecorationImageView"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/room_badge_list_globe_size"
+        android:layout_height="@dimen/room_badge_list_globe_size"
         android:background="@drawable/background_circle"
         android:contentDescription="@string/a11y_public_room"
-        android:padding="2dp"
+        android:padding="@dimen/room_badge_list_globe_padding"
         app:srcCompat="@drawable/ic_public_room"
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
         app:layout_constraintCircleRadius="28dp"
         tools:ignore="MissingConstraints"
-        tools:visibility="visible" />
-
-    <im.vector.app.core.ui.views.PresenceStateImageView
-        android:id="@+id/roomAvatarPresenceImageView"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:background="@drawable/background_circle"
-        android:importantForAccessibility="no"
-        android:padding="2dp"
-        android:visibility="gone"
-        app:layout_constraintCircle="@id/roomAvatarContainer"
-        app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="28dp"
-        tools:ignore="MissingConstraints"
-        tools:layout_constraintCircleRadius="8dp"
-        tools:src="@drawable/ic_presence_offline"
         tools:visibility="visible" />
 
     <!-- Margin bottom does not work, so I use space -->

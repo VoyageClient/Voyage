@@ -1826,9 +1826,6 @@
     <string name="command_description_room_name">Устанавливает имя комнаты</string>
     <string name="command_description_unignore_user">Прекращение игнорирования пользователя, показывает его сообщения в дальнейшем</string>
     <string name="command_description_ignore_user">Игнорирует пользователя, скрывая его сообщения от вас</string>
-    <string name="a11y_presence_unavailable">Недоступен</string>
-    <string name="a11y_presence_offline">Не в сети</string>
-    <string name="a11y_presence_online">В сети</string>
     <string name="tooltip_attachment_location">Поделиться местоположением</string>
     <string name="tooltip_attachment_poll">Создать опрос</string>
     <string name="tooltip_attachment_sticker">Отправить стикер</string>
@@ -2019,7 +2016,6 @@
     <string name="settings_show_latest_profile_description">Отображать последнюю информацию о профиле (аватар и отображаемое имя) для всех сообщений.</string>
     <string name="settings_show_latest_profile">Последняя информация о пользователе</string>
     <string name="space_explore_filter_no_result_title">Не найдено</string>
-    <string name="a11y_presence_busy">Занят</string>
     <string name="error_forbidden_digits_only_username">Домашний сервер не принимает псевдонимы, состоящие только из цифр.</string>
     <string name="ftue_personalize_skip_this_step">Пропустить этот шаг</string>
     <string name="ftue_personalize_submit">Сохранить и продолжить</string>
@@ -3762,4 +3758,11 @@
     <string name="verification_profile_device_new_signing">%1$s вошёл с помощью этого сеанса.</string>
     <string name="verification_profile_other_device_untrust_info">Пока этот пользователь не доверяет этому сеансу, отправленные из него сообщения помечаются предупреждениями.</string>
     <string name="verify_cancel_other">Если вы прервёте процедуру, то не заверите %1$s. Начните заново в профиле пользователя.</string>
+    <string name="settings_rooms_spaces_category_badges">Значки на аватарах</string>
+    <string name="settings_room_encryption_badge">Значок шифрования</string>
+    <string name="settings_room_encryption_badge_summary">Показывать щит на аватарах зашифрованных комнат</string>
+    <string name="settings_room_public_badge">Значок публичной комнаты</string>
+    <string name="settings_room_public_badge_summary">Показывать глобус на аватарах публичных комнат</string>
+    <string name="settings_room_list_badges">Значки в списке комнат</string>
+    <string name="settings_room_list_badges_summary">Показывать включённые выше значки и в списке комнат</string>
 </resources>

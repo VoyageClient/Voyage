@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -39,6 +40,7 @@ class RoomBannedMemberListFragment :
 
     @Inject lateinit var roomMemberListController: RoomBannedMemberListController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val viewModel: RoomBannedMemberListViewModel by fragmentViewModel()
     private val roomProfileArgs: RoomProfileArgs by args()
@@ -112,7 +114,7 @@ class RoomBannedMemberListFragment :
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
-            views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }
 }

@@ -95,6 +95,8 @@ import im.vector.app.core.ui.views.MassRedactionBannerView
 import im.vector.app.core.ui.views.NotificationAreaView
 import im.vector.app.core.ui.views.PinnedMessagesBannerView
 import im.vector.app.core.ui.views.UserIdentityWarningView
+import im.vector.app.core.ui.views.badgeTrustLevel
+import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.KeyboardStateUtils
@@ -1967,14 +1969,15 @@ class TimelineFragment :
                             views.includeRoomToolbar.roomToolbarAvatarImageView,
                             decodeSize = im.vector.lib.ui.styles.R.dimen.room_avatar_decode_size,
                     )
-                    val showPresence = roomSummary.isDirect
-                    views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, roomSummary.directUserPresence)
-                    val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
-                    shieldView.renderRoomShield(
-                            roomSummary.roomEncryptionTrustLevel,
+                    renderRoomAvatarBadges(
+                            vectorPreferences.roomBadgeConfig(),
+                            roomSummary.badgeTrustLevel(),
                             isPgp = pgpKeyStore.isEnabled && !roomSummary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(roomSummary.roomId),
+                            isPublic = roomSummary.isPublic,
+                            isDirect = roomSummary.isDirect,
+                            avatarShield = views.includeRoomToolbar.roomToolbarAvatarShield,
+                            publicBadge = views.includeRoomToolbar.roomToolbarPublicImageView,
                     )
-                    views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
                     views.includeRoomToolbar.roomToolbarPublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
                 }
             }

@@ -1829,9 +1829,6 @@
     <string name="dev_tools_send_custom_event">שלח אירוע מותאם אישית</string>
     <string name="dev_tools_explore_room_state">חקור מצב חדר</string>
     <string name="dev_tools_menu_name">כלי מפתח</string>
-    <string name="a11y_presence_unavailable">אין זמינות</string>
-    <string name="a11y_presence_offline">לא על הקו</string>
-    <string name="a11y_presence_online">על הקו</string>
     <string name="a11y_public_room">חדר ציבורי</string>
     <string name="a11y_view_read_receipts">צפה באישורי קריאה</string>
     <string name="a11y_rule_notify_off">אל תתריעה</string>
@@ -2280,7 +2277,6 @@
     <string name="auth_biometric_key_invalidated_message">האימות הביומטרי הושבת מכיוון ששיטת אימות ביומטרית חדשה נוספה לאחרונה. תוכל להפעיל אותו שוב בהגדרות.</string>
     <string name="settings_security_pin_code_use_biometrics_error">לא ניתן היה להפעיל אימות ביומטרי.</string>
     <string name="call_unsupported">שיחה לא נתמכת.</string>
-    <string name="a11y_presence_busy">עסוק</string>
     <string name="space_leave_radio_buttons_title">דברים במרחב זה</string>
     <string name="space_leave_radio_button_all">עזוב הכל</string>
     <string name="space_leave_radio_button_none">אל תעזוב אף אחד</string>
@@ -3731,4 +3727,11 @@
     <string name="verification_profile_device_new_signing">%1$s התחבר באמצעות מושב זה.</string>
     <string name="verification_profile_other_device_untrust_info">עד שמשתמש זה יבטח במושב זה, הודעות שנשלחות ממנו מתויגות באזהרות.</string>
     <string name="verify_cancel_other">אם תבטל עכשיו, לא תאמת את %1$s. התחל מחדש בפרופיל המשתמש שלו.</string>
+    <string name="settings_rooms_spaces_category_badges">תגים על תמונות פרופיל</string>
+    <string name="settings_room_encryption_badge">תג הצפנה</string>
+    <string name="settings_room_encryption_badge_summary">הצג מגן על תמונות הפרופיל של חדרים מוצפנים</string>
+    <string name="settings_room_public_badge">תג ציבורי</string>
+    <string name="settings_room_public_badge_summary">הצג גלובוס על תמונות הפרופיל של חדרים ציבוריים</string>
+    <string name="settings_room_list_badges">תגים ברשימת החדרים</string>
+    <string name="settings_room_list_badges_summary">הצג את התגים שהופעלו למעלה גם ברשימת החדרים</string>
 </resources>

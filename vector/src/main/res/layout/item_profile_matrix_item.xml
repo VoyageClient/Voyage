@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!-- https://tinyurl.com/PresenceListInRooms -->
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -39,21 +39,6 @@
         app:layout_constraintBottom_toBottomOf="@id/matrixItemTitle"
         app:layout_constraintStart_toEndOf="@id/matrixItemAvatar"
         app:layout_constraintTop_toTopOf="@id/matrixItemTitle" />
-
-    <im.vector.app.core.ui.views.PresenceStateImageView
-        android:id="@+id/matrixItemPresenceImageView"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
-        android:background="@drawable/background_circle"
-        android:importantForAccessibility="no"
-        android:padding="2dp"
-        android:visibility="gone"
-        app:layout_constraintCircle="@id/matrixItemAvatar"
-        app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="16dp"
-        tools:ignore="MissingConstraints"
-        tools:src="@drawable/ic_presence_offline"
-        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/matrixItemTitle"

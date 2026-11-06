@@ -23,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.databinding.FragmentRoomMemberListBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -42,6 +43,7 @@ class RoomMemberListFragment :
 
     @Inject lateinit var roomMemberListController: RoomMemberListController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     private val viewModel: RoomMemberListViewModel by fragmentViewModel()
     private val roomProfileArgs: RoomProfileArgs by args()
@@ -142,7 +144,7 @@ class RoomMemberListFragment :
         state.roomSummary()?.let {
             views.roomSettingGeneric.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingGeneric.roomSettingsToolbarAvatarImageView)
-            views.roomSettingGeneric.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+            views.roomSettingGeneric.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }
 }

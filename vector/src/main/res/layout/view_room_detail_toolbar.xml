@@ -19,42 +19,28 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@sample/room_round_avatars" />
 
-    <im.vector.app.core.ui.views.PresenceStateImageView
-        android:id="@+id/roomToolbarPresenceImageView"
-        android:layout_width="11dp"
-        android:layout_height="12dp"
-        android:background="@drawable/background_circle"
-        android:padding="2dp"
-        android:visibility="gone"
-        app:layout_constraintCircle="@id/roomToolbarAvatarImageView"
-        app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="20dp"
-        tools:ignore="MissingConstraints"
-        tools:src="@drawable/ic_presence_offline"
-        tools:visibility="visible" />
-
     <ImageView
         android:id="@+id/roomToolbarPublicImageView"
-        android:layout_width="13dp"
-        android:layout_height="13dp"
+        android:layout_width="@dimen/room_badge_toolbar_globe_size"
+        android:layout_height="@dimen/room_badge_toolbar_globe_size"
         android:background="@drawable/background_circle"
         android:contentDescription="@string/a11y_public_room"
-        android:padding="1dp"
+        android:padding="@dimen/room_badge_toolbar_globe_padding"
         app:srcCompat="@drawable/ic_public_room"
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomToolbarAvatarImageView"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="20dp"
+        app:layout_constraintCircleRadius="16dp"
         tools:ignore="MissingConstraints"
         tools:visibility="invisible" />
 
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/roomToolbarAvatarShield"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="@dimen/room_badge_toolbar_shield_size"
+        android:layout_height="@dimen/room_badge_toolbar_shield_size"
         app:layout_constraintCircle="@id/roomToolbarAvatarImageView"
-        app:layout_constraintCircleAngle="120"
-        app:layout_constraintCircleRadius="17dp"
+        app:layout_constraintCircleAngle="135"
+        app:layout_constraintCircleRadius="16dp"
         android:visibility="gone"
         tools:visibility="gone"
         tools:ignore="MissingConstraints" />
@@ -64,28 +50,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="end"
-        app:constraint_referenced_ids="roomToolbarAvatarImageView,roomToolbarAvatarShield,roomToolbarPresenceImageView,roomToolbarPublicImageView" />
-
-    <im.vector.app.core.ui.views.ShieldImageView
-        android:id="@+id/roomToolbarTitleShield"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginLeft="2dp"
-        android:layout_marginTop="2dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/roomToolbarTitleView"
-        app:layout_constraintEnd_toStartOf="@id/roomToolbarTitleView"
-        app:layout_constraintStart_toEndOf="@id/imageGroupBarrier"
-        app:layout_constraintTop_toTopOf="@id/roomToolbarTitleView"
-        tools:ignore="MissingConstraints" />
+        app:constraint_referenced_ids="roomToolbarAvatarImageView,roomToolbarAvatarShield,roomToolbarPublicImageView" />
 
     <TextView
         android:id="@+id/roomToolbarTitleView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:layout_marginLeft="2dp"
+        android:layout_marginStart="7dp"
+        android:layout_marginLeft="7dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:ellipsize="end"
@@ -94,10 +66,9 @@
         app:layout_constraintBottom_toBottomOf="@id/roomToolbarAvatarImageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@id/roomToolbarTitleShield"
+        app:layout_constraintStart_toEndOf="@id/imageGroupBarrier"
         app:layout_constraintTop_toTopOf="@id/roomToolbarAvatarImageView"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_goneMarginStart="7dp"
         tools:text="@sample/rooms.json/data/name" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

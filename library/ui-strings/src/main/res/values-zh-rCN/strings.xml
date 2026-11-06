@@ -1850,9 +1850,6 @@
     <string name="command_description_room_name">设置房间名称</string>
     <string name="command_description_unignore_user">停止忽略用户，继续显示他们的消息</string>
     <string name="command_description_ignore_user">忽略用户，隐藏他们的消息</string>
-    <string name="a11y_presence_unavailable">离开</string>
-    <string name="a11y_presence_offline">离线</string>
-    <string name="a11y_presence_online">在线</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">选择家服务器</string>
     <string name="login_error_homeserver_from_url_not_found">无法访问 URL %s 上的家服务器。请检查你的链接或手动选择一个家服务器。</string>
     <string name="notification_listening_for_notifications">侦听通知</string>
@@ -2060,7 +2057,6 @@
     <string name="space_leave_radio_button_none">不离开</string>
     <string name="space_leave_radio_button_all">离开全部</string>
     <string name="space_leave_radio_buttons_title">此空间里的东西</string>
-    <string name="a11y_presence_busy">忙</string>
     <string name="settings_security_pin_code_use_biometrics_error">无法启用生物特征识别。</string>
     <string name="auth_biometric_key_invalidated_message">生物特征识别被禁用，因为最近添加了新的生物特征识别方法。 你可以在“设置”中再次启用它。</string>
     <string name="error_forbidden_digits_only_username">家服务器不接收仅有数字的用户名。</string>
@@ -3574,4 +3570,11 @@
     <string name="verification_profile_device_new_signing">%1$s 使用此会话登录。</string>
     <string name="verification_profile_other_device_untrust_info">在此用户信任此会话之前，从该会话发送的消息均标有警告。</string>
     <string name="verify_cancel_other">如果现在取消，你将不会验证 %1$s。请在其用户资料中重新开始。</string>
+    <string name="settings_rooms_spaces_category_badges">头像徽章</string>
+    <string name="settings_room_encryption_badge">加密徽章</string>
+    <string name="settings_room_encryption_badge_summary">在加密房间的头像上显示盾牌</string>
+    <string name="settings_room_public_badge">公开徽章</string>
+    <string name="settings_room_public_badge_summary">在公开房间的头像上显示地球图标</string>
+    <string name="settings_room_list_badges">房间列表中的徽章</string>
+    <string name="settings_room_list_badges_summary">在房间列表中也显示上方启用的徽章</string>
 </resources>

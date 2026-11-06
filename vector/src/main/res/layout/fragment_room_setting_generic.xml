@@ -39,8 +39,8 @@
 
                 <im.vector.app.core.ui.views.ShieldImageView
                     android:id="@+id/roomSettingsDecorationToolbarAvatarImageView"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="@dimen/room_badge_toolbar_shield_size"
+                    android:layout_height="@dimen/room_badge_toolbar_shield_size"
                     app:layout_constraintCircle="@id/roomSettingsToolbarAvatarImageView"
                     app:layout_constraintCircleAngle="135"
                     app:layout_constraintCircleRadius="20dp"

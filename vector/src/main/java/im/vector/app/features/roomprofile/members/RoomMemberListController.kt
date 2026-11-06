@@ -11,7 +11,7 @@ import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.epoxy.profiles.profileMatrixItem
-import im.vector.app.core.epoxy.profiles.profileMatrixItemWithPowerLevelWithPresence
+import im.vector.app.core.epoxy.profiles.profileMatrixItemWithPowerLevel
 import im.vector.app.core.extensions.join
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
@@ -123,7 +123,7 @@ class RoomMemberListController @Inject constructor(
         val hideAvatars = shouldHideAvatars(data.roomId, session, vectorPreferences) && roomMember.summary.userId != session.myUserId
         val matrixItem = roomMember.summary.toMatrixItem().let { if (hideAvatars) it.updateAvatar(null) else it }
 
-        profileMatrixItemWithPowerLevelWithPresence {
+        profileMatrixItemWithPowerLevel {
             id(roomMember.summary.userId)
             matrixItem(matrixItem)
             avatarRenderer(host.avatarRenderer)
@@ -131,8 +131,6 @@ class RoomMemberListController @Inject constructor(
             clickListener {
                 host.callback?.onRoomMemberClicked(roomMember.summary)
             }
-            showPresence(true)
-            userPresence(roomMember.summary.userPresence)
             ignoredUser(roomMember.summary.userId in data.ignoredUserIds)
             powerLevelLabel(
                     span {

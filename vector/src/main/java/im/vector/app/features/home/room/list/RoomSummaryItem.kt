@@ -27,8 +27,9 @@ import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setTextOrHide
-import im.vector.app.core.ui.views.PresenceStateImageView
+import im.vector.app.core.ui.views.RoomBadgeConfig
 import im.vector.app.core.ui.views.ShieldImageView
+import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
@@ -40,7 +41,6 @@ import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
-import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -74,16 +74,16 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     var encryptionTrustLevel: RoomEncryptionTrustLevel? = null
 
     @EpoxyAttribute
-    var userPresence: UserPresence? = null
-
-    @EpoxyAttribute
-    var showPresence: Boolean = false
+    var izDirect: Boolean = false
 
     @EpoxyAttribute
     var izPublic: Boolean = false
 
     @EpoxyAttribute
     var izPgp: Boolean = false
+
+    @EpoxyAttribute
+    var badgeConfig: RoomBadgeConfig = RoomBadgeConfig.NONE
 
     @EpoxyAttribute
     var unreadNotificationCount: Int = 0
@@ -142,13 +142,13 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         holder.unreadIndentIndicator.isVisible = hasUnreadMessage
         holder.draftView.isVisible = hasDraft
         avatarRenderer.render(matrixItem, holder.avatarImageView, decodeSize = im.vector.lib.ui.styles.R.dimen.room_avatar_decode_size)
-        // PGP-on rooms show the padlock in the encryption-shield slot (same place olm rooms show theirs).
-        holder.roomAvatarDecorationImageView.renderRoomShield(encryptionTrustLevel, izPgp)
-        holder.roomAvatarPublicDecorationImageView.isVisible = izPublic
+        renderRoomAvatarBadges(
+                badgeConfig, encryptionTrustLevel, izPgp, izPublic, izDirect,
+                holder.roomAvatarDecorationImageView, holder.roomAvatarPublicDecorationImageView,
+        )
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending
         renderSelection(holder, checkboxStateProvider?.invoke() ?: showSelected)
-        holder.roomAvatarPresenceImageView.render(showPresence, userPresence)
 
         if (useSingleLineForLastEvent) {
             holder.subtitleView.setLines(1)
@@ -232,7 +232,6 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         val roomAvatarDecorationImageView by bind<ShieldImageView>(R.id.roomAvatarDecorationImageView)
         val roomAvatarPublicDecorationImageView by bind<ImageView>(R.id.roomAvatarPublicDecorationImageView)
         val roomAvatarFailSendingImageView by bind<ImageView>(R.id.roomAvatarFailSendingImageView)
-        val roomAvatarPresenceImageView by bind<PresenceStateImageView>(R.id.roomAvatarPresenceImageView)
         val rootView by bind<ConstraintLayout>(R.id.itemRoomLayout)
     }
 }

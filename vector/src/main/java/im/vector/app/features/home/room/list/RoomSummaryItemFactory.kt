@@ -16,6 +16,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.views.badgeTrustLevel
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
@@ -191,14 +192,13 @@ class RoomSummaryItemFactory @Inject constructor(
     ) = RoomSummaryItem_()
             .id(roomSummary.roomId)
             .avatarRenderer(avatarRenderer)
-            // We do not display shield in the room list anymore
-            // .encryptionTrustLevel(roomSummary.roomEncryptionTrustLevel)
+            .encryptionTrustLevel(roomSummary.badgeTrustLevel())
+            .badgeConfig(vectorPreferences.roomListBadgeConfig())
             .displayMode(displayMode)
             .subtitle(subtitle)
             .izPublic(roomSummary.isPublic)
             .izPgp(isRoomPgpOn(roomSummary))
-            .showPresence(roomSummary.isDirect)
-            .userPresence(roomSummary.directUserPresence)
+            .izDirect(roomSummary.isDirect)
             .matrixItem(roomSummary.toDisplayMatrixItem())
             .lastEventTime(latestEventTime)
             .typingMessage(typingMessage)
@@ -231,13 +231,12 @@ class RoomSummaryItemFactory @Inject constructor(
     ) = RoomSummaryCenteredItem_()
             .id(roomSummary.roomId)
             .avatarRenderer(avatarRenderer)
-            // We do not display shield in the room list anymore
-            // .encryptionTrustLevel(roomSummary.roomEncryptionTrustLevel)
+            .encryptionTrustLevel(roomSummary.badgeTrustLevel())
+            .badgeConfig(vectorPreferences.roomListBadgeConfig())
             .displayMode(displayMode)
             .izPublic(roomSummary.isPublic)
             .izPgp(isRoomPgpOn(roomSummary))
-            .showPresence(roomSummary.isDirect)
-            .userPresence(roomSummary.directUserPresence)
+            .izDirect(roomSummary.isDirect)
             .matrixItem(roomSummary.toDisplayMatrixItem())
             .showSelected(showSelected)
             .showCheckbox(showCheckbox)

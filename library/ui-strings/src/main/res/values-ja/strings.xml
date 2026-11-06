@@ -1551,9 +1551,6 @@
     <string name="login_msisdn_confirm_send_again">再送信</string>
     <string name="login_msisdn_confirm_hint">コードを入力</string>
     <string name="login_set_msisdn_mandatory_hint">電話番号</string>
-    <string name="a11y_presence_unavailable">離席中</string>
-    <string name="a11y_presence_offline">オフライン</string>
-    <string name="a11y_presence_online">オンライン</string>
     <string name="trusted">信頼済</string>
     <string name="verification_profile_verified">認証済</string>
     <string name="event_status_delete_all_failed_dialog_title">未送信のメッセージを削除</string>
@@ -2232,7 +2229,6 @@
     <string name="ftue_auth_create_account_choose_server_header">アカウントを作成するサーバー</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 セキュリティーの設定で、全てのルームに関して認証済のセッションにのみ暗号化を行うよう設定しました。</string>
     <string name="settings_presence">プレゼンス（ステータス表示）</string>
-    <string name="a11y_presence_busy">取り込み中</string>
     <string name="ftue_auth_create_account_username_entry_footer">他の人は %s であなたを見つけることができます</string>
     <string name="push_gateway_item_enabled">有効：</string>
     <string name="push_gateway_item_profile_tag">プロフィールのタグ：</string>
@@ -3572,4 +3568,11 @@
     <string name="verification_profile_device_new_signing">%1$s はこのセッションでサインインしました。</string>
     <string name="verification_profile_other_device_untrust_info">このユーザーがこのセッションを信頼するまで、このセッションから送信されたメッセージには警告マークが付きます。</string>
     <string name="verify_cancel_other">今中止すると %1$s を認証しません。ユーザーのプロフィールからやり直してください。</string>
+    <string name="settings_rooms_spaces_category_badges">アバターのバッジ</string>
+    <string name="settings_room_encryption_badge">暗号化バッジ</string>
+    <string name="settings_room_encryption_badge_summary">暗号化されたルームのアバターに盾を表示します</string>
+    <string name="settings_room_public_badge">公開バッジ</string>
+    <string name="settings_room_public_badge_summary">公開ルームのアバターに地球儀を表示します</string>
+    <string name="settings_room_list_badges">ルーム一覧のバッジ</string>
+    <string name="settings_room_list_badges_summary">上で有効にしたバッジをルーム一覧にも表示します</string>
 </resources>
