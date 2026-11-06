@@ -38,6 +38,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.ui.views.ProfileScrollCapture
 import im.vector.app.core.ui.views.ProfileToolbarBackground
 import im.vector.app.core.ui.views.badgeTrustLevel
 import im.vector.app.core.ui.views.renderRoomAvatarBadges
@@ -104,6 +105,7 @@ class RoomProfileFragment :
     private var collapseStateListener: AppBarStateChangeListener? = null
     private var toolbarBackground: ProfileToolbarBackground? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
+    private var releaseScrollCapture: (() -> Unit)? = null
     private var lastRenderedAvatarKey: List<Any?>? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
@@ -138,6 +140,7 @@ class RoomProfileFragment :
             it.inflate()
         }
         headerViews = ViewStubRoomProfileHeaderBinding.bind(headerView)
+        releaseScrollCapture = ProfileScrollCapture.install(views, headerView)
         // Re-render the header/toolbar shield immediately when the PGP toggle changes.
         pgpKeyStore.changes
                 .onEach { invalidate() }
@@ -278,6 +281,8 @@ class RoomProfileFragment :
     }
 
     override fun onDestroyView() {
+        releaseScrollCapture?.invoke()
+        releaseScrollCapture = null
         lastRenderedAvatarKey = null
         roomProfileController.callback = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)

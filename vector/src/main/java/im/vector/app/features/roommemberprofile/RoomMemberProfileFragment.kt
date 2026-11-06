@@ -61,6 +61,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.ui.views.ProfileScrollCapture
 import im.vector.app.core.ui.views.ProfileToolbarBackground
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
@@ -135,6 +136,7 @@ class RoomMemberProfileFragment :
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
     private var toolbarBackground: ProfileToolbarBackground? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
+    private var releaseScrollCapture: (() -> Unit)? = null
     private var hasBanner = false
     private var lastRenderedAvatarKey: List<Any?>? = null
     private var nameColorAnimator: ValueAnimator? = null
@@ -172,6 +174,7 @@ class RoomMemberProfileFragment :
             it.inflate()
         }
         headerViews = ViewStubRoomMemberProfileHeaderBinding.bind(headerView)
+        releaseScrollCapture = ProfileScrollCapture.install(views, headerView)
         headerViews.memberProfileStateView.eventCallback = object : StateView.EventCallback {
             override fun onRetryClicked() {
                 viewModel.handle(RoomMemberProfileAction.RetryFetchingInfo)
@@ -298,6 +301,8 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        releaseScrollCapture?.invoke()
+        releaseScrollCapture = null
         nameColorAnimator?.cancel()
         nameColorAnimator = null
         nameColorTarget = null
