@@ -820,6 +820,8 @@ class ImageContentRenderer @Inject constructor(
      * gets visibly blurry once magnified.
      */
     fun render(data: Data, contextView: View, target: CustomViewTarget<*, Drawable>) {
+        // Glide reuses equivalent requests with their original target and potentially stale page uid.
+        GlideApp.with(contextView).clear(target)
         data.preservedFile?.let { file ->
             GlideApp.with(contextView)
                     .load(file)
