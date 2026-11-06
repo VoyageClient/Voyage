@@ -7,6 +7,8 @@
 
 package im.vector.app.features.roomprofile
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -19,6 +21,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
@@ -107,6 +110,7 @@ class RoomProfileFragment :
     private var bannerUiHelper: ProfileBannerUiHelper? = null
     private var releaseScrollCapture: (() -> Unit)? = null
     private var lastRenderedAvatarKey: List<Any?>? = null
+    private var headerRevealed = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
@@ -133,6 +137,9 @@ class RoomProfileFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        headerRevealed = false
+        views.matrixProfileLoadingView.isVisible = true
+        views.matrixProfileLoadingBackButton.debouncedClicks { vectorBaseActivity.onBackPressedDispatcher.onBackPressed() }
         roomListQuickActionsSharedActionViewModel = activityViewModelProvider.get(RoomListQuickActionsSharedActionViewModel::class.java)
         roomProfileSharedActionViewModel = activityViewModelProvider.get(RoomProfileSharedActionViewModel::class.java)
         val headerView = views.matrixProfileHeaderView.let {
@@ -281,6 +288,7 @@ class RoomProfileFragment :
     }
 
     override fun onDestroyView() {
+        views.matrixProfileLoadingView.animate().setListener(null).cancel()
         releaseScrollCapture?.invoke()
         releaseScrollCapture = null
         lastRenderedAvatarKey = null
@@ -309,8 +317,11 @@ class RoomProfileFragment :
         val hasBanner = state.bannerUrl != null
         headerViews.roomProfileBannerView.isVisible = hasBanner
         headerViews.roomProfileBannerOverlap.isVisible = hasBanner
+        if (!headerRevealed) {
+            views.matrixProfileLoadingView.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
+        }
         bannerUiHelper?.update(hasBanner)
-        bannerRenderer.render(state.bannerUrl, headerViews.roomProfileBannerView)
+        bannerRenderer.render(state.bannerUrl, headerViews.roomProfileBannerView, crossfade = false)
 
         state.roomSummary()?.let {
             if (it.membership.isLeft() && !it.isRemovedFromRoom) {
@@ -350,6 +361,19 @@ class RoomProfileFragment :
             }
         }
         roomProfileController.setData(state)
+        if (!headerRevealed && (state.roomSummary() != null || state.roomSummary is Fail)) {
+            bannerUiHelper?.revealAfterLayout {
+                headerRevealed = true
+                val cover = views.matrixProfileLoadingView
+                cover.animate().alpha(0f).setDuration(180L).setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        cover.isVisible = false
+                        cover.alpha = 1f
+                        cover.setPadding(0, 0, 0, 0)
+                    }
+                })
+            }
+        }
     }
 
     // RoomProfileController.Callback

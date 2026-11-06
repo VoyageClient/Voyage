@@ -58,7 +58,7 @@ class BannerRenderer @Inject constructor(
     private val placeholders = WeakHashMap<ImageView, MediaPlaceholderDrawable>()
 
     @UiThread
-    fun render(mxcUrl: String?, imageView: ImageView) {
+    fun render(mxcUrl: String?, imageView: ImageView, crossfade: Boolean = true) {
         val resolved = mxcUrl
                 ?.takeIf { it.isNotEmpty() }
                 ?.let { activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(it) }
@@ -70,11 +70,13 @@ class BannerRenderer @Inject constructor(
             vectorPreferences.autoplayAnimatedImages() -> {
                 GlideApp.with(imageView)
                         .load(resolved)
+                        // Banner contrast is sampled on a small software canvas.
+                        .disallowHardwareConfig()
                         // optionalTransform, NOT centerCrop: a required transform fails animated
                         // (GIF/WebP) loads outright; the view's own centerCrop scales those instead.
                         .optionalTransform(CenterCrop())
                         .placeholder(placeholderFor(imageView))
-                        .transition(DrawableTransitionOptions.with(FADE_FACTORY))
+                        .transition(if (crossfade) DrawableTransitionOptions.with(FADE_FACTORY) else DrawableTransitionOptions().dontTransition())
                         .into(imageView)
             }
             else -> {
@@ -82,19 +84,20 @@ class BannerRenderer @Inject constructor(
                 GlideApp.with(imageView)
                         .asBitmap()
                         .load(resolved)
+                        .disallowHardwareConfig()
                         .centerCrop()
                         .placeholder(placeholderFor(imageView))
-                        .transition(BitmapTransitionOptions.withCrossFade(FADE_FACTORY))
+                        .transition(if (crossfade) BitmapTransitionOptions.withCrossFade(FADE_FACTORY) else BitmapTransitionOptions().dontTransition())
                         .into(imageView)
             }
         }
     }
 
     @UiThread
-    fun renderProfileMedia(media: ProfileMedia?, imageView: ImageView) {
+    fun renderProfileMedia(media: ProfileMedia?, imageView: ImageView, crossfade: Boolean = true) {
         val encryptedFile = media?.encryptedFile
         if (encryptedFile == null) {
-            render(media?.url, imageView)
+            render(media?.url, imageView, crossfade)
             return
         }
         val size = imageView.resources.displayMetrics.let { im.vector.app.core.ui.model.Size(it.widthPixels, it.heightPixels) }
@@ -111,8 +114,9 @@ class BannerRenderer @Inject constructor(
         )
         imageContentRenderer.createGlideRequest(data, ImageContentRenderer.Mode.FULL_SIZE, GlideApp.with(imageView), size)
                 .optionalTransform(CenterCrop())
+                .disallowHardwareConfig()
                 .placeholder(placeholderFor(imageView))
-                .transition(DrawableTransitionOptions.with(FADE_FACTORY))
+                .transition(if (crossfade) DrawableTransitionOptions.with(FADE_FACTORY) else DrawableTransitionOptions().dontTransition())
                 .into(imageView)
     }
 

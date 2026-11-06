@@ -17,7 +17,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
-import android.os.SystemClock
 import android.text.Editable
 import android.text.InputType
 import android.view.LayoutInflater
@@ -149,9 +148,8 @@ class RoomMemberProfileFragment :
     // No avatar to wait for until a real one is being loaded, so a letter avatar reveals at once.
     private var avatarSettled = true
 
-    /** True from raising the cover until it has fully faded out — nothing may move the layout then. */
+    // Keep the layout fixed until the cover finishes fading.
     private var coverActive = false
-    private var coverShownAt = 0L
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
@@ -301,6 +299,7 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        views.matrixProfileLoadingView.animate().setListener(null).cancel()
         releaseScrollCapture?.invoke()
         releaseScrollCapture = null
         nameColorAnimator?.cancel()
@@ -470,11 +469,9 @@ class RoomMemberProfileFragment :
                 hasBanner = currentBannerMedia?.url != null
                 headerViews.memberProfileBannerView.isVisible = hasBanner
                 headerViews.memberProfileBannerOverlap.isVisible = hasBanner
-                // Deferred while the cover is up: this flips the window to draw under the status bar,
-                // which drops the root's top padding and yanks the cover (and its back arrow) up
-                // behind the status bar. Applied once the cover is gone instead.
+                // Adjust window insets at reveal so the cover's back button keeps its position.
                 if (!coverActive) bannerUiHelper?.update(hasBanner)
-                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView)
+                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView, crossfade = false)
                 bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
 
                 if (state.isRoomEncrypted && state.userCryptoInfoLoaded) {
@@ -542,9 +539,15 @@ class RoomMemberProfileFragment :
     }
 
     private fun revealHeader() {
-        if (headerRevealed) {
-            return
-        }
+        if (headerRevealed) return
+        val cover = views.matrixProfileLoadingView
+        cover.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
+        bannerUiHelper?.update(hasBanner)
+        bannerUiHelper?.revealAfterLayout { showHeader() }
+    }
+
+    private fun showHeader() {
+        if (headerRevealed) return
         headerRevealed = true
         pendingReveal = false
         modelsBuilt = false
@@ -552,17 +555,7 @@ class RoomMemberProfileFragment :
         views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
         headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
         val cover = views.matrixProfileLoadingView
-        // Settle the page in its final position BEHIND the cover, since with a banner this drops the
-        // root's top padding and would otherwise jump the page up once the cover is gone. The cover
-        // keeps its own contents put by taking that padding on itself.
-        cover.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
-        bannerUiHelper?.update(hasBanner)
-        if (cover.isVisible && SystemClock.uptimeMillis() - coverShownAt < COVER_INSTANT_MS) {
-            // Up for a frame or two only: fading it out would read as a flash of its own.
-            cover.isVisible = false
-            cover.setPadding(0, 0, 0, 0)
-            coverActive = false
-        } else if (cover.isVisible) {
+        if (cover.isVisible) {
             cover.animate().alpha(0f).setDuration(COVER_FADE_MS).setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     cover.isVisible = false
@@ -579,9 +572,8 @@ class RoomMemberProfileFragment :
     /** Opaque panel over the whole page, so it builds unseen behind a plain spinner + back arrow. */
     private fun showLoadingCover() {
         val cover = views.matrixProfileLoadingView
-        if (!coverActive) coverShownAt = SystemClock.uptimeMillis()
         coverActive = true
-        cover.animate().cancel()
+        cover.animate().setListener(null).cancel()
         cover.alpha = 1f
         cover.isVisible = true
     }
@@ -1041,9 +1033,6 @@ class RoomMemberProfileFragment :
         private const val PROFILE_COLOR_REQUEST_KEY = "RoomMemberProfileFragment.profileColor"
         private const val PROFILE_COLOR_DIALOG_TAG = "RoomMemberProfileFragment.profileColorDialog"
         private const val COVER_FADE_MS = 180L
-
-        // Below this the cover has not been seen, so it is dropped rather than faded.
-        private const val COVER_INSTANT_MS = 140L
 
         // Backstop for the reveal: the page shows even if the models or the avatar never report in.
         private const val REVEAL_WAIT_MS = 1_200L

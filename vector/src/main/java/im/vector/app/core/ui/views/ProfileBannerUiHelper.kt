@@ -16,40 +16,39 @@ import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.Rect
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.RectF
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
+import android.os.SystemClock
 import android.view.Menu
+import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.ColorInt
+import androidx.appcompat.widget.ActionMenuView
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.bumptech.glide.load.resource.gif.GifDrawable
+import androidx.core.view.get
+import androidx.core.view.size
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.features.media.MediaPlaceholderDrawable
 import im.vector.app.features.themes.ThemeUtils
-import kotlin.math.max
-import kotlin.math.min
 
-/**
- * Drives a profile screen while a banner is drawn behind the transparent toolbar: the page extends
- * behind the (transparent) status bar so the banner reaches the top screen edge. The toolbar is padded
- * below the status bar rather than pushed down, so once collapsed its own color also fills that strip.
- *
- * Over the banner, the back arrow, the menu icons and the status bar icons all take one color, white
- * or near-black, whichever reads better on the banner's top strip, so no scrim has to cover the image.
- */
 class ProfileBannerUiHelper(
         private val activity: VectorBaseActivity<*>,
         private val toolbar: MaterialToolbar,
@@ -66,38 +65,53 @@ class ProfileBannerUiHelper(
     private var bannerVisible = false
     private var collapsed = false
     private var darkGlyphs = false
-    private var navigationShadow = false
-    private var menuShadow = false
+    private var navigationShadow = true
+    private var menuShadow = true
+    private var darkStatusBar = false
+    private val pageColor = ThemeUtils.getColor(toolbar.context, android.R.attr.colorBackground)
+    private val sampler = BannerImageSampler(pageColor)
+    private val toolbarColor = StableBannerColor()
+    private val statusColor = StableBannerColor()
+    private var profileRevealed = false
+    private var pendingReveal: (() -> Unit)? = null
     private var sampledBanner: Drawable? = null
+    private var sampledGeometry: SampleGeometry? = null
+    private val sampledMatrix = Matrix()
+    private var dirty = true
+    private var lastCheckAt = 0L
+    private val location = IntArray(2)
 
     private var originalNavigationIcon: Drawable? = null
     private var originalNavigationTint: Int? = null
     private val originalMenuIcons = HashMap<Int, Drawable?>()
     private val originalMenuTints = HashMap<Int, ColorStateList?>()
 
-    // What the toolbar currently shows, so a rebind that changes nothing leaves the icons alone
-    private var appliedGlyphs: List<Any>? = null
+    private data class GlyphStyle(val dark: Boolean, val navigationShadow: Boolean, val menuShadow: Boolean)
 
-    // The toolbar's usual icon color, which the glyphs fade to as the bar colors in on collapse
+    private var appliedGlyphs: GlyphStyle? = null
+
     private val themeGlyphColor = ThemeUtils.getColor(toolbar.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
     private val activeGlyphs = mutableListOf<BannerGlyphDrawable>()
 
-    // 0 = the banner color with its shadow, 1 = the theme color without
-    private var glyphProgress = 0f
     private var glyphAnimator: ValueAnimator? = null
 
+    private var sampleScheduled = false
+    private val sampleAgain = Runnable {
+        sampleScheduled = false
+        bannerView.invalidate()
+    }
+
     private val bannerWatcher = ViewTreeObserver.OnPreDrawListener {
-        // Glide sets the image asynchronously and may swap it (placeholder, crossfade), so follow it
-        val drawable = bannerView.drawable
-        if (drawable !== sampledBanner) {
-            sampledBanner = drawable
-            val pick = pickGlyphs(drawable)
-            if (pick.dark != darkGlyphs || pick.navigationShadow != navigationShadow || pick.menuShadow != menuShadow) {
-                darkGlyphs = pick.dark
-                navigationShadow = pick.navigationShadow
-                menuShadow = pick.menuShadow
-                applyGlyphs()
-            }
+        if (bannerVisible) {
+            updateToolbarInsets()
+            if (!collapsed && bannerView.isShown) analyzeBanner()
+        }
+        val reveal = pendingReveal
+        if (reveal != null && readyToReveal()) {
+            pendingReveal = null
+            profileRevealed = true
+            applyGlyphs()
+            reveal()
         }
         true
     }
@@ -106,8 +120,8 @@ class ProfileBannerUiHelper(
         bannerView.viewTreeObserver.addOnPreDrawListener(bannerWatcher)
     }
 
-    // Same test ProfileToolbarBackground uses, so the glyphs return to theme colors as the bar colors in
     override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
+        dirty = true
         val nowCollapsed = collapsingToolbarLayout.height + verticalOffset < collapsingToolbarLayout.scrimVisibleHeightTrigger
         if (nowCollapsed == collapsed) return
         collapsed = nowCollapsed
@@ -115,8 +129,14 @@ class ProfileBannerUiHelper(
     }
 
     fun update(bannerVisible: Boolean) {
+        dirty = dirty || this.bannerVisible != bannerVisible
         this.bannerVisible = bannerVisible
         activity.setDrawUnderStatusBar(bannerVisible)
+        updateToolbarInsets()
+        applyGlyphs()
+    }
+
+    private fun updateToolbarInsets() {
         val topInset = if (bannerVisible) activity.systemBarsTopInset else 0
         if (toolbar.paddingTop != topInset) {
             toolbar.setPadding(toolbar.paddingLeft, topInset, toolbar.paddingRight, toolbar.paddingBottom)
@@ -125,42 +145,53 @@ class ProfileBannerUiHelper(
         // The taller toolbar raises the collapsed height; without raising the trigger too, the
         // contentScrim never shows and banner remnants stay visible behind the collapsed toolbar.
         collapsingToolbarLayout.scrimVisibleHeightTrigger = originalScrimTrigger + topInset
-        applyGlyphs()
     }
 
-    /** Call once the menu is (re)created: its items come back with their XML icons and tint. */
     fun onMenuCreated(menu: Menu) {
         originalMenuIcons.clear()
         originalMenuTints.clear()
-        for (i in 0 until menu.size()) {
-            val item = menu.getItem(i)
+        for (i in 0 until menu.size) {
+            val item = menu[i]
             originalMenuIcons[item.itemId] = item.icon
             originalMenuTints[item.itemId] = MenuItemCompat.getIconTintList(item)
         }
         appliedGlyphs = null
+        dirty = true
         applyGlyphs()
+    }
+
+    fun revealAfterLayout(reveal: () -> Unit) {
+        pendingReveal = reveal
+        toolbar.invalidate()
+    }
+
+    private fun readyToReveal(): Boolean {
+        if (!bannerVisible || collapsed) return true
+        return !toolbar.isLayoutRequested && !collapsingToolbarLayout.isLayoutRequested
     }
 
     fun restore() {
         bannerView.viewTreeObserver.removeOnPreDrawListener(bannerWatcher)
         glyphAnimator?.cancel()
+        glyphAnimator = null
         bannerVisible = false
         activity.setDrawUnderStatusBar(false)
         collapsingToolbarLayout.scrimVisibleHeightTrigger = originalScrimTrigger
-        applyGlyphs()
+        insetsController.isAppearanceLightStatusBars = originalLightStatusBars
+        restoreOriginalIcons()
+        appliedGlyphs = null
+        pendingReveal = null
+        bannerView.removeCallbacks(sampleAgain)
+        sampleScheduled = false
+        sampler.release()
     }
 
-    /**
-     * [animate]: a collapse or expand, which fades the glyphs between the banner color and the theme
-     * color alongside the bar's own color; anything else (a new banner, a rebuilt menu) applies at once.
-     */
     private fun applyGlyphs(animate: Boolean = false) {
-        val overBanner = bannerVisible && !collapsed
-        val state = if (overBanner) listOf(true, darkGlyphs, navigationShadow, menuShadow) else listOf(false)
-        // Off the banner nothing was ever replaced, so a fresh screen without one keeps its icons untouched
-        if (state == appliedGlyphs || (appliedGlyphs == null && !overBanner)) return
+        val overBanner = profileRevealed && bannerVisible && !collapsed && sampledBanner != null && sampledBanner === bannerView.drawable
+        val state = if (overBanner) GlyphStyle(darkGlyphs, navigationShadow, menuShadow) else null
+        insetsController.isAppearanceLightStatusBars = if (overBanner) darkStatusBar else originalLightStatusBars
+        if (state == appliedGlyphs) return
         appliedGlyphs = state
-        insetsController.isAppearanceLightStatusBars = if (overBanner) darkGlyphs else originalLightStatusBars
         if (originalNavigationIcon == null) {
             originalNavigationIcon = toolbar.navigationIcon
             originalNavigationTint = toolbar.navigationIconTint
@@ -168,28 +199,32 @@ class ProfileBannerUiHelper(
         glyphAnimator?.cancel()
         glyphAnimator = null
         if (overBanner) {
-            installGlyphs(if (darkGlyphs) DARK_GLYPH else LIGHT_GLYPH)
-            if (animate) animateGlyphs(to = 0f) else setGlyphProgress(0f)
+            installGlyphs(if (darkGlyphs) DARK_GLYPH else LIGHT_GLYPH, animate)
+            setGlyphProgress(0f)
+            if (animate) animateGlyphs() else setGlyphProgress(1f)
         } else if (animate && activeGlyphs.isNotEmpty()) {
-            // Fade to the theme color first; the originals then swap in looking exactly the same
-            animateGlyphs(to = 1f) { restoreOriginalIcons() }
+            activeGlyphs.forEach { it.transitionTo(GlyphAppearance(themeGlyphColor, 0f)) }
+            setGlyphProgress(0f)
+            animateGlyphs { restoreOriginalIcons() }
         } else {
             restoreOriginalIcons()
         }
     }
 
-    private fun installGlyphs(@ColorInt color: Int) {
+    private fun installGlyphs(@ColorInt color: Int, animate: Boolean) {
         activeGlyphs.clear()
         originalNavigationIcon?.let { icon ->
-            val glyph = bannerGlyph(icon, color, navigationShadow)
+            val from = if (animate) (toolbar.navigationIcon as? BannerGlyphDrawable)?.appearance ?: GlyphAppearance(themeGlyphColor, 0f) else null
+            val glyph = bannerGlyph(icon, color, navigationShadow, from)
             toolbar.navigationIcon = glyph ?: icon
             if (glyph == null) toolbar.setNavigationIconTint(color)
         }
         val menu = toolbar.menu
-        for (i in 0 until menu.size()) {
-            val item = menu.getItem(i)
+        for (i in 0 until menu.size) {
+            val item = menu[i]
             val icon = originalMenuIcons[item.itemId] ?: continue
-            val glyph = bannerGlyph(icon, color, menuShadow)
+            val from = if (animate) (item.icon as? BannerGlyphDrawable)?.appearance ?: GlyphAppearance(themeGlyphColor, 0f) else null
+            val glyph = bannerGlyph(icon, color, menuShadow, from)
             // The glyph carries its own color; a tint would be applied over it on older versions
             MenuItemCompat.setIconTintList(item, if (glyph != null) null else ColorStateList.valueOf(color))
             item.icon = glyph ?: icon
@@ -198,24 +233,23 @@ class ProfileBannerUiHelper(
 
     private fun restoreOriginalIcons() {
         activeGlyphs.clear()
-        glyphProgress = 1f
         originalNavigationIcon?.let { icon ->
+            val tint = originalNavigationTint
+            if (tint == null) toolbar.clearNavigationIconTint() else toolbar.setNavigationIconTint(tint)
             toolbar.navigationIcon = icon
-            originalNavigationTint?.let { toolbar.setNavigationIconTint(it) }
         }
         val menu = toolbar.menu
-        for (i in 0 until menu.size()) {
-            val item = menu.getItem(i)
+        for (i in 0 until menu.size) {
+            val item = menu[i]
             val icon = originalMenuIcons[item.itemId] ?: continue
-            // Exactly the tint the item was inflated with
             MenuItemCompat.setIconTintList(item, originalMenuTints[item.itemId])
             item.icon = icon
         }
     }
 
-    private fun animateGlyphs(to: Float, onEnd: (() -> Unit)? = null) {
+    private fun animateGlyphs(onEnd: (() -> Unit)? = null) {
         var canceled = false
-        glyphAnimator = ValueAnimator.ofFloat(glyphProgress, to).apply {
+        glyphAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = collapsingToolbarLayout.scrimAnimationDuration
             addUpdateListener { setGlyphProgress(it.animatedValue as Float) }
             addListener(object : AnimatorListenerAdapter() {
@@ -232,130 +266,179 @@ class ProfileBannerUiHelper(
     }
 
     private fun setGlyphProgress(progress: Float) {
-        glyphProgress = progress
         activeGlyphs.forEach { it.setProgress(progress) }
     }
 
-    /**
-     * Built from fresh copies so the original icon, which comes back when the header collapses, is never
-     * recolored. AppCompat hands out its icons wrapped for tinting, and a wrapper cannot be copied, so the
-     * copy comes from the drawable inside; with none to copy the caller falls back to a plain tint.
-     */
-    private fun bannerGlyph(icon: Drawable, @ColorInt color: Int, shadow: Boolean): Drawable? {
+    private data class GlyphAppearance(@ColorInt val color: Int, val shadow: Float)
+
+    // Copy inside AppCompat's tint wrapper so the collapsed toolbar keeps its original drawable.
+    private fun bannerGlyph(icon: Drawable, @ColorInt color: Int, shadow: Boolean, from: GlyphAppearance?): Drawable? {
         val glyph = icon.freshCopy() ?: return null
-        return BannerGlyphDrawable(glyph, if (shadow) icon.freshCopy() else null, color, themeGlyphColor, shadowBlur)
-                .also {
-                    it.setProgress(glyphProgress)
-                    activeGlyphs.add(it)
-                }
+        val target = GlyphAppearance(color, if (shadow) 1f else 0f)
+        val initial = from ?: target
+        val shadowSource = if (shadow || initial.shadow > 0f) icon.freshCopy() else null
+        return BannerGlyphDrawable(glyph, shadowSource, initial, target, shadowBlur).also { activeGlyphs.add(it) }
     }
 
     private fun Drawable.freshCopy(): Drawable? = DrawableCompat.unwrap<Drawable>(this).constantState?.newDrawable()?.mutate()
 
-    private class GlyphPick(val dark: Boolean, val navigationShadow: Boolean, val menuShadow: Boolean)
+    private data class SampleRegion(val rect: RectF, val navigation: Boolean = false)
 
-    /**
-     * Picks one glyph color for both sides of the toolbar, and for each side whether it needs the shadow.
-     *
-     * Each side (the back button's area, the menu's area) votes for dark or white by which has the
-     * better worst-case contrast over the banner behind it; dark only when both sides want it, as a
-     * white glyph on a light patch stays legible with its shadow while a dark one on a dark patch is
-     * lost. A white glyph gets the shadow where its own side's contrast is weak. Below API 23 the
-     * status bar icons cannot turn dark, so everything stays white there.
-     */
-    private fun pickGlyphs(drawable: Drawable?): GlyphPick {
-        val unknown = GlyphPick(dark = false, navigationShadow = true, menuShadow = true)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return unknown
-        val bitmap = drawable?.firstBitmap() ?: return unknown
-        val viewWidth = bannerView.width
-        val viewHeight = bannerView.height
-        if (viewWidth == 0 || viewHeight == 0 || bitmap.width == 0 || bitmap.height == 0) return unknown
-        val readable = readableCopy(bitmap) ?: return unknown
-        val buttonWidth = toolbar.resources.displayMetrics.density * BUTTON_AREA_DP
-        val top = activity.systemBarsTopInset.toFloat()
-        val bottom = min(viewHeight.toFloat(), top + originalToolbarHeight)
-        val left = sample(readable, viewWidth, viewHeight, 0f, buttonWidth, top, bottom)
-        val right = sample(readable, viewWidth, viewHeight, viewWidth - buttonWidth, viewWidth.toFloat(), top, bottom)
-        val dark = left.wantsDark && right.wantsDark
-        return GlyphPick(
-                dark = dark,
-                navigationShadow = !dark && left.worstWhite < SHADOW_BELOW_CONTRAST,
-                menuShadow = !dark && right.worstWhite < SHADOW_BELOW_CONTRAST,
-        )
+    private data class SampleGeometry(
+            val bannerX: Int,
+            val bannerY: Int,
+            val width: Int,
+            val height: Int,
+            val controls: List<SampleRegion>,
+            val status: List<SampleRegion>,
+    )
+
+    private fun analyzeBanner() {
+        val now = SystemClock.uptimeMillis()
+        val drawable = bannerView.drawable
+        if (drawable == null || drawable is MediaPlaceholderDrawable) {
+            applyGlyphs(animate = profileRevealed)
+            return
+        }
+        val imageChanged = drawable !== sampledBanner
+        if (imageChanged) {
+            dirty = true
+        }
+        if (profileRevealed && !imageChanged && now - lastCheckAt < SAMPLE_INTERVAL_MS) {
+            scheduleSample()
+            return
+        }
+        lastCheckAt = now
+        val geometry = sampleGeometry()
+        val geometryChanged = geometry != sampledGeometry || bannerView.imageMatrix != sampledMatrix
+        val changingImage = drawable.isChanging()
+        if (!dirty && !geometryChanged && !changingImage) return
+        if ((imageChanged || geometryChanged || changingImage) && !sampler.render(bannerView)) return
+        sampledBanner = drawable
+        sampledGeometry = geometry
+        sampledMatrix.set(bannerView.imageMatrix)
+        dirty = false
+        val controls = geometry.controls.map { it to sampler.sample(it.rect) }
+        val status = geometry.status.map { it to sampler.sample(it.rect) }
+        val canUseDark = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+        // Keep white controls on older devices, where the system status icons cannot turn dark.
+        val navigationKnown = toolbar.navigationIcon == null || controls.any { it.first.navigation }
+        darkGlyphs = toolbarColor.choose(if (canUseDark && navigationKnown) controls.map { it.second } else emptyList(), reset = imageChanged)
+        darkStatusBar = statusColor.choose(if (canUseDark) status.map { it.second } else emptyList(), reset = imageChanged)
+        navigationShadow = !darkGlyphs && (!navigationKnown || controls.isEmpty() || controls.any { it.first.navigation && it.second.needsShadow })
+        menuShadow = !darkGlyphs && (controls.isEmpty() || controls.any { !it.first.navigation && it.second.needsShadow })
+        applyGlyphs(animate = profileRevealed)
+        if (changingImage) {
+            scheduleSample()
+        }
     }
 
-    private class SideContrast(val worstWhite: Double, val worstDark: Double) {
-        val wantsDark get() = worstDark > worstWhite
+    private fun scheduleSample() {
+        if (sampleScheduled) return
+        sampleScheduled = true
+        bannerView.postDelayed(sampleAgain, SAMPLE_INTERVAL_MS)
     }
 
-    /** Worst contrast of each glyph color over a grid of samples in a rect given in the banner view's coordinates. */
-    private fun sample(bitmap: Bitmap, viewWidth: Int, viewHeight: Int, x0: Float, x1: Float, y0: Float, y1: Float): SideContrast {
-        // The banner is center-cropped: map view coordinates back onto the bitmap
-        val scale = max(viewWidth.toFloat() / bitmap.width, viewHeight.toFloat() / bitmap.height)
-        val offsetX = (bitmap.width * scale - viewWidth) / 2f
-        val offsetY = (bitmap.height * scale - viewHeight) / 2f
-        var worstWhite = Double.MAX_VALUE
-        var worstDark = Double.MAX_VALUE
-        for (row in 0 until SAMPLE_ROWS) {
-            for (col in 0 until SAMPLE_COLUMNS) {
-                val viewX = x0 + (x1 - x0) * (col + 0.5f) / SAMPLE_COLUMNS
-                val viewY = y0 + (y1 - y0) * (row + 0.5f) / SAMPLE_ROWS
-                val x = ((viewX + offsetX) / scale).toInt().coerceIn(0, bitmap.width - 1)
-                val y = ((viewY + offsetY) / scale).toInt().coerceIn(0, bitmap.height - 1)
-                val pixel = ColorUtils.setAlphaComponent(bitmap.getPixel(x, y), 255)
-                worstWhite = min(worstWhite, ColorUtils.calculateContrast(LIGHT_GLYPH, pixel))
-                worstDark = min(worstDark, ColorUtils.calculateContrast(DARK_GLYPH, pixel))
+    private fun sampleGeometry(): SampleGeometry {
+        bannerView.getLocationOnScreen(location)
+        val bannerX = location[0]
+        val bannerY = location[1]
+        val controls = mutableListOf<SampleRegion>()
+        for (index in 0 until toolbar.childCount) {
+            val child = toolbar.getChildAt(index)
+            if (!child.isShown) continue
+            when (child) {
+                is ImageView -> if (child.drawable === toolbar.navigationIcon) {
+                    iconRegion(child, bannerX, bannerY, navigation = true)?.let { controls.add(it) }
+                }
+                is ActionMenuView -> for (itemIndex in 0 until child.childCount) {
+                    val item = child.getChildAt(itemIndex)
+                    if (item.isShown) iconRegion(item, bannerX, bannerY)?.let { controls.add(it) }
+                }
             }
         }
-        return SideContrast(worstWhite, worstDark)
-    }
-
-    private fun Drawable.firstBitmap(): Bitmap? = when (this) {
-        is BitmapDrawable -> bitmap
-        is GifDrawable -> firstFrame
-        // A crossfade holds the outgoing and incoming images; the incoming one is the last layer
-        is LayerDrawable -> if (numberOfLayers > 0) getDrawable(numberOfLayers - 1)?.firstBitmap() else null
-        else -> null
-    }
-
-    // Hardware bitmaps (API 26+) cannot be read pixel by pixel, so sample a software copy of those
-    private fun readableCopy(bitmap: Bitmap): Bitmap? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && bitmap.config == Bitmap.Config.HARDWARE) {
-            return runCatching { bitmap.copy(Bitmap.Config.ARGB_8888, false) }.getOrNull()
+        val status = mutableListOf<SampleRegion>()
+        val inset = activity.systemBarsTopInset
+        if (inset > 0) {
+            activity.window.decorView.getLocationOnScreen(location)
+            val left = location[0] - bannerX.toFloat()
+            val top = location[1] - bannerY.toFloat()
+            val width = activity.window.decorView.width.toFloat()
+            status.add(SampleRegion(RectF(left, top, left + width * STATUS_SIDE_FRACTION, top + inset)))
+            status.add(SampleRegion(RectF(left + width * (1f - STATUS_SIDE_FRACTION), top, left + width, top + inset)))
         }
-        return bitmap
+        return SampleGeometry(bannerX, bannerY, bannerView.width, bannerView.height, controls, status)
     }
 
-    /**
-     * [glyph] in a single color, over an optional soft blurred halo of [shadowSource] as a shadow, blended by
-     * [setProgress] from [bannerColor] with the shadow to [themeColor] without it.
-     */
+    private fun iconRegion(view: View, bannerX: Int, bannerY: Int, navigation: Boolean = false): SampleRegion? {
+        val rect = when (view) {
+            is ImageView -> {
+                val drawable = view.drawable ?: return null
+                RectF(drawable.bounds).also {
+                    view.imageMatrix.mapRect(it)
+                    it.offset(view.paddingLeft.toFloat(), view.paddingTop.toFloat())
+                }
+            }
+            is TextView -> {
+                val drawables = view.compoundDrawables
+                val drawable = drawables[0] ?: drawables[2] ?: return null
+                val width = drawable.bounds.width().toFloat()
+                val height = drawable.bounds.height().toFloat()
+                val left = if (drawables[0] != null) view.paddingLeft.toFloat() else view.width - view.paddingRight - width
+                val top = view.paddingTop + (view.height - view.paddingTop - view.paddingBottom - height) / 2f
+                RectF(left, top, left + width, top + height)
+            }
+            else -> return null
+        }
+        if (rect.isEmpty) return null
+        val margin = toolbar.resources.displayMetrics.density * ICON_MARGIN_DP
+        rect.inset(-margin, -margin)
+        view.getLocationOnScreen(location)
+        rect.offset(location[0] - bannerX.toFloat(), location[1] - bannerY.toFloat())
+        return SampleRegion(rect, navigation)
+    }
+
+    private fun Drawable.isChanging(): Boolean = when (this) {
+        is LayerDrawable -> (0 until numberOfLayers).any { getDrawable(it).isChanging() }
+        is Animatable -> isRunning
+        is MediaPlaceholderDrawable -> !isFailed()
+        else -> false
+    }
+
     private class BannerGlyphDrawable(
             private val glyph: Drawable,
             private val shadowSource: Drawable?,
-            @ColorInt private val bannerColor: Int,
-            @ColorInt private val themeColor: Int,
+            private var start: GlyphAppearance,
+            private var target: GlyphAppearance,
             private val blurRadius: Float,
     ) : Drawable() {
         private val shadowPaint = Paint(Paint.FILTER_BITMAP_FLAG).apply { this.color = SHADOW }
         private var shadowBitmap: Bitmap? = null
         private val shadowOffset = IntArray(2)
         private var drawAlpha = 255
-        private var progress = 0f
+        private var currentColor = start.color
+        private var currentShadow = start.shadow
+        val appearance get() = GlyphAppearance(currentColor, currentShadow)
 
         init {
             setProgress(0f)
         }
 
+        fun transitionTo(target: GlyphAppearance) {
+            start = appearance
+            this.target = target
+        }
+
         fun setProgress(progress: Float) {
-            this.progress = progress
-            glyph.colorFilter = PorterDuffColorFilter(ColorUtils.blendARGB(bannerColor, themeColor, progress), PorterDuff.Mode.SRC_IN)
+            currentColor = ColorUtils.blendARGB(start.color, target.color, progress)
+            currentShadow = start.shadow + (target.shadow - start.shadow) * progress
+            glyph.colorFilter = PorterDuffColorFilter(currentColor, PorterDuff.Mode.SRC_IN)
             updateShadowAlpha()
             invalidateSelf()
         }
 
         private fun updateShadowAlpha() {
-            shadowPaint.alpha = (Color.alpha(SHADOW) * (1f - progress) * drawAlpha / 255).toInt()
+            shadowPaint.alpha = (Color.alpha(SHADOW) * currentShadow * drawAlpha / 255).toInt()
         }
 
         override fun getIntrinsicWidth() = glyph.intrinsicWidth
@@ -371,7 +454,7 @@ class ProfileBannerUiHelper(
         // into an alpha mask once, in software, and that mask is what gets drawn (in the paint's color).
         private fun buildShadow(source: Drawable, width: Int, height: Int): Bitmap? {
             if (width <= 0 || height <= 0) return null
-            val glyphBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val glyphBitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
             source.setBounds(0, 0, width, height)
             source.draw(Canvas(glyphBitmap))
             val blur = Paint().apply { maskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL) }
@@ -399,20 +482,14 @@ class ProfileBannerUiHelper(
     }
 
     private companion object {
-        const val LIGHT_GLYPH = 0xFFFFFFFF.toInt()
-        const val DARK_GLYPH = 0xFF15191E.toInt()
+        const val LIGHT_GLYPH = BannerContrast.WHITE
+        const val DARK_GLYPH = BannerContrast.DARK
 
-        // Centered on the glyph, so only what the blur spreads past its edges shows: strong, but soft
         const val SHADOW = 0xBF000000.toInt()
         const val SHADOW_BLUR_DP = 3f
 
-        const val SAMPLE_COLUMNS = 6
-        const val SAMPLE_ROWS = 6
-
-        // The toolbar's 4dp end padding plus a 48dp button, on either side
-        const val BUTTON_AREA_DP = 56
-
-        // Below the 7:1 enhanced-contrast guideline, white glyphs get the shadow
-        const val SHADOW_BELOW_CONTRAST = 7.0
+        const val ICON_MARGIN_DP = 3f
+        const val STATUS_SIDE_FRACTION = 0.45f
+        const val SAMPLE_INTERVAL_MS = 200L
     }
 }
