@@ -6,13 +6,20 @@
  * Please see LICENSE files in the repository root for full details.
  */
 -->
-<!-- The direct-message bubble (ic_chat) struck through -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:pathData="M12,3A9,9 0,1 1,12,21A9,9 0,1 1,12,3Z" />
+    <path
         android:fillColor="#000000"
-        android:pathData="M12.283,1.998C10.119,1.998 8.119,2.707 6.504,3.904L20.098,17.498C21.293,15.883 22,13.883 22,11.719C22,6.351 17.649,1.998 12.283,1.998ZM4.014,6.613C3.096,8.097 2.566,9.846 2.566,11.719C2.566,13.223 2.908,14.648 3.518,15.918L2.045,20.705C1.808,21.474 2.531,22.194 3.299,21.953L8.047,20.471C9.327,21.092 10.764,21.439 12.283,21.439C14.157,21.439 15.907,20.909 17.391,19.99ZM1.3,2.7L2.7,1.3L22.7,21.3L21.3,22.7Z" />
+        android:pathData="M9.6,8.8A1.1,1.1 0,1 1,7.4,8.8A1.1,1.1 0,1 1,9.6,8.8ZM16.6,8.8A1.1,1.1 0,1 1,14.4,8.8A1.1,1.1 0,1 1,16.6,8.8Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M8.7,12L12,14.2L15.3,12L16.4,13.6L13.7,15.4L16.4,17.2L15.3,18.8L12,16.6L8.7,18.8L7.6,17.2L10.3,15.4L7.6,13.6Z" />
 </vector>
