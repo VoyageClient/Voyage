@@ -1720,7 +1720,6 @@
     <string name="hide_advanced">أخفِ المتقدّم</string>
     <string name="create_room_disable_federation_title">امنع أي أحد ليس جزءًا من %s من الانضمام إلى هذه الغرفة أبدًا</string>
     <string name="create_room_disable_federation_description">قد تفعّل هذا إن كانت الغرفة ستُستخدم فقط للتعاون مع فرق داخلية على خادوم المنزل الخاص بك. لا يمكن تغيير هذا لاحقًا.</string>
-    <string name="create_space_alias_hint">عنوان المساحة</string>
     <string name="create_room_alias_already_in_use">هذا العنوان مستخدم من قبل</string>
     <string name="create_room_alias_empty">رجاءً أدخِل عنوانًا للغرفة</string>
     <string name="create_room_alias_invalid">بعض المحارف غير مسموح بها</string>

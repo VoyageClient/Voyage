@@ -1526,7 +1526,6 @@
     <string name="hide_advanced">اعلیٰ چھپائیں</string>
     <string name="create_room_disable_federation_title">%s سے باہر کے کسی بھی شخص کو اس کمرے میں کبھی شامل ہونے سے روکیں</string>
     <string name="create_room_disable_federation_description">اگر کمرہ صرف آپ کے منزلی خادم کی اندرونی ٹیموں کے ساتھ تعاون کے لیے استعمال ہوگا تو آپ اسے فعال کر سکتے ہیں۔ اسے بعد میں تبدیل نہیں کیا جا سکتا۔</string>
-    <string name="create_space_alias_hint">جگہ کا پتہ</string>
     <string name="create_room_alias_already_in_use">یہ پتہ پہلے سے زیرِ استعمال ہے</string>
     <string name="create_room_alias_empty">براہ کرم کمرے کا پتہ فراہم کریں</string>
     <string name="create_room_alias_invalid">کچھ حروف کی اجازت نہیں ہے</string>

@@ -1382,7 +1382,6 @@
     <string name="sent_a_voice_message">音声。</string>
     <string name="create_room_alias_empty">ルームのアドレスを入力してください</string>
     <string name="create_room_alias_already_in_use">このアドレスは既に使用されています</string>
-    <string name="create_space_alias_hint">スペースのアドレス</string>
     <string name="verification_sas_do_not_match">一致していません</string>
     <string name="verification_sas_match">一致しています</string>
     <string name="soft_logout_signin_title">サインイン</string>

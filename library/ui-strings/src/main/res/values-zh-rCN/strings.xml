@@ -1724,7 +1724,6 @@
     <string name="directory_add_a_new_server">添加一个新的服务器</string>
     <string name="directory_your_server">你的服务器</string>
     <string name="error_failed_to_join_room">抱歉，尝试加入 %s 时发生了一个错误</string>
-    <string name="create_space_alias_hint">空间地址</string>
     <string name="space_settings_alias_subtitle">查看和管理这个空间的地址。</string>
     <string name="space_settings_alias_title">空间地址</string>
     <string name="room_upgrade_to_recommended_version">升级到推荐的房间版本</string>

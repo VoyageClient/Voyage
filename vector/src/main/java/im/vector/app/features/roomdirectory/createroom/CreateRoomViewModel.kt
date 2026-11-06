@@ -12,7 +12,6 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
-import com.airbnb.mvrx.Uninitialized
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -26,15 +25,12 @@ import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
-import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
-import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
@@ -142,7 +138,6 @@ class CreateRoomViewModel @AssistedInject constructor(
             is CreateRoomAction.SetName -> setName(action)
             is CreateRoomAction.SetTopic -> setTopic(action)
             is CreateRoomAction.SetVisibility -> setVisibility(action)
-            is CreateRoomAction.SetRoomAliasLocalPart -> setRoomAliasLocalPart(action)
             is CreateRoomAction.SetIsEncrypted -> setIsEncrypted(action)
             is CreateRoomAction.SetEncryptStateEvents -> setState { copy(encryptStateEvents = action.enabled) }
             is CreateRoomAction.Create -> doCreateRoom()
@@ -204,49 +199,11 @@ class CreateRoomViewModel @AssistedInject constructor(
 
     private fun setVisibility(action: CreateRoomAction.SetVisibility) = setState {
         when (action.rule) {
-            RoomJoinRules.PUBLIC -> {
-                copy(
-                        roomJoinRules = RoomJoinRules.PUBLIC,
-                        // Reset any error in the form about alias
-                        asyncCreateRoomRequest = Uninitialized,
-                        isEncrypted = false
-                )
-            }
-            RoomJoinRules.RESTRICTED -> {
-                copy(
-                        roomJoinRules = RoomJoinRules.RESTRICTED,
-                        // Reset any error in the form about alias
-                        asyncCreateRoomRequest = Uninitialized,
-                        isEncrypted = adminE2EByDefault
-                )
-            }
-            RoomJoinRules.KNOCK -> {
-                copy(
-                        roomJoinRules = RoomJoinRules.KNOCK,
-                        // Reset any error in the form about alias
-                        asyncCreateRoomRequest = Uninitialized,
-                        isEncrypted = adminE2EByDefault
-                )
-            }
-//            RoomJoinRules.INVITE,
-//            RoomJoinRules.PRIVATE,
-            else -> {
-                // default to invite
-                copy(
-                        roomJoinRules = RoomJoinRules.INVITE,
-                        isEncrypted = adminE2EByDefault
-                )
-            }
-        }
-    }
-
-    private fun setRoomAliasLocalPart(action: CreateRoomAction.SetRoomAliasLocalPart) {
-        setState {
-            copy(
-                    aliasLocalPart = action.aliasLocalPart,
-                    // Reset any error in the form about alias
-                    asyncCreateRoomRequest = Uninitialized
-            )
+            RoomJoinRules.PUBLIC -> copy(roomJoinRules = RoomJoinRules.PUBLIC, isEncrypted = false)
+            RoomJoinRules.RESTRICTED -> copy(roomJoinRules = RoomJoinRules.RESTRICTED, isEncrypted = adminE2EByDefault)
+            RoomJoinRules.KNOCK -> copy(roomJoinRules = RoomJoinRules.KNOCK, isEncrypted = adminE2EByDefault)
+            // default to invite
+            else -> copy(roomJoinRules = RoomJoinRules.INVITE, isEncrypted = adminE2EByDefault)
         }
     }
 
@@ -256,14 +213,6 @@ class CreateRoomViewModel @AssistedInject constructor(
 
     private fun doCreateRoom() = withState { state ->
         if (state.asyncCreateRoomRequest is Loading || state.asyncCreateRoomRequest is Success) {
-            return@withState
-        }
-
-        if (state.roomJoinRules == RoomJoinRules.PUBLIC && state.aliasLocalPart.isNullOrBlank()) {
-            // we require an alias for public rooms
-            setState {
-                copy(asyncCreateRoomRequest = Fail(CreateRoomFailure.AliasError(RoomAliasError.AliasIsBlank)))
-            }
             return@withState
         }
 
@@ -280,11 +229,7 @@ class CreateRoomViewModel @AssistedInject constructor(
             copy(asyncCreateRoomRequest = Loading())
         }
 
-        val shouldEncrypt = when (state.roomJoinRules) {
-            // we ignore the isEncrypted for public room as the switch is hidden in this case
-            RoomJoinRules.PUBLIC -> false
-            else -> state.isEncrypted ?: state.defaultEncrypted[state.roomJoinRules].orFalse()
-        }
+        val shouldEncrypt = state.encryptionEnabled
         // MSC4362: the details would be created in the clear, so they are sent encrypted afterwards instead.
         val encryptState = shouldEncrypt && state.encryptStateEvents
 
@@ -313,7 +258,6 @@ class CreateRoomViewModel @AssistedInject constructor(
                             visibility = RoomDirectoryVisibility.PUBLIC
                             // Preset
                             preset = CreateRoomPreset.PRESET_PUBLIC_CHAT
-                            roomAliasName = state.aliasLocalPart
                         }
                         RoomJoinRules.RESTRICTED -> {
                             state.parentSpaceId?.let {

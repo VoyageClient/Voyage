@@ -1886,7 +1886,6 @@
     <string name="verification_scan_self_notice">סרוק את הקוד עם המכשיר האחר או החלף וסרוק את הקוד מהמכשיר הקיים</string>
     <string name="sent_a_voice_message">קול.</string>
     <string name="create_space_in_progress">יצירת מרחב…</string>
-    <string name="create_space_alias_hint">כתובת מרחב</string>
     <string name="command_description_lenny">קידומת ( ͡° ͜ʖ ͡°) להודעת טקסט רגילה</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">הצגת מידע שימושי לטיפול בתקלות ביישומון</string>
     <string name="settings_developer_mode_show_info_on_screen_title">הראה מידע על באגים במסך</string>

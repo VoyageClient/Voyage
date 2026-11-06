@@ -1764,7 +1764,6 @@
         <item quantity="other">Enviar vídeos com o tamanho original</item>
     </plurals>
     <string name="error_failed_to_join_room">Desculpe, um erro ocorreu enquanto tentava entrar: %s</string>
-    <string name="create_space_alias_hint">Endereço de espaço</string>
     <string name="space_settings_alias_subtitle">Ver e gerenciar endereços deste espaço.</string>
     <string name="space_settings_alias_title">Endereços de espaço</string>
     <string name="room_upgrade_to_recommended_version">Fazer upgrade para a versão de sala recomendada</string>

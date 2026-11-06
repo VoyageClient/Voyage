@@ -39,7 +39,6 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
-import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import javax.inject.Inject
 
@@ -108,13 +107,6 @@ class CreateRoomFragment :
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    override fun showFailure(throwable: Throwable) {
-        // Note: RoomAliasError are displayed directly in the form
-        if (throwable !is CreateRoomFailure.AliasError) {
-            super.showFailure(throwable)
-        }
-    }
-
     private fun setupWaitingView() {
         views.waitingView.waitingStatusText.isVisible = true
         views.waitingView.waitingStatusText.setText(
@@ -177,10 +169,6 @@ class CreateRoomFragment :
 //    override fun setIsPublic(isPublic: Boolean) {
 //        viewModel.handle(CreateRoomAction.SetIsPublic(isPublic))
 //    }
-
-    override fun setAliasLocalPart(aliasLocalPart: String) {
-        viewModel.handle(CreateRoomAction.SetRoomAliasLocalPart(aliasLocalPart))
-    }
 
     override fun setIsEncrypted(isEncrypted: Boolean) {
         viewModel.handle(CreateRoomAction.SetIsEncrypted(isEncrypted))

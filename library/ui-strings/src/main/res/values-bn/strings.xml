@@ -1571,7 +1571,6 @@
     <string name="hide_advanced">উন্নত লুকান</string>
     <string name="create_room_disable_federation_title">%s-এর অংশ নন এমন কাউকে কখনও এই রুমে যোগ দিতে দেবেন না</string>
     <string name="create_room_disable_federation_description">রুমটি শুধু আপনার হোমসার্ভারের অভ্যন্তরীণ দলগুলির সাথে কাজের জন্য ব্যবহৃত হলে এটি চালু করতে পারেন। এটি পরে পরিবর্তন করা যাবে না।</string>
-    <string name="create_space_alias_hint">স্পেসের ঠিকানা</string>
     <string name="create_room_alias_already_in_use">এই ঠিকানাটি ইতিমধ্যে ব্যবহৃত হচ্ছে</string>
     <string name="create_room_alias_empty">অনুগ্রহ করে একটি রুমের ঠিকানা দিন</string>
     <string name="create_room_alias_invalid">কিছু অক্ষর অনুমোদিত নয়</string>

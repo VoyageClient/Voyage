@@ -1764,7 +1764,6 @@
     <string name="directory_add_a_new_server_error">Server oder Raumliste kann nicht gefunden werden</string>
     <string name="space_settings_alias_title">Space-Adressen</string>
     <string name="space_settings_alias_subtitle">Adressen des Spaces anzeigen und verwalten.</string>
-    <string name="create_space_alias_hint">Space-Adressen</string>
     <string name="error_failed_to_join_room">Beim Versuch %s beizutreten, ist leider ein Fehler aufgetreten</string>
     <string name="room_upgrade_to_recommended_version">Zur empfohlenen Raumversion upgraden</string>
     <string name="joining_replacement_room">Ersatzraum betreten</string>

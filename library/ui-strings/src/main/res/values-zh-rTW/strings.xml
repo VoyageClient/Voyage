@@ -1726,7 +1726,6 @@
     <string name="directory_add_a_new_server">加入新的伺服器</string>
     <string name="directory_your_server">您的伺服器</string>
     <string name="error_failed_to_join_room">抱歉，試圖加入時發生錯誤：%s</string>
-    <string name="create_space_alias_hint">聊天空間位址</string>
     <string name="space_settings_alias_subtitle">檢視與管理此聊天空間的位址。</string>
     <string name="space_settings_alias_title">聊天空間位址</string>
     <string name="room_upgrade_to_recommended_version">升級到建議的聊天室版本</string>

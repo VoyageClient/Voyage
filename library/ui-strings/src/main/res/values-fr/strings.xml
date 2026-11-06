@@ -1764,7 +1764,6 @@
     <string name="directory_add_a_new_server">Ajouter un nouveau serveur</string>
     <string name="directory_your_server">Votre serveur</string>
     <string name="error_failed_to_join_room">Désolé, une erreur est survenue en essayant de rejoindre %s</string>
-    <string name="create_space_alias_hint">Adresse de l’espace</string>
     <string name="space_settings_alias_subtitle">Afficher et gérer les adresses de cet espace.</string>
     <string name="space_settings_alias_title">Adresse de l’espace</string>
     <string name="room_upgrade_to_recommended_version">Mettre à jour vers la version de salon recommandée</string>

@@ -16,7 +16,6 @@ sealed class CreateRoomAction : VectorViewModelAction {
     data class SetName(val name: String) : CreateRoomAction()
     data class SetTopic(val topic: String) : CreateRoomAction()
     data class SetVisibility(val rule: RoomJoinRules) : CreateRoomAction()
-    data class SetRoomAliasLocalPart(val aliasLocalPart: String) : CreateRoomAction()
     data class SetIsEncrypted(val isEncrypted: Boolean) : CreateRoomAction()
     data class SetEncryptStateEvents(val enabled: Boolean) : CreateRoomAction()
 

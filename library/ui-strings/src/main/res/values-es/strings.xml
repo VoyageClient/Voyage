@@ -1812,7 +1812,6 @@
     <string name="create_space_in_progress">Creando espacio…</string>
     <string name="create_room_alias_invalid">Algunos caracteres no están permitidos</string>
     <string name="create_room_alias_empty">Proporcione la dirección de la sala</string>
-    <string name="create_space_alias_hint">Dirección del espacio</string>
     <string name="create_room_disable_federation_description">Puede habilitar esto si la sala solo se usa para colaborar con equipos internos en su servidor doméstico. Esto no se puede cambiar después.</string>
     <string name="command_description_lenny">Antepone ( ͡° ͜ʖ ͡°) a un mensaje de texto sin formato</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostrar información útil para ayudar a depurar la aplicación</string>

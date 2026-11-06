@@ -38,13 +38,12 @@ data class CreateRoomViewState(
         val parentSpaceSummary: RoomSummary? = null,
         val supportsRestricted: Boolean = false,
         val supportsKnock: Boolean = false,
-        val aliasLocalPart: String? = null,
         val isSubSpace: Boolean = false,
         val openAfterCreate: Boolean = true
 ) : MavericksState, AdvancedRoomOptions {
 
     override val encryptionEnabled: Boolean
-        get() = roomJoinRules != RoomJoinRules.PUBLIC && (isEncrypted ?: defaultEncrypted[roomJoinRules] ?: false)
+        get() = isEncrypted ?: defaultEncrypted[roomJoinRules] ?: false
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,
@@ -58,6 +57,5 @@ data class CreateRoomViewState(
      */
     fun isEmpty() = avatarUri == null &&
             roomName.isEmpty() &&
-            roomTopic.isEmpty() &&
-            aliasLocalPart.isNullOrEmpty()
+            roomTopic.isEmpty()
 }

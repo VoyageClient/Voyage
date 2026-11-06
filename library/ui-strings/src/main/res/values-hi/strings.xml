@@ -1520,7 +1520,6 @@
     <string name="hide_advanced">उन्नत छिपाएं</string>
     <string name="create_room_disable_federation_title">%s से बाहर के किसी को भी इस रूम में कभी शामिल होने से रोकें</string>
     <string name="create_room_disable_federation_description">अगर यह रूम केवल आपके होमसर्वर की आंतरिक टीमों के साथ मिलकर काम करने के लिए होगा, तो आप इसे चालू कर सकते हैं। इसे बाद में बदला नहीं जा सकता।</string>
-    <string name="create_space_alias_hint">स्पेस का पता</string>
     <string name="create_room_alias_already_in_use">यह पता पहले से उपयोग में है</string>
     <string name="create_room_alias_empty">कृपया रूम का पता दें</string>
     <string name="create_room_alias_invalid">कुछ वर्णों की अनुमति नहीं है</string>

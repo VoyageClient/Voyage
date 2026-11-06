@@ -8,7 +8,6 @@
 package im.vector.app.features.roomdirectory.createroom
 
 import com.airbnb.epoxy.TypedEpoxyController
-import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
@@ -21,16 +20,12 @@ import im.vector.app.features.form.formSubmitButtonItem
 import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.MatrixConstants
-import org.matrix.android.sdk.api.extensions.orFalse
-import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import javax.inject.Inject
 
 class CreateRoomController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val avatarRenderer: AvatarRenderer,
-        private val roomAliasErrorFormatter: RoomAliasErrorFormatter
+        private val avatarRenderer: AvatarRenderer
 ) : TypedEpoxyController<CreateRoomViewState>() {
 
     var listener: Listener? = null
@@ -162,71 +157,42 @@ class CreateRoomController @Inject constructor(
             )
         }
 
-        if (viewState.roomJoinRules == RoomJoinRules.PUBLIC) {
-            // Room alias for public room
-            formEditTextItem {
-                id("alias")
-                enabled(enableFormElement)
-                value(viewState.aliasLocalPart)
-                suffixText(":" + viewState.homeServerName)
-                prefixText("#")
-                maxLength(MatrixConstants.maxAliasLocalPartLength(viewState.homeServerName))
-                hint(
-                        host.stringProvider.getString(
-                                if (isSpace) CommonStrings.create_space_alias_hint else CommonStrings.room_alias_address_hint
-                        )
-                )
-                errorMessage(
-                        host.roomAliasErrorFormatter.format(
-                                (((viewState.asyncCreateRoomRequest as? Fail)?.error) as? CreateRoomFailure.AliasError)?.aliasError
-                        )
-                )
-                onTextChange { value ->
-                    host.listener?.setAliasLocalPart(value)
-                }
-            }
-            dividerItem {
-                id("dividerAlias")
-            }
-        } else {
-            // Room encryption for private room
-            formSwitchItem {
-                id("encryption")
-                enabled(enableFormElement)
-                title(host.stringProvider.getString(CommonStrings.create_room_encryption_title))
-                summary(
-                        if (viewState.hsAdminHasDisabledE2E) {
-                            host.stringProvider.getString(CommonStrings.settings_hs_admin_e2e_disabled)
-                        } else if (isSpace) {
-                            host.stringProvider.getString(CommonStrings.create_space_encryption_description)
-                        } else {
-                            host.stringProvider.getString(CommonStrings.create_room_encryption_description)
-                        }
-                )
+        formSwitchItem {
+            id("encryption")
+            enabled(enableFormElement)
+            title(host.stringProvider.getString(CommonStrings.create_room_encryption_title))
+            summary(
+                    if (viewState.hsAdminHasDisabledE2E) {
+                        host.stringProvider.getString(CommonStrings.settings_hs_admin_e2e_disabled)
+                    } else if (isSpace) {
+                        host.stringProvider.getString(CommonStrings.create_space_encryption_description)
+                    } else {
+                        host.stringProvider.getString(CommonStrings.create_room_encryption_description)
+                    }
+            )
 
-                switchChecked(viewState.isEncrypted ?: viewState.defaultEncrypted[viewState.roomJoinRules].orFalse())
+            switchChecked(viewState.encryptionEnabled)
 
-                listener { value ->
-                    host.listener?.setIsEncrypted(value)
-                }
+            listener { value ->
+                host.listener?.setIsEncrypted(value)
             }
+        }
 
-            dividerItem {
-                id("dividerEncryption")
-            }
+        dividerItem {
+            id("dividerEncryption")
+        }
 
-            formSwitchItem {
-                id("encryptedState")
-                enabled(enableFormElement && viewState.encryptionEnabled)
-                title(host.stringProvider.getString(CommonStrings.create_room_encrypted_state_title))
-                summary(host.stringProvider.getString(CommonStrings.create_room_encrypted_state_warning))
-                switchChecked(viewState.encryptStateEvents && viewState.encryptionEnabled)
-                listener { value -> host.listener?.setEncryptStateEvents(value) }
-            }
+        formSwitchItem {
+            id("encryptedState")
+            enabled(enableFormElement && viewState.encryptionEnabled)
+            title(host.stringProvider.getString(CommonStrings.create_room_encrypted_state_title))
+            summary(host.stringProvider.getString(CommonStrings.create_room_encrypted_state_warning))
+            switchChecked(viewState.encryptStateEvents && viewState.encryptionEnabled)
+            listener { value -> host.listener?.setEncryptStateEvents(value) }
+        }
 
-            dividerItem {
-                id("dividerEncryptedState")
-            }
+        dividerItem {
+            id("dividerEncryptedState")
         }
 
         formSwitchItem {
@@ -263,7 +229,6 @@ class CreateRoomController @Inject constructor(
         fun onNameChange(newName: String)
         fun onTopicChange(newTopic: String)
         fun selectVisibility()
-        fun setAliasLocalPart(aliasLocalPart: String)
         fun setIsEncrypted(isEncrypted: Boolean)
         fun setEncryptStateEvents(enabled: Boolean)
         fun setDisableFederation(disableFederation: Boolean)

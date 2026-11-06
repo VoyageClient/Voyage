@@ -1308,7 +1308,6 @@
     <string name="create_room_alias_invalid">Bazı karakterlere izin verilmiyor</string>
     <string name="create_room_alias_empty">Lütfen bir oda adresi girin</string>
     <string name="create_room_alias_already_in_use">Bu adres zaten kullanılıyor</string>
-    <string name="create_space_alias_hint">Alan adresi</string>
     <string name="create_room_disable_federation_description">Oda yalnızca ana sunucunuzdaki dahili ekiplerle işbirliği yapmak için kullanılacaksa bunu etkinleştirebilirsiniz. Bu daha sonra değiştirilemez.</string>
     <string name="create_room_disable_federation_title">%s üyesi olmayan herkesin bu odaya katılmasını engelle</string>
     <string name="show_advanced">Gelişmişleri göster</string>

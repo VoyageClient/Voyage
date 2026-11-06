@@ -1700,7 +1700,6 @@
     <string name="verification_scan_self_emoji_subtitle">Проверьте, сравнив эмодзи</string>
     <string name="verification_scan_with_this_device">Сканирование с помощью этого устройства</string>
     <string name="verification_scan_self_notice">Сканируйте код с помощью другого устройства или переключитесь и сканируйте с помощью этого устройства</string>
-    <string name="create_space_alias_hint">Адрес пространства</string>
     <string name="error_file_too_big_simple">Файл слишком большой для загрузки.</string>
     <string name="search_hint_room_name">Поиск по названию</string>
     <string name="send_file_step_compressing_video">Сжатие видео %d%%</string>

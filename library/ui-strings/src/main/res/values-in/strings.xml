@@ -1321,7 +1321,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="create_room_alias_invalid">Beberapa karakter tidak diperbolehkan</string>
     <string name="create_room_alias_empty">Mohon memberikan alamat ruangan</string>
     <string name="create_room_alias_already_in_use">Alamat ini sudah digunakan</string>
-    <string name="create_space_alias_hint">Alamat space</string>
     <string name="soft_logout_signin_notice">Admin homeserver Anda (%1$s) telah mengeluarkan Anda dari akun Anda %2$s (%3$s).</string>
     <string name="login_signup_to">Daftar ke %1$s</string>
     <string name="create_room_disable_federation_description">Anda mungkin mengaktifkannya jika ruangan ini digunakan untuk berkolaborasi dengan tim internal di homeserver Anda. Ini tidak dapat diubah nanti.</string>
