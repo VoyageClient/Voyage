@@ -215,7 +215,7 @@ class RoomMemberProfileController @Inject constructor(
             buildMutualRoomsAction(state)
         }
         buildPersonalizationSection(state)
-        buildDestructiveSection(ignoreActionTitle, redactOwn = false)
+        buildDestructiveSection(ignoreActionTitle)
     }
 
     private fun buildRoomMemberActions(state: RoomMemberProfileViewState) {
@@ -225,7 +225,7 @@ class RoomMemberProfileController @Inject constructor(
         buildConversationSection(state)
         buildPersonalizationSection(state)
         buildAdminSection(state)
-        buildDestructiveSection(state.buildIgnoreActionTitle().takeIf { !state.isMine }, redactOwn = state.isMine)
+        buildDestructiveSection(state.buildIgnoreActionTitle().takeIf { !state.isMine })
     }
 
     private fun buildDirectMessageAction() {
@@ -238,29 +238,17 @@ class RoomMemberProfileController @Inject constructor(
         )
     }
 
-    private fun buildDestructiveSection(ignoreActionTitle: String?, redactOwn: Boolean) {
-        if (ignoreActionTitle == null && !redactOwn) return
+    private fun buildDestructiveSection(ignoreActionTitle: String?) {
+        if (ignoreActionTitle == null) return
         buildProfileSection("", id = "destructive")
-        if (ignoreActionTitle != null) {
-            buildProfileAction(
-                    id = "ignore",
-                    title = ignoreActionTitle,
-                    destructive = true,
-                    editable = false,
-                    icon = R.drawable.ic_room_profile_block,
-                    action = { callback?.onIgnoreClicked() }
-            )
-        }
-        if (redactOwn) {
-            buildProfileAction(
-                    id = "redact_all",
-                    editable = false,
-                    destructive = true,
-                    icon = R.drawable.ic_delete,
-                    title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
-                    action = { callback?.onRedactAllClicked() }
-            )
-        }
+        buildProfileAction(
+                id = "ignore",
+                title = ignoreActionTitle,
+                destructive = true,
+                editable = false,
+                icon = R.drawable.ic_room_profile_block,
+                action = { callback?.onIgnoreClicked() }
+        )
     }
 
     private fun buildPersonalizationSection(state: RoomMemberProfileViewState) {
@@ -465,25 +453,22 @@ class RoomMemberProfileController @Inject constructor(
     }
 
     private fun buildAdminSection(state: RoomMemberProfileViewState) {
-        val powerLevelsStr = state.userPowerLevelString() ?: return
-        val roomPowerLevels = state.roomPowerLevels ?: return
-        val userPowerLevel = roomPowerLevels.getUserPowerLevel(state.userId)
-        val myPowerLevel = roomPowerLevels.getUserPowerLevel(session.myUserId)
-        if (userPowerLevel !is UserPowerLevel.Value) return
-        val membership = state.asyncMembership() ?: return
-        // Kick/ban/role can only be applied to someone you outrank. Redacting another user's messages,
-        // however, depends only on your own redact power level — not the target's rank — so it must also
-        // show for fellow moderators/admins. Self-redaction lives in buildDestructiveSection.
-        val hasPowerOverTarget = state.isMine || myPowerLevel > userPowerLevel
+        val powerLevelsStr = state.userPowerLevelString()
+        val roomPowerLevels = state.roomPowerLevels
+        val userPowerLevel = roomPowerLevels?.getUserPowerLevel(state.userId)
+        val myPowerLevel = roomPowerLevels?.getUserPowerLevel(session.myUserId)
+        val membership = state.asyncMembership()
+        val hasPowerOverTarget = userPowerLevel is UserPowerLevel.Value && powerLevelsStr != null && membership != null &&
+                (state.isMine || (myPowerLevel != null && myPowerLevel > userPowerLevel))
         val canKick = hasPowerOverTarget && !state.isMine && state.actionPermissions.canKick
         val canBan = hasPowerOverTarget && !state.isMine && state.actionPermissions.canBan
         val canEditPowerLevel = hasPowerOverTarget && state.actionPermissions.canEditPowerLevel
-        val canRedactAll = !state.isMine && state.actionPermissions.canRedact
+        val canRedactAll = state.isMine || state.actionPermissions.canRedact
         val canMute = canEditPowerLevel && !state.isMine && (membership == Membership.JOIN || membership == Membership.INVITE)
         if (canKick || canBan || canEditPowerLevel || canRedactAll) {
             buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_administration))
         }
-        if (canEditPowerLevel) {
+        if (canEditPowerLevel && userPowerLevel is UserPowerLevel.Value) {
             buildProfileAction(
                     id = "edit_power_level",
                     editable = true,
@@ -504,7 +489,7 @@ class RoomMemberProfileController @Inject constructor(
             )
         }
         if (canMute) {
-            val content = roomPowerLevels.powerLevelsContent
+            val content = roomPowerLevels?.powerLevelsContent
             if (MuteLevels.isMuted(content, state.userId)) {
                 buildProfileAction(
                         id = "unmute",
