@@ -11,7 +11,6 @@ import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.ItemStyle
-import im.vector.app.core.ui.list.genericButtonItem
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedState
@@ -122,11 +121,6 @@ class RoomJoinRuleAdvancedController @Inject constructor(
                 interactionListener?.didSelectRule(RoomJoinRules.PUBLIC)
             }
             add(it)
-        }
-
-        genericButtonItem {
-            id("save")
-            text("")
         }
     }
 }

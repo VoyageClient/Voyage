@@ -34,6 +34,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Room server ACLs**: view and edit the room's server ACL list from the room settings.
 
+- **Redesigned room and user profiles**: a cleaner, better-looking layout with options grouped into clear sections, carried over to room and space settings.
+
 - **Space creation like room creation**: creating a space is the room-creation form itself, with space wording and a rounded-square avatar. It is a single screen that leads straight to adding rooms.
 
 - **Tombstoning**: an overhauled room-tombstoning flow, driven by `/tombstone`.

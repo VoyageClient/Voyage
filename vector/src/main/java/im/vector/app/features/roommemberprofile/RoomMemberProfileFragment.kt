@@ -38,7 +38,6 @@ import com.airbnb.mvrx.Uninitialized
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -62,6 +61,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.ui.views.ProfileToolbarBackground
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
@@ -133,9 +133,9 @@ class RoomMemberProfileFragment :
     private val viewModel: RoomMemberProfileViewModel by fragmentViewModel()
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
-    private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
+    private var toolbarBackground: ProfileToolbarBackground? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
-    private var currentBannerUrl: String? = null
+    private var hasBanner = false
     private var lastRenderedAvatarKey: List<Any?>? = null
     private var nameColorAnimator: ValueAnimator? = null
     private var nameColorTarget: Int? = null
@@ -191,20 +191,15 @@ class RoomMemberProfileFragment :
                 )
         )
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(appBarStateChangeListener)
+        toolbarBackground = ProfileToolbarBackground(views.matrixProfileToolbar, views.matrixProfileCollapsingToolbarLayout).also {
+            views.matrixProfileAppBarLayout.addOnOffsetChangedListener(it)
+        }
         bannerUiHelper = ProfileBannerUiHelper(
                 vectorBaseActivity,
                 views.matrixProfileToolbar,
                 views.matrixProfileCollapsingToolbarLayout,
-                headerViews.memberProfileBannerScrim
-        )
-        bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
-            override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
-                if (!coverActive) {
-                    bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
-                }
-            }
-        }
-        views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
+                headerViews.memberProfileBannerView
+        ).also { views.matrixProfileAppBarLayout.addOnOffsetChangedListener(it) }
         headerViews.memberProfileBannerView.debouncedClicks { onBannerClicked() }
         // Raise the cover here, before the enter animation runs: raising it in the first invalidate()
         // lets the empty page show during the slide-in.
@@ -319,12 +314,18 @@ class RoomMemberProfileFragment :
         notesInputProxy = null
         lastRenderedAvatarKey = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
-        views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
+        toolbarBackground?.let {
+            views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(it)
+            it.release()
+        }
+        toolbarBackground = null
+        bannerUiHelper?.let {
+            views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(it)
+            it.restore()
+        }
+        bannerUiHelper = null
         roomMemberProfileController.callback = null
         appBarStateChangeListener = null
-        bannerAppBarStateChangeListener = null
-        bannerUiHelper?.restore()
-        bannerUiHelper = null
         views.matrixProfileRecyclerView.cleanup()
         super.onDestroyView()
     }
@@ -332,6 +333,10 @@ class RoomMemberProfileFragment :
     override fun getMenuRes() = R.menu.vector_room_member_profile
 
     override fun menuLifecycleState() = Lifecycle.State.STARTED
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        bannerUiHelper?.onMenuCreated(menu)
+    }
 
     override fun handlePrepareMenu(menu: Menu) {
         // Its entries are all developer tools, so without developer mode the button would open nothing.
@@ -457,19 +462,15 @@ class RoomMemberProfileFragment :
                 // Follow the same hiding rule as the avatar
                 val currentBannerMedia = state.globalBannerMedia
                         ?.takeUnless { state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences) }
-                currentBannerUrl = currentBannerMedia?.url
-                val hasBanner = currentBannerUrl != null
+                hasBanner = currentBannerMedia?.url != null
                 headerViews.memberProfileBannerView.isVisible = hasBanner
-                headerViews.memberProfileBannerScrim.isVisible = hasBanner
                 headerViews.memberProfileBannerOverlap.isVisible = hasBanner
-                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView)
-                bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
                 // Deferred while the cover is up: this flips the window to draw under the status bar,
                 // which drops the root's top padding and yanks the cover (and its back arrow) up
                 // behind the status bar. Applied once the cover is gone instead.
-                if (!coverActive) {
-                    bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
-                }
+                if (!coverActive) bannerUiHelper?.update(hasBanner)
+                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView)
+                bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
 
                 if (state.isRoomEncrypted && state.userCryptoInfoLoaded) {
                     headerViews.memberProfileDecorationImageView.isVisible = true
@@ -549,12 +550,8 @@ class RoomMemberProfileFragment :
         // Settle the page in its final position BEHIND the cover, since with a banner this drops the
         // root's top padding and would otherwise jump the page up once the cover is gone. The cover
         // keeps its own contents put by taking that padding on itself.
-        val hasBanner = currentBannerUrl != null
         cover.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
-        bannerUiHelper?.update(
-                hasBanner,
-                bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED
-        )
+        bannerUiHelper?.update(hasBanner)
         if (cover.isVisible && SystemClock.uptimeMillis() - coverShownAt < COVER_INSTANT_MS) {
             // Up for a frame or two only: fading it out would read as a flash of its own.
             cover.isVisible = false

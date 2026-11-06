@@ -6,9 +6,8 @@
     android:layout_height="wrap_content"
     android:background="?android:colorBackground"
     android:paddingLeft="16dp"
-    android:paddingTop="16dp"
+    android:paddingTop="4dp"
     android:paddingRight="16dp"
-    android:paddingBottom="16dp"
     tools:viewBindingIgnore="true">
 
     <im.vector.app.core.ui.views.NonScrollingTextView
@@ -37,8 +36,7 @@
     <FrameLayout
         android:id="@+id/expandableToggle"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="4dp"
+        android:layout_height="36dp"
         android:contentDescription="@string/merged_events_expand"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/itemProfileSectionView"
-    style="@style/Widget.Vector.TextView.Title"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="?vctr_header_background"
-    android:gravity="bottom"
-    android:paddingStart="16dp"
-    android:paddingLeft="16dp"
-    android:paddingEnd="16dp"
-    android:paddingRight="16dp"
-    android:paddingBottom="8dp"
-    android:textColor="?vctr_content_primary"
-    android:textStyle="bold"
-    tools:text="Security"
-    tools:viewBindingIgnore="true" />
+    android:layout_height="wrap_content"
+    android:background="?android:colorBackground"
+    android:orientation="vertical"
+    tools:viewBindingIgnore="true">
 
+    <!-- Stands in for the label in an untitled section -->
+    <Space
+        android:id="@+id/itemProfileSectionSpacer"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/itemProfileSectionView"
+        style="@style/Widget.Vector.TextView.Body.Medium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="4dp"
+        android:textColor="?vctr_content_secondary"
+        tools:text="Security" />
+
+</LinearLayout>

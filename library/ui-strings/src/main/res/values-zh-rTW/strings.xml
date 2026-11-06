@@ -1081,12 +1081,8 @@
 \n您的訊息已被加密保護，只有您和收件人能使用唯一的金鑰來解密。</string>
     <string name="room_profile_section_security">安全性</string>
     <string name="room_profile_section_security_learn_more">了解更多</string>
-    <string name="room_profile_section_more">更多</string>
     <string name="room_profile_section_more_settings">聊天室設定</string>
     <string name="room_profile_section_more_notifications">通知</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="other">%1$d 位夥伴</item>
-    </plurals>
     <string name="room_profile_section_more_uploads">上傳項目</string>
     <string name="room_profile_section_more_leave">離開聊天室</string>
     <string name="room_profile_leaving_room">正在離開聊天室…</string>
@@ -1341,7 +1337,6 @@
     <string name="login_server_url_form_common_notice">輸入您想要使用的伺服器位址</string>
     <string name="login_signin_matrix_id_password_notice">如果您不知道密碼，請返回並重設。</string>
     <string name="send_a_sticker">貼圖。</string>
-    <string name="room_profile_section_admin">管理員動作</string>
     <string name="room_member_power_level_default_in">在 %1$s 中的預設</string>
     <string name="settings_hs_admin_e2e_disabled">您的伺服器管理員已在私密聊天室與私人訊息中預設停用端對端加密。</string>
     <string name="bootstrap_info_text_2">輸入僅有您知道的安全密語，來保護伺服器上與您有關的祕密資訊。</string>
@@ -1455,7 +1450,6 @@
     <string name="direct_room_created_summary_item">%s 已加入。</string>
     <string name="direct_room_encryption_enabled_tile_description">此聊天中的訊息有端對端加密。</string>
     <string name="direct_room_profile_section_more_leave">離開</string>
-    <string name="direct_room_profile_section_more_settings">設定</string>
     <string name="direct_room_profile_encrypted_subtitle">這裡的訊息有端到端加密。
 \n
 \n您的訊息已被加密保護，只有您和收件人能使用唯一的金鑰來解密。</string>
@@ -1504,7 +1498,6 @@
     <string name="this_is_the_beginning_of_dm">這是您與 %s 私人訊息紀錄的開頭。</string>
     <string name="this_is_the_beginning_of_room_no_name">這是此對話的開頭。</string>
     <string name="this_is_the_beginning_of_room">這是 %s 的開頭。</string>
-    <string name="room_settings_enable_encryption_no_permission">您沒有在此聊天室中啟用加密的權限。</string>
     <string name="create_room_in_progress">正在建立聊天室…</string>
     <string name="create_room_alias_invalid">不允許使用某些字元</string>
     <string name="create_room_alias_empty">請提供聊天室位址</string>
@@ -1547,7 +1540,6 @@
     <string name="room_alias_published_alias_main">這是主要位址</string>
     <string name="room_alias_published_alias_subtitle">任何伺服器上的任何人，都可以用已發佈的位址加入您的聊天室。要發佈位址，必須先將其設為本地位址才行。</string>
     <string name="room_alias_published_alias_title">已發佈的位址</string>
-    <string name="room_settings_alias_subtitle">檢視並管理此聊天室的位址，以及其在聊天室目錄中的可見性。</string>
     <string name="room_settings_alias_title">聊天室位址</string>
     <string name="room_settings_room_access_title">聊天室存取權</string>
     <string name="room_settings_room_read_history_dialog_subtitle">對可閱讀歷史訊息的使用者的變更，將僅適用於此聊天室的新訊息。現有訊息的顯示狀態將保持不變。</string>
@@ -2822,9 +2814,6 @@
     <string name="notice_room_knock_denied_by_you">您已拒絕 %1$s 的加入申請</string>
     <string name="notice_room_knock_cancelled">%1$s 已取消他們的加入申請</string>
     <string name="notice_room_knock_cancelled_by_you">您已取消您的加入申請</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="other">%d 個加入申請</item>
-    </plurals>
     <string name="room_knock_requests_title">加入申請</string>
     <string name="room_knock_requests_empty">目前沒有人申請加入。</string>
     <string name="room_knock_request_accept">接受</string>
@@ -3578,4 +3567,40 @@
     <string name="settings_room_public_badge_summary">在公開聊天室的大頭貼上顯示地球圖示</string>
     <string name="settings_room_list_badges">聊天室清單中的徽章</string>
     <string name="settings_room_list_badges_summary">在聊天室清單中也顯示上方啟用的徽章</string>
+    <string name="room_profile_section_people">成員</string>
+    <string name="room_profile_section_shared_content">共享內容</string>
+    <string name="room_profile_section_preferences">偏好設定</string>
+    <string name="room_profile_section_administration">管理</string>
+    <string name="room_profile_section_conversation">對話</string>
+    <string name="room_settings_section_details">詳細資料</string>
+    <string name="room_settings_section_access">存取權</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="other">%d 位成員</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="other">%d 位已受邀</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s，%2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d 個待處理</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="other">%d 位使用者</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="other">%d 則訊息</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="other">%d 個圖片包</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">此聊天室沒有圖片包</string>
+    <string name="room_profile_pinned_none">沒有釘選的內容</string>
+    <string name="room_profile_uploads_summary">相片、影片和檔案</string>
+    <string name="room_profile_polls_summary">進行中和已結束的投票</string>
+    <string name="room_profile_personalization_summary">你在此處的個人資料、時間軸和媒體</string>
+    <string name="room_profile_addresses_main_only">僅主要位址</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="other">主要位址和 %d 個別名</item>
+    </plurals>
+    <string name="room_profile_addresses_none">沒有已發布的位址</string>
 </resources>

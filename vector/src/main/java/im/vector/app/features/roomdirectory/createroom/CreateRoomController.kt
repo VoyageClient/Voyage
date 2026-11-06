@@ -9,9 +9,10 @@ package im.vector.app.features.roomdirectory.createroom
 
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Loading
-import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.list.verticalMarginItem
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.discovery.settingsSectionTitleItem
 import im.vector.app.features.form.formEditTextItem
 import im.vector.app.features.form.formEditableAvatarItem
@@ -25,7 +26,8 @@ import javax.inject.Inject
 
 class CreateRoomController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val avatarRenderer: AvatarRenderer
+        private val avatarRenderer: AvatarRenderer,
+        private val dimensionConverter: DimensionConverter,
 ) : TypedEpoxyController<CreateRoomViewState>() {
 
     var listener: Listener? = null
@@ -56,6 +58,16 @@ class CreateRoomController @Inject constructor(
                 clickListener { host.listener?.onAvatarChange() }
                 deleteListener { host.listener?.onAvatarDelete() }
             }
+        }
+
+        settingsSectionTitleItem {
+            id("details")
+            titleResId(CommonStrings.room_settings_section_details)
+        }
+        // Room for the outlined field's floating label under the section title
+        verticalMarginItem {
+            id("details_margin")
+            heightInPx(host.dimensionConverter.dpToPx(8))
         }
 
         formEditTextItem {
@@ -98,7 +110,6 @@ class CreateRoomController @Inject constructor(
                         id = "joinRule",
                         title = stringProvider.getString(CommonStrings.room_settings_room_access_private_title),
                         subtitle = stringProvider.getString(CommonStrings.room_settings_room_access_private_description),
-                        divider = true,
                         editable = true,
                         action = { host.listener?.selectVisibility() }
                 )
@@ -114,7 +125,6 @@ class CreateRoomController @Inject constructor(
                                     CommonStrings.room_settings_room_access_knock_description
                                 }
                         ),
-                        divider = true,
                         editable = true,
                         action = { host.listener?.selectVisibility() }
                 )
@@ -130,7 +140,6 @@ class CreateRoomController @Inject constructor(
                                     CommonStrings.room_settings_room_access_public_description
                                 }
                         ),
-                        divider = true,
                         editable = true,
                         action = { host.listener?.selectVisibility() }
                 )
@@ -140,7 +149,6 @@ class CreateRoomController @Inject constructor(
                         id = "joinRule",
                         title = stringProvider.getString(CommonStrings.room_settings_room_access_restricted_title),
                         subtitle = stringProvider.getString(CommonStrings.room_create_member_of_space_name_can_join, viewState.parentSpaceSummary?.displayName),
-                        divider = true,
                         editable = true,
                         action = { host.listener?.selectVisibility() }
                 )
@@ -178,10 +186,6 @@ class CreateRoomController @Inject constructor(
             }
         }
 
-        dividerItem {
-            id("dividerEncryption")
-        }
-
         formSwitchItem {
             id("encryptedState")
             enabled(enableFormElement && viewState.encryptionEnabled)
@@ -191,10 +195,6 @@ class CreateRoomController @Inject constructor(
             listener { value -> host.listener?.setEncryptStateEvents(value) }
         }
 
-        dividerItem {
-            id("dividerEncryptedState")
-        }
-
         formSwitchItem {
             id("federation")
             enabled(enableFormElement)
@@ -202,10 +202,6 @@ class CreateRoomController @Inject constructor(
             summary(host.stringProvider.getString(CommonStrings.create_room_disable_federation_description))
             switchChecked(viewState.disableFederation)
             listener { value -> host.listener?.setDisableFederation(value) }
-        }
-
-        dividerItem {
-            id("dividerFederation")
         }
 
         buildAdvancedRoomOptions(

@@ -11,13 +11,13 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import com.airbnb.epoxy.EpoxyController
 import im.vector.app.core.epoxy.ClickListener
-import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.features.home.AvatarRenderer
 import org.matrix.android.sdk.api.util.MatrixItem
 
-fun EpoxyController.buildProfileSection(title: String) {
+/** A blank [title] leaves only a gap, for a trailing group such as the destructive actions. */
+fun EpoxyController.buildProfileSection(title: String, id: String = title) {
     profileSectionItem {
-        id("section_$title")
+        id("section_$id")
         title(title)
     }
 }
@@ -31,7 +31,6 @@ fun EpoxyController.buildProfileAction(
         tintIcon: Boolean = true,
         @DrawableRes editableRes: Int? = null,
         destructive: Boolean = false,
-        divider: Boolean = true,
         action: ClickListener? = null,
         @DrawableRes accessory: Int = 0,
         accessoryMatrixItem: MatrixItem? = null,
@@ -56,11 +55,5 @@ fun EpoxyController.buildProfileAction(
         accessoryColor(accessoryColor)
         avatarRenderer(avatarRenderer)
         listener(action)
-    }
-
-    if (divider) {
-        dividerItem {
-            id("divider_$title")
-        }
     }
 }

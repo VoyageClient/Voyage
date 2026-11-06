@@ -470,7 +470,6 @@
     <string name="room_alias_published_alias_main">זו הכתובת העיקרית</string>
     <string name="room_alias_published_alias_subtitle">כל אחד מכל שרת יכול להשתמש בכתובות שפורסמו כדי להצטרף לחדר שלך. כדי לפרסם כתובת, תחילה יש להגדיר אותה ככתובת מקומית.</string>
     <string name="room_alias_published_alias_title">כתובות שפורסמו</string>
-    <string name="room_settings_alias_subtitle">ראה וניהול כתובות של חדר זה, והנראות שלו בספריית החדרים.</string>
     <string name="room_settings_alias_title">כתובות החדר</string>
     <string name="room_settings_room_access_title">גישה לחדר</string>
     <string name="room_settings_room_read_history_dialog_subtitle">שינויים במי שיכול לקרוא היסטוריה יחולו רק על הודעות עתידיות בחדר זה. נראות ההיסטוריה הקיימת לא תשתנה.</string>
@@ -943,10 +942,7 @@
     <string name="room_profile_section_more_leave">יציאה מהחדר</string>
     <string name="room_profile_section_more_uploads">העלאות</string>
     <string name="room_profile_section_more_notifications">התראות</string>
-    <string name="direct_room_profile_section_more_settings">הגדרות</string>
     <string name="room_profile_section_more_settings">הגדרות חדר</string>
-    <string name="room_profile_section_admin">פעולות מנהל</string>
-    <string name="room_profile_section_more">עוד</string>
     <string name="room_profile_section_security_learn_more">למד עוד</string>
     <string name="room_profile_section_security">אבטחה</string>
     <string name="direct_room_profile_encrypted_subtitle">ההודעות כאן מוצפנות מקצה לקצה.
@@ -1066,12 +1062,6 @@
     <string name="room_member_power_level_users">משתמשים</string>
     <string name="room_member_power_level_invites">הזמנות</string>
     <string name="room_member_power_level_moderators">מנחים</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">אדם אחד</item>
-        <item quantity="two">%1$d אנשים</item>
-        <item quantity="many">%1$d אנשים</item>
-        <item quantity="other">%1$d אנשים</item>
-    </plurals>
     <plurals name="login_error_limit_exceeded_retry_after">
         <item quantity="one">יותר מדי בקשות נשלחו. תוכל לנסות שוב בעוד%1$d שנייה …</item>
         <item quantity="two">יותר מדי בקשות נשלחו. תוכלו לנסות שוב בעוד%1$d שניות …</item>
@@ -1230,7 +1220,6 @@
     <string name="room_settings_enable_encryption_dialog_submit">אפשר הצפנה</string>
     <string name="room_settings_enable_encryption_dialog_content">לאחר הפעלתו, לא ניתן להשבית את ההצפנה לחדר. הודעות שנשלחות בחדר מוצפן אינן נראות על ידי השרת, רק על ידי משתתפי החדר. הפעלת הצפנה עשויה למנוע בוטים וגשרים רבים לעבוד כראוי.</string>
     <string name="room_settings_enable_encryption_dialog_title">לאפשר הצפנה\?</string>
-    <string name="room_settings_enable_encryption_no_permission">אין לך הרשאה לאפשר הצפנה בחדר זה.</string>
     <string name="room_settings_enable_encryption">אפשר הצפנה מקצה לקצה …</string>
     <string name="settings_category_timeline">ציר הזמן</string>
     <string name="command_description_rainbow_emote">שולח את הטקסט הנתון בצבע קשת</string>
@@ -2940,12 +2929,6 @@
     <string name="notice_room_knock_denied_by_you">דחית את בקשת ההצטרפות של %1$s</string>
     <string name="notice_room_knock_cancelled">%1$s ביטל את בקשת ההצטרפות שלו</string>
     <string name="notice_room_knock_cancelled_by_you">ביטלת את בקשת ההצטרפות שלך</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">בקשת הצטרפות אחת</item>
-        <item quantity="two">שתי בקשות הצטרפות</item>
-        <item quantity="many">%d בקשות הצטרפות</item>
-        <item quantity="other">%d בקשות הצטרפות</item>
-    </plurals>
     <string name="room_knock_requests_title">בקשות הצטרפות</string>
     <string name="room_knock_requests_empty">אף אחד לא מבקש להצטרף כרגע.</string>
     <string name="room_knock_request_accept">אשר</string>
@@ -3733,4 +3716,61 @@
     <string name="settings_room_public_badge_summary">הצג גלובוס על תמונות הפרופיל של חדרים ציבוריים</string>
     <string name="settings_room_list_badges">תגים ברשימת החדרים</string>
     <string name="settings_room_list_badges_summary">הצג את התגים שהופעלו למעלה גם ברשימת החדרים</string>
+    <string name="room_profile_section_people">אנשים</string>
+    <string name="room_profile_section_shared_content">תוכן משותף</string>
+    <string name="room_profile_section_preferences">העדפות</string>
+    <string name="room_profile_section_administration">ניהול</string>
+    <string name="room_profile_section_conversation">שיחה</string>
+    <string name="room_settings_section_details">פרטים</string>
+    <string name="room_settings_section_access">גישה</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">חבר אחד</item>
+        <item quantity="two">שני חברים</item>
+        <item quantity="many">%d חברים</item>
+        <item quantity="other">%d חברים</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">מוזמן אחד</item>
+        <item quantity="two">שני מוזמנים</item>
+        <item quantity="many">%d מוזמנים</item>
+        <item quantity="other">%d מוזמנים</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">בקשה אחת ממתינה</item>
+        <item quantity="two">שתי בקשות ממתינות</item>
+        <item quantity="many">%d ממתינות</item>
+        <item quantity="other">%d ממתינות</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">משתמש אחד</item>
+        <item quantity="two">שני משתמשים</item>
+        <item quantity="many">%d משתמשים</item>
+        <item quantity="other">%d משתמשים</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">הודעה אחת</item>
+        <item quantity="two">שתי הודעות</item>
+        <item quantity="many">%d הודעות</item>
+        <item quantity="other">%d הודעות</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">חבילה אחת</item>
+        <item quantity="two">שתי חבילות</item>
+        <item quantity="many">%d חבילות</item>
+        <item quantity="other">%d חבילות</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">אין חבילות בחדר הזה</string>
+    <string name="room_profile_pinned_none">אין הודעות מוצמדות</string>
+    <string name="room_profile_uploads_summary">תמונות, סרטונים וקבצים</string>
+    <string name="room_profile_polls_summary">סקרים פעילים וקודמים</string>
+    <string name="room_profile_personalization_summary">הפרופיל שלך כאן, ציר הזמן ומדיה</string>
+    <string name="room_profile_addresses_main_only">הכתובת הראשית בלבד</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">הכתובת הראשית וכינוי אחד</item>
+        <item quantity="two">הכתובת הראשית ושני כינויים</item>
+        <item quantity="many">הכתובת הראשית ו־%d כינויים</item>
+        <item quantity="other">הכתובת הראשית ו־%d כינויים</item>
+    </plurals>
+    <string name="room_profile_addresses_none">אין כתובת מפורסמת</string>
 </resources>

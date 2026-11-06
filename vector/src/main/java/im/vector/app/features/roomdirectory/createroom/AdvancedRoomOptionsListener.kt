@@ -49,7 +49,6 @@ fun EpoxyController.buildAdvancedRoomOptions(
                 id = "roomVersion",
                 title = stringProvider.getString(CommonStrings.create_room_version_title),
                 subtitle = options.selectedRoomVersionLabel(stringProvider),
-                divider = true,
                 editable = true,
                 action = { if (enabled) listener?.selectRoomVersion() }
         )
@@ -60,7 +59,6 @@ fun EpoxyController.buildAdvancedRoomOptions(
                 id = "powerLevel",
                 title = stringProvider.getString(CommonStrings.create_room_power_level_title),
                 subtitle = options.myPowerLevelOverride?.toString(),
-                divider = true,
                 editable = true,
                 action = { if (enabled) listener?.selectMyPowerLevel() }
         )
@@ -76,7 +74,6 @@ fun EpoxyController.buildAdvancedRoomOptions(
                     options.initialStateJson.takeIf { it.isNotBlank() }
                 },
                 destructive = options.initialStateJsonInvalid,
-                divider = false,
                 editable = true,
                 action = { if (enabled) listener?.editInitialState() }
         )

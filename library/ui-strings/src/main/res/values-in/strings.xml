@@ -818,7 +818,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_alias_published_alias_title">Alamat yang Dipublikasikan</string>
     <string name="space_settings_alias_subtitle">Lihat dan kelola alamat space ini.</string>
     <string name="space_settings_alias_title">Alamat space</string>
-    <string name="room_settings_alias_subtitle">Lihat dan kelola alamat ruangan ini dan visibilitasnya di direktori ruangan.</string>
     <string name="room_settings_alias_title">Alamat ruangan</string>
     <string name="room_settings_guest_access_title">Izinkan tamu untuk bergabung</string>
     <string name="room_settings_room_access_title">Akses ruangan</string>
@@ -1243,7 +1242,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_settings_enable_encryption_dialog_submit">Aktifkan enkripsi</string>
     <string name="room_settings_enable_encryption_dialog_content">Ketika diaktifkan, enkripsi tidak dapat dinonaktifkan. Pesan yang dikirim di ruangan terenkripsi tidak dapat dilihat oleh servernya, hanya anggota ruangan. Mengaktifkan enkripsi mungkin mencegah banyaknya bot dan jembatan bekerja dengan seharusnya.</string>
     <string name="room_settings_enable_encryption_dialog_title">Aktifkan enkripsi\?</string>
-    <string name="room_settings_enable_encryption_no_permission">Anda tidak memiliki izin untuk mengaktifkan enkripsi ujung ke ujung di ruangan ini.</string>
     <string name="room_settings_enable_encryption">Aktifkan enkripsi ujung ke ujung…</string>
     <string name="settings_category_timeline">Lini Masa</string>
     <string name="command_description_rainbow_emote">Mengirim emote yang dicantum berwarna pelangi</string>
@@ -1266,14 +1264,8 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="direct_room_profile_section_more_leave">Tinggalkan</string>
     <string name="room_profile_section_more_leave">Tinggalkan Ruangan</string>
     <string name="room_profile_section_more_uploads">Kiriman</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="other">%1$d orang</item>
-    </plurals>
     <string name="room_profile_section_more_notifications">Notifikasi</string>
-    <string name="direct_room_profile_section_more_settings">Pengaturan</string>
     <string name="room_profile_section_more_settings">Pengaturan ruangan</string>
-    <string name="room_profile_section_admin">Aksi Admin</string>
-    <string name="room_profile_section_more">Lebih banyak</string>
     <string name="room_profile_section_security_learn_more">Pelajari lebih lanjut</string>
     <string name="room_profile_section_security">Keamanan</string>
     <string name="direct_room_profile_encrypted_subtitle">Pesan di ruangan ini dienkripsi secara ujung ke ujung.
@@ -2819,9 +2811,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="notice_room_knock_denied_by_you">Anda menolak permintaan bergabung %1$s</string>
     <string name="notice_room_knock_cancelled">%1$s membatalkan permintaan bergabungnya</string>
     <string name="notice_room_knock_cancelled_by_you">Anda membatalkan permintaan bergabung Anda</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="other">%d permintaan bergabung</item>
-    </plurals>
     <string name="room_knock_requests_title">Permintaan bergabung</string>
     <string name="room_knock_requests_empty">Tidak ada yang meminta bergabung saat ini.</string>
     <string name="room_knock_request_accept">Terima</string>
@@ -3576,4 +3565,40 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_room_public_badge_summary">Tampilkan bola dunia pada avatar ruangan publik</string>
     <string name="settings_room_list_badges">Lencana di daftar ruangan</string>
     <string name="settings_room_list_badges_summary">Tampilkan juga lencana yang diaktifkan di atas pada daftar ruangan</string>
+    <string name="room_profile_section_people">Orang</string>
+    <string name="room_profile_section_shared_content">Konten bersama</string>
+    <string name="room_profile_section_preferences">Preferensi</string>
+    <string name="room_profile_section_administration">Administrasi</string>
+    <string name="room_profile_section_conversation">Percakapan</string>
+    <string name="room_settings_section_details">Detail</string>
+    <string name="room_settings_section_access">Akses</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="other">%d anggota</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="other">%d diundang</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d tertunda</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="other">%d pengguna</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="other">%d pesan</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="other">%d paket</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">Tidak ada paket di ruangan ini</string>
+    <string name="room_profile_pinned_none">Tidak ada yang disematkan</string>
+    <string name="room_profile_uploads_summary">Foto, video, dan file</string>
+    <string name="room_profile_polls_summary">Pemungutan suara aktif dan sebelumnya</string>
+    <string name="room_profile_personalization_summary">Profil Anda di sini, lini masa, dan media</string>
+    <string name="room_profile_addresses_main_only">Hanya alamat utama</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="other">Alamat utama dan %d alias</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Tidak ada alamat yang dipublikasikan</string>
 </resources>

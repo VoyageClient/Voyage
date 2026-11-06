@@ -14,6 +14,9 @@
         <item name="subtitleTextAppearance">@style/TextAppearance.Vector.Widget.ActionBarSubTitle</item>
 
         <item name="navigationIconTint">?vctr_content_secondary</item>
+        <!-- 48dp action buttons sit flush with the end; this puts their icons 16dp in, like the 56dp nav button -->
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingRight">4dp</item>
 
         <!-- a11y -->
         <item name="android:touchscreenBlocksFocus">false</item>

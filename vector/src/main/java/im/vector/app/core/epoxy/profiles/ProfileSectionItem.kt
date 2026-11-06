@@ -7,7 +7,9 @@
 
 package im.vector.app.core.epoxy.profiles
 
+import android.view.View
 import android.widget.TextView
+import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
@@ -23,9 +25,12 @@ abstract class ProfileSectionItem : VectorEpoxyModel<ProfileSectionItem.Holder>(
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.sectionView.text = title
+        holder.sectionView.isVisible = title.isNotEmpty()
+        holder.spacer.isVisible = title.isEmpty()
     }
 
     class Holder : VectorEpoxyHolder() {
         val sectionView by bind<TextView>(R.id.itemProfileSectionView)
+        val spacer by bind<View>(R.id.itemProfileSectionSpacer)
     }
 }

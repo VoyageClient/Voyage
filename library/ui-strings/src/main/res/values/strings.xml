@@ -1028,7 +1028,6 @@
 
     <!-- room settings : alias -->
     <string name="room_settings_alias_title">Room addresses</string>
-    <string name="room_settings_alias_subtitle">See and manage addresses of this room, and its visibility in the room directory.</string>
     <string name="space_settings_alias_title">Space addresses</string>
     <string name="space_settings_alias_subtitle">See and manage addresses of this space.</string>
 
@@ -2155,21 +2154,58 @@
     <string name="room_profile_section_security">Security</string>
     <string name="room_profile_section_restore_security">Restore Encryption</string>
     <string name="room_profile_section_security_learn_more">Learn more</string>
-    <string name="room_profile_section_more">More</string>
-    <string name="room_profile_section_admin">Admin Actions</string>
     <string name="room_profile_section_more_settings">Room settings</string>
-    <string name="direct_room_profile_section_more_settings">Settings</string>
     <string name="room_profile_section_more_notifications">Notifications</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">"One person"</item>
-        <item quantity="other">"%1$d people"</item>
-    </plurals>
     <string name="room_profile_section_more_polls">Poll history</string>
     <string name="room_profile_section_more_uploads">Uploads</string>
     <string name="room_profile_section_more_report">Report Room</string>
     <string name="room_profile_section_more_leave">Leave Room</string>
     <string name="direct_room_profile_section_more_leave">Leave</string>
     <string name="room_profile_leaving_room">"Leaving the room…"</string>
+    <string name="room_profile_section_people">People</string>
+    <string name="room_profile_section_shared_content">Shared content</string>
+    <string name="room_profile_section_preferences">Preferences</string>
+    <string name="room_profile_section_administration">Administration</string>
+    <string name="room_profile_section_conversation">Conversation</string>
+    <string name="room_settings_section_details">Details</string>
+    <string name="room_settings_section_access">Access</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d invited</item>
+        <item quantity="other">%d invited</item>
+    </plurals>
+    <!-- Joins the two counts above, e.g. "42 members, 3 invited" -->
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d pending</item>
+        <item quantity="other">%d pending</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d user</item>
+        <item quantity="other">%d users</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d pack</item>
+        <item quantity="other">%d packs</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">No packs in this room</string>
+    <string name="room_profile_pinned_none">Nothing pinned</string>
+    <string name="room_profile_uploads_summary">Photos, videos and files</string>
+    <string name="room_profile_polls_summary">Active and past polls</string>
+    <string name="room_profile_personalization_summary">Your profile here, timeline and media</string>
+    <string name="room_profile_addresses_main_only">Main address only</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Main address and %d alias</item>
+        <item quantity="other">Main address and %d aliases</item>
+    </plurals>
+    <string name="room_profile_addresses_none">No published address</string>
 
 
     <string name="room_member_power_level_admins">Admins</string>
@@ -2205,7 +2241,6 @@
     <!-- Title for category in the settings which affect the behavior of the message editor (ex: enable Markdown, send typing notification, etc.) -->
 
     <string name="room_settings_enable_encryption">Enable end-to-end encryption…</string>
-    <string name="room_settings_enable_encryption_no_permission">You don\'t have permission to enable encryption in this room.</string>
 
     <string name="room_settings_enable_encryption_dialog_title">Enable encryption?</string>
     <string name="room_settings_enable_encryption_dialog_content">Once enabled, encryption for a room cannot be disabled. Messages sent in an encrypted room cannot be seen by the server, only by the participants of the room. Enabling encryption may prevent many bots and bridges from working correctly.</string>
@@ -3668,10 +3703,6 @@
     <string name="notice_room_knock_denied_by_you">You declined %1$s\'s request to join</string>
     <string name="notice_room_knock_cancelled">%1$s cancelled their request to join</string>
     <string name="notice_room_knock_cancelled_by_you">You cancelled your request to join</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d join request</item>
-        <item quantity="other">%d join requests</item>
-    </plurals>
     <string name="room_knock_requests_title">Join requests</string>
     <string name="room_knock_requests_empty">Nobody is asking to join right now.</string>
     <string name="room_knock_request_accept">Accept</string>

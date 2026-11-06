@@ -5,6 +5,6 @@
         android:id="@+id/roomMemberProfileMoreAction"
         android:icon="@drawable/ic_more_vertical"
         android:title="@string/attachment_viewer_more_options"
-        app:iconTint="?colorControlNormal"
+        app:iconTint="?vctr_content_secondary"
         app:showAsAction="always" />
 </menu>

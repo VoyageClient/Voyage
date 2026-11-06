@@ -55,7 +55,6 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        setBottomPadding(holder, 16)
         // Order matters: setTextIsSelectable() re-creates the editor and resets the movement method, so make
         // the view selectable and attach the link movement method before setting the span-bearing text.
         holder.content.setReadOnlySelectable(true)
@@ -83,7 +82,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                 } else {
                     holder.content.fullLineCount() > maxLines
                 }
-                val changed = holder.toggle.isVisible != needsToggle || setBottomPadding(holder, if (needsToggle) 0 else 16)
+                val changed = holder.toggle.isVisible != needsToggle
                 if (needsToggle) {
                     updateArrow(holder)
                     holder.toggle.setOnClickListener {
@@ -132,18 +131,6 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         holder.toggle.contentDescription = holder.view.context.getString(
                 if (isExpanded) CommonStrings.merged_events_collapse else CommonStrings.merged_events_expand
         )
-    }
-
-    private fun setBottomPadding(holder: Holder, paddingDp: Int): Boolean {
-        val bottomPadding = DimensionConverter(holder.view.resources).dpToPx(paddingDp)
-        if (holder.view.paddingBottom == bottomPadding) return false
-        holder.view.setPadding(
-                holder.view.paddingLeft,
-                holder.view.paddingTop,
-                holder.view.paddingRight,
-                bottomPadding
-        )
-        return true
     }
 
     // Measuring off-view avoids a full-height pass on the live selectable TextView.

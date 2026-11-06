@@ -770,6 +770,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     private fun installRootInsetsListener() {
         insetsListenerInstalled = true
+        installStatusBarStrip()
         // Older devices use the window's adjustResize path; only API 30+ supplies native IME animation frames.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Consumed insets must not also make the composer's bottom-sheet callback resize every frame.
@@ -905,53 +906,6 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     var systemBarsTopInset: Int = 0
         private set
 
-    /**
-     * Last dispatched navigation-bar inset. Kept apart from the root's bottom padding, which is the
-     * larger of this and the keyboard, so callers painting the navigation-bar strip don't follow the
-     * keyboard up over the content.
-     */
-    var navigationBarBottomInset: Int = 0
-        private set
-
-    private var navigationBarStrip: LayerDrawable? = null
-
-    /**
-     * Paint the strip under the navigation bar in [color].
-     *
-     * The root is padded by the system-bar insets and consumes them, so a screen whose own bottom edge is
-     * a lighter surface than the window (the classic composer, the room list's tab bar) otherwise stops
-     * short of the screen edge with the window background showing beneath it. Only that strip is painted;
-     * the status-bar one at the top keeps the window background.
-     *
-     * The strip's height comes from the navigation-bar inset rather than the root's bottom padding, which
-     * is the larger of that and the keyboard: sized from the padding, an open keyboard pushes the strip's
-     * top edge up over the content.
-     *
-     * Its width follows the root's horizontal padding, so it lines up under the surface it continues rather
-     * than running the full display width: in landscape the content stops short of the display cutout, and
-     * a full-width strip carried the colour out past it into a region the screen above leaves bare.
-     */
-    fun tintNavigationBarStrip(@ColorInt color: Int) {
-        navigationBarStrip?.let { layers ->
-            (layers.getDrawable(1) as? ColorDrawable)?.color = color
-            updateNavigationBarStrip()
-            return
-        }
-        val windowBackground = ThemeUtils.getColor(this, android.R.attr.colorBackground)
-        val layers = LayerDrawable(arrayOf(ColorDrawable(windowBackground), ColorDrawable(color)))
-        navigationBarStrip = layers
-        rootView.backgroundCompat = layers
-        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateNavigationBarStrip() }
-        updateNavigationBarStrip()
-    }
-
-    private fun updateNavigationBarStrip() {
-        val layers = navigationBarStrip ?: return
-        val strip = navigationBarBottomInset.coerceIn(0, rootView.height)
-        layers.setLayerInset(1, rootView.paddingLeft, rootView.height - strip, rootView.paddingRight, 0)
-        rootView.invalidate()
-    }
-
     private var drawUnderStatusBar = false
 
     /**
@@ -963,6 +917,103 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         if (drawUnderStatusBar == enabled) return
         drawUnderStatusBar = enabled
         ViewCompat.requestApplyInsets(rootView)
+    }
+
+    /**
+     * Last dispatched navigation-bar inset. Kept apart from the root's bottom padding, which is the
+     * larger of this and the keyboard, so callers painting the navigation-bar strip don't follow the
+     * keyboard up over the content.
+     */
+    var navigationBarBottomInset: Int = 0
+        private set
+
+    private var systemBarStripLayers: LayerDrawable? = null
+
+    private companion object {
+        const val STATUS_STRIP = 1
+        const val NAVIGATION_STRIP = 2
+    }
+
+    /**
+     * Paint the strip under the navigation bar in [color].
+     *
+     * The root is padded by the system-bar insets and consumes them, so a screen whose own bottom edge is
+     * a lighter surface than the window (the classic composer, the room list's tab bar) otherwise stops
+     * short of the screen edge with the window background showing beneath it. The status-bar strip at the
+     * top is painted separately, after whichever toolbar is at the top (see [installStatusBarStrip]).
+     *
+     * The strip's height comes from the navigation-bar inset rather than the root's bottom padding, which
+     * is the larger of that and the keyboard: sized from the padding, an open keyboard pushes the strip's
+     * top edge up over the content.
+     *
+     * Its width follows the root's horizontal padding, so it lines up under the surface it continues rather
+     * than running the full display width: in landscape the content stops short of the display cutout, and
+     * a full-width strip carried the colour out past it into a region the screen above leaves bare.
+     */
+    fun tintNavigationBarStrip(@ColorInt color: Int) {
+        (systemBarStrips().getDrawable(NAVIGATION_STRIP) as ColorDrawable).color = color
+        updateSystemBarStrips()
+    }
+
+    /** Window background, then the status-bar strip, then the navigation-bar strip; built on first use. */
+    private fun systemBarStrips(): LayerDrawable {
+        systemBarStripLayers?.let { return it }
+        val base = rootView.background ?: ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground))
+        val layers = LayerDrawable(arrayOf(base, ColorDrawable(Color.TRANSPARENT), ColorDrawable(Color.TRANSPARENT)))
+        systemBarStripLayers = layers
+        rootView.backgroundCompat = layers
+        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateSystemBarStrips() }
+        return layers
+    }
+
+    private fun updateSystemBarStrips() {
+        val layers = systemBarStripLayers ?: return
+        val height = rootView.height
+        val strip = navigationBarBottomInset.coerceIn(0, height)
+        layers.setLayerInset(NAVIGATION_STRIP, rootView.paddingLeft, height - strip, rootView.paddingRight, 0)
+        layers.setLayerInset(STATUS_STRIP, rootView.paddingLeft, 0, rootView.paddingRight, (height - rootView.paddingTop).coerceAtLeast(0))
+        rootView.invalidate()
+    }
+
+    private var statusBarStripSource: View? = null
+
+    // The toolbar search walks the whole hierarchy, so it runs once per layout rather than per frame
+    private var statusBarStripSearched = false
+
+    private val windowBackgroundColor by lazy { ThemeUtils.getColor(this, android.R.attr.colorBackground) }
+
+    /**
+     * Paints the strip behind the status bar in the color of the toolbar at the top of the screen, as the
+     * navigation-bar strip continues the bottom bar, so the bar reaches the screen edge. Followed every frame:
+     * a toolbar's color can change without a layout (a profile's toolbar fading in as its header collapses).
+     */
+    private fun installStatusBarStrip() {
+        if (drawUnderSystemBars) return
+        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> statusBarStripSearched = false }
+        rootView.viewTreeObserver.addOnPreDrawListener {
+            val color = topToolbarColor()
+            // The layers replace the root's background, which on a screen without a toolbar (the splash)
+            // is what lets the window background, logo and all, show through; leave those alone.
+            if (color == null && systemBarStripLayers == null) return@addOnPreDrawListener true
+            val strip = systemBarStrips().getDrawable(STATUS_STRIP) as ColorDrawable
+            val target = color ?: Color.TRANSPARENT
+            if (strip.color != target) {
+                strip.color = target
+                updateSystemBarStrips()
+            }
+            true
+        }
+    }
+
+    @ColorInt
+    private fun topToolbarColor(): Int? {
+        if (rootView.paddingTop == 0) return null
+        if (!statusBarStripSearched) {
+            statusBarStripSearched = true
+            statusBarStripSource = TopBarColor.findTopToolbar(rootView, rootView.paddingTop)
+        }
+        val source = statusBarStripSource?.takeIf { it.isShown } ?: return null
+        return TopBarColor.resolve(source, rootView, windowBackgroundColor)
     }
 
     private val postResumeScheduledActions = mutableListOf<() -> Unit>()

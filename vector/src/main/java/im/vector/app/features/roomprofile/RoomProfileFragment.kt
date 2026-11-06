@@ -10,12 +10,14 @@ package im.vector.app.features.roomprofile
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
@@ -36,6 +38,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.ui.views.ProfileToolbarBackground
 import im.vector.app.core.ui.views.badgeTrustLevel
 import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.core.utils.copyToClipboard
@@ -98,9 +101,9 @@ class RoomProfileFragment :
     private val roomProfileViewModel: RoomProfileViewModel by fragmentViewModel()
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
-    private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
+    private var collapseStateListener: AppBarStateChangeListener? = null
+    private var toolbarBackground: ProfileToolbarBackground? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
-    private var currentBannerUrl: String? = null
     private var lastRenderedAvatarKey: List<Any?>? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
@@ -108,6 +111,13 @@ class RoomProfileFragment :
     }
 
     override fun getMenuRes() = R.menu.vector_room_profile
+
+    // RESUMED drops the share item while the share sheet pauses us, and pops it on enter/exit.
+    override fun menuLifecycleState() = Lifecycle.State.STARTED
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        bannerUiHelper?.onMenuCreated(menu)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,20 +156,22 @@ class RoomProfileFragment :
                 )
         )
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(appBarStateChangeListener)
+        collapseStateListener = object : AppBarStateChangeListener() {
+            override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
+                views.matrixProfileToolbarAvatarImageView.isClickable = state == State.COLLAPSED
+            }
+        }
+        views.matrixProfileToolbarAvatarImageView.isClickable = false
+        views.matrixProfileAppBarLayout.addOnOffsetChangedListener(collapseStateListener)
+        toolbarBackground = ProfileToolbarBackground(views.matrixProfileToolbar, views.matrixProfileCollapsingToolbarLayout).also {
+            views.matrixProfileAppBarLayout.addOnOffsetChangedListener(it)
+        }
         bannerUiHelper = ProfileBannerUiHelper(
                 vectorBaseActivity,
                 views.matrixProfileToolbar,
                 views.matrixProfileCollapsingToolbarLayout,
-                headerViews.roomProfileBannerScrim
-        )
-        bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
-            override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
-                views.matrixProfileToolbarAvatarImageView.isClickable = state == State.COLLAPSED
-                bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
-            }
-        }
-        views.matrixProfileToolbarAvatarImageView.isClickable = false
-        views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
+                headerViews.roomProfileBannerView
+        ).also { views.matrixProfileAppBarLayout.addOnOffsetChangedListener(it) }
         roomProfileViewModel.observeViewEvents {
             when (it) {
                 is RoomProfileViewEvents.Loading -> showLoading(it.message)
@@ -269,11 +281,19 @@ class RoomProfileFragment :
         lastRenderedAvatarKey = null
         roomProfileController.callback = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
-        views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
+        views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(collapseStateListener)
         views.matrixProfileRecyclerView.cleanup()
         appBarStateChangeListener = null
-        bannerAppBarStateChangeListener = null
-        bannerUiHelper?.restore()
+        collapseStateListener = null
+        toolbarBackground?.let {
+            views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(it)
+            it.release()
+        }
+        toolbarBackground = null
+        bannerUiHelper?.let {
+            views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(it)
+            it.restore()
+        }
         bannerUiHelper = null
         super.onDestroyView()
     }
@@ -281,13 +301,11 @@ class RoomProfileFragment :
     override fun invalidate() = withState(roomProfileViewModel) { state ->
         views.waitingView.root.isVisible = state.isLoading
 
-        currentBannerUrl = state.bannerUrl
-        val hasBanner = currentBannerUrl != null
+        val hasBanner = state.bannerUrl != null
         headerViews.roomProfileBannerView.isVisible = hasBanner
-        headerViews.roomProfileBannerScrim.isVisible = hasBanner
         headerViews.roomProfileBannerOverlap.isVisible = hasBanner
-        bannerRenderer.render(currentBannerUrl, headerViews.roomProfileBannerView)
-        bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
+        bannerUiHelper?.update(hasBanner)
+        bannerRenderer.render(state.bannerUrl, headerViews.roomProfileBannerView)
 
         state.roomSummary()?.let {
             if (it.membership.isLeft() && !it.isRemovedFromRoom) {

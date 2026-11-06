@@ -457,13 +457,8 @@
     <string name="create_room_encryption_description">いったん有効にすると、暗号化を無効にすることはできません。</string>
     <string name="room_profile_section_security">セキュリティー</string>
     <string name="room_profile_section_security_learn_more">詳細を表示</string>
-    <string name="room_profile_section_more">その他</string>
-    <string name="room_profile_section_admin">管理者としての操作</string>
     <string name="room_profile_section_more_settings">ルームの設定</string>
     <string name="room_profile_section_more_notifications">通知</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="other">%1$d人の参加者</item>
-    </plurals>
     <string name="room_profile_section_more_uploads">アップロード</string>
     <string name="room_profile_section_more_leave">ルームから退出</string>
     <string name="room_profile_leaving_room">ルームから退出しています…</string>
@@ -582,8 +577,6 @@
     <string name="room_settings_name_hint">ルーム名</string>
     <string name="room_profile_not_encrypted_subtitle">このルームのメッセージはエンドツーエンドで暗号化されていません。</string>
     <string name="direct_room_profile_not_encrypted_subtitle">ここでのメッセージはエンドツーエンドで暗号化されていません。</string>
-    <string name="direct_room_profile_section_more_settings">設定</string>
-    <string name="room_settings_enable_encryption_no_permission">このルームの暗号化を有効にする権限がありません。</string>
     <string name="timeline_unread_messages">未読メッセージ</string>
     <string name="settings_labs_show_hidden_events_in_timeline">タイムラインで非表示のイベントを表示</string>
     <string name="qr_code">QRコード</string>
@@ -1050,7 +1043,6 @@
     <string name="room_alias_published_other">他の公開アドレス：</string>
     <string name="room_alias_published_alias_subtitle">公開アドレスを通して、どのサーバーのユーザーでも、このルームに参加できます。アドレスを公開するには、まずローカルアドレスとして設定する必要があります。</string>
     <string name="room_alias_published_alias_title">公開アドレス</string>
-    <string name="room_settings_alias_subtitle">このルームのアドレスと、ルームディレクトリーにおける見え方を管理。</string>
     <string name="space_settings_alias_subtitle">このスペースのアドレスを管理。</string>
     <string name="space_settings_alias_title">スペースのアドレス</string>
     <string name="room_settings_alias_title">ルームのアドレス</string>
@@ -2819,9 +2811,6 @@
     <string name="notice_room_knock_denied_by_you">%1$sの参加リクエストを拒否しました</string>
     <string name="notice_room_knock_cancelled">%1$sが参加リクエストを取り消しました</string>
     <string name="notice_room_knock_cancelled_by_you">参加リクエストを取り消しました</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="other">%d件の参加リクエスト</item>
-    </plurals>
     <string name="room_knock_requests_title">参加リクエスト</string>
     <string name="room_knock_requests_empty">現在、参加をリクエストしている人はいません。</string>
     <string name="room_knock_request_accept">承認</string>
@@ -3574,4 +3563,40 @@
     <string name="settings_room_public_badge_summary">公開ルームのアバターに地球儀を表示します</string>
     <string name="settings_room_list_badges">ルーム一覧のバッジ</string>
     <string name="settings_room_list_badges_summary">上で有効にしたバッジをルーム一覧にも表示します</string>
+    <string name="room_profile_section_people">メンバー</string>
+    <string name="room_profile_section_shared_content">共有コンテンツ</string>
+    <string name="room_profile_section_preferences">環境設定</string>
+    <string name="room_profile_section_administration">管理</string>
+    <string name="room_profile_section_conversation">会話</string>
+    <string name="room_settings_section_details">詳細</string>
+    <string name="room_settings_section_access">アクセス</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="other">%d人のメンバー</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="other">%d人を招待中</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s、%2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d件が保留中</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="other">%d人のユーザー</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="other">%d件のメッセージ</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="other">%d個のパック</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">このルームにはパックがありません</string>
+    <string name="room_profile_pinned_none">ピン留めはありません</string>
+    <string name="room_profile_uploads_summary">写真、動画、ファイル</string>
+    <string name="room_profile_polls_summary">実施中と過去のアンケート</string>
+    <string name="room_profile_personalization_summary">このルームでのプロフィール、タイムライン、メディア</string>
+    <string name="room_profile_addresses_main_only">メインアドレスのみ</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="other">メインアドレスと%d個のエイリアス</item>
+    </plurals>
+    <string name="room_profile_addresses_none">公開アドレスはありません</string>
 </resources>

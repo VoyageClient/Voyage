@@ -1082,13 +1082,8 @@
 \nVos messages sont sécurisés avec des verrous et seuls vous et le destinataire avez les clés uniques pour les déverrouiller.</string>
     <string name="room_profile_section_security">Sécurité</string>
     <string name="room_profile_section_security_learn_more">En savoir plus</string>
-    <string name="room_profile_section_more">Plus</string>
     <string name="room_profile_section_more_settings">Paramètres du salon</string>
     <string name="room_profile_section_more_notifications">Notifications</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Une personne</item>
-        <item quantity="other">%1$d personnes</item>
-    </plurals>
     <string name="room_profile_section_more_uploads">Envois</string>
     <string name="room_profile_section_more_leave">Quitter le salon</string>
     <string name="room_profile_leaving_room">En train de quitter le salon…</string>
@@ -1363,7 +1358,6 @@
     <string name="bootstrap_info_text_2">Entrez une phrase de sécurité que seul vous connaissez, celle-ci est utilisée pour sécuriser les mots de passe sur le serveur.</string>
     <string name="settings_hs_admin_e2e_disabled">L\'administrateur de votre serveur a désactivé le chiffrement de bout en bout par défaut dans les salons et conversations privés.</string>
     <string name="room_member_power_level_default_in">Par défaut dans %1$s</string>
-    <string name="direct_room_profile_section_more_settings">Paramètres</string>
     <string name="direct_room_profile_encrypted_subtitle">Les messages ici sont chiffrés de bout en bout.
 \n
 \nVos messages sont sécurisés avec des verrous et seuls vous et le destinataire en possédez la clé unique pour les déverrouiller.</string>
@@ -1424,7 +1418,6 @@
 \n%s</string>
     <string name="active_widgets_title">Widgets actifs</string>
     <string name="direct_room_profile_section_more_leave">Quitter</string>
-    <string name="room_profile_section_admin">Actions d’administrateur</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Les messages ici ne sont pas chiffrés de bout en bout.</string>
     <string name="sent_a_reaction">A réagi avec : %s</string>
     <string name="sent_a_poll">Sondage.</string>
@@ -1507,7 +1500,6 @@
     <string name="this_is_the_beginning_of_dm">Ceci est le début de l’historique de votre message direct avec %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Ceci est le début de cette conversation.</string>
     <string name="this_is_the_beginning_of_room">Ceci est le début de %s.</string>
-    <string name="room_settings_enable_encryption_no_permission">Vous n\'avez pas le droit d’activer le chiffrement dans ce salon.</string>
     <string name="create_room_in_progress">Création du salon…</string>
     <string name="create_room_alias_invalid">Certains caractères sont interdits</string>
     <string name="create_room_alias_empty">Veuillez fournir une adresse de salon</string>
@@ -1617,7 +1609,6 @@
     <string name="room_alias_published_alias_main">Ceci est l’adresse principale</string>
     <string name="room_alias_published_alias_subtitle">Les adresses publiées peuvent être utilisées par n’importe qui pour rejoindre votre salon. Pour pouvoir publier une adresse, elle doit d’abord être définie comme adresse locale.</string>
     <string name="room_alias_published_alias_title">Adresses publiées</string>
-    <string name="room_settings_alias_subtitle">Voir et gérer les adresses de ce salon, et sa visibilité dans le répertoire des salons.</string>
     <string name="room_settings_alias_title">Adresses du salon</string>
     <string name="room_settings_room_access_title">Accès au salon</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Les modifications de visibilité de l’historique ne s’appliqueront qu’aux messages ultérieurs dans ce salon. La visibilité de l’historique actuel demeurera inchangée.</string>
@@ -2876,10 +2867,6 @@
     <string name="notice_room_knock_denied_by_you">Vous avez refusé la demande de %1$s pour rejoindre</string>
     <string name="notice_room_knock_cancelled">%1$s a annulé sa demande pour rejoindre</string>
     <string name="notice_room_knock_cancelled_by_you">Vous avez annulé votre demande pour rejoindre</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d demande d’accès</item>
-        <item quantity="other">%d demandes d’accès</item>
-    </plurals>
     <string name="room_knock_requests_title">Demandes d’accès</string>
     <string name="room_knock_requests_empty">Personne ne demande à rejoindre pour le moment.</string>
     <string name="room_knock_request_accept">Accepter</string>
@@ -3640,4 +3627,47 @@
     <string name="settings_room_public_badge_summary">Afficher un globe sur les avatars des salons publics</string>
     <string name="settings_room_list_badges">Badges dans la liste des salons</string>
     <string name="settings_room_list_badges_summary">Afficher aussi dans la liste des salons les badges activés ci-dessus</string>
+    <string name="room_profile_section_people">Personnes</string>
+    <string name="room_profile_section_shared_content">Contenu partagé</string>
+    <string name="room_profile_section_preferences">Préférences</string>
+    <string name="room_profile_section_administration">Administration</string>
+    <string name="room_profile_section_conversation">Conversation</string>
+    <string name="room_settings_section_details">Détails</string>
+    <string name="room_settings_section_access">Accès</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d membre</item>
+        <item quantity="other">%d membres</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d invité</item>
+        <item quantity="other">%d invités</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d en attente</item>
+        <item quantity="other">%d en attente</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d utilisateur</item>
+        <item quantity="other">%d utilisateurs</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d pack</item>
+        <item quantity="other">%d packs</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">Aucun pack dans ce salon</string>
+    <string name="room_profile_pinned_none">Rien d’épinglé</string>
+    <string name="room_profile_uploads_summary">Photos, vidéos et fichiers</string>
+    <string name="room_profile_polls_summary">Sondages en cours et passés</string>
+    <string name="room_profile_personalization_summary">Votre profil ici, fil de discussion et médias</string>
+    <string name="room_profile_addresses_main_only">Adresse principale uniquement</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Adresse principale et %d alias</item>
+        <item quantity="other">Adresse principale et %d alias</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Aucune adresse publiée</string>
 </resources>

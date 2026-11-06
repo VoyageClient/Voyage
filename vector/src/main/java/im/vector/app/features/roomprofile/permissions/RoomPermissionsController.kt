@@ -172,7 +172,6 @@ class RoomPermissionsController @Inject constructor(
                         if (isSpace) editablePermission.spaceLabelResId else editablePermission.labelResId
                 ),
                 subtitle = roleFormatter.format(currentPowerLevel),
-                divider = true,
                 editable = editable,
                 action = {
                     callback

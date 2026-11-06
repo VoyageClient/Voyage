@@ -71,7 +71,7 @@ class SpaceManageRoomsFragment :
 
         views.createNewRoom.isVisible = false
         epoxyController.listener = this
-        views.roomList.configureWith(epoxyController, hasFixedSize = true, dividerDrawable = R.drawable.divider_horizontal)
+        views.roomList.configureWith(epoxyController, hasFixedSize = true)
         epoxyVisibilityTracker.attach(views.roomList)
 
         views.publicRoomsFilter.queryTextChanges()

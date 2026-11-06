@@ -8,10 +8,11 @@
 package im.vector.app.features.spaces.manage
 
 import com.airbnb.epoxy.TypedEpoxyController
-import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.list.verticalMarginItem
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.form.formEditTextItem
 import im.vector.app.features.form.formEditableSquareAvatarItem
 import im.vector.app.features.form.formMultiLineEditTextItem
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class SpaceSettingsController @Inject constructor(
         private val stringProvider: StringProvider,
         private val avatarRenderer: AvatarRenderer,
+        private val dimensionConverter: DimensionConverter,
         private val vectorPreferences: VectorPreferences
 ) : TypedEpoxyController<RoomSettingsViewState>() {
 
@@ -71,9 +73,12 @@ class SpaceSettingsController @Inject constructor(
             deleteListener { host.callback?.onAvatarDelete() }
         }
 
-        buildProfileSection(
-                stringProvider.getString(CommonStrings.settings)
-        )
+        buildProfileSection(stringProvider.getString(CommonStrings.room_settings_section_details))
+        // Room for the outlined field's floating label under the section title
+        verticalMarginItem {
+            id("details_margin")
+            heightInPx(host.dimensionConverter.dpToPx(8))
+        }
 
         formEditTextItem {
             id("name")
@@ -96,11 +101,11 @@ class SpaceSettingsController @Inject constructor(
         }
 
         val isPublic = (data.newRoomJoinRules.newJoinRules ?: data.currentRoomJoinRules) == RoomJoinRules.PUBLIC
+        buildProfileSection(stringProvider.getString(CommonStrings.room_settings_section_access))
         buildProfileAction(
                 id = "joinRule",
                 title = stringProvider.getString(CommonStrings.room_settings_space_access_title),
                 subtitle = data.getJoinRuleWording(stringProvider),
-                divider = true,
                 editable = data.actionPermissions.canChangeJoinRule,
                 action = { if (data.actionPermissions.canChangeJoinRule) callback?.onJoinRuleClicked() }
         )
@@ -125,15 +130,11 @@ class SpaceSettingsController @Inject constructor(
 //                }
 //            }
 //        }
-        dividerItem {
-            id("divider")
-        }
-
+        buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_administration))
         buildProfileAction(
                 id = "manage_rooms",
                 title = stringProvider.getString(CommonStrings.space_settings_manage_rooms),
                 // subtitle = data.getJoinRuleWording(stringProvider),
-                divider = true,
                 editable = data.actionPermissions.canAddChildren,
                 action = {
                     if (data.actionPermissions.canAddChildren) callback?.onManageRooms()
@@ -145,7 +146,6 @@ class SpaceSettingsController @Inject constructor(
                     id = "alias",
                     title = stringProvider.getString(CommonStrings.space_settings_alias_title),
                     subtitle = stringProvider.getString(CommonStrings.space_settings_alias_subtitle),
-                    divider = true,
                     editable = true,
                     action = { callback?.onRoomAliasesClicked() }
             )
@@ -155,7 +155,6 @@ class SpaceSettingsController @Inject constructor(
                 id = "permissions",
                 title = stringProvider.getString(CommonStrings.space_settings_permissions_title),
                 subtitle = stringProvider.getString(CommonStrings.space_settings_permissions_subtitle),
-                divider = vectorPreferences.developerMode(),
                 editable = true,
                 action = { callback?.onRoomPermissionsClicked() }
         )
@@ -166,7 +165,6 @@ class SpaceSettingsController @Inject constructor(
                     title = stringProvider.getString(CommonStrings.settings_dev_tools),
                     icon = org.matrix.android.sdk.R.drawable.ic_verification_glasses,
                     tintIcon = false,
-                    divider = true,
                     action = {
                         callback?.onDevTools()
                     }
@@ -177,7 +175,6 @@ class SpaceSettingsController @Inject constructor(
                     title = stringProvider.getString(CommonStrings.room_list_quick_actions_room_settings),
                     icon = org.matrix.android.sdk.R.drawable.ic_verification_glasses,
                     tintIcon = false,
-                    divider = false,
                     action = {
                         callback?.onDevRoomSettings()
                     }

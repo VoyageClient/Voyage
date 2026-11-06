@@ -771,7 +771,6 @@
     <string name="room_alias_published_alias_main">Bu ana adrestir</string>
     <string name="room_alias_published_alias_subtitle">Yayınlanan adresler herhangi bir sunucudaki herkes tarafından odanıza katılmak için kullanılabilir. Bir adresi yayınlamak için önce yerel bir adres olarak ayarlanması gerekir.</string>
     <string name="room_alias_published_alias_title">Yayınlanmış adresler</string>
-    <string name="room_settings_alias_subtitle">Bu odanın adreslerini ve oda dizinindeki görünürlüğünü inceleyin.</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Geçmişi okuyabilenlerle ilgili değişiklikler, yalnızca bu odadaki gelecekteki mesajlar için geçerli olacaktır. Mevcut geçmişin görünürlüğü değişmeyecek.</string>
     <string name="room_settings_alias_title">Oda ayarları</string>
     <string name="settings_emails_and_phone_numbers_summary">Matrix hesabınıza bağlanan e-postaları ve telefon numaralarını yönetin</string>
@@ -1652,15 +1651,8 @@
     <string name="room_profile_section_security">Güvenlik</string>
     <string name="room_profile_section_restore_security">Şifrelemeyi Geri Yükle</string>
     <string name="room_profile_section_security_learn_more">Daha fazla bilgi</string>
-    <string name="room_profile_section_more">Daha fazla</string>
-    <string name="room_profile_section_admin">Yönetici İşlemleri</string>
     <string name="room_profile_section_more_settings">Oda ayarları</string>
-    <string name="direct_room_profile_section_more_settings">Ayarlar</string>
     <string name="room_profile_section_more_notifications">Bildirimler</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Bir kişi</item>
-        <item quantity="other">%1$d kişi</item>
-    </plurals>
     <string name="room_profile_section_more_polls">Anket geçmişi</string>
     <string name="room_profile_section_more_uploads">Yüklemeler</string>
     <string name="room_profile_section_more_report">Odayı Bildir</string>
@@ -1685,7 +1677,6 @@
     <string name="command_description_rainbow_emote">Verilen ifadeyi gökkuşağı renklerinde gönderir</string>
     <string name="settings_category_timeline">Zaman akışı</string>
     <string name="room_settings_enable_encryption">Uçtan uca şifrelemeyi etkinleştir…</string>
-    <string name="room_settings_enable_encryption_no_permission">Bu odada şifrelemeyi etkinleştirme izniniz yok.</string>
     <string name="room_settings_enable_encryption_dialog_title">Şifreleme etkinleştirilsin mi?</string>
     <string name="room_settings_enable_encryption_dialog_content">Etkinleştirildikten sonra bir odanın şifrelemesi devre dışı bırakılamaz. Şifrelenmiş bir odada gönderilen mesajları sunucu göremez, yalnızca odanın katılımcıları görebilir. Şifrelemeyi etkinleştirmek birçok bot ve köprünün düzgün çalışmasını engelleyebilir.</string>
     <string name="room_settings_enable_encryption_dialog_submit">Şifrelemeyi etkinleştir</string>
@@ -2833,10 +2824,6 @@
     <string name="notice_room_knock_denied_by_you">%1$s kullanıcısının katılma isteğini reddettiniz</string>
     <string name="notice_room_knock_cancelled">%1$s katılma isteğini iptal etti</string>
     <string name="notice_room_knock_cancelled_by_you">Katılma isteğinizi iptal ettiniz</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d katılma isteği</item>
-        <item quantity="other">%d katılma isteği</item>
-    </plurals>
     <string name="room_knock_requests_title">Katılma istekleri</string>
     <string name="room_knock_requests_empty">Şu anda katılmak isteyen kimse yok.</string>
     <string name="room_knock_request_accept">Kabul et</string>
@@ -3598,4 +3585,47 @@
     <string name="settings_room_public_badge_summary">Herkese açık odaların avatarlarında bir küre göster</string>
     <string name="settings_room_list_badges">Oda listesinde rozetler</string>
     <string name="settings_room_list_badges_summary">Yukarıda etkinleştirilen rozetleri oda listesinde de göster</string>
+    <string name="room_profile_section_people">Kişiler</string>
+    <string name="room_profile_section_shared_content">Paylaşılan içerik</string>
+    <string name="room_profile_section_preferences">Tercihler</string>
+    <string name="room_profile_section_administration">Yönetim</string>
+    <string name="room_profile_section_conversation">Sohbet</string>
+    <string name="room_settings_section_details">Ayrıntılar</string>
+    <string name="room_settings_section_access">Erişim</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d üye</item>
+        <item quantity="other">%d üye</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d davetli</item>
+        <item quantity="other">%d davetli</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d bekleyen</item>
+        <item quantity="other">%d bekleyen</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d kullanıcı</item>
+        <item quantity="other">%d kullanıcı</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d mesaj</item>
+        <item quantity="other">%d mesaj</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d paket</item>
+        <item quantity="other">%d paket</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">Bu odada paket yok</string>
+    <string name="room_profile_pinned_none">Sabitlenmiş bir şey yok</string>
+    <string name="room_profile_uploads_summary">Fotoğraflar, videolar ve dosyalar</string>
+    <string name="room_profile_polls_summary">Etkin ve geçmiş anketler</string>
+    <string name="room_profile_personalization_summary">Buradaki profiliniz, zaman akışı ve medya</string>
+    <string name="room_profile_addresses_main_only">Yalnızca ana adres</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Ana adres ve %d takma ad</item>
+        <item quantity="other">Ana adres ve %d takma ad</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Yayınlanmış adres yok</string>
 </resources>

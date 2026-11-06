@@ -1165,14 +1165,8 @@
 \nSuas mensagens são asseguradas com cadeados e somente você e a/o recipente têm as chaves únicas para as destrancar.</string>
     <string name="room_profile_section_security">Segurança</string>
     <string name="room_profile_section_security_learn_more">Saber mais</string>
-    <string name="room_profile_section_more">Mais</string>
-    <string name="room_profile_section_admin">Ações de Admin</string>
     <string name="room_profile_section_more_settings">Configurações de sala</string>
     <string name="room_profile_section_more_notifications">Notificações</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Uma pessoa</item>
-        <item quantity="other">%1$d pessoas</item>
-    </plurals>
     <string name="room_profile_section_more_uploads">Uploads</string>
     <string name="room_profile_section_more_leave">Sair de Sala</string>
     <string name="room_profile_leaving_room">Saindo da sala…</string>
@@ -1489,7 +1483,6 @@
     <string name="direct_room_created_summary_item_by_you">Você entrou.</string>
     <string name="direct_room_encryption_enabled_tile_description">Mensagens neste chat são encriptadas ponta-a-ponta.</string>
     <string name="direct_room_profile_section_more_leave">Sair</string>
-    <string name="direct_room_profile_section_more_settings">Configurações</string>
     <string name="direct_room_profile_encrypted_subtitle">Mensagens aqui são encriptadas ponta-a-ponta.
 \n
 \nSuas mensagens são asseguradas com cadeados e somente você e a/o recipiente têm as chaves únicas para as destrancar.</string>
@@ -1542,7 +1535,6 @@
     <string name="this_is_the_beginning_of_dm">Este é o começo de seu histórico de mensagem direta com %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Este é o começo desta conversa.</string>
     <string name="this_is_the_beginning_of_room">Este é o começo de %s.</string>
-    <string name="room_settings_enable_encryption_no_permission">Você não tem permissão para habilitar encriptação nesta sala.</string>
     <string name="create_room_in_progress">Criando sala…</string>
     <string name="create_room_alias_invalid">Alguns caracteres não são permitidos</string>
     <string name="create_room_alias_already_in_use">Este endereço já está em uso</string>
@@ -1569,7 +1561,6 @@
     <string name="room_alias_published_alias_main">Este é o endereço principal</string>
     <string name="room_alias_published_alias_subtitle">Endereços publicados podem ser usados por qualquer pessoa em qualquer servidor para entrar na sua sala. Para publicar um endereço, ele precisa ser definido como um endereço local primeiro.</string>
     <string name="room_alias_published_alias_title">Endereços Publicados</string>
-    <string name="room_settings_alias_subtitle">Ver e gerenciar endereços desta sala, e sua visibilidade no diretório de salas.</string>
     <string name="room_settings_alias_title">Endereços de sala</string>
     <string name="action_add">Adicionar</string>
     <string name="settings_security_pin_code_change_pin_summary">Mudar seu PIN atual</string>
@@ -2876,10 +2867,6 @@
     <string name="notice_room_knock_denied_by_you">Você recusou o pedido de entrada de %1$s</string>
     <string name="notice_room_knock_cancelled">%1$s cancelou o pedido de entrada</string>
     <string name="notice_room_knock_cancelled_by_you">Você cancelou seu pedido de entrada</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d pedido de entrada</item>
-        <item quantity="other">%d pedidos de entrada</item>
-    </plurals>
     <string name="room_knock_requests_title">Pedidos de entrada</string>
     <string name="room_knock_requests_empty">Ninguém está pedindo para entrar agora.</string>
     <string name="room_knock_request_accept">Aceitar</string>
@@ -3640,4 +3627,47 @@
     <string name="settings_room_public_badge_summary">Mostrar um globo nos avatares das salas públicas</string>
     <string name="settings_room_list_badges">Selos na lista de salas</string>
     <string name="settings_room_list_badges_summary">Mostrar também na lista de salas os selos ativados acima</string>
+    <string name="room_profile_section_people">Pessoas</string>
+    <string name="room_profile_section_shared_content">Conteúdo compartilhado</string>
+    <string name="room_profile_section_preferences">Preferências</string>
+    <string name="room_profile_section_administration">Administração</string>
+    <string name="room_profile_section_conversation">Conversa</string>
+    <string name="room_settings_section_details">Detalhes</string>
+    <string name="room_settings_section_access">Acesso</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d membro</item>
+        <item quantity="other">%d membros</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d convidado</item>
+        <item quantity="other">%d convidados</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d pendente</item>
+        <item quantity="other">%d pendentes</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d usuário</item>
+        <item quantity="other">%d usuários</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d mensagem</item>
+        <item quantity="other">%d mensagens</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d pacote</item>
+        <item quantity="other">%d pacotes</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">Nenhum pacote nesta sala</string>
+    <string name="room_profile_pinned_none">Nada fixado</string>
+    <string name="room_profile_uploads_summary">Fotos, vídeos e arquivos</string>
+    <string name="room_profile_polls_summary">Enquetes ativas e anteriores</string>
+    <string name="room_profile_personalization_summary">Seu perfil aqui, linha do tempo e mídia</string>
+    <string name="room_profile_addresses_main_only">Somente o endereço principal</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Endereço principal e %d apelido</item>
+        <item quantity="other">Endereço principal e %d apelidos</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Nenhum endereço publicado</string>
 </resources>

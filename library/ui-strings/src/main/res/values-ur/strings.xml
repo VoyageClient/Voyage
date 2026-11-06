@@ -769,7 +769,6 @@
     <string name="room_settings_space_access_title">جگہ تک رسائی</string>
     <string name="room_settings_guest_access_title">مہمانوں کو شامل ہونے کی اجازت دیں</string>
     <string name="room_settings_alias_title">کمرے کے پتے</string>
-    <string name="room_settings_alias_subtitle">اس کمرے کے پتے اور کمروں کے راہنامچے میں اس کی مرئیت دیکھیں اور ان کا انتظام کریں۔</string>
     <string name="space_settings_alias_title">جگہ کے پتے</string>
     <string name="space_settings_alias_subtitle">اس جگہ کے پتے دیکھیں اور ان کا انتظام کریں۔</string>
     <string name="room_alias_published_alias_title">شائع شدہ پتے</string>
@@ -1575,15 +1574,8 @@
     <string name="room_profile_section_security">حفاظت</string>
     <string name="room_profile_section_restore_security">مرموزکاری بحال کریں</string>
     <string name="room_profile_section_security_learn_more">مزید جانیں</string>
-    <string name="room_profile_section_more">مزید</string>
-    <string name="room_profile_section_admin">منتظم کے اقدامات</string>
     <string name="room_profile_section_more_settings">کمرے کی ترتیبات</string>
-    <string name="direct_room_profile_section_more_settings">ترتیبات</string>
     <string name="room_profile_section_more_notifications">اطلاعات</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">ایک شخص</item>
-        <item quantity="other">%1$d افراد</item>
-    </plurals>
     <string name="room_profile_section_more_polls">رائے شماری کی سرگزشت</string>
     <string name="room_profile_section_more_uploads">اپ لوڈز</string>
     <string name="room_profile_section_more_report">کمرے کی شکایت کریں</string>
@@ -1608,7 +1600,6 @@
     <string name="command_description_rainbow_emote">دیا گیا عمل قوس قزح کے رنگوں میں بھیجتا ہے</string>
     <string name="settings_category_timeline">ٹائم لائن</string>
     <string name="room_settings_enable_encryption">آخر تا آخر مرموزکاری فعال کریں…</string>
-    <string name="room_settings_enable_encryption_no_permission">آپ کو اس کمرے میں مرموزکاری فعال کرنے کی اجازت نہیں ہے۔</string>
     <string name="room_settings_enable_encryption_dialog_title">مرموزکاری فعال کریں؟</string>
     <string name="room_settings_enable_encryption_dialog_content">ایک بار فعال ہونے کے بعد کمرے کی مرموزکاری غیر فعال نہیں کی جا سکتی۔ مرموز شدہ کمرے میں بھیجے گئے پیغامات سرور نہیں دیکھ سکتا، صرف کمرے کے شرکاء دیکھ سکتے ہیں۔ مرموزکاری فعال کرنے سے کئی بوٹس اور برجز درست طریقے سے کام کرنا بند کر سکتے ہیں۔</string>
     <string name="room_settings_enable_encryption_dialog_submit">مرموزکاری فعال کریں</string>
@@ -2779,10 +2770,6 @@
     <string name="notice_room_knock_denied_by_you">آپ نے %1$s کی شامل ہونے کی درخواست مسترد کی</string>
     <string name="notice_room_knock_cancelled">%1$s نے اپنی شامل ہونے کی درخواست منسوخ کی</string>
     <string name="notice_room_knock_cancelled_by_you">آپ نے اپنی شامل ہونے کی درخواست منسوخ کی</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">شامل ہونے کی %d درخواست</item>
-        <item quantity="other">شامل ہونے کی %d درخواستیں</item>
-    </plurals>
     <string name="room_knock_requests_title">شامل ہونے کی درخواستیں</string>
     <string name="room_knock_requests_empty">فی الحال کوئی شامل ہونے کی درخواست نہیں کر رہا۔</string>
     <string name="room_knock_request_accept">قبول کریں</string>
@@ -3534,4 +3521,47 @@
     <string name="settings_room_public_badge_summary">عوامی کمروں کے اوتار پر ایک گلوب دکھائیں</string>
     <string name="settings_room_list_badges">کمروں کی فہرست میں بیجز</string>
     <string name="settings_room_list_badges_summary">اوپر فعال کیے گئے بیجز کمروں کی فہرست میں بھی دکھائیں</string>
+    <string name="room_profile_section_people">لوگ</string>
+    <string name="room_profile_section_shared_content">اشتراک شدہ مواد</string>
+    <string name="room_profile_section_preferences">ترجیحات</string>
+    <string name="room_profile_section_administration">انتظام</string>
+    <string name="room_profile_section_conversation">گفتگو</string>
+    <string name="room_settings_section_details">تفصیلات</string>
+    <string name="room_settings_section_access">رسائی</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d رکن</item>
+        <item quantity="other">%d اراکین</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d مدعو</item>
+        <item quantity="other">%d مدعوین</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s، %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d زیرِ التوا</item>
+        <item quantity="other">%d زیرِ التوا</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d صارف</item>
+        <item quantity="other">%d صارفین</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d پیغام</item>
+        <item quantity="other">%d پیغامات</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d بستہ</item>
+        <item quantity="other">%d بستے</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">اس کمرے میں کوئی بستہ نہیں</string>
+    <string name="room_profile_pinned_none">کچھ بھی پن نہیں کیا گیا</string>
+    <string name="room_profile_uploads_summary">تصاویر، ویڈیوز اور فائلیں</string>
+    <string name="room_profile_polls_summary">جاری اور گزشتہ رائے شماریاں</string>
+    <string name="room_profile_personalization_summary">یہاں آپ کی پروفائل، ٹائم لائن اور میڈیا</string>
+    <string name="room_profile_addresses_main_only">صرف مرکزی پتہ</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">مرکزی پتہ اور %d متبادل نام</item>
+        <item quantity="other">مرکزی پتہ اور %d متبادل نام</item>
+    </plurals>
+    <string name="room_profile_addresses_none">کوئی شائع شدہ پتہ نہیں</string>
 </resources>

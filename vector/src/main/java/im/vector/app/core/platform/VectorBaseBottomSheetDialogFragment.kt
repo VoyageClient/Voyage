@@ -10,7 +10,9 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -175,6 +177,7 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
         val surface = MaterialColors.getColor(sheetContext, com.google.android.material.R.attr.colorSurface, Color.TRANSPARENT)
         // The sheet slides in from off screen, so for those frames the strip is this band's to paint.
         val band = addNavigationBarBand(sheet, surface)
+        addStatusBarBand(sheet)
         animateSheetIn(sheet, band)
         // The background arrives with the first layout pass, and is replaced again on later ones.
         sheet.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> paintSheetSurface(sheet, surface) }
@@ -253,6 +256,53 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
             insets
         }
         return band
+    }
+
+    /**
+     * A sheet expanded up under the status bar gets that strip painted in the color of a toolbar at its
+     * top, as screens do, instead of the sheet's surface. Sheets without one are left alone.
+     */
+    private fun addStatusBarBand(sheet: View) {
+        val container = (sheet.parent as? View)?.parent as? ViewGroup ?: return
+        val band = StatusBarBandView(container.context)
+        // Above the sheet, but it is not clickable, so touches fall through to the sheet beneath.
+        container.addView(band, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, Gravity.TOP))
+        ViewCompat.setOnApplyWindowInsetsListener(band) { _, insets ->
+            band.updateLayoutParams { height = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top }
+            insets
+        }
+        var toolbar: View? = null
+        var searched = false
+        sheet.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> searched = false }
+        val base = MaterialColors.getColor(container.context, com.google.android.material.R.attr.colorSurface, Color.TRANSPARENT)
+        band.viewTreeObserver.addOnPreDrawListener {
+            if (!searched) {
+                searched = true
+                toolbar = TopBarColor.findTopToolbar(sheet, sheet.paddingTop + band.height)
+            }
+            val sheetTop = (sheet.top + sheet.translationY).toInt()
+            val source = toolbar?.takeIf { it.isShown && sheetTop < band.height }
+            band.update(if (source == null) Color.TRANSPARENT else TopBarColor.resolve(source, sheet, base), sheetTop.coerceAtLeast(0))
+            true
+        }
+    }
+
+    /** Fills from [top] to its bottom, so a sheet only partly under the status bar is not overdrawn above. */
+    private class StatusBarBandView(context: Context) : View(context) {
+        private val paint = Paint()
+        private var fillTop = 0
+
+        fun update(@ColorInt color: Int, top: Int) {
+            if (paint.color == color && fillTop == top) return
+            paint.color = color
+            fillTop = top
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            if (Color.alpha(paint.color) == 0 || fillTop >= height) return
+            canvas.drawRect(0f, fillTop.toFloat(), width.toFloat(), height.toFloat(), paint)
+        }
     }
 
     /** The strip the sheet covers is its own background, so it has to be exactly the sheet's surface. */

@@ -17,6 +17,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.ShortcutCreator
 import im.vector.app.features.home.resolveRoomBannerUrl
+import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.powerlevel.isLastAdminFlow
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonStrings
@@ -24,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -36,7 +38,10 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
+import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.state.isPublic
 import org.matrix.android.sdk.flow.FlowRoom
 import org.matrix.android.sdk.flow.flow
@@ -49,6 +54,7 @@ class RoomProfileViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val shortcutCreator: ShortcutCreator,
         private val session: Session,
+        private val imagePackProvider: ImagePackProvider,
 ) : VectorViewModel<RoomProfileViewState, RoomProfileAction, RoomProfileViewEvents>(initialState) {
 
     @AssistedFactory
@@ -76,6 +82,28 @@ class RoomProfileViewModel @AssistedInject constructor(
         observePowerLevels()
         observeCryptoSettings(flowRoom)
         observeIsLastAdmin()
+        observeRowSummaries(flowRoom)
+    }
+
+    private fun observeRowSummaries(flowRoom: FlowRoom) {
+        flowRoom.liveStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.IsEmpty)
+                .map { it.getOrNull()?.content.toModel<RoomPinnedEventsContent>()?.pinned?.size ?: 0 }
+                .setOnEach { copy(pinnedCount = it) }
+        flowRoom.liveStateEvent(EventType.STATE_ROOM_CANONICAL_ALIAS, QueryStringValue.IsEmpty)
+                .map { it.getOrNull()?.content.toModel<RoomCanonicalAliasContent>() }
+                .setOnEach { copy(canonicalAlias = it?.canonicalAlias, altAliasCount = it?.alternativeAliases.orEmpty().size) }
+        flowRoom.liveStateEvents(setOf(EventType.STATE_ROOM_IMAGE_PACK, EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE), QueryStringValue.IsNotNull)
+                .map { imagePackProvider.getRoomOwnPacks(initialState.roomId).size }
+                .flowOn(Dispatchers.Default)
+                .setOnEach { copy(imagePackCount = it) }
+        // No explicit rule means the room follows the account default, mirroring RoomNotificationSettingsViewState.
+        combine(flowRoom.liveNotificationState(), flowRoom.liveExplicitNotificationState()) { state, explicit ->
+            when {
+                explicit == null -> RoomNotificationState.ALL_MESSAGES
+                state == RoomNotificationState.ALL_MESSAGES -> RoomNotificationState.ALL_MESSAGES_NOISY
+                else -> state
+            }
+        }.setOnEach { copy(notificationState = it) }
     }
 
     private fun observeIsLastAdmin() {

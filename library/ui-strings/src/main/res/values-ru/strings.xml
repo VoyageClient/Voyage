@@ -1012,7 +1012,6 @@
     <string name="uploads_files_title">ФАЙЛЫ</string>
     <string name="uploads_files_no_result">В этой комнате нет файлов</string>
     <string name="room_profile_section_security">Безопасность</string>
-    <string name="room_profile_section_more">Ещё</string>
     <string name="a11y_qr_code_for_verification">QR-код</string>
     <string name="no_connectivity_to_the_server_indicator">Соединение с сервером потеряно</string>
     <string name="verification_cannot_access_other_session">Используйте мнемоническую фразу или бумажный ключ</string>
@@ -1150,7 +1149,6 @@
     <string name="room_profile_encrypted_subtitle">Сообщения в этой комнате защищены сквозным шифрованием.
 \n
 \nВаши сообщения защищены замками и только вы и получатель имеете уникальные ключи для их разблокировки.</string>
-    <string name="room_profile_section_admin">Действия Администратора</string>
     <string name="room_profile_leaving_room">Покидаем комнату…</string>
     <string name="room_member_power_level_invites">Приглашения</string>
     <string name="room_member_power_level_admin_in">Администратор в %1$s</string>
@@ -1412,7 +1410,6 @@
     <string name="direct_room_created_summary_item">%s вошёл(шла).</string>
     <string name="direct_room_encryption_enabled_tile_description">Сообщения в этой переписке защищены сквозным шифрованием.</string>
     <string name="direct_room_profile_section_more_leave">Покинуть</string>
-    <string name="direct_room_profile_section_more_settings">Настройки</string>
     <string name="direct_room_profile_encrypted_subtitle">Сообщения здесь защищены сквозным шифрованием.
 \n
 \nВаши сообщения защищены замками, и только у вас и получателя есть уникальные ключи для их разблокировки.</string>
@@ -1468,7 +1465,6 @@
     <string name="add_people">Добавить людей</string>
     <string name="this_is_the_beginning_of_room_no_name">Это начало беседы.</string>
     <string name="this_is_the_beginning_of_room">Это начало %s.</string>
-    <string name="room_settings_enable_encryption_no_permission">У вас нет разрешения на включение шифрования в этой комнате.</string>
     <string name="create_room_in_progress">Создание комнаты…</string>
     <string name="create_room_alias_invalid">Некоторые символы не разрешены</string>
     <string name="create_room_alias_empty">Укажите адрес комнаты</string>
@@ -1512,7 +1508,6 @@
     <string name="room_alias_published_alias_main">Это основной адрес</string>
     <string name="room_alias_published_alias_subtitle">Опубликованные адреса могут быть использованы кем угодно на любом сервере, чтобы присоединиться к вашей комнате. Чтобы опубликовать адрес, сначала его нужно настроить как локальный.</string>
     <string name="room_alias_published_alias_title">Опубликованные адреса</string>
-    <string name="room_settings_alias_subtitle">Просматривайте и управляйте адресами этой комнаты, а также её видимостью в каталоге комнат.</string>
     <string name="room_settings_alias_title">Адреса комнаты</string>
     <string name="room_settings_room_access_title">Доступ в комнату</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Изменение того, кто может читать историю, будет применяться только к будущим сообщениям в этой комнате. Видимость существующей истории не изменится.</string>
@@ -2844,12 +2839,6 @@
     <string name="notice_room_knock_denied_by_you">Вы отклонили запрос %1$s на вступление</string>
     <string name="notice_room_knock_cancelled">%1$s отменил(а) свой запрос на вступление</string>
     <string name="notice_room_knock_cancelled_by_you">Вы отменили свой запрос на вступление</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d запрос на вступление</item>
-        <item quantity="few">%d запроса на вступление</item>
-        <item quantity="many">%d запросов на вступление</item>
-        <item quantity="other">%d запроса на вступление</item>
-    </plurals>
     <string name="room_knock_requests_title">Запросы на вступление</string>
     <string name="room_knock_requests_empty">Сейчас никто не просит о вступлении.</string>
     <string name="room_knock_request_accept">Принять</string>
@@ -3554,12 +3543,6 @@
         <item quantity="many">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунд…</item>
         <item quantity="other">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунды…</item>
     </plurals>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Один участник</item>
-        <item quantity="few">%1$d участника</item>
-        <item quantity="many">%1$d участников</item>
-        <item quantity="other">%1$d участника</item>
-    </plurals>
     <plurals name="settings_active_sessions_count">
         <item quantity="one">%d сессия активна</item>
         <item quantity="few">%d сессии активны</item>
@@ -3764,4 +3747,61 @@
     <string name="settings_room_public_badge_summary">Показывать глобус на аватарах публичных комнат</string>
     <string name="settings_room_list_badges">Значки в списке комнат</string>
     <string name="settings_room_list_badges_summary">Показывать включённые выше значки и в списке комнат</string>
+    <string name="room_profile_section_people">Люди</string>
+    <string name="room_profile_section_shared_content">Общий контент</string>
+    <string name="room_profile_section_preferences">Предпочтения</string>
+    <string name="room_profile_section_administration">Администрирование</string>
+    <string name="room_profile_section_conversation">Общение</string>
+    <string name="room_settings_section_details">Сведения</string>
+    <string name="room_settings_section_access">Доступ</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d участник</item>
+        <item quantity="few">%d участника</item>
+        <item quantity="many">%d участников</item>
+        <item quantity="other">%d участника</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d приглашён</item>
+        <item quantity="few">%d приглашены</item>
+        <item quantity="many">%d приглашены</item>
+        <item quantity="other">%d приглашены</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d ожидает</item>
+        <item quantity="few">%d ожидают</item>
+        <item quantity="many">%d ожидают</item>
+        <item quantity="other">%d ожидают</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d пользователь</item>
+        <item quantity="few">%d пользователя</item>
+        <item quantity="many">%d пользователей</item>
+        <item quantity="other">%d пользователя</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d сообщение</item>
+        <item quantity="few">%d сообщения</item>
+        <item quantity="many">%d сообщений</item>
+        <item quantity="other">%d сообщения</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d набор</item>
+        <item quantity="few">%d набора</item>
+        <item quantity="many">%d наборов</item>
+        <item quantity="other">%d набора</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">В этой комнате нет наборов</string>
+    <string name="room_profile_pinned_none">Ничего не закреплено</string>
+    <string name="room_profile_uploads_summary">Фото, видео и файлы</string>
+    <string name="room_profile_polls_summary">Текущие и прошедшие опросы</string>
+    <string name="room_profile_personalization_summary">Ваш профиль здесь, лента сообщений и медиа</string>
+    <string name="room_profile_addresses_main_only">Только основной адрес</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Основной адрес и %d псевдоним</item>
+        <item quantity="few">Основной адрес и %d псевдонима</item>
+        <item quantity="many">Основной адрес и %d псевдонимов</item>
+        <item quantity="other">Основной адрес и %d псевдонима</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Нет опубликованного адреса</string>
 </resources>

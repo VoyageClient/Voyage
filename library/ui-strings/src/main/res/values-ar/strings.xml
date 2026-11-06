@@ -833,7 +833,6 @@
     <string name="encryption_message_recovery">استعادة الرسائل المعماة</string>
     <string name="encryption_exported_successfully">نجح استيراد المفاتيح</string>
     <string name="room_settings_enable_encryption_dialog_title">أتريد تفعيل التعميّة؟</string>
-    <string name="room_settings_enable_encryption_no_permission">ليس لديك إذن لتفعيل التعميّة في هذه الغرفة.</string>
     <string name="command_description_rainbow">يرسل الرسالة المعطاة ملونة بألوان قوس قزح</string>
     <string name="rendering_event_error_exception">${app_name} واجه مشكلة في تصيير الحدث ذو المعرف \'%1$s\'</string>
     <string name="rendering_event_error_type_of_event_not_handled">${app_name} لا يستطيع التعامل مع ملفات من نوع \'%1$s\'</string>
@@ -1194,7 +1193,6 @@
     <string name="settings_presence_user_always_appears_offline_summary">إن فُعّل، ستظهر دائمًا غير متصل للمستخدمين الآخرين، حتى أثناء استخدامك للتطبيق.</string>
     <string name="room_settings_room_notifications_encryption_notice">لاحظ أن إخطارات الإشارات والكلمات المفتاحية غير متوفّرة في الغرف المعمّاة على الجوال.</string>
     <string name="room_settings_room_read_history_dialog_subtitle">تغيير من يمكنه قراءة التأريخ سينطبق على الرسائل المستقبلية في هذه الغرفة فقط. لن يتغيّر ظهور التأريخ الموجود.</string>
-    <string name="room_settings_alias_subtitle">اعرض عناوين هذه الغرفة وأدِرها، وكذلك ظهورها في دليل الغرف.</string>
     <string name="space_settings_alias_subtitle">اعرض عناوين هذه المساحة وأدِرها.</string>
     <string name="room_alias_published_alias_subtitle">يمكن لأي أحد على أي خادوم استخدام العناوين المنشورة للانضمام إلى غرفتك. لنشر عنوان، يجب ضبطه أولًا كعنوان محلي.</string>
     <string name="room_alias_published_other">عناوين منشورة أخرى:</string>
@@ -1759,19 +1757,8 @@
     <string name="room_profile_section_security">الأمان</string>
     <string name="room_profile_section_restore_security">استعِد التعمية</string>
     <string name="room_profile_section_security_learn_more">اعرف المزيد</string>
-    <string name="room_profile_section_more">المزيد</string>
-    <string name="room_profile_section_admin">إجراءات الإدارة</string>
     <string name="room_profile_section_more_settings">إعدادات الغرفة</string>
-    <string name="direct_room_profile_section_more_settings">الإعدادات</string>
     <string name="room_profile_section_more_notifications">الإخطارات</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="zero">لا أحد</item>
-        <item quantity="one">شخص واحد</item>
-        <item quantity="two">شخصان</item>
-        <item quantity="few">%1$d أشخاص</item>
-        <item quantity="many">%1$d شخصًا</item>
-        <item quantity="other">%1$d شخص</item>
-    </plurals>
     <string name="room_profile_section_more_polls">تأريخ الاستطلاعات</string>
     <string name="room_profile_section_more_report">أبلِغ عن الغرفة</string>
     <string name="room_member_power_level_owner_in">مالك في %1$s</string>
@@ -2977,14 +2964,6 @@
     <string name="notice_room_knock_denied_by_you">رفضتَ طلب %1$s للانضمام</string>
     <string name="notice_room_knock_cancelled">ألغى %1$s طلبه للانضمام</string>
     <string name="notice_room_knock_cancelled_by_you">ألغيتَ طلبك للانضمام</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="zero">لا طلبات انضمام</item>
-        <item quantity="one">طلب انضمام واحد</item>
-        <item quantity="two">طلبا انضمام</item>
-        <item quantity="few">%d طلبات انضمام</item>
-        <item quantity="many">%d طلب انضمام</item>
-        <item quantity="other">%d طلب انضمام</item>
-    </plurals>
     <string name="room_knock_requests_title">طلبات الانضمام</string>
     <string name="room_knock_requests_empty">لا أحد يطلب الانضمام الآن.</string>
     <string name="room_knock_request_accept">اقبل</string>
@@ -3789,4 +3768,75 @@
     <string name="settings_room_public_badge_summary">اعرض كرة أرضية على الصور الرمزية للغرف العامة</string>
     <string name="settings_room_list_badges">الشارات في قائمة الغرف</string>
     <string name="settings_room_list_badges_summary">اعرض الشارات المفعّلة أعلاه في قائمة الغرف أيضًا</string>
+    <string name="room_profile_section_people">الأشخاص</string>
+    <string name="room_profile_section_shared_content">المحتوى المشترك</string>
+    <string name="room_profile_section_preferences">الخيارات</string>
+    <string name="room_profile_section_administration">الإدارة</string>
+    <string name="room_profile_section_conversation">المحادثة</string>
+    <string name="room_settings_section_details">التفاصيل</string>
+    <string name="room_settings_section_access">النفاذ</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="zero">لا أعضاء</item>
+        <item quantity="one">عضو واحد</item>
+        <item quantity="two">عضوان</item>
+        <item quantity="few">%d أعضاء</item>
+        <item quantity="many">%d عضوًا</item>
+        <item quantity="other">%d عضو</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="zero">لا مدعوين</item>
+        <item quantity="one">مدعو واحد</item>
+        <item quantity="two">مدعوان</item>
+        <item quantity="few">%d مدعوين</item>
+        <item quantity="many">%d مدعوًا</item>
+        <item quantity="other">%d مدعو</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s، %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="zero">لا طلبات معلّقة</item>
+        <item quantity="one">طلب معلّق واحد</item>
+        <item quantity="two">طلبان معلّقان</item>
+        <item quantity="few">%d طلبات معلّقة</item>
+        <item quantity="many">%d طلبًا معلّقًا</item>
+        <item quantity="other">%d طلب معلّق</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="zero">لا مستخدمين</item>
+        <item quantity="one">مستخدم واحد</item>
+        <item quantity="two">مستخدمان</item>
+        <item quantity="few">%d مستخدمين</item>
+        <item quantity="many">%d مستخدمًا</item>
+        <item quantity="other">%d مستخدم</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="zero">لا رسائل</item>
+        <item quantity="one">رسالة واحدة</item>
+        <item quantity="two">رسالتان</item>
+        <item quantity="few">%d رسائل</item>
+        <item quantity="many">%d رسالة</item>
+        <item quantity="other">%d رسالة</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="zero">لا حزم</item>
+        <item quantity="one">حزمة واحدة</item>
+        <item quantity="two">حزمتان</item>
+        <item quantity="few">%d حزم</item>
+        <item quantity="many">%d حزمة</item>
+        <item quantity="other">%d حزمة</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">لا توجد حزم في هذه الغرفة</string>
+    <string name="room_profile_pinned_none">لا شيء مثبّت</string>
+    <string name="room_profile_uploads_summary">الصور والفيديوهات والملفات</string>
+    <string name="room_profile_polls_summary">الاستطلاعات الحالية والسابقة</string>
+    <string name="room_profile_personalization_summary">ملفك الشخصي هنا والخط الزمني والوسائط</string>
+    <string name="room_profile_addresses_main_only">العنوان الرئيسي فقط</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="zero">العنوان الرئيسي فقط</item>
+        <item quantity="one">العنوان الرئيسي واسم بديل واحد</item>
+        <item quantity="two">العنوان الرئيسي واسمان بديلان</item>
+        <item quantity="few">العنوان الرئيسي و%d أسماء بديلة</item>
+        <item quantity="many">العنوان الرئيسي و%d اسمًا بديلًا</item>
+        <item quantity="other">العنوان الرئيسي و%d اسم بديل</item>
+    </plurals>
+    <string name="room_profile_addresses_none">لا يوجد عنوان منشور</string>
 </resources>

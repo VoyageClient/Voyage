@@ -14,6 +14,7 @@ import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 
 data class RoomProfileViewState(
         val roomId: String,
@@ -33,7 +34,12 @@ data class RoomProfileViewState(
         val encryptToVerifiedDeviceOnly: Async<Boolean> = Uninitialized,
         val globalCryptoConfig: Async<GlobalCryptoConfig> = Uninitialized,
         val unverifiedDevicesInTheRoom: Async<Boolean> = Uninitialized,
-        val isLastAdmin: Boolean = false
+        val isLastAdmin: Boolean = false,
+        val pinnedCount: Int = 0,
+        val imagePackCount: Int = 0,
+        val canonicalAlias: String? = null,
+        val altAliasCount: Int = 0,
+        val notificationState: RoomNotificationState? = null,
 ) : MavericksState {
 
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)

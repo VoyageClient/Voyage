@@ -17,6 +17,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 
@@ -45,8 +46,17 @@ abstract class GenericFooterItem : VectorEpoxyModel<GenericFooterItem.Holder>(R.
     @ColorInt
     var textColor: Int? = null
 
+    /** Tight vertical padding, for a line sitting directly under a section label. */
+    @EpoxyAttribute
+    var compact: Boolean = false
+
     override fun bind(holder: Holder) {
         super.bind(holder)
+
+        // Set either way: a recycled holder may come from a model of the other kind
+        val dimensions = DimensionConverter(holder.view.resources)
+        val padding = dimensions.dpToPx(16)
+        holder.view.setPadding(padding, if (compact) dimensions.dpToPx(4) else padding, padding, if (compact) 0 else padding)
 
         holder.text.setTextOrHide(text?.charSequence)
         holder.text.typeface = style.toTypeFace()

@@ -29,7 +29,6 @@ import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.themes.ThemeProvider
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
@@ -159,7 +158,6 @@ class RoomMemberProfileController @Inject constructor(
             buildProfileAction(
                     id = "personal_note_unlock",
                     editable = false,
-                    divider = false,
                     title = stringProvider.getString(CommonStrings.personal_note_unlock),
                     subtitle = stringProvider.getString(CommonStrings.personal_note_locked_hint),
                     action = { callback?.onPersonalNoteUnlockClicked() }
@@ -211,38 +209,58 @@ class RoomMemberProfileController @Inject constructor(
             buildSecurityHeader()
             buildSessions(state)
         }
-        if (ignoreActionTitle == null && state.isMine) return
-        // More
-        buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
         if (!state.isMine) {
-            buildProfileAction(
-                    id = "direct",
-                    editable = false,
-                    title = stringProvider.getString(CommonStrings.room_member_open_or_create_dm),
-                    action = { callback?.onOpenDmClicked() }
-            )
-        }
-        buildMutualRoomsAction(state)
-        if (ignoreActionTitle != null) {
-            buildProfileAction(
-                    id = "ignore",
-                    title = ignoreActionTitle,
-                    destructive = true,
-                    editable = false,
-                    divider = false,
-                    action = { callback?.onIgnoreClicked() }
-            )
+            buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_conversation))
+            buildDirectMessageAction()
+            buildMutualRoomsAction(state)
         }
         buildPersonalizationSection(state)
+        buildDestructiveSection(ignoreActionTitle, redactOwn = false)
     }
 
     private fun buildRoomMemberActions(state: RoomMemberProfileViewState) {
         if (!state.isSpace) {
             buildSecuritySection(state)
         }
-        buildMoreSection(state)
+        buildConversationSection(state)
         buildPersonalizationSection(state)
         buildAdminSection(state)
+        buildDestructiveSection(state.buildIgnoreActionTitle().takeIf { !state.isMine }, redactOwn = state.isMine)
+    }
+
+    private fun buildDirectMessageAction() {
+        buildProfileAction(
+                id = "direct",
+                editable = false,
+                title = stringProvider.getString(CommonStrings.room_member_open_or_create_dm),
+                icon = R.drawable.ic_chat,
+                action = { callback?.onOpenDmClicked() }
+        )
+    }
+
+    private fun buildDestructiveSection(ignoreActionTitle: String?, redactOwn: Boolean) {
+        if (ignoreActionTitle == null && !redactOwn) return
+        buildProfileSection("", id = "destructive")
+        if (ignoreActionTitle != null) {
+            buildProfileAction(
+                    id = "ignore",
+                    title = ignoreActionTitle,
+                    destructive = true,
+                    editable = false,
+                    icon = R.drawable.ic_room_profile_block,
+                    action = { callback?.onIgnoreClicked() }
+            )
+        }
+        if (redactOwn) {
+            buildProfileAction(
+                    id = "redact_all",
+                    editable = false,
+                    destructive = true,
+                    icon = R.drawable.ic_delete,
+                    title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
+                    action = { callback?.onRedactAllClicked() }
+            )
+        }
     }
 
     private fun buildPersonalizationSection(state: RoomMemberProfileViewState) {
@@ -258,7 +276,6 @@ class RoomMemberProfileController @Inject constructor(
                 id = "override_avatar",
                 editable = false,
                 title = stringProvider.getString(CommonStrings.avatar),
-                divider = true,
                 accessoryMatrixItem = state.userMatrixItem(),
                 profileColorGeneration = state.colorGeneration,
                 avatarRenderer = avatarRenderer,
@@ -269,7 +286,6 @@ class RoomMemberProfileController @Inject constructor(
                 editable = false,
                 title = stringProvider.getString(CommonStrings.settings_display_name),
                 subtitle = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName(),
-                divider = true,
                 action = { callback?.onOverrideDisplayNameClicked() }
         )
         if (state.profileColorSameForThemes) {
@@ -283,12 +299,6 @@ class RoomMemberProfileController @Inject constructor(
             title(host.stringProvider.getString(CommonStrings.settings_profile_color_per_theme))
             switchChecked(!state.profileColorSameForThemes)
             listener { host.callback?.onProfileColorPerThemeChanged(it) }
-            onBind { _, holder, _ ->
-                holder.view.setBackgroundColor(ThemeUtils.getColor(holder.view.context, android.R.attr.colorBackground))
-            }
-            onUnbind { _, holder ->
-                holder.view.setBackgroundColor(Color.TRANSPARENT)
-            }
         }
     }
 
@@ -317,7 +327,6 @@ class RoomMemberProfileController @Inject constructor(
                 editable = false,
                 title = stringProvider.getString(titleRes),
                 subtitle = ProfileColorPickerDialogFragment.describe(context, hex, light, origin),
-                divider = true,
                 accessoryColor = Color.parseColor(hex),
                 action = { callback?.onOverrideColorClicked(theme) }
         )
@@ -328,7 +337,7 @@ class RoomMemberProfileController @Inject constructor(
         buildProfileAction(
                 id = "mutual_rooms",
                 editable = true,
-                divider = true,
+                icon = R.drawable.ic_home_bottom_group,
                 title = stringProvider.getString(CommonStrings.room_member_profile_mutual_rooms),
                 action = { callback?.onMutualRoomsClicked() }
         )
@@ -360,7 +369,6 @@ class RoomMemberProfileController @Inject constructor(
                             editable = true,
                             icon = icon,
                             tintIcon = false,
-                            divider = hasSessions,
                             action = { callback?.onShowDeviceList() }
                     )
                 } else {
@@ -371,7 +379,6 @@ class RoomMemberProfileController @Inject constructor(
                                 title = stringProvider.getString(CommonStrings.verification_profile_verify),
                                 editable = true,
                                 icon = R.drawable.ic_shield_black,
-                                divider = hasSessions,
                                 action = { callback?.onTapVerify() }
                         )
                     } else {
@@ -379,7 +386,6 @@ class RoomMemberProfileController @Inject constructor(
                                 id = "learn_more",
                                 title = stringProvider.getString(CommonStrings.room_profile_section_security_learn_more),
                                 editable = false,
-                                divider = hasSessions,
                                 action = { callback?.onShowDeviceListNoCrossSigning() }
                         )
                     }
@@ -391,7 +397,6 @@ class RoomMemberProfileController @Inject constructor(
                         id = "learn_more",
                         title = stringProvider.getString(CommonStrings.room_profile_section_security_learn_more),
                         editable = false,
-                        divider = hasSessions,
                         action = { callback?.onShowDeviceListNoCrossSigning() }
                 )
             }
@@ -419,83 +424,44 @@ class RoomMemberProfileController @Inject constructor(
                     else -> R.drawable.ic_shield_trusted
                 },
                 tintIcon = false,
-                divider = false,
                 action = { callback?.onShowDeviceList() }
         )
     }
 
-    private fun buildMoreSection(state: RoomMemberProfileViewState) {
-        // More
-        buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
+    private fun buildConversationSection(state: RoomMemberProfileViewState) {
+        if (state.isMine) return
+        buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_conversation))
+        buildDirectMessageAction()
 
-        if (!state.isMine) {
+        val membership = state.asyncMembership() ?: return
+        if (!state.isSpace && state.hasReadReceipt) {
             buildProfileAction(
-                    id = "direct",
+                    id = "read_receipt",
                     editable = false,
-                    title = stringProvider.getString(CommonStrings.room_member_open_or_create_dm),
-                    action = { callback?.onOpenDmClicked() }
+                    title = stringProvider.getString(CommonStrings.room_member_jump_to_read_receipt),
+                    icon = R.drawable.ic_jump_to_relation,
+                    action = { callback?.onJumpToReadReceiptClicked() }
             )
         }
-
-        if (!state.isMine) {
-            val membership = state.asyncMembership() ?: return
-
-            if (!state.isSpace && state.hasReadReceipt) {
-                buildProfileAction(
-                        id = "read_receipt",
-                        editable = false,
-                        title = stringProvider.getString(CommonStrings.room_member_jump_to_read_receipt),
-                        action = { callback?.onJumpToReadReceiptClicked() }
-                )
-            }
-
-            val ignoreActionTitle = state.buildIgnoreActionTitle()
-            if (!state.isSpace && !state.isHistoricalOrWatchedRoom) {
-                buildProfileAction(
-                        id = "mention",
-                        title = stringProvider.getString(CommonStrings.room_participants_action_mention),
-                        editable = false,
-                        divider = true,
-                        action = { callback?.onMentionClicked() }
-                )
-            }
-
-            val canInvite = state.actionPermissions.canInvite
-
-            if (canInvite && (membership == Membership.LEAVE || membership == Membership.KNOCK)) {
-                buildProfileAction(
-                        id = "invite",
-                        title = stringProvider.getString(CommonStrings.room_participants_action_invite),
-                        destructive = false,
-                        editable = false,
-                        divider = true,
-                        action = { callback?.onInviteClicked() }
-                )
-            }
-            buildMutualRoomsAction(state)
-
-            if (ignoreActionTitle != null) {
-                buildProfileAction(
-                        id = "ignore",
-                        title = ignoreActionTitle,
-                        destructive = true,
-                        editable = false,
-                        divider = false,
-                        action = { callback?.onIgnoreClicked() }
-                )
-            }
-        }
-
-        if (state.isMine) {
+        if (!state.isSpace && !state.isHistoricalOrWatchedRoom) {
             buildProfileAction(
-                    id = "redact_all",
+                    id = "mention",
+                    title = stringProvider.getString(CommonStrings.room_participants_action_mention),
                     editable = false,
-                    destructive = true,
-                    divider = false,
-                    title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
-                    action = { callback?.onRedactAllClicked() }
+                    icon = R.drawable.ic_mention,
+                    action = { callback?.onMentionClicked() }
             )
         }
+        if (state.actionPermissions.canInvite && (membership == Membership.LEAVE || membership == Membership.KNOCK)) {
+            buildProfileAction(
+                    id = "invite",
+                    title = stringProvider.getString(CommonStrings.room_participants_action_invite),
+                    editable = false,
+                    icon = R.drawable.ic_invite_people,
+                    action = { callback?.onInviteClicked() }
+            )
+        }
+        buildMutualRoomsAction(state)
     }
 
     private fun buildAdminSection(state: RoomMemberProfileViewState) {
@@ -507,7 +473,7 @@ class RoomMemberProfileController @Inject constructor(
         val membership = state.asyncMembership() ?: return
         // Kick/ban/role can only be applied to someone you outrank. Redacting another user's messages,
         // however, depends only on your own redact power level — not the target's rank — so it must also
-        // show for fellow moderators/admins. Self-redaction lives under "More" (see buildMoreSection).
+        // show for fellow moderators/admins. Self-redaction lives in buildDestructiveSection.
         val hasPowerOverTarget = state.isMine || myPowerLevel > userPowerLevel
         val canKick = hasPowerOverTarget && !state.isMine && state.actionPermissions.canKick
         val canBan = hasPowerOverTarget && !state.isMine && state.actionPermissions.canBan
@@ -515,7 +481,7 @@ class RoomMemberProfileController @Inject constructor(
         val canRedactAll = !state.isMine && state.actionPermissions.canRedact
         val canMute = canEditPowerLevel && !state.isMine && (membership == Membership.JOIN || membership == Membership.INVITE)
         if (canKick || canBan || canEditPowerLevel || canRedactAll) {
-            buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_admin))
+            buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_administration))
         }
         if (canEditPowerLevel) {
             buildProfileAction(
@@ -523,7 +489,6 @@ class RoomMemberProfileController @Inject constructor(
                     editable = true,
                     title = stringProvider.getString(CommonStrings.power_level_title),
                     subtitle = powerLevelsStr,
-                    divider = canRedactAll || canMute || canKick || canBan,
                     editableRes = R.drawable.ic_edit,
                     action = { callback?.onEditPowerLevel(userPowerLevel) }
             )
@@ -533,7 +498,7 @@ class RoomMemberProfileController @Inject constructor(
                     id = "redact_all",
                     editable = false,
                     destructive = true,
-                    divider = canMute || canKick || canBan,
+                    icon = R.drawable.ic_delete,
                     title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
                     action = { callback?.onRedactAllClicked() }
             )
@@ -544,8 +509,8 @@ class RoomMemberProfileController @Inject constructor(
                 buildProfileAction(
                         id = "unmute",
                         editable = false,
+                        icon = R.drawable.ic_room_profile_unmute,
                         destructive = true,
-                        divider = canKick || canBan,
                         title = stringProvider.getString(CommonStrings.room_participants_action_unmute),
                         subtitle = state.muteRestore?.let {
                             stringProvider.getString(CommonStrings.room_participants_muted_until, dateFormatter.format(ScheduleTimePicker.forDisplay(it.sendTs), DateFormatKind.DEFAULT_DATE_AND_TIME))
@@ -556,8 +521,8 @@ class RoomMemberProfileController @Inject constructor(
                 buildProfileAction(
                         id = "mute",
                         editable = false,
+                        icon = R.drawable.ic_room_profile_mute,
                         destructive = true,
-                        divider = canKick || canBan,
                         title = stringProvider.getString(CommonStrings.room_participants_action_mute),
                         action = { callback?.onMuteClicked() }
                 )
@@ -570,7 +535,7 @@ class RoomMemberProfileController @Inject constructor(
                     buildProfileAction(
                             id = "kick",
                             editable = false,
-                            divider = canBan,
+                            icon = R.drawable.ic_room_profile_kick,
                             destructive = true,
                             title = stringProvider.getString(CommonStrings.room_participants_action_kick),
                             action = { callback?.onKickClicked(state.isSpace) }
@@ -579,8 +544,8 @@ class RoomMemberProfileController @Inject constructor(
                 Membership.INVITE -> {
                     buildProfileAction(
                             id = "cancel_invite",
+                            icon = R.drawable.ic_room_profile_cancel_invite,
                             title = stringProvider.getString(CommonStrings.room_participants_action_cancel_invite),
-                            divider = canBan,
                             destructive = true,
                             editable = false,
                             action = { callback?.onCancelInviteClicked() }
@@ -598,6 +563,7 @@ class RoomMemberProfileController @Inject constructor(
             buildProfileAction(
                     id = "ban",
                     editable = false,
+                    icon = R.drawable.ic_room_profile_ban,
                     destructive = true,
                     title = banActionTitle,
                     subtitle = state.pendingUnban?.takeIf { membership == Membership.BAN }?.let {

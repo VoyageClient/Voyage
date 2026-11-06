@@ -1106,13 +1106,8 @@
 \nDeine Nachrichten sind gesichert und nur du und dein Gegenüber haben die eindeutigen Schlüssel, um sie zu entsperren.</string>
     <string name="room_profile_section_security">Sicherheit</string>
     <string name="room_profile_section_security_learn_more">Mehr erfahren</string>
-    <string name="room_profile_section_more">Mehr</string>
     <string name="room_profile_section_more_settings">Raumeinstellungen</string>
     <string name="room_profile_section_more_notifications">Benachrichtigungen</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Eine Person</item>
-        <item quantity="other">%1$d Personen</item>
-    </plurals>
     <string name="room_profile_section_more_uploads">Hochgeladene Dateien</string>
     <string name="room_profile_section_more_leave">Raum verlassen</string>
     <string name="room_profile_leaving_room">Verlasse den Raum …</string>
@@ -1355,7 +1350,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Dies ist keine gültige Benutzerkennung. Erwartetes Format: „@benutzer:homeserver.org“</string>
     <string name="autodiscover_well_known_error">Es konnte kein gültiger Homeserver gefunden werden. Bitte prüfe deine Kennung</string>
     <string name="send_a_sticker">Sticker.</string>
-    <string name="room_profile_section_admin">Administrative Aktionen</string>
     <string name="room_member_power_level_default_in">Standard in %1$s</string>
     <string name="settings_hs_admin_e2e_disabled">Dein Serveradministrator hat in privaten Räumen und Direktnachrichten Ende-zu-Ende-Verschlüsselung standardmäßig deaktiviert.</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Flugzeugmodus ist aktiv</string>
@@ -1492,7 +1486,6 @@
     <string name="direct_room_created_summary_item">%s ist beigetreten.</string>
     <string name="direct_room_encryption_enabled_tile_description">Nachrichten in dieser Unterhaltung sind Ende-zu-Ende-verschlüsselt.</string>
     <string name="direct_room_profile_section_more_leave">Verlassen</string>
-    <string name="direct_room_profile_section_more_settings">Einstellungen</string>
     <string name="direct_room_profile_encrypted_subtitle">Nachrichten hier sind Ende-zu-Ende-verschlüsselt.
 \n
 \nDeine Nachrichten sind mit digitalen Schlüsseln gesichert. Nur du und der Empfänger haben die einzigen Schlüssel, um jene zu entsperren.</string>
@@ -1536,7 +1529,6 @@
     <string name="add_by_qr_code">Per QR-Code hinzufügen</string>
     <string name="permissions_denied_add_contact">Gib die Erlaubnis, um auf die Kamera zu zugreifen.</string>
     <string name="room_alias_published_alias_title">Öffentliche Adressen</string>
-    <string name="room_settings_alias_subtitle">Raumadressen und Sichtbarkeit im Raumverzeichnis ansehen und bearbeiten.</string>
     <string name="room_settings_alias_title">Raumadresse</string>
     <string name="room_settings_room_access_title">Raumzugang</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Änderungen daran, wer die Chronik lesen kann, gelten nur für kommende Nachrichten in diesem Raum. Die Sichtbarkeit der bestehenden Chronik bleibt unverändert.</string>
@@ -1560,7 +1552,6 @@
     <string name="this_is_the_beginning_of_dm">Das ist der Anfang deiner Direktnachrichten mit %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Das ist der Anfang dieser Konversation.</string>
     <string name="this_is_the_beginning_of_room">Das ist der Anfang von %s.</string>
-    <string name="room_settings_enable_encryption_no_permission">Du hast nicht die nötigen Berechtigungen, um die Verschlüsselung in diesem Raum zu aktivieren.</string>
     <string name="create_room_in_progress">Erstelle Raum …</string>
     <string name="create_room_alias_invalid">Manche Zeichen sind nicht zulässig</string>
     <string name="create_room_alias_empty">Bitte gib eine Raumadresse an</string>
@@ -2875,10 +2866,6 @@
     <string name="notice_room_knock_denied_by_you">Du hast die Beitrittsanfrage von %1$s abgelehnt</string>
     <string name="notice_room_knock_cancelled">%1$s hat die Beitrittsanfrage zurückgezogen</string>
     <string name="notice_room_knock_cancelled_by_you">Du hast deine Beitrittsanfrage zurückgezogen</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">%d Beitrittsanfrage</item>
-        <item quantity="other">%d Beitrittsanfragen</item>
-    </plurals>
     <string name="room_knock_requests_title">Beitrittsanfragen</string>
     <string name="room_knock_requests_empty">Derzeit fragt niemand nach einem Beitritt.</string>
     <string name="room_knock_request_accept">Annehmen</string>
@@ -3639,4 +3626,47 @@
     <string name="settings_room_public_badge_summary">Einen Globus auf den Avataren öffentlicher Räume anzeigen</string>
     <string name="settings_room_list_badges">Symbole in der Raumliste</string>
     <string name="settings_room_list_badges_summary">Die oben aktivierten Symbole auch in der Raumliste anzeigen</string>
+    <string name="room_profile_section_people">Personen</string>
+    <string name="room_profile_section_shared_content">Geteilte Inhalte</string>
+    <string name="room_profile_section_preferences">Optionen</string>
+    <string name="room_profile_section_administration">Verwaltung</string>
+    <string name="room_profile_section_conversation">Unterhaltung</string>
+    <string name="room_settings_section_details">Details</string>
+    <string name="room_settings_section_access">Zugang</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d Mitglied</item>
+        <item quantity="other">%d Mitglieder</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d eingeladen</item>
+        <item quantity="other">%d eingeladen</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d ausstehend</item>
+        <item quantity="other">%d ausstehend</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d Benutzer</item>
+        <item quantity="other">%d Benutzer</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%d Nachricht</item>
+        <item quantity="other">%d Nachrichten</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%d Paket</item>
+        <item quantity="other">%d Pakete</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">Keine Pakete in diesem Raum</string>
+    <string name="room_profile_pinned_none">Nichts angeheftet</string>
+    <string name="room_profile_uploads_summary">Fotos, Videos und Dateien</string>
+    <string name="room_profile_polls_summary">Aktive und vergangene Umfragen</string>
+    <string name="room_profile_personalization_summary">Dein Profil hier, Zeitleiste und Medien</string>
+    <string name="room_profile_addresses_main_only">Nur Hauptadresse</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">Hauptadresse und %d Alias</item>
+        <item quantity="other">Hauptadresse und %d Aliasse</item>
+    </plurals>
+    <string name="room_profile_addresses_none">Keine veröffentlichte Adresse</string>
 </resources>

@@ -1023,7 +1023,6 @@
     <string name="room_settings_space_access_title">স্পেস অ্যাক্সেস</string>
     <string name="room_settings_guest_access_title">অতিথিদের যোগ দেওয়ার অনুমতি দিন</string>
     <string name="room_settings_alias_title">রুমের ঠিকানা</string>
-    <string name="room_settings_alias_subtitle">এই রুমের ঠিকানা এবং রুম ডিরেক্টরিতে এর দৃশ্যমানতা দেখুন ও পরিচালনা করুন।</string>
     <string name="space_settings_alias_title">স্পেসের ঠিকানা</string>
     <string name="space_settings_alias_subtitle">এই স্পেসের ঠিকানা দেখুন ও পরিচালনা করুন।</string>
     <string name="room_alias_published_alias_title">প্রকাশিত ঠিকানা</string>
@@ -1621,15 +1620,8 @@
     <string name="room_profile_section_security">নিরাপত্তা</string>
     <string name="room_profile_section_restore_security">এনক্রিপশন পুনরুদ্ধার করুন</string>
     <string name="room_profile_section_security_learn_more">আরও জানুন</string>
-    <string name="room_profile_section_more">আরও</string>
-    <string name="room_profile_section_admin">অ্যাডমিন কার্যক্রম</string>
     <string name="room_profile_section_more_settings">রুম সেটিংস</string>
-    <string name="direct_room_profile_section_more_settings">সেটিংস</string>
     <string name="room_profile_section_more_notifications">বিজ্ঞপ্তি</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">একজন ব্যক্তি</item>
-        <item quantity="other">%1$d জন ব্যক্তি</item>
-    </plurals>
     <string name="room_profile_section_more_polls">জরিপের ইতিহাস</string>
     <string name="room_profile_section_more_uploads">আপলোড</string>
     <string name="room_profile_section_more_report">রুম রিপোর্ট করুন</string>
@@ -1654,7 +1646,6 @@
     <string name="command_description_rainbow_emote">প্রদত্ত ইমোটটি রংধনুর রঙে পাঠায়</string>
     <string name="settings_category_timeline">টাইমলাইন</string>
     <string name="room_settings_enable_encryption">এন্ড-টু-এন্ড এনক্রিপশন চালু করুন…</string>
-    <string name="room_settings_enable_encryption_no_permission">এই রুমে এনক্রিপশন চালু করার অনুমতি আপনার নেই।</string>
     <string name="room_settings_enable_encryption_dialog_title">এনক্রিপশন চালু করবেন?</string>
     <string name="room_settings_enable_encryption_dialog_content">একবার চালু করলে রুমের এনক্রিপশন আর বন্ধ করা যাবে না। এনক্রিপ্ট করা রুমে পাঠানো বার্তা সার্ভার দেখতে পায় না, শুধু রুমের অংশগ্রহণকারীরাই দেখতে পান। এনক্রিপশন চালু করলে অনেক বট ও ব্রিজ সঠিকভাবে কাজ নাও করতে পারে।</string>
     <string name="room_settings_enable_encryption_dialog_submit">এনক্রিপশন চালু করুন</string>
@@ -2826,10 +2817,6 @@
     <string name="notice_room_knock_denied_by_you">আপনি %1$s-এর যোগ দেওয়ার অনুরোধ প্রত্যাখ্যান করেছেন</string>
     <string name="notice_room_knock_cancelled">%1$s তাঁর যোগ দেওয়ার অনুরোধ বাতিল করেছেন</string>
     <string name="notice_room_knock_cancelled_by_you">আপনি আপনার যোগ দেওয়ার অনুরোধ বাতিল করেছেন</string>
-    <plurals name="room_profile_section_more_knock_requests">
-        <item quantity="one">যোগ দেওয়ার %dটি অনুরোধ</item>
-        <item quantity="other">যোগ দেওয়ার %dটি অনুরোধ</item>
-    </plurals>
     <string name="room_knock_requests_title">যোগ দেওয়ার অনুরোধ</string>
     <string name="room_knock_requests_empty">এই মুহূর্তে কেউ যোগ দেওয়ার অনুরোধ করছেন না।</string>
     <string name="room_knock_request_accept">গ্রহণ করুন</string>
@@ -3594,4 +3581,47 @@
     <string name="settings_room_public_badge_summary">সর্বজনীন রুমের অবতারে একটি গ্লোব দেখান</string>
     <string name="settings_room_list_badges">রুমের তালিকায় ব্যাজ</string>
     <string name="settings_room_list_badges_summary">উপরে চালু করা ব্যাজগুলো রুমের তালিকাতেও দেখান</string>
+    <string name="room_profile_section_people">লোকজন</string>
+    <string name="room_profile_section_shared_content">শেয়ার করা কন্টেন্ট</string>
+    <string name="room_profile_section_preferences">পছন্দসমূহ</string>
+    <string name="room_profile_section_administration">প্রশাসন</string>
+    <string name="room_profile_section_conversation">কথোপকথন</string>
+    <string name="room_settings_section_details">বিস্তারিত</string>
+    <string name="room_settings_section_access">অ্যাক্সেস</string>
+    <plurals name="room_profile_members_joined">
+        <item quantity="one">%d জন সদস্য</item>
+        <item quantity="other">%d জন সদস্য</item>
+    </plurals>
+    <plurals name="room_profile_members_invited">
+        <item quantity="one">%d জন আমন্ত্রিত</item>
+        <item quantity="other">%d জন আমন্ত্রিত</item>
+    </plurals>
+    <string name="room_profile_members_summary">%1$s, %2$s</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%dটি অপেক্ষমাণ</item>
+        <item quantity="other">%dটি অপেক্ষমাণ</item>
+    </plurals>
+    <plurals name="room_profile_banned_users_count">
+        <item quantity="one">%d জন ব্যবহারকারী</item>
+        <item quantity="other">%d জন ব্যবহারকারী</item>
+    </plurals>
+    <plurals name="room_profile_pinned_count">
+        <item quantity="one">%dটি বার্তা</item>
+        <item quantity="other">%dটি বার্তা</item>
+    </plurals>
+    <plurals name="room_profile_image_packs_count">
+        <item quantity="one">%dটি প্যাক</item>
+        <item quantity="other">%dটি প্যাক</item>
+    </plurals>
+    <string name="room_profile_image_packs_none">এই রুমে কোনো প্যাক নেই</string>
+    <string name="room_profile_pinned_none">কিছুই পিন করা নেই</string>
+    <string name="room_profile_uploads_summary">ছবি, ভিডিও ও ফাইল</string>
+    <string name="room_profile_polls_summary">চলমান ও আগের জরিপ</string>
+    <string name="room_profile_personalization_summary">এখানে আপনার প্রোফাইল, টাইমলাইন ও মিডিয়া</string>
+    <string name="room_profile_addresses_main_only">শুধু প্রধান ঠিকানা</string>
+    <plurals name="room_profile_addresses_with_aliases">
+        <item quantity="one">প্রধান ঠিকানা ও %dটি বিকল্প নাম</item>
+        <item quantity="other">প্রধান ঠিকানা ও %dটি বিকল্প নাম</item>
+    </plurals>
+    <string name="room_profile_addresses_none">কোনো প্রকাশিত ঠিকানা নেই</string>
 </resources>

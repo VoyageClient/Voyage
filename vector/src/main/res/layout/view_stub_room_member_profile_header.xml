@@ -29,21 +29,10 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:visibility="visible" />
 
-        <View
-            android:id="@+id/memberProfileBannerScrim"
-            android:layout_width="0dp"
-            android:layout_height="?attr/actionBarSize"
-            android:importantForAccessibility="no"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:visibility="visible" />
-
         <Space
             android:id="@+id/memberProfileBannerOverlap"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="64dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/memberProfileBannerView"
             app:layout_constraintStart_toStartOf="parent"
