@@ -246,6 +246,9 @@ def update_shortcodes(emojibase_dir):
 TWEMOJI_OUT_DIR = os.path.join(REPO_ROOT, "vector/src/main/assets/twemoji")
 TWEMOJI_TREE_URL = "https://api.github.com/repos/jdecked/twemoji/git/trees/main?recursive=1"
 TWEMOJI_BASE_URL = "https://raw.githubusercontent.com/jdecked/twemoji/main/assets/72x72"
+TWEMOJI_ASSET_OVERRIDES = {
+    "1f52b": "https://raw.githubusercontent.com/twitter/twemoji/v2.5.0/2/72x72/1f52b.png",
+}
 
 
 def _twemoji_canonical_name(twemoji_stem):
@@ -269,7 +272,7 @@ def _twemoji_fetch(stem):
     dest = os.path.join(TWEMOJI_OUT_DIR, _twemoji_canonical_name(stem) + ".png")
     if os.path.exists(dest) and os.path.getsize(dest) > 0:
         return "cached"
-    url = "%s/%s.png" % (TWEMOJI_BASE_URL, stem)
+    url = TWEMOJI_ASSET_OVERRIDES.get(stem, "%s/%s.png" % (TWEMOJI_BASE_URL, stem))
     try:
         with urllib.request.urlopen(url, timeout=30) as resp:
             data = resp.read()
