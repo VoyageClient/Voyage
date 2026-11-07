@@ -1375,6 +1375,7 @@ class TimelineFragment :
     }
 
     override fun onStop() {
+        timelineViewModel.handle(RoomDetailAction.PersistReadMarker)
         scrollOnHighlightedEventCallback.setPaused(true)
         // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event —
         // nor the SDK's single DB thread on snapshot rebuilds (two stacked copies of a room halve

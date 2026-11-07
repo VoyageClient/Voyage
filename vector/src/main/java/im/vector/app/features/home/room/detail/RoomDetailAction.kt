@@ -56,6 +56,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
 
     object EnterTrackingUnreadMessagesState : RoomDetailAction()
     object ExitTrackingUnreadMessagesState : RoomDetailAction()
+    object PersistReadMarker : RoomDetailAction()
 
     data class ResendMessage(val eventId: String) : RoomDetailAction()
     data class RemoveFailedEcho(val eventId: String) : RoomDetailAction()

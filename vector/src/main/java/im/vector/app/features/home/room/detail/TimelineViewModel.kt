@@ -208,7 +208,11 @@ class TimelineViewModel @AssistedInject constructor(
     var pendingEvent: RoomDetailViewEvents? = null
 
     private var trackUnreadMessages = AtomicBoolean(false)
+    private val displayedEventsLock = Any()
     private var mostRecentDisplayedEvent: TimelineEvent? = null
+
+    // Seen but not yet flushed by the one-second buffer; leaving early must still count it.
+    private var unflushedDisplayedEvent: TimelineEvent? = null
 
     private var prepareToEncrypt: Async<Unit> = Uninitialized
 
@@ -736,6 +740,7 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.IgnoreUser -> handleIgnoreUser(action)
             is RoomDetailAction.EnterTrackingUnreadMessagesState -> startTrackingUnreadMessages()
             is RoomDetailAction.ExitTrackingUnreadMessagesState -> stopTrackingUnreadMessages()
+            is RoomDetailAction.PersistReadMarker -> handlePersistReadMarker()
             is RoomDetailAction.VoteToPoll -> handleVoteToPoll(action)
             is RoomDetailAction.AcceptVerificationRequest -> handleAcceptVerification(action)
             is RoomDetailAction.DeclineVerificationRequest -> handleDeclineVerification(action)
@@ -885,14 +890,35 @@ private fun handleSelectStickerAttachment() {
     private fun stopTrackingUnreadMessages() {
         if (room == null) return
         if (trackUnreadMessages.getAndSet(false)) {
-            mostRecentDisplayedEvent?.root?.eventId?.also {
-                session.coroutineScope.launch {
-                    tryOrNull { room.readService().setReadMarker(it) }
-                }
+            val (seen, unflushed) = synchronized(displayedEventsLock) {
+                (mostRecentDisplayedEvent to unflushedDisplayedEvent).also { mostRecentDisplayedEvent = null }
             }
-            mostRecentDisplayedEvent = null
+            persistReadMarker(seen, unflushed)
         }
         setState { copy(canShowJumpToReadMarker = true) }
+    }
+
+    // onDestroy never runs if the process dies in the background.
+    private fun handlePersistReadMarker() {
+        if (room == null || !trackUnreadMessages.get()) return
+        val (seen, unflushed) = synchronized(displayedEventsLock) { mostRecentDisplayedEvent to unflushedDisplayedEvent }
+        persistReadMarker(seen, unflushed)
+    }
+
+    private fun persistReadMarker(seen: TimelineEvent?, unflushed: TimelineEvent?) {
+        if (room == null) return
+        session.coroutineScope.launch(Dispatchers.Default) {
+            newerOf(seen, unflushed)?.root?.eventId?.let {
+                tryOrNull { room.readService().setReadMarker(it) }
+            }
+        }
+    }
+
+    private fun newerOf(a: TimelineEvent?, b: TimelineEvent?): TimelineEvent? = when {
+        a == null -> b
+        b == null -> a
+        b.indexOfEvent() < a.indexOfEvent() -> b
+        else -> a
     }
 
     private fun handleEventInvisible(action: RoomDetailAction.TimelineEventTurnsInvisible) {
@@ -1295,6 +1321,9 @@ private fun handleSelectStickerAttachment() {
         if (room == null) return
         viewModelScope.launch(Dispatchers.Default) {
             if (action.event.root.sendState.isSent()) { // ignore pending/local events
+                synchronized(displayedEventsLock) {
+                    unflushedDisplayedEvent = newerOf(unflushedDisplayedEvent, action.event)
+                }
                 visibleEventsSource.post(action)
             }
             // We need to update this with the related m.replace also (to move read receipt)
@@ -1523,12 +1552,13 @@ private fun handleSelectStickerAttachment() {
                 .filter { it.isNotEmpty() }
                 .onEach { actions ->
                     val bufferedMostRecentDisplayedEvent = actions.minByOrNull { it.event.indexOfEvent() }?.event ?: return@onEach
-                    val globalMostRecentDisplayedEvent = mostRecentDisplayedEvent
-                    if (trackUnreadMessages.get()) {
-                        if (globalMostRecentDisplayedEvent == null) {
-                            mostRecentDisplayedEvent = bufferedMostRecentDisplayedEvent
-                        } else if (bufferedMostRecentDisplayedEvent.indexOfEvent() < globalMostRecentDisplayedEvent.indexOfEvent()) {
-                            mostRecentDisplayedEvent = bufferedMostRecentDisplayedEvent
+                    synchronized(displayedEventsLock) {
+                        if (trackUnreadMessages.get()) {
+                            mostRecentDisplayedEvent = newerOf(mostRecentDisplayedEvent, bufferedMostRecentDisplayedEvent)
+                        }
+                        // Otherwise it arrived after this window closed.
+                        if (unflushedDisplayedEvent?.eventId == bufferedMostRecentDisplayedEvent.eventId) {
+                            unflushedDisplayedEvent = null
                         }
                     }
                     bufferedMostRecentDisplayedEvent.root.eventId?.let { eventId ->
