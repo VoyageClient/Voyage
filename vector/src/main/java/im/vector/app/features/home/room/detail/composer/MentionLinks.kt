@@ -374,25 +374,60 @@ private inline fun forEachMention(
         val candidates = (listOf(label, id) + displayNamesOf(id))
                 // A name carrying markdown link syntax can't round-trip through the composer.
                 .filter { it.isNotBlank() && !it.contains('[') && !it.contains(']') }
-        val at = candidates.firstNotNullOfOrNull { body.wordIndexOf(it, cursor)?.to(it) } ?: return@forEach
+        val before = formattedBody.visibleCharBefore(match.range.first)
+        val after = formattedBody.visibleCharAfter(match.range.last + 1)
+        val at = candidates.firstNotNullOfOrNull { body.wordIndexOf(it, cursor, before, after)?.to(it) } ?: return@forEach
         onMatch(at.first, at.second, id)
         cursor = at.first + at.second.length
     }
 }
 
-// Plain indexOf would let a short display name match inside a longer word.
-private fun String.wordIndexOf(name: String, from: Int): Int? {
+// Plain indexOf would let a short display name match inside a longer word. A mention written straight
+// against a word still matches where the anchor in the HTML has that same character beside it.
+private fun String.wordIndexOf(name: String, from: Int, anchorBefore: Char? = null, anchorAfter: Char? = null): Int? {
     var at = indexOf(name, from)
     while (at >= 0) {
         val before = getOrNull(at - 1)
         val after = getOrNull(at + name.length)
-        if (!before.isNamePart() && !after.isNamePart()) return at
+        if ((!before.isNamePart() || before == anchorBefore) && (!after.isNamePart() || after == anchorAfter)) return at
         at = indexOf(name, at + 1)
     }
     return null
 }
 
 private fun Char?.isNamePart() = this != null && (isLetterOrDigit() || this == '_')
+
+private fun String.visibleCharBefore(at: Int): Char? {
+    var i = at - 1
+    while (i >= 0) {
+        when (this[i]) {
+            '>' -> i = lastIndexOf('<', i) - 1
+            ';' -> {
+                val amp = lastIndexOf('&', i)
+                return if (amp >= 0 && i - amp <= MAX_ENTITY_LENGTH) substring(amp, i + 1).unescapeHtml().lastOrNull() else ';'
+            }
+            else -> return this[i]
+        }
+    }
+    return null
+}
+
+private fun String.visibleCharAfter(at: Int): Char? {
+    var i = at
+    while (i in 0 until length) {
+        when (this[i]) {
+            '<' -> i = indexOf('>', i).takeIf { it >= 0 }?.plus(1) ?: return null
+            '&' -> {
+                val semi = indexOf(';', i)
+                return if (semi >= 0 && semi - i <= MAX_ENTITY_LENGTH) substring(i, semi + 1).unescapeHtml().firstOrNull() else '&'
+            }
+            else -> return this[i]
+        }
+    }
+    return null
+}
+
+private const val MAX_ENTITY_LENGTH = 6
 
 private fun String.unescapeHtml(): String {
     if (!contains('&')) return this

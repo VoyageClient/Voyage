@@ -63,6 +63,53 @@ class ComposerPillInsertionTest {
         assertEquals("hi @bob:matrix.org ", editable.toString())
     }
 
+    private fun editTextWithPill(text: String): ComposerEditText {
+        val editText = ComposerEditText(context)
+        val pill = mockk<PillImageSpan>(relaxed = true) {
+            every { copyText } returns "@bob:matrix.org"
+        }
+        editText.setText(text)
+        val at = text.indexOf(PILL_PLACEHOLDER)
+        editText.editableText.setSpan(pill, at, at + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return editText
+    }
+
+    private fun ComposerEditText.pillCount() = editableText.getSpans(0, length(), PillImageSpan::class.java).size
+
+    @Test
+    fun `typing over the space after a pill puts the mention back as text`() {
+        val editText = editTextWithPill("hi $PILL_PLACEHOLDER there")
+
+        editText.setSelection(4, 5)
+        editText.editableText.replace(4, 5, "b")
+
+        assertEquals("hi @bob:matrix.orgbthere", editText.text.toString())
+        assertEquals(0, editText.pillCount())
+        assertEquals("hi @bob:matrix.orgb".length, editText.selectionEnd)
+    }
+
+    @Test
+    fun `typing straight onto a pill's end puts the mention back as text`() {
+        val editText = editTextWithPill("hi $PILL_PLACEHOLDER there")
+
+        editText.setSelection(4)
+        editText.editableText.insert(4, "b")
+
+        assertEquals("hi @bob:matrix.orgb there", editText.text.toString())
+        assertEquals(0, editText.pillCount())
+        assertEquals("hi @bob:matrix.orgb".length, editText.selectionEnd)
+    }
+
+    @Test
+    fun `punctuation typed onto a pill's end keeps the pill`() {
+        val editText = editTextWithPill("hi $PILL_PLACEHOLDER there")
+
+        editText.editableText.replace(4, 5, ",")
+
+        assertEquals("hi $PILL_PLACEHOLDER,there", editText.text.toString())
+        assertEquals(1, editText.pillCount())
+    }
+
     @Test
     fun `programmatically clearing a pill does not restore its copy text`() {
         val editText = ComposerEditText(context)

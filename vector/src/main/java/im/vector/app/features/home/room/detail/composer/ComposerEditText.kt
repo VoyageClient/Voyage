@@ -59,6 +59,8 @@ class ComposerEditText @JvmOverloads constructor(
     private var suppressMentionHandling = false
     private var pillToRestore: PillImageSpan? = null
     private var pillRestorePosition = -1
+    private var pillRestoreKeepsCaret = false
+    private var pillBeforeInsertion: PillImageSpan? = null
 
     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection? {
         val ic = super.onCreateInputConnection(editorInfo) ?: return null
@@ -163,7 +165,14 @@ class ComposerEditText @JvmOverloads constructor(
         addTextChangedListener(
                 object : SimpleTextWatcher() {
                     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-                        if (rewriting || suppressMentionHandling || count != 1 || after != 0) return
+                        pillBeforeInsertion = null
+                        if (rewriting || suppressMentionHandling) return
+                        if (after > 0) {
+                            pillBeforeInsertion = editableText.getSpans(start, start, PillImageSpan::class.java)
+                                    .firstOrNull { editableText.getSpanEnd(it) == start }
+                            return
+                        }
+                        if (count != 1) return
                         // Backspace onto a pill — or onto the space that finished the mention off and
                         // made it one — puts the mention back as editable text rather than swallowing
                         // it, so it can be corrected (and pilled again).
@@ -175,6 +184,17 @@ class ComposerEditText @JvmOverloads constructor(
                                     .firstOrNull { editableText.getSpanStart(it) == start && editableText.getSpanEnd(it) == start + 1 }
                         }
                         pillToRestore?.let { pillRestorePosition = editableText.getSpanStart(it) }
+                    }
+
+                    // Text typed or pasted straight onto a pill's end (e.g. over the space after it) would
+                    // send glued to the name; the mention goes back to editable text instead.
+                    override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                        val pill = pillBeforeInsertion ?: return
+                        pillBeforeInsertion = null
+                        if (count == 0 || !mentionRunsInto(pill.copyText, s.subSequence(start, s.length))) return
+                        pillToRestore = pill
+                        pillRestorePosition = editableText.getSpanStart(pill)
+                        pillRestoreKeepsCaret = true
                     }
 
                     override fun afterTextChanged(s: Editable) {
@@ -218,6 +238,8 @@ class ComposerEditText @JvmOverloads constructor(
     private fun restorePillText(editable: Editable): Boolean {
         val span = pillToRestore ?: return false
         pillToRestore = null
+        val keepCaret = pillRestoreKeepsCaret
+        pillRestoreKeepsCaret = false
         val text = span.copyText
         val start = editable.getSpanStart(span)
         val end = editable.getSpanEnd(span)
@@ -233,13 +255,15 @@ class ComposerEditText @JvmOverloads constructor(
                 .forEach { editable.removeSpan(it) }
         // Inclusive end, so a correction typed onto the end stays part of the mention.
         if (runsOn) editable.setSpan(RestoredMentionSpan(), at, at + text.length, Spanned.SPAN_EXCLUSIVE_INCLUSIVE)
-        Selection.setSelection(editable, at + text.length)
+        // Replacing the pill's char shifts a caret past it on its own, keeping it after the inserted text.
+        if (!keepCaret) Selection.setSelection(editable, at + text.length)
         return true
     }
 
     // A literal-text command sends each pill as its body text, so that is what the composer shows.
     private fun unpill(editable: Editable) {
         pillToRestore = null
+        pillRestoreKeepsCaret = false
         editable.getSpans(0, editable.length, PillImageSpan::class.java)
                 .sortedByDescending { editable.getSpanStart(it) }
                 .forEach { span ->

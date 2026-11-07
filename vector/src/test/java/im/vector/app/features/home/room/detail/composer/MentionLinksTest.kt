@@ -33,6 +33,23 @@ class MentionLinksTest {
     }
 
     @Test
+    fun `given a mention written straight against a word, when splicing, then it is still found`() {
+        spliceMentionLinks("Aliceb hi", """<a href="$alice">Alice</a>b hi""") shouldBeEqualTo "[Alice]($alice)b hi"
+        spliceMentionLinks("xAlice hi", """x<b><a href="$alice">Alice</a></b> hi""") shouldBeEqualTo "x[Alice]($alice) hi"
+    }
+
+    @Test
+    fun `given a name inside a word the anchor is not next to, when splicing, then that word is skipped`() {
+        spliceMentionLinks("Alicea then Alice", """Alicea then <a href="$alice">Alice</a>""") shouldBeEqualTo "Alicea then [Alice]($alice)"
+        spliceMentionLinks("Aliceb", """<a href="$alice">Alice</a>c""") shouldBeEqualTo "Aliceb"
+    }
+
+    @Test
+    fun `given an entity next to the anchor, when splicing, then it is read as its character`() {
+        spliceMentionLinks("Alice&b", """<a href="$alice">Alice</a>&amp;b""") shouldBeEqualTo "[Alice]($alice)&b"
+    }
+
+    @Test
     fun `given a body spelling the mention as the user id, when splicing, then it is still found`() {
         spliceMentionLinks("@alice:example.org hi", """<a href="$alice">Alice</a> hi""") shouldBeEqualTo "[@alice:example.org]($alice) hi"
     }
