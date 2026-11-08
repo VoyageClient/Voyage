@@ -7,4 +7,10 @@
         android:summary="@string/settings_user_agent_summary"
         android:title="@string/settings_user_agent_title" />
 
+    <im.vector.app.core.preference.VectorPreference
+        android:key="SETTINGS_BACKUP_DATABASE_IMPORT_KEY"
+        android:persistent="false"
+        android:summary="@string/settings_backup_database_import_summary"
+        android:title="@string/settings_backup_database_import_title" />
+
 </androidx.preference.PreferenceScreen>

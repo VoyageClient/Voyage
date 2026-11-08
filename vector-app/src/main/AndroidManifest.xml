@@ -1678,6 +1678,14 @@
             android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Holo.Light" />
 
+        <!-- Shares the loader's process because app init is skipped there. -->
+        <activity
+            android:name="im.vector.app.features.ProcessRestartActivity"
+            android:process=":multidex"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
 
         <!-- Declared here, not in the library: the redirect scheme is the package id, so the debug and
              release builds claim their own and a co-installed one can't intercept the SSO callback. -->

@@ -22,6 +22,7 @@ import im.vector.app.features.settings.VectorSettingsRootFragment
 import im.vector.app.features.settings.VectorSettingsSecurityPrivacyFragment
 import im.vector.app.features.settings.VectorSettingsTimelineFragment
 import im.vector.app.features.settings.VectorSettingsTranslationFragment
+import im.vector.app.features.settings.backup.VectorSettingsBackupFragment
 import im.vector.app.features.settings.labs.VectorSettingsLabsFragment
 import im.vector.app.features.settings.notifications.VectorSettingsNotificationFragment
 import im.vector.app.features.settings.notifications.defaults.VectorSettingsDefaultNotificationFragment
@@ -48,6 +49,7 @@ object SettingsScreenRegistry {
             VectorSettingsTimelineFragment::class.java.name to R.xml.vector_settings_timeline,
             VectorSettingsActivityPresenceFragment::class.java.name to R.xml.vector_settings_activity_presence,
             VectorSettingsRoomsSpacesFragment::class.java.name to R.xml.vector_settings_rooms_spaces,
+            VectorSettingsBackupFragment::class.java.name to R.xml.vector_settings_backup,
             VectorSettingsTranslationFragment::class.java.name to R.xml.vector_settings_translation,
             VectorSettingsSecurityPrivacyFragment::class.java.name to R.xml.vector_settings_security_privacy,
             VectorSettingsUserAgentFragment::class.java.name to R.xml.vector_settings_user_agent,

@@ -23,6 +23,10 @@ import org.junit.runner.RunWith
 import org.matrix.android.sdk.internal.database.global.GlobalSqlDatabase
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 @RunWith(RobolectricTestRunner::class)
 class FrameworkSqliteDriverTest {
@@ -135,6 +139,26 @@ class FrameworkSqliteDriverTest {
         }
 
         (failure.cause is IllegalStateException) shouldBe true
+    }
+
+    @Test
+    fun `writes outside a transaction wait while writes are blocked`() {
+        val file = File(RuntimeEnvironment.getApplication().filesDir, "blocked/global.db")
+        val fileDriver = FrameworkSqliteDriver.create(file, GlobalSqlDatabase.Schema)
+        val queries = GlobalSqlDatabase(fileDriver).rawCacheQueries
+        val written = CountDownLatch(1)
+        try {
+            FrameworkSqliteDriver.withWritesBlocked(File(file.parentFile, "../blocked/global.db")) {
+                thread {
+                    queries.upsert("https://a", "1", 1L)
+                    written.countDown()
+                }
+                written.await(300, TimeUnit.MILLISECONDS) shouldBe false
+            }
+            written.await(5, TimeUnit.SECONDS) shouldBe true
+        } finally {
+            fileDriver.close()
+        }
     }
 
     @Test

@@ -99,6 +99,19 @@ internal class FrameworkSqliteDriver private constructor(
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<Long> {
         checkOpen()
+        // A write outside a transaction still takes the database's lock, so [withWritesBlocked] excludes every writer.
+        if (transactions.get() == null) {
+            transactionLock.lock()
+            try {
+                return executeStatement(identifier, sql, binders)
+            } finally {
+                transactionLock.unlock()
+            }
+        }
+        return executeStatement(identifier, sql, binders)
+    }
+
+    private fun executeStatement(identifier: Int?, sql: String, binders: (SqlPreparedStatement.() -> Unit)?): QueryResult<Long> {
         val perfStart = MatrixPerf.now()
         try {
             // No identifier (e.g. schema DDL) → not reusable, compile once and discard.
@@ -288,8 +301,23 @@ internal class FrameworkSqliteDriver private constructor(
         private const val CLOSE_TRANSACTION_WAIT_MS = 30_000L
         private val transactionLocks = mutableMapOf<String, java.util.concurrent.locks.ReentrantLock>()
 
+        // Canonical, so a caller's File and the framework's own path name the same lock however they were built.
         private fun transactionLockFor(path: String): java.util.concurrent.locks.ReentrantLock = synchronized(transactionLocks) {
-            transactionLocks.getOrPut(path) { java.util.concurrent.locks.ReentrantLock() }
+            transactionLocks.getOrPut(File(path).canonicalPath) { java.util.concurrent.locks.ReentrantLock() }
+        }
+
+        /**
+         * Runs [block] while no SDK connection can write to [databaseFile] or checkpoint its WAL, so the
+         * database file and its `-wal` can be copied as one consistent snapshot. Reads carry on.
+         */
+        fun <T> withWritesBlocked(databaseFile: File, block: () -> T): T {
+            val lock = transactionLockFor(databaseFile.path)
+            lock.lock()
+            try {
+                return block()
+            } finally {
+                lock.unlock()
+            }
         }
 
         /**

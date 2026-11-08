@@ -10,20 +10,19 @@ package im.vector.app.features.settings.useragent
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.addFragmentToBackstack
-import im.vector.app.core.preference.VectorPreference
-import im.vector.app.features.settings.VectorSettingsBaseFragment
+import im.vector.app.features.settings.backup.DatabaseRestoreSettingsFragment
 import im.vector.lib.strings.CommonStrings
 
 @AndroidEntryPoint
-class PreLoginSettingsFragment : VectorSettingsBaseFragment() {
+class PreLoginSettingsFragment : DatabaseRestoreSettingsFragment() {
 
     override var titleRes = CommonStrings.settings_prelogin_title
     override val preferenceXmlRes = R.xml.vector_settings_pre_login
 
     override fun bindPref() {
-        findPreference<VectorPreference>("SETTINGS_PRELOGIN_USER_AGENT")?.setOnPreferenceClickListener {
+        onClick("SETTINGS_PRELOGIN_USER_AGENT") {
             addFragmentToBackstack(R.id.container, VectorSettingsUserAgentFragment::class.java)
-            true
         }
+        bindDatabaseImport()
     }
 }

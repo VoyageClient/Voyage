@@ -8,8 +8,6 @@
 package im.vector.app.features
 
 import android.app.Activity
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -100,7 +98,6 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         const val EXTRA_SHORTCUT_SESSION_ID = "EXTRA_SHORTCUT_SESSION_ID"
         private const val ACTION_ROOM_DETAILS_FROM_SHORTCUT = "ROOM_DETAILS_FROM_SHORTCUT"
-        private const val RESTART_REQUEST_CODE = 0
 
         // Special action to clear cache and/or clear credentials
         // Context rather than Activity: the debug receiver restarts the app the same way settings does.
@@ -112,21 +109,17 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             context.startActivity(intent)
         }
 
-        // Full process restart: schedule a fresh launch then kill the process, so Application.onCreate
-        // re-runs. Needed for settings wired once at startup (e.g. the emoji path) that restartApp's
-        // activity-only relaunch wouldn't pick up.
+        // Full process restart, so Application.onCreate re-runs. Needed for settings wired once at startup
+        // (e.g. the emoji path) that restartApp's activity-only relaunch wouldn't pick up.
         fun restartProcess(activity: Activity) {
-            val intent = Intent(activity, MainActivity::class.java)
+            val next = Intent(activity, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_CANCEL_CURRENT
-            }
-            val pendingIntent = PendingIntent.getActivity(activity, RESTART_REQUEST_CODE, intent, flags)
-            val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 200, pendingIntent)
-            Runtime.getRuntime().exit(0)
+            activity.startActivity(
+                    Intent(activity, ProcessRestartActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            .putExtra(ProcessRestartActivity.EXTRA_MAIN_PID, android.os.Process.myPid())
+                            .putExtra(ProcessRestartActivity.EXTRA_NEXT_INTENT, next)
+            )
         }
 
         fun getIntentToInitSession(activity: Activity): Intent {

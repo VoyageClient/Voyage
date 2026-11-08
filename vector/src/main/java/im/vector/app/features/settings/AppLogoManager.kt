@@ -38,6 +38,8 @@ class AppLogoManager @Inject constructor(
         applyLauncherAlias(getCurrentLogo(), color)
     }
 
+    fun reapplyLauncherAlias() = applyLauncherAlias(getCurrentLogo(), getCurrentColor())
+
     private fun applyLauncherAlias(logo: AppLogo, color: AppIconColor) {
         val pm = context.packageManager
         val pkg = context.packageName

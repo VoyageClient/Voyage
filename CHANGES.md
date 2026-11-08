@@ -54,6 +54,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Dehydrated devices (MSC3814)**: a spare identity stored encrypted on the server collects room keys while none of your devices are online, so messages sent in that gap are readable when you come back instead of arriving undecryptable. It interoperates with the dehydrated devices Element creates.
 
+- **Backup and restore**: export your settings to a JSON file or the whole app to an optionally passphrase-protected zip, and restore either one, even from the sign-in screen.
+
 - **FluffyChat backup import**: a `.fluffybackup` from FluffyChat's session export can be loaded through room key import, so messages you could read in FluffyChat decrypt here too.
 
 - **Message translation**: translate any received message (and untranslate it again), and translate outgoing messages with `/translate`, a `$lang` message prefix, or a per-room auto-translate mode. Translation runs on-device by default (Meta's NLLB-200 model, [downloaded once from RTranslator's releases](https://github.com/niedev/RTranslator/releases/tag/2.0.0), ~1 GB, Android 7+), with Google, Microsoft, DeepL, DeepSeek and OpenAI-compatible web engines as alternatives.

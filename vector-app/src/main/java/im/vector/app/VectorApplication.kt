@@ -57,6 +57,7 @@ import im.vector.app.features.rageshake.VectorFileLogger
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.settings.VectorLocale
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.settings.backup.PendingDatabaseRestore
 import im.vector.app.features.settings.useragent.UaAutoUpgradeManager
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
@@ -68,6 +69,7 @@ import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -330,6 +332,13 @@ class VectorApplication :
             runCatching { java.security.Security.insertProviderAt(org.conscrypt.Conscrypt.newProvider(), 1) }
                     .onFailure { Log.e("VectorApplication", "Failed to install Conscrypt", it) }
         }
+        if (isMainProcess()) PendingDatabaseRestore.applyIfPending(this)
+    }
+
+    // Application.getProcessName is API 28; /proc works everywhere.
+    private fun isMainProcess(): Boolean {
+        val name = runCatching { File("/proc/self/cmdline").readText().trimEnd('\u0000') }.getOrNull()
+        return name == null || name == packageName
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

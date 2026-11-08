@@ -38,4 +38,9 @@
         android:title="@string/settings_rooms_spaces_title"
         app:fragment="im.vector.app.features.settings.VectorSettingsRoomsSpacesFragment" />
 
+    <im.vector.app.core.preference.VectorPreference
+        android:summary="@string/settings_backup_summary"
+        android:title="@string/settings_backup_title"
+        app:fragment="im.vector.app.features.settings.backup.VectorSettingsBackupFragment" />
+
 </androidx.preference.PreferenceScreen>

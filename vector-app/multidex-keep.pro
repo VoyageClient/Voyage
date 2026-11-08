@@ -7,3 +7,4 @@
 # The legacy-multidex loader runs before secondary dexes are loaded, so it must live in the primary dex.
 -keep class im.vector.app.core.dex.MultiDexLoader { *; }
 -keep class im.vector.app.core.dex.MultiDexLoaderActivity { *; }
+-keep class im.vector.app.features.ProcessRestartActivity { *; }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_BACKUP_EXPORT_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_backup_export_summary"
+            android:title="@string/settings_backup_export_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_BACKUP_IMPORT_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_backup_import_summary"
+            android:title="@string/settings_backup_import_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_backup_database_category">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_BACKUP_DATABASE_EXPORT_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_backup_database_export_summary"
+            android:title="@string/settings_backup_database_export_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_BACKUP_DATABASE_IMPORT_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_backup_database_import_summary"
+            android:title="@string/settings_backup_database_import_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>
