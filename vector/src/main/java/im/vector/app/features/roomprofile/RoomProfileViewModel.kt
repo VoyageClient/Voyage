@@ -258,7 +258,7 @@ class RoomProfileViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             withState { state ->
                 state.roomSummary()
-                        ?.let { shortcutCreator.create(it) }
+                        ?.let { shortcutCreator.create(it, session.sessionId) }
                         ?.let { _viewEvents.post(RoomProfileViewEvents.OnShortcutReady(it)) }
             }
         }

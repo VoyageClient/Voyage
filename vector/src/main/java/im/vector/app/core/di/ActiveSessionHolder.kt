@@ -173,10 +173,10 @@ class ActiveSessionHolder @Inject constructor(
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()
-        // The drawer, launcher shortcuts and popup alerts are single-account: anything left over
+        // The drawer, dynamic shortcuts and popup alerts are single-account: anything left over
         // would display the previous account's content and act on it with the next session.
         notificationDrawerManager.get().resetForAccountSwitch()
-        shortcutsHandler.get().clearShortcuts()
+        shortcutsHandler.get().resetForAccountSwitch()
         popupAlertManager.cancelAll()
         audioPlaybackController.get().stop(clearTracker = true)
         mediaContentRevealManager.get().clearAll()

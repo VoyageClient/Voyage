@@ -50,12 +50,7 @@ class ShortcutCreator @Inject constructor(
     }
     @Inject lateinit var vectorPreferences: VectorPreferences
 
-    // Cache rendered shortcut bitmaps keyed on (roomId, avatarUrl). Without this, every
-    // re-push of the dynamic shortcuts re-runs the Glide pipeline + canvas drawing for
-    // each room, even when the avatar hasn't changed. Cold-path renders can be hundreds
-    // of ms each (occasionally seconds when Glide has to disk-decode), so caching a small
-    // ring is a big win. Sized a bit larger than maxShortcutCountPerActivity so we have
-    // headroom when membership churns by one or two.
+    // Avatar rasterization can take seconds on a cold cache. Keep more entries than the launcher displays.
     private val bitmapCache: MutableMap<String, Bitmap> = object : LinkedHashMap<String, Bitmap>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>): Boolean = size > BITMAP_CACHE_CAPACITY
     }
@@ -65,8 +60,8 @@ class ShortcutCreator @Inject constructor(
     }
 
     @WorkerThread
-    fun create(roomSummary: RoomSummary, rank: Int = 1): ShortcutInfoCompat {
-        val intent = MainActivity.shortcutIntent(context, roomSummary.roomId)
+    fun create(roomSummary: RoomSummary, sessionId: String, rank: Int = 1): ShortcutInfoCompat {
+        val intent = MainActivity.shortcutIntent(context, roomSummary.roomId, sessionId)
         val cacheKey = "${roomSummary.roomId}|${roomSummary.avatarUrl.orEmpty()}"
         val bitmap = synchronized(bitmapCache) { bitmapCache[cacheKey] } ?: try {
             val glideRequests = GlideApp.with(context)
@@ -88,7 +83,7 @@ class ShortcutCreator @Inject constructor(
             categories.add(ShortcutInfo.SHORTCUT_CATEGORY_CONVERSATION)
         }
 
-        return ShortcutInfoCompat.Builder(context, roomSummary.roomId)
+        return ShortcutInfoCompat.Builder(context, "$sessionId|${roomSummary.roomId}")
                 .setShortLabel(roomSummary.displayName.neutralizeDirectionOverrides())
                 .setIcon(bitmap?.toProfileImageIcon())
                 .setIntent(intent)

@@ -38,6 +38,7 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
+import im.vector.app.ActiveSessionDataSource
 import im.vector.app.R
 import im.vector.app.core.extensions.createIgnoredUri
 import im.vector.app.core.platform.PendingIntentCompat
@@ -69,6 +70,7 @@ class NotificationUtils @Inject constructor(
         private val clock: Clock,
         private val actionIds: NotificationActionIds,
         private val buildMeta: BuildMeta,
+        private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
     companion object {
@@ -320,7 +322,7 @@ class NotificationUtils @Inject constructor(
                 // that can be displayed in not disturb mode if white listed (the later will need compat28.x)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 // ID of the corresponding shortcut, for conversation features under API 30+
-                .setShortcutId(roomInfo.roomId)
+                .setShortcutId(activeSessionDataSource.currentValue?.orNull()?.let { "${it.sessionId}|${roomInfo.roomId}" })
                 // Title for API < 16 devices.
                 .setContentTitle(roomInfo.roomDisplayName)
                 // Content for API < 16 devices.

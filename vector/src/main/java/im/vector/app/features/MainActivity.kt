@@ -61,6 +61,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.ui.UiStateRepository
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -97,6 +98,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         private const val EXTRA_NEXT_INTENT = "EXTRA_NEXT_INTENT"
         private const val EXTRA_INIT_SESSION = "EXTRA_INIT_SESSION"
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
+        const val EXTRA_SHORTCUT_SESSION_ID = "EXTRA_SHORTCUT_SESSION_ID"
         private const val ACTION_ROOM_DETAILS_FROM_SHORTCUT = "ROOM_DETAILS_FROM_SHORTCUT"
         private const val RESTART_REQUEST_CODE = 0
 
@@ -140,10 +142,11 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         }
 
         // Shortcuts can't have intents with parcelables
-        fun shortcutIntent(context: Context, roomId: String): Intent {
+        fun shortcutIntent(context: Context, roomId: String, sessionId: String? = null): Intent {
             return Intent(context, MainActivity::class.java).apply {
                 action = ACTION_ROOM_DETAILS_FROM_SHORTCUT
                 putExtra(EXTRA_ROOM_ID, roomId)
+                putExtra(EXTRA_SHORTCUT_SESSION_ID, sessionId)
             }
         }
 
@@ -267,12 +270,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             setResult(RESULT_OK)
             finish()
         } else if (intent.action == ACTION_ROOM_DETAILS_FROM_SHORTCUT) {
-            startSyncing()
-            val roomId = intent.getStringExtra(EXTRA_ROOM_ID)
-            if (roomId?.isNotEmpty() == true) {
-                navigator.openRoom(this, roomId)
-            }
-            finish()
+            openRoomShortcut()
         } else {
             args = parseArgs()
             if (args.clearCredentials || args.isUserLoggedOut || args.clearCache) {
@@ -288,6 +286,34 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         }
     }
 
+    private fun openRoomShortcut() {
+        val sessionId = intent.getStringExtra(EXTRA_SHORTCUT_SESSION_ID)
+        if (sessionId != null && authenticationService.getSessionParams(sessionId) == null) {
+            finish()
+            return
+        }
+        if (sessionId != null && activeSessionHolder.getSafeActiveSession()?.sessionId != sessionId) {
+            lifecycleScope.launch {
+                try {
+                    switchAccountUseCase.execute(sessionId)
+                    startActivity(Intent(intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (failure: Exception) {
+                    Timber.e(failure, "Unable to switch account for room shortcut")
+                    finish()
+                }
+            }
+            return
+        }
+        startSyncing()
+        val roomId = intent.getStringExtra(EXTRA_ROOM_ID)
+        if (roomId?.isNotEmpty() == true && activeSessionHolder.hasActiveSession()) {
+            navigator.openRoom(this, roomId)
+        }
+        finish()
+    }
+
     private fun startSyncing() {
         activeSessionHolder.getSafeActiveSession()?.startSyncing(this)
     }
@@ -297,7 +323,11 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         notificationDrawerManager.clearAllEvents()
 
         // Also clear the dynamic shortcuts
-        shortcutsHandler.clearShortcuts()
+        if (args.clearCredentials || args.isUserLoggedOut) {
+            shortcutsHandler.clearShortcuts()
+        } else {
+            shortcutsHandler.resetForAccountSwitch()
+        }
 
         // Also clear the alerts
         popupAlertManager.cancelAll()

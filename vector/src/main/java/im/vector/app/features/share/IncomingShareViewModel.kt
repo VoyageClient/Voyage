@@ -175,7 +175,8 @@ class IncomingShareViewModel @AssistedInject constructor(
 
     private fun handleShareToRoom(action: IncomingShareAction.ShareToRoom) = withState { state ->
         val sharedData = state.sharedData ?: return@withState
-        val roomSummary = session.getRoomSummary(action.roomId) ?: return@withState
+        val roomId = action.roomId.removePrefix("${session.sessionId}|")
+        val roomSummary = session.getRoomSummary(roomId) ?: return@withState
         _viewEvents.post(IncomingShareViewEvents.ShareToRoom(roomSummary, sharedData))
     }
 
