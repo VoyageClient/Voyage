@@ -14,13 +14,13 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.displayname.getBestName
-import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
@@ -29,13 +29,12 @@ import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
 class RoomKnockRequestsViewModel @AssistedInject constructor(
         @Assisted initialState: RoomKnockRequestsViewState,
-        private val stringProvider: StringProvider,
         private val session: Session
 ) : VectorViewModel<RoomKnockRequestsViewState, RoomKnockRequestsAction, RoomKnockRequestsViewEvents>(initialState) {
 
@@ -53,26 +52,54 @@ class RoomKnockRequestsViewModel @AssistedInject constructor(
                     copy(roomSummary = async)
                 }
 
-        room.flow().liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.KNOCK) })
+        room.flow().liveRoomMembers(roomMemberQueryParams {
+            displayName = QueryStringValue.NoCondition
+            memberships = listOf(Membership.KNOCK)
+        })
+                .map { members ->
+                    val memberEvents = loadMemberEvents(members)
+                    setState {
+                        copy(
+                                reasons = memberEvents.mapValues { (_, event) ->
+                                    event?.getClearContent().toModel<RoomMemberContent>()?.reason?.takeIf { it.isNotBlank() }
+                                },
+                                requestTimestamps = memberEvents.mapNotNull { (userId, event) ->
+                                    event?.originServerTs?.let { userId to it }
+                                }.toMap(),
+                                handledRequests = handledRequests.filterTo(mutableSetOf()) { it in memberEvents },
+                        )
+                    }
+                    members.map { member -> member.withKnockProfile(memberEvents[member.userId]) }
+                }
+                .flowOn(Dispatchers.IO)
                 .execute {
-                    copy(
-                            knockRequests = it,
-                            reasons = it.invoke()?.let { members -> loadReasons(members) } ?: reasons
-                    )
+                    copy(knockRequests = it)
                 }
 
+        // Seeded synchronously so the buttons are there on the first frame instead of popping in.
+        setState { withPermissions(room.stateService().getRoomPowerLevels()) }
         room.flow().liveRoomPowerLevels()
-                .setOnEach { roomPowerLevels ->
-                    copy(canModerate = roomPowerLevels.isUserAbleToInvite(session.myUserId) && roomPowerLevels.isUserAbleToKick(session.myUserId))
-                }
+                .setOnEach { withPermissions(it) }
     }
 
-    private fun loadReasons(members: List<RoomMemberSummary>): Map<String, String?> {
+    private fun RoomKnockRequestsViewState.withPermissions(roomPowerLevels: RoomPowerLevels) = copy(
+            canAccept = roomPowerLevels.isUserAbleToInvite(session.myUserId),
+            canDecline = roomPowerLevels.isUserAbleToKick(session.myUserId),
+    )
+
+    // Member rows stored before knocks kept their own profile have no name or avatar; the knock event still does.
+    private fun RoomMemberSummary.withKnockProfile(event: Event?): RoomMemberSummary {
+        if (displayName != null && avatarUrl != null) return this
+        val content = event?.getClearContent().toModel<RoomMemberContent>() ?: return this
+        return copy(
+                displayName = displayName ?: content.displayName,
+                avatarUrl = avatarUrl ?: content.avatarUrl,
+        )
+    }
+
+    private fun loadMemberEvents(members: List<RoomMemberSummary>): Map<String, Event?> {
         return members.associate { member ->
-            val content = room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(member.userId))
-                    ?.getClearContent()
-                    .toModel<RoomMemberContent>()
-            member.userId to content?.reason?.takeIf { it.isNotBlank() }
+            member.userId to room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(member.userId))
         }
     }
 
@@ -104,11 +131,11 @@ class RoomKnockRequestsViewModel @AssistedInject constructor(
                 } else {
                     room.membershipService().kick(roomMemberSummary.userId)
                 }
-                val message = stringProvider.getString(
-                        if (accept) CommonStrings.room_knock_request_accepted else CommonStrings.room_knock_request_declined,
-                        roomMemberSummary.toMatrixItem().getBestName()
-                )
-                _viewEvents.post(RoomKnockRequestsViewEvents.ToastMessage(message))
+                // Hidden right away rather than when sync delivers the new membership.
+                setState {
+                    val stillListed = knockRequests()?.any { it.userId == roomMemberSummary.userId } == true
+                    if (stillListed) copy(handledRequests = handledRequests + roomMemberSummary.userId) else this
+                }
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomKnockRequestsViewEvents.ToastMessage(failure.localizedMessage ?: ""))
             } finally {

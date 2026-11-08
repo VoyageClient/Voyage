@@ -2933,8 +2933,6 @@
     <string name="room_knock_requests_empty">אף אחד לא מבקש להצטרף כרגע.</string>
     <string name="room_knock_request_accept">אשר</string>
     <string name="room_knock_request_decline">דחה</string>
-    <string name="room_knock_request_accepted">%1$s אושר</string>
-    <string name="room_knock_request_declined">%1$s נדחה</string>
     <string name="pending_join_requests_title">בקשות ממתינות</string>
     <string name="pending_join_requests_empty">אין לך בקשות הצטרפות ממתינות.</string>
     <string name="pending_join_requests_drawer_entry">בקשות ממתינות</string>
@@ -3736,12 +3734,6 @@
         <item quantity="other">%d מוזמנים</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">בקשה אחת ממתינה</item>
-        <item quantity="two">שתי בקשות ממתינות</item>
-        <item quantity="many">%d ממתינות</item>
-        <item quantity="other">%d ממתינות</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">משתמש אחד</item>
         <item quantity="two">שני משתמשים</item>
@@ -3773,4 +3765,12 @@
         <item quantity="other">הכתובת הראשית ו־%d כינויים</item>
     </plurals>
     <string name="room_profile_addresses_none">אין כתובת מפורסמת</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">בקשה אחת ממתינה</item>
+        <item quantity="two">שתי בקשות ממתינות</item>
+        <item quantity="many">%d בקשות ממתינות</item>
+        <item quantity="other">%d בקשות ממתינות</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">אין בקשות ממתינות</string>
+    <string name="room_knock_request_reason">סיבה: %1$s</string>
 </resources>

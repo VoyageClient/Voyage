@@ -2815,8 +2815,6 @@
     <string name="room_knock_requests_empty">現在、参加をリクエストしている人はいません。</string>
     <string name="room_knock_request_accept">承認</string>
     <string name="room_knock_request_decline">拒否</string>
-    <string name="room_knock_request_accepted">%1$sを承認しました</string>
-    <string name="room_knock_request_declined">%1$sを拒否しました</string>
     <string name="pending_join_requests_title">保留中のリクエスト</string>
     <string name="pending_join_requests_empty">保留中の参加リクエストはありません。</string>
     <string name="pending_join_requests_drawer_entry">保留中のリクエスト</string>
@@ -3577,9 +3575,6 @@
         <item quantity="other">%d人を招待中</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s、%2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="other">%d件が保留中</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="other">%d人のユーザー</item>
     </plurals>
@@ -3599,4 +3594,9 @@
         <item quantity="other">メインアドレスと%d個のエイリアス</item>
     </plurals>
     <string name="room_profile_addresses_none">公開アドレスはありません</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d件の保留中のリクエスト</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">保留中のリクエストはありません</string>
+    <string name="room_knock_request_reason">理由：%1$s</string>
 </resources>

@@ -2821,8 +2821,6 @@
     <string name="room_knock_requests_empty">এই মুহূর্তে কেউ যোগ দেওয়ার অনুরোধ করছেন না।</string>
     <string name="room_knock_request_accept">গ্রহণ করুন</string>
     <string name="room_knock_request_decline">প্রত্যাখ্যান করুন</string>
-    <string name="room_knock_request_accepted">%1$s-কে গ্রহণ করা হয়েছে</string>
-    <string name="room_knock_request_declined">%1$s-কে প্রত্যাখ্যান করা হয়েছে</string>
     <string name="pending_join_requests_title">অপেক্ষমাণ অনুরোধ</string>
     <string name="pending_join_requests_empty">আপনার যোগ দেওয়ার কোনো অপেক্ষমাণ অনুরোধ নেই।</string>
     <string name="pending_join_requests_drawer_entry">অপেক্ষমাণ অনুরোধ</string>
@@ -3597,10 +3595,6 @@
         <item quantity="other">%d জন আমন্ত্রিত</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%dটি অপেক্ষমাণ</item>
-        <item quantity="other">%dটি অপেক্ষমাণ</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d জন ব্যবহারকারী</item>
         <item quantity="other">%d জন ব্যবহারকারী</item>
@@ -3624,4 +3618,10 @@
         <item quantity="other">প্রধান ঠিকানা ও %dটি বিকল্প নাম</item>
     </plurals>
     <string name="room_profile_addresses_none">কোনো প্রকাশিত ঠিকানা নেই</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%dটি অপেক্ষমাণ অনুরোধ</item>
+        <item quantity="other">%dটি অপেক্ষমাণ অনুরোধ</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">কোনো অপেক্ষমাণ অনুরোধ নেই</string>
+    <string name="room_knock_request_reason">কারণ: %1$s</string>
 </resources>

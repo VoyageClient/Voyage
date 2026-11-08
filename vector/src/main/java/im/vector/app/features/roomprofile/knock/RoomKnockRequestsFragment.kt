@@ -65,6 +65,10 @@ class RoomKnockRequestsFragment :
         super.onDestroyView()
     }
 
+    override fun onRequestClicked(roomMember: RoomMemberSummary) {
+        navigator.openRoomMemberProfile(roomMember.userId, roomId = roomProfileArgs.roomId, context = requireActivity())
+    }
+
     override fun onAcceptClicked(roomMember: RoomMemberSummary) {
         viewModel.handle(RoomKnockRequestsAction.Accept(roomMember))
     }

@@ -2968,8 +2968,6 @@
     <string name="room_knock_requests_empty">لا أحد يطلب الانضمام الآن.</string>
     <string name="room_knock_request_accept">اقبل</string>
     <string name="room_knock_request_decline">ارفض</string>
-    <string name="room_knock_request_accepted">قُبل %1$s</string>
-    <string name="room_knock_request_declined">رُفض %1$s</string>
     <string name="pending_join_requests_title">الطلبات المعلّقة</string>
     <string name="pending_join_requests_empty">ليس لديك طلبات انضمام معلّقة.</string>
     <string name="pending_join_requests_drawer_entry">الطلبات المعلّقة</string>
@@ -3792,14 +3790,6 @@
         <item quantity="other">%d مدعو</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s، %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="zero">لا طلبات معلّقة</item>
-        <item quantity="one">طلب معلّق واحد</item>
-        <item quantity="two">طلبان معلّقان</item>
-        <item quantity="few">%d طلبات معلّقة</item>
-        <item quantity="many">%d طلبًا معلّقًا</item>
-        <item quantity="other">%d طلب معلّق</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="zero">لا مستخدمين</item>
         <item quantity="one">مستخدم واحد</item>
@@ -3839,4 +3829,14 @@
         <item quantity="other">العنوان الرئيسي و%d اسم بديل</item>
     </plurals>
     <string name="room_profile_addresses_none">لا يوجد عنوان منشور</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="zero">لا طلبات معلّقة</item>
+        <item quantity="one">طلب معلّق واحد</item>
+        <item quantity="two">طلبان معلّقان</item>
+        <item quantity="few">%d طلبات معلّقة</item>
+        <item quantity="many">%d طلبًا معلّقًا</item>
+        <item quantity="other">%d طلب معلّق</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">لا طلبات معلّقة</string>
+    <string name="room_knock_request_reason">السبب: %1$s</string>
 </resources>

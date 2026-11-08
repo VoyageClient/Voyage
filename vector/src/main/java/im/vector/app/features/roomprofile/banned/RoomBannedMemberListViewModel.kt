@@ -53,7 +53,10 @@ class RoomBannedMemberListViewModel @AssistedInject constructor(
                     copy(roomSummary = async)
                 }
 
-        room.flow().liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.BAN) })
+        room.flow().liveRoomMembers(roomMemberQueryParams {
+            displayName = QueryStringValue.NoCondition
+            memberships = listOf(Membership.BAN)
+        })
                 .execute {
                     copy(
                             bannedMemberSummaries = it

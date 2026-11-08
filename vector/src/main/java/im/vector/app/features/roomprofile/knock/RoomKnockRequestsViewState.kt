@@ -19,8 +19,11 @@ data class RoomKnockRequestsViewState(
         val roomSummary: Async<RoomSummary> = Uninitialized,
         val knockRequests: Async<List<RoomMemberSummary>> = Uninitialized,
         val reasons: Map<String, String?> = emptyMap(),
+        val requestTimestamps: Map<String, Long> = emptyMap(),
         val onGoingModerationAction: List<String> = emptyList(),
-        val canModerate: Boolean = false
+        val handledRequests: Set<String> = emptySet(),
+        val canAccept: Boolean = false,
+        val canDecline: Boolean = false,
 ) : MavericksState {
 
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)

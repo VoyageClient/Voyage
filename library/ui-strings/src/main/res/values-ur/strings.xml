@@ -2774,8 +2774,6 @@
     <string name="room_knock_requests_empty">فی الحال کوئی شامل ہونے کی درخواست نہیں کر رہا۔</string>
     <string name="room_knock_request_accept">قبول کریں</string>
     <string name="room_knock_request_decline">مسترد کریں</string>
-    <string name="room_knock_request_accepted">%1$s کو قبول کیا</string>
-    <string name="room_knock_request_declined">%1$s کو مسترد کیا</string>
     <string name="pending_join_requests_title">زیرِ التوا درخواستیں</string>
     <string name="pending_join_requests_empty">آپ کی کوئی زیرِ التوا شمولیت کی درخواست نہیں ہے۔</string>
     <string name="pending_join_requests_drawer_entry">زیرِ التوا درخواستیں</string>
@@ -3537,10 +3535,6 @@
         <item quantity="other">%d مدعوین</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s، %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d زیرِ التوا</item>
-        <item quantity="other">%d زیرِ التوا</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d صارف</item>
         <item quantity="other">%d صارفین</item>
@@ -3564,4 +3558,10 @@
         <item quantity="other">مرکزی پتہ اور %d متبادل نام</item>
     </plurals>
     <string name="room_profile_addresses_none">کوئی شائع شدہ پتہ نہیں</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d زیرِ التوا درخواست</item>
+        <item quantity="other">%d زیرِ التوا درخواستیں</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">کوئی زیرِ التوا درخواست نہیں</string>
+    <string name="room_knock_request_reason">وجہ: %1$s</string>
 </resources>

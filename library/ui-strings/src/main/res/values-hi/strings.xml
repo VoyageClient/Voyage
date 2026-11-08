@@ -2762,8 +2762,6 @@
     <string name="room_knock_requests_empty">अभी कोई शामिल होने का अनुरोध नहीं कर रहा है।</string>
     <string name="room_knock_request_accept">स्वीकार करें</string>
     <string name="room_knock_request_decline">अस्वीकार करें</string>
-    <string name="room_knock_request_accepted">%1$s को स्वीकार किया</string>
-    <string name="room_knock_request_declined">%1$s को अस्वीकार किया</string>
     <string name="pending_join_requests_title">लंबित अनुरोध</string>
     <string name="pending_join_requests_empty">आपका शामिल होने का कोई अनुरोध लंबित नहीं है।</string>
     <string name="pending_join_requests_drawer_entry">लंबित अनुरोध</string>
@@ -3525,10 +3523,6 @@
         <item quantity="other">%d आमंत्रित</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d लंबित</item>
-        <item quantity="other">%d लंबित</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d उपयोगकर्ता</item>
         <item quantity="other">%d उपयोगकर्ता</item>
@@ -3552,4 +3546,10 @@
         <item quantity="other">मुख्य पता और %d उपनाम</item>
     </plurals>
     <string name="room_profile_addresses_none">कोई प्रकाशित पता नहीं</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d लंबित अनुरोध</item>
+        <item quantity="other">%d लंबित अनुरोध</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">कोई लंबित अनुरोध नहीं</string>
+    <string name="room_knock_request_reason">कारण: %1$s</string>
 </resources>

@@ -2871,8 +2871,6 @@
     <string name="room_knock_requests_empty">Personne ne demande à rejoindre pour le moment.</string>
     <string name="room_knock_request_accept">Accepter</string>
     <string name="room_knock_request_decline">Refuser</string>
-    <string name="room_knock_request_accepted">%1$s accepté</string>
-    <string name="room_knock_request_declined">%1$s refusé</string>
     <string name="pending_join_requests_title">Demandes en attente</string>
     <string name="pending_join_requests_empty">Vous n’avez aucune demande d’accès en attente.</string>
     <string name="pending_join_requests_drawer_entry">Demandes en attente</string>
@@ -3643,10 +3641,6 @@
         <item quantity="other">%d invités</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d en attente</item>
-        <item quantity="other">%d en attente</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d utilisateur</item>
         <item quantity="other">%d utilisateurs</item>
@@ -3670,4 +3664,10 @@
         <item quantity="other">Adresse principale et %d alias</item>
     </plurals>
     <string name="room_profile_addresses_none">Aucune adresse publiée</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d demande en attente</item>
+        <item quantity="other">%d demandes en attente</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Aucune demande en attente</string>
+    <string name="room_knock_request_reason">Raison : %1$s</string>
 </resources>

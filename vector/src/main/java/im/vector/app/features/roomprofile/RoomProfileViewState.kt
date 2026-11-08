@@ -45,6 +45,7 @@ data class RoomProfileViewState(
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)
 
     data class ActionPermissions(
-            val canEnableEncryption: Boolean = false
+            val canEnableEncryption: Boolean = false,
+            val canInvite: Boolean = false,
     )
 }

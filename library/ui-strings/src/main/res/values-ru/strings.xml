@@ -2843,8 +2843,6 @@
     <string name="room_knock_requests_empty">Сейчас никто не просит о вступлении.</string>
     <string name="room_knock_request_accept">Принять</string>
     <string name="room_knock_request_decline">Отклонить</string>
-    <string name="room_knock_request_accepted">Запрос %1$s принят</string>
-    <string name="room_knock_request_declined">Запрос %1$s отклонён</string>
     <string name="pending_join_requests_title">Ожидающие запросы</string>
     <string name="pending_join_requests_empty">У вас нет ожидающих запросов на вступление.</string>
     <string name="pending_join_requests_drawer_entry">Ожидающие запросы</string>
@@ -3767,12 +3765,6 @@
         <item quantity="other">%d приглашены</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d ожидает</item>
-        <item quantity="few">%d ожидают</item>
-        <item quantity="many">%d ожидают</item>
-        <item quantity="other">%d ожидают</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d пользователь</item>
         <item quantity="few">%d пользователя</item>
@@ -3804,4 +3796,12 @@
         <item quantity="other">Основной адрес и %d псевдонима</item>
     </plurals>
     <string name="room_profile_addresses_none">Нет опубликованного адреса</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d ожидающий запрос</item>
+        <item quantity="few">%d ожидающих запроса</item>
+        <item quantity="many">%d ожидающих запросов</item>
+        <item quantity="other">%d ожидающего запроса</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Нет ожидающих запросов</string>
+    <string name="room_knock_request_reason">Причина: %1$s</string>
 </resources>

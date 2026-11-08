@@ -2828,8 +2828,6 @@
     <string name="room_knock_requests_empty">Şu anda katılmak isteyen kimse yok.</string>
     <string name="room_knock_request_accept">Kabul et</string>
     <string name="room_knock_request_decline">Reddet</string>
-    <string name="room_knock_request_accepted">%1$s kabul edildi</string>
-    <string name="room_knock_request_declined">%1$s reddedildi</string>
     <string name="pending_join_requests_title">Bekleyen istekler</string>
     <string name="pending_join_requests_empty">Bekleyen katılma isteğiniz yok.</string>
     <string name="pending_join_requests_drawer_entry">Bekleyen istekler</string>
@@ -3601,10 +3599,6 @@
         <item quantity="other">%d davetli</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d bekleyen</item>
-        <item quantity="other">%d bekleyen</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d kullanıcı</item>
         <item quantity="other">%d kullanıcı</item>
@@ -3628,4 +3622,10 @@
         <item quantity="other">Ana adres ve %d takma ad</item>
     </plurals>
     <string name="room_profile_addresses_none">Yayınlanmış adres yok</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d bekleyen istek</item>
+        <item quantity="other">%d bekleyen istek</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Bekleyen istek yok</string>
+    <string name="room_knock_request_reason">Neden: %1$s</string>
 </resources>

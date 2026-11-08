@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
     android:paddingStart="@dimen/layout_horizontal_margin"
     android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingTop="12dp"
@@ -14,8 +15,8 @@
 
     <ImageView
         android:id="@+id/knockRequestAvatar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:importantForAccessibility="no"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -32,23 +33,34 @@
         android:maxLines="1"
         android:textColor="?vctr_content_primary"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/knockRequestTime"
         app:layout_constraintStart_toEndOf="@id/knockRequestAvatar"
         app:layout_constraintTop_toTopOf="@id/knockRequestAvatar"
         tools:text="Alice" />
+
+    <TextView
+        android:id="@+id/knockRequestTime"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:maxLines="1"
+        android:textColor="?vctr_content_secondary"
+        app:layout_constraintBaseline_toBaselineOf="@id/knockRequestName"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="2 hr. ago" />
 
     <TextView
         android:id="@+id/knockRequestUserId"
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="?vctr_content_secondary"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/knockRequestAvatar"
+        app:layout_constraintStart_toStartOf="@id/knockRequestName"
         app:layout_constraintTop_toBottomOf="@id/knockRequestName"
         tools:text="@sample/users.json/data/id" />
 
@@ -57,46 +69,73 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="3"
         android:textColor="?vctr_content_secondary"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/knockRequestAvatar"
-        tools:text="Hi, please let me in!"
+        app:layout_constraintStart_toStartOf="@id/knockRequestName"
+        app:layout_constraintTop_toBottomOf="@id/knockRequestUserId"
+        tools:text="Reason: Hi, please let me in!"
         tools:visibility="visible" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/knockRequestDecline"
-        style="@style/Widget.Vector.Button.Text"
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/knockRequestHeaderBottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/room_knock_request_decline"
-        app:layout_constraintEnd_toStartOf="@id/knockRequestAccept"
-        app:layout_constraintTop_toBottomOf="@id/knockRequestReason" />
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="knockRequestAvatar,knockRequestReason" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/knockRequestAccept"
-        style="@style/Widget.Vector.Button"
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/knockRequestActions"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:text="@string/room_knock_request_accept"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/knockRequestReason" />
+        app:layout_constraintStart_toStartOf="@id/knockRequestName"
+        app:layout_constraintTop_toBottomOf="@id/knockRequestHeaderBottom">
 
-    <ProgressBar
-        android:id="@+id/knockRequestProgress"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/knockRequestAccept"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/knockRequestAccept"
-        tools:visibility="visible" />
+        <LinearLayout
+            android:id="@+id/knockRequestButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/knockRequestDecline"
+                style="@style/Widget.Vector.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/room_knock_request_decline"
+                android:textAllCaps="true"
+                android:textColor="?colorError"
+                app:strokeColor="?colorError" />
+
+            <Space
+                android:id="@+id/knockRequestButtonGap"
+                android:layout_width="8dp"
+                android:layout_height="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/knockRequestAccept"
+                style="@style/Widget.Vector.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/room_knock_request_accept" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/knockRequestProgress"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

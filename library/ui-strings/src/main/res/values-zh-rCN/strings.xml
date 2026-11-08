@@ -2816,8 +2816,6 @@
     <string name="room_knock_requests_empty">目前没有人申请加入。</string>
     <string name="room_knock_request_accept">接受</string>
     <string name="room_knock_request_decline">拒绝</string>
-    <string name="room_knock_request_accepted">已接受 %1$s</string>
-    <string name="room_knock_request_declined">已拒绝 %1$s</string>
     <string name="pending_join_requests_title">待处理的申请</string>
     <string name="pending_join_requests_empty">你没有待处理的加入申请。</string>
     <string name="pending_join_requests_drawer_entry">待处理的申请</string>
@@ -3579,9 +3577,6 @@
         <item quantity="other">%d 人已受邀</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s，%2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="other">%d 个待处理</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="other">%d 名用户</item>
     </plurals>
@@ -3601,4 +3596,9 @@
         <item quantity="other">主地址和 %d 个别名</item>
     </plurals>
     <string name="room_profile_addresses_none">没有已发布的地址</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d 个待处理的申请</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">没有待处理的申请</string>
+    <string name="room_knock_request_reason">理由：%1$s</string>
 </resources>

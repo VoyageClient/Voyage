@@ -2870,8 +2870,6 @@
     <string name="room_knock_requests_empty">Derzeit fragt niemand nach einem Beitritt.</string>
     <string name="room_knock_request_accept">Annehmen</string>
     <string name="room_knock_request_decline">Ablehnen</string>
-    <string name="room_knock_request_accepted">%1$s angenommen</string>
-    <string name="room_knock_request_declined">%1$s abgelehnt</string>
     <string name="pending_join_requests_title">Ausstehende Anfragen</string>
     <string name="pending_join_requests_empty">Du hast keine ausstehenden Beitrittsanfragen.</string>
     <string name="pending_join_requests_drawer_entry">Ausstehende Anfragen</string>
@@ -3642,10 +3640,6 @@
         <item quantity="other">%d eingeladen</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d ausstehend</item>
-        <item quantity="other">%d ausstehend</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d Benutzer</item>
         <item quantity="other">%d Benutzer</item>
@@ -3669,4 +3663,10 @@
         <item quantity="other">Hauptadresse und %d Aliasse</item>
     </plurals>
     <string name="room_profile_addresses_none">Keine veröffentlichte Adresse</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d ausstehende Anfrage</item>
+        <item quantity="other">%d ausstehende Anfragen</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Keine ausstehenden Anfragen</string>
+    <string name="room_knock_request_reason">Grund: %1$s</string>
 </resources>

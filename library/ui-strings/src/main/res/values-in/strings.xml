@@ -2815,8 +2815,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_knock_requests_empty">Tidak ada yang meminta bergabung saat ini.</string>
     <string name="room_knock_request_accept">Terima</string>
     <string name="room_knock_request_decline">Tolak</string>
-    <string name="room_knock_request_accepted">%1$s diterima</string>
-    <string name="room_knock_request_declined">%1$s ditolak</string>
     <string name="pending_join_requests_title">Permintaan tertunda</string>
     <string name="pending_join_requests_empty">Anda tidak memiliki permintaan bergabung yang tertunda.</string>
     <string name="pending_join_requests_drawer_entry">Permintaan tertunda</string>
@@ -3579,9 +3577,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
         <item quantity="other">%d diundang</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="other">%d tertunda</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="other">%d pengguna</item>
     </plurals>
@@ -3601,4 +3596,9 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
         <item quantity="other">Alamat utama dan %d alias</item>
     </plurals>
     <string name="room_profile_addresses_none">Tidak ada alamat yang dipublikasikan</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="other">%d permintaan tertunda</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Tidak ada permintaan tertunda</string>
+    <string name="room_knock_request_reason">Alasan: %1$s</string>
 </resources>

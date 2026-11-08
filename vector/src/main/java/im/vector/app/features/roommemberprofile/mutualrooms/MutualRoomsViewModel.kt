@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
@@ -51,9 +52,11 @@ class MutualRoomsViewModel @AssistedInject constructor(
 
     private fun computeItems(): List<MutualRoomsListItem> {
         val mutualRoomIds = session.roomService().getRoomIdsWithUserActiveMembership(initialState.userId).toSet()
+        // The summary's member list is only refreshed on some updates, so confirm against the member row itself.
         val mutualRooms = session.roomService()
                 .getRoomSummaries(roomSummaryQueryParams { memberships = listOf(Membership.JOIN) })
                 .filter { it.roomId in mutualRoomIds }
+                .filter { session.getRoom(it.roomId)?.membershipService()?.getRoomMember(initialState.userId)?.membership?.isActive() == true }
 
         // Top-level spaces (matching the sidebar) we can bucket rooms under.
         val rootSpaces = session.spaceService()

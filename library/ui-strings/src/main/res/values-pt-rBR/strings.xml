@@ -2871,8 +2871,6 @@
     <string name="room_knock_requests_empty">Ninguém está pedindo para entrar agora.</string>
     <string name="room_knock_request_accept">Aceitar</string>
     <string name="room_knock_request_decline">Recusar</string>
-    <string name="room_knock_request_accepted">%1$s aceito</string>
-    <string name="room_knock_request_declined">%1$s recusado</string>
     <string name="pending_join_requests_title">Pedidos pendentes</string>
     <string name="pending_join_requests_empty">Você não tem pedidos de entrada pendentes.</string>
     <string name="pending_join_requests_drawer_entry">Pedidos pendentes</string>
@@ -3643,10 +3641,6 @@
         <item quantity="other">%d convidados</item>
     </plurals>
     <string name="room_profile_members_summary">%1$s, %2$s</string>
-    <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d pendente</item>
-        <item quantity="other">%d pendentes</item>
-    </plurals>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d usuário</item>
         <item quantity="other">%d usuários</item>
@@ -3670,4 +3664,10 @@
         <item quantity="other">Endereço principal e %d apelidos</item>
     </plurals>
     <string name="room_profile_addresses_none">Nenhum endereço publicado</string>
+    <plurals name="room_profile_pending_requests">
+        <item quantity="one">%d pedido pendente</item>
+        <item quantity="other">%d pedidos pendentes</item>
+    </plurals>
+    <string name="room_profile_no_pending_requests">Nenhum pedido pendente</string>
+    <string name="room_knock_request_reason">Motivo: %1$s</string>
 </resources>

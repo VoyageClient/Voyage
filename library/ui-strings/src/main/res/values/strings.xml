@@ -2180,9 +2180,10 @@
     <!-- Joins the two counts above, e.g. "42 members, 3 invited" -->
     <string name="room_profile_members_summary">%1$s, %2$s</string>
     <plurals name="room_profile_pending_requests">
-        <item quantity="one">%d pending</item>
-        <item quantity="other">%d pending</item>
+        <item quantity="one">%d pending request</item>
+        <item quantity="other">%d pending requests</item>
     </plurals>
+    <string name="room_profile_no_pending_requests">No pending requests</string>
     <plurals name="room_profile_banned_users_count">
         <item quantity="one">%d user</item>
         <item quantity="other">%d users</item>
@@ -3705,10 +3706,9 @@
     <string name="notice_room_knock_cancelled_by_you">You cancelled your request to join</string>
     <string name="room_knock_requests_title">Join requests</string>
     <string name="room_knock_requests_empty">Nobody is asking to join right now.</string>
+    <string name="room_knock_request_reason">Reason: %1$s</string>
     <string name="room_knock_request_accept">Accept</string>
     <string name="room_knock_request_decline">Decline</string>
-    <string name="room_knock_request_accepted">Accepted %1$s</string>
-    <string name="room_knock_request_declined">Declined %1$s</string>
     <string name="pending_join_requests_title">Pending requests</string>
     <string name="pending_join_requests_empty">You have no pending join requests.</string>
     <string name="pending_join_requests_drawer_entry">Pending requests</string>

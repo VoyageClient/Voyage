@@ -190,14 +190,20 @@ class RoomProfileViewModel @AssistedInject constructor(
     }
 
     private fun observeBannedRoomMembers(flowRoom: FlowRoom) {
-        flowRoom.liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.BAN) })
+        flowRoom.liveRoomMembers(roomMemberQueryParams {
+            displayName = QueryStringValue.NoCondition
+            memberships = listOf(Membership.BAN)
+        })
                 .execute {
                     copy(bannedMembership = it)
                 }
     }
 
     private fun observeKnockingRoomMembers(flowRoom: FlowRoom) {
-        flowRoom.liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.KNOCK) })
+        flowRoom.liveRoomMembers(roomMemberQueryParams {
+            displayName = QueryStringValue.NoCondition
+            memberships = listOf(Membership.KNOCK)
+        })
                 .execute {
                     copy(knockRequests = it)
                 }
@@ -207,7 +213,8 @@ class RoomProfileViewModel @AssistedInject constructor(
         room.flow().liveRoomPowerLevels()
                 .setOnEach { roomPowerLevels ->
                     val permissions = RoomProfileViewState.ActionPermissions(
-                            canEnableEncryption = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_ENCRYPTION)
+                            canEnableEncryption = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_ENCRYPTION),
+                            canInvite = roomPowerLevels.isUserAbleToInvite(session.myUserId),
                     )
                     copy(actionPermissions = permissions)
                 }

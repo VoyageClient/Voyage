@@ -32,6 +32,7 @@ import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import javax.inject.Inject
@@ -306,13 +307,18 @@ class RoomProfileController @Inject constructor(
         )
 
         val knockRequestsCount = data.knockRequests.invoke()?.size ?: 0
-        if (knockRequestsCount > 0) {
+        val isKnockable = roomSummary.joinRules == RoomJoinRules.KNOCK || roomSummary.joinRules == RoomJoinRules.KNOCK_RESTRICTED
+        if (knockRequestsCount > 0 || (isKnockable && data.actionPermissions.canInvite)) {
             buildProfileAction(
                     id = "knock_requests",
                     title = stringProvider.getString(CommonStrings.room_knock_requests_title),
-                    subtitle = stringProvider.getQuantityString(CommonPlurals.room_profile_pending_requests, knockRequestsCount, knockRequestsCount),
+                    subtitle = if (knockRequestsCount > 0) {
+                        stringProvider.getQuantityString(CommonPlurals.room_profile_pending_requests, knockRequestsCount, knockRequestsCount)
+                    } else {
+                        stringProvider.getString(CommonStrings.room_profile_no_pending_requests)
+                    },
                     icon = R.drawable.ic_room_profile_knock_requests,
-                    notificationBadge = true,
+                    notificationBadge = knockRequestsCount > 0,
                     action = { callback?.onKnockRequestsClicked() }
             )
         }

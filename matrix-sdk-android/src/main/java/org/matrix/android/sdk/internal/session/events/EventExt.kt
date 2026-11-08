@@ -18,12 +18,14 @@ package org.matrix.android.sdk.internal.session.events
 
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 
 internal fun Event.getFixedRoomMemberContent(): RoomMemberContent? {
     val content = content.toModel<RoomMemberContent>()
     // if user is leaving, we should grab his last name and avatar from prevContent
-    return if (content?.membership?.isLeft() == true) {
+    // A knock carries the knocker's own profile, and there is usually no prior membership to borrow one from.
+    return if (content?.membership?.isLeft() == true && content.membership != Membership.KNOCK) {
         val prevContent = resolvedPrevContent().toModel<RoomMemberContent>()
         content.copy(
                 displayName = prevContent?.displayName,
