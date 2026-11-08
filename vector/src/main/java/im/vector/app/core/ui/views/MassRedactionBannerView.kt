@@ -14,8 +14,8 @@ import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.databinding.ViewMassRedactionBannerBinding
-import im.vector.app.features.redaction.MassRedactionState
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.app.features.bulk.BulkActionProgress
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 
 class MassRedactionBannerView @JvmOverloads constructor(
@@ -40,13 +40,17 @@ class MassRedactionBannerView @JvmOverloads constructor(
         views.massRedactionCancelButton.setOnClickListener { callback?.onMassRedactionCancelled() }
     }
 
-    fun render(state: MassRedactionState?) {
+    fun render(state: BulkActionProgress?) {
         if (state == null) {
             isVisible = false
             return
         }
         isVisible = true
-        views.massRedactionLabel.text = resources.getString(CommonStrings.mass_redaction_redacting_from, state.targetDisplayName.neutralizeDirectionOverrides())
+        views.massRedactionLabel.text = if (state.queued > 0) {
+            resources.getQuantityString(CommonPlurals.bulk_queued, state.queued, state.label, state.queued)
+        } else {
+            state.label
+        }
         // A digits-only progress counter.
         @SuppressLint("SetTextI18n")
         views.massRedactionCount.text = "${state.completed}/${state.total}"

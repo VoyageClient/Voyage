@@ -3564,4 +3564,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">کوئی زیرِ التوا درخواست نہیں</string>
     <string name="room_knock_request_reason">وجہ: %1$s</string>
+    <string name="action_select_message">منتخب کریں</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d منتخب</item>
+        <item quantity="other">%d منتخب</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">%d پیغام حذف کریں؟</item>
+        <item quantity="other">%d پیغامات حذف کریں؟</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">یہ کمرے میں سب کے لیے ہٹا دیے جائیں گے۔</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">%d پیغام آگے بھیجا جا رہا ہے…</item>
+        <item quantity="other">%d پیغامات آگے بھیجے جا رہے ہیں…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">%d پیغام حذف کیا جا رہا ہے…</item>
+        <item quantity="other">%d پیغامات حذف کیے جا رہے ہیں…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (مزید %2$d قطار میں)</item>
+        <item quantity="other">%1$s (مزید %2$d قطار میں)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">آگے بھیجنا بند کریں؟</string>
+    <string name="bulk_forward_cancel_confirmation_message">جو پیغامات ابھی نہیں بھیجے گئے، وہ آگے نہیں بھیجے جائیں گے۔</string>
+    <string name="bulk_delete_cancel_confirmation_title">حذف کرنا بند کریں؟</string>
+    <string name="bulk_delete_cancel_confirmation_message">جو پیغامات ابھی حذف نہیں ہوئے، وہ برقرار رہیں گے۔</string>
+    <string name="bulk_forward_failed_title">آگے بھیجنا موقوف ہے</string>
+    <string name="bulk_forward_failed">ایک پیغام آگے نہیں بھیجا جا سکا۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</string>
+    <string name="bulk_delete_failed_title">کچھ پیغامات حذف نہیں ہوئے</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d پیغام حذف نہیں ہو سکا۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
+        <item quantity="other">%d پیغامات حذف نہیں ہو سکے۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
+    </plurals>
 </resources>

@@ -36,7 +36,8 @@ object ForwardContentBuilder {
         val origin = if (silent) emptyMap() else raw.filterKeys { it in ForwardedInfo.ORIGIN_FIELDS }
         @Suppress("UNCHECKED_CAST")
         val original = requireNotNull(raw["content"] as? Content)
-        val forwarded = if (silent) mapOf("content" to original) else raw
+        // The original's relation names the message it answered, which would point at where it came from.
+        val forwarded = if (silent) mapOf("content" to original.withoutReplyOnlyMentions() - "m.relates_to") else raw
         val links = FallbackLinks(
                 sender = origin["sender"] as? String,
                 senderDisplayName = senderDisplayName,
@@ -62,6 +63,24 @@ object ForwardContentBuilder {
             ).toMap()
 
     private class FallbackLinks(val sender: String?, val senderDisplayName: String?, val eventPermalink: String?)
+
+    /**
+     * A reply mentions whoever it answers without naming them, so in a silent forward those mentions would
+     * still say who the message was answering. Only users the message itself names stay mentioned.
+     */
+    private fun Content.withoutReplyOnlyMentions(): Content {
+        val inReplyTo = ((this["m.relates_to"] as? Map<*, *>)?.get("m.in_reply_to") as? Map<*, *>)?.get("event_id")
+        val mentions = this[MENTIONS] as? Map<*, *>
+        val userIds = (mentions?.get("user_ids") as? List<*>)?.filterIsInstance<String>()
+        if (inReplyTo == null || mentions == null || userIds == null) return this
+        val body = this["body"] as? String ?: ""
+        val html = this["formatted_body"] as? String ?: ""
+        val named = userIds.filter { userId ->
+            userId in body || userId in html || encodeComponent(userId) in html || "matrix:u/${userId.removePrefix("@")}" in html
+        }
+        if (named.size == userIds.size) return this
+        return this + (MENTIONS to (mentions + ("user_ids" to named)))
+    }
 
     private fun Content.withoutSourceRelations() = this - ForwardedInfo.KEYS - "m.relates_to" - MENTIONS - "m.new_content"
 

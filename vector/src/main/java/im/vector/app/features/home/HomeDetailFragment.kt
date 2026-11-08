@@ -33,6 +33,7 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.databinding.FragmentHomeDetailBinding
 import im.vector.app.features.audio.AudioPlaybackBannerBinder
 import im.vector.app.features.audio.AudioPlaybackController
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.list.RoomListFragment
 import im.vector.app.features.home.room.list.RoomListParams
@@ -40,7 +41,6 @@ import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.redaction.MassRedactionBannerBinder
-import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity.Companion.EXTRA_DIRECT_ACCESS_SECURITY_PRIVACY_MANAGE_SESSIONS
 import im.vector.app.features.themes.ThemeUtils
@@ -66,7 +66,7 @@ class HomeDetailFragment :
     @Inject lateinit var alertManager: PopupAlertManager
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
-    @Inject lateinit var massRedactionManager: MassRedactionManager
+    @Inject lateinit var bulkActionQueue: BulkActionQueue
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
@@ -112,7 +112,7 @@ class HomeDetailFragment :
         setupBottomNavigationView()
         setupToolbar()
         setupKeysBackupBanner()
-        MassRedactionBannerBinder.bind(views.massRedactionBanner, this, massRedactionManager)
+        MassRedactionBannerBinder.bind(views.massRedactionBanner, this, bulkActionQueue)
         AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
 
         withState(viewModel) {

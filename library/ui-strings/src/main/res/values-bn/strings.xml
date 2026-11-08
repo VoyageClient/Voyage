@@ -3624,4 +3624,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">কোনো অপেক্ষমাণ অনুরোধ নেই</string>
     <string name="room_knock_request_reason">কারণ: %1$s</string>
+    <string name="action_select_message">নির্বাচন করুন</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%dটি নির্বাচিত</item>
+        <item quantity="other">%dটি নির্বাচিত</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">%dটি মেসেজ মুছবেন?</item>
+        <item quantity="other">%dটি মেসেজ মুছবেন?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">রুমের সবার জন্য এগুলি মুছে ফেলা হবে।</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">%dটি মেসেজ ফরোয়ার্ড করা হচ্ছে…</item>
+        <item quantity="other">%dটি মেসেজ ফরোয়ার্ড করা হচ্ছে…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">%dটি মেসেজ মোছা হচ্ছে…</item>
+        <item quantity="other">%dটি মেসেজ মোছা হচ্ছে…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (আরও %2$dটি অপেক্ষায়)</item>
+        <item quantity="other">%1$s (আরও %2$dটি অপেক্ষায়)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">ফরোয়ার্ড করা বন্ধ করবেন?</string>
+    <string name="bulk_forward_cancel_confirmation_message">যে মেসেজগুলি এখনও পাঠানো হয়নি, সেগুলি ফরোয়ার্ড করা হবে না।</string>
+    <string name="bulk_delete_cancel_confirmation_title">মোছা বন্ধ করবেন?</string>
+    <string name="bulk_delete_cancel_confirmation_message">যে মেসেজগুলি এখনও মোছা হয়নি, সেগুলি থেকে যাবে।</string>
+    <string name="bulk_forward_failed_title">ফরোয়ার্ড করা বিরতিতে আছে</string>
+    <string name="bulk_forward_failed">একটি মেসেজ ফরোয়ার্ড করা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</string>
+    <string name="bulk_delete_failed_title">কিছু মেসেজ মোছা হয়নি</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%dটি মেসেজ মোছা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
+        <item quantity="other">%dটি মেসেজ মোছা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
+    </plurals>
 </resources>

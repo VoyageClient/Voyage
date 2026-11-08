@@ -334,6 +334,8 @@ internal class PeekedRoom(
     private val sendService = object : SendService {
         override fun sendEvent(eventType: String, content: Content?, verbatim: Boolean): Cancelable = readOnly()
 
+        override suspend fun sendEventNow(eventType: String, content: Content, txnId: String): String = readOnly()
+
         override fun prefetchLinkPreviews(text: CharSequence) = Unit
 
         override fun sendTextMessage(text: CharSequence, msgType: String, autoMarkdown: Boolean, additionalContent: Content?): Cancelable = readOnly()

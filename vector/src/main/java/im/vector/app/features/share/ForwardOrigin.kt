@@ -39,17 +39,30 @@ fun Session.forwardViaServers(roomId: String, senderId: String?): List<String> {
     return (known + listOfNotNull(senderId?.getServerName()?.takeIf { it.isNotEmpty() })).distinct().take(MAX_VIA_SERVERS)
 }
 
-/** Builds the content to send for a forward payload, filling in what only the session knows. */
-fun Session.buildForwardContent(eventType: String, payload: Map<String, Any>, silent: Boolean): Map<String, Any> {
-    val info = payload.getForwardedInfo()
-    val sender = info?.sender
-    return ForwardContentBuilder.build(
-            eventType = eventType,
-            payload = payload,
-            silent = silent,
-            senderDisplayName = sender?.let { forwardedSenderDisplayName(it, info.roomId) },
-            viaServers = info?.roomId?.let { forwardViaServers(it, sender) }.orEmpty(),
-    )
+/**
+ * Builds the content to send for forward payloads, filling in what only the session knows. Each sender's
+ * name and each room's via servers are looked up once per batch.
+ */
+class ForwardContentBatch(private val session: Session) {
+    private val names = HashMap<Pair<String, String?>, String?>()
+    private val vias = HashMap<Pair<String, String?>, List<String>>()
+
+    fun build(eventType: String, payload: Map<String, Any>, silent: Boolean): Map<String, Any> {
+        val info = payload.getForwardedInfo()
+        val sender = info?.sender
+        val roomId = info?.roomId
+        val senderName = sender?.let { names.getOrPutNullable(it to roomId) { session.forwardedSenderDisplayName(it, roomId) } }
+        return ForwardContentBuilder.build(
+                eventType = eventType,
+                payload = payload,
+                silent = silent,
+                senderDisplayName = senderName,
+                viaServers = roomId?.let { vias.getOrPut(it to sender) { session.forwardViaServers(it, sender) } }.orEmpty(),
+        )
+    }
+
+    private fun <K, V> HashMap<K, V?>.getOrPutNullable(key: K, compute: () -> V?): V? =
+            if (containsKey(key)) get(key) else compute().also { put(key, it) }
 }
 
 private const val MAX_VIA_SERVERS = 3

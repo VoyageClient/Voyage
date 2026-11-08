@@ -20,7 +20,6 @@ import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -52,7 +51,6 @@ import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import kotlin.math.roundToInt
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -118,7 +116,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.fitToRow()
         val messageLayout = baseAttributes.informationData.messageLayout
         val isBubble = messageLayout is TimelineMessageLayout.Bubble
         val cornerPx = messageLayout.mediaCornerRadiusPx(holder.view.context)
@@ -329,7 +326,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         private var durationAligner: ViewTreeObserver.OnPreDrawListener? = null
         private val drawnThumbnail = RectF()
         private var wantsDuration = false
-        private var fitted = false
         private var viewerHandover = ViewerHandover.NONE
         private var handoverStartedAtMs = 0L
 
@@ -465,28 +461,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 -(imageView.width - drawnThumbnail.right).coerceAtLeast(0f)
             }
             durationView.translationY = -(imageView.height - drawnThumbnail.bottom).coerceAtLeast(0f)
-        }
-
-        /**
-         * The picture can end up wider than the row it sits in: its size lands after the ancestors were
-         * measured (Glide resolves the real bounds long after layout, and a recycled row starts from the
-         * previous media's size), and the bubble then clips it. Shrink it into the row, keeping its
-         * shape. Never the other way round — the computed size is the cap, not a target.
-         */
-        fun fitToRow() {
-            fitted = false
-            imageView.doOnLayout {
-                if (fitted || imageView.adjustViewBoundsCompat) return@doOnLayout
-                val parent = imageView.parent as? View ?: return@doOnLayout
-                val available = parent.width - parent.paddingLeft - parent.paddingRight
-                val params = imageView.layoutParams ?: return@doOnLayout
-                if (available <= 0 || params.width <= 0 || params.height <= 0 || available >= params.width) return@doOnLayout
-                fitted = true
-                val aspect = params.height.toFloat() / params.width
-                params.height = (available * aspect).roundToInt().coerceAtLeast(1)
-                params.width = available
-                imageView.post { imageView.layoutParams = params }
-            }
         }
 
         private enum class ViewerHandover { NONE, OPENING, OPEN }

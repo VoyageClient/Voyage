@@ -16,7 +16,7 @@
 
     <item
         android:id="@+id/imagePackMenuDelete"
-        android:icon="@drawable/ic_trash_24"
+        android:icon="@drawable/ic_recycle_bin"
         android:title="@string/image_pack_delete"
         app:showAsAction="always" />
 

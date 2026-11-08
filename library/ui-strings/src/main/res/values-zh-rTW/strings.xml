@@ -3603,4 +3603,31 @@
     </plurals>
     <string name="room_profile_no_pending_requests">沒有待處理的申請</string>
     <string name="room_knock_request_reason">理由：%1$s</string>
+    <string name="action_select_message">選取</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="other">已選取 %d 則</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="other">要刪除 %d 則訊息嗎？</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">這些訊息將會為聊天室中的所有人刪除。</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="other">正在轉傳 %d 則訊息…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="other">正在刪除 %d 則訊息…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="other">%1$s（還有 %2$d 項正在排隊）</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">要停止轉傳嗎？</string>
+    <string name="bulk_forward_cancel_confirmation_message">尚未傳送的訊息將不會轉傳。</string>
+    <string name="bulk_delete_cancel_confirmation_title">要停止刪除嗎？</string>
+    <string name="bulk_delete_cancel_confirmation_message">尚未刪除的訊息將會保留。</string>
+    <string name="bulk_forward_failed_title">轉傳已暫停</string>
+    <string name="bulk_forward_failed">有一則訊息無法轉傳。繼續即可重試。</string>
+    <string name="bulk_delete_failed_title">部分訊息未刪除</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="other">%d 則訊息無法刪除。繼續即可重試。</item>
+    </plurals>
 </resources>

@@ -8,10 +8,12 @@
 package im.vector.app.features.share
 
 import com.airbnb.mvrx.test.MavericksTestRule
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.test.testCoroutineDispatchers
 import im.vector.app.test.testDispatcher
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -19,12 +21,14 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.message.ForwardedInfo
@@ -60,9 +64,9 @@ class IncomingShareForwardTest {
         )))
         val viewModel = IncomingShareViewModel(
                 IncomingShareViewState(
-                        sharedData = SharedData.Forward(EventType.MESSAGE, payloadId),
+                        sharedData = SharedData.Forward(listOf(ForwardItem(EventType.MESSAGE, payloadId))),
                         selectedRoomIds = setOf("!target:example.org"),
-                ), session, mockk(relaxed = true), mockk(relaxed = true),
+                ), session, mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
         )
         val events = Channel<IncomingShareViewEvents>(Channel.UNLIMITED)
         val collector = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
@@ -79,5 +83,42 @@ class IncomingShareForwardTest {
             collector.cancel()
             ForwardPayloadHolder.take(payloadId)
         }
+    }
+
+    @Test
+    fun `a forwarded reply replies to the copy of its target from the same batch`() {
+        fun item(sourceId: String, inReplyTo: String?) =
+                ForwardItem(EventType.MESSAGE, payloadId = sourceId, sourceEventId = sourceId, sourceInReplyToEventId = inReplyTo)
+
+        inBatchReplyIndexes(listOf(item("\$a", null), item("\$b", "\$a"), item("\$c", "\$elsewhere"), item("\$d", "\$e"), item("\$e", null))) shouldBeEqualTo
+                listOf(null, 0, null, null, null)
+    }
+
+    @Test
+    fun `several forwarded messages go to the queue in order`() {
+        val queue = mockk<BulkActionQueue>(relaxed = true)
+        val session = mockk<Session>(relaxed = true) {
+            every { coroutineDispatchers } returns testCoroutineDispatchers
+            every { roomService().getRoomSummariesFlow(any(), any()) } returns emptyFlow()
+            every { roomService().getRoomSummaries(any(), any()) } returns emptyList()
+        }
+        val items = listOf("one", "two").map { body ->
+            ForwardItem(EventType.MESSAGE, ForwardPayloadHolder.put(mapOf(ForwardedInfo.STABLE_KEY to mapOf(
+                    "content" to mapOf("msgtype" to "m.text", "body" to body),
+            ))))
+        }
+        val viewModel = IncomingShareViewModel(
+                IncomingShareViewState(sharedData = SharedData.Forward(items), selectedRoomIds = setOf("!target:example.org")),
+                session, mockk(relaxed = true), mockk(relaxed = true), queue,
+        )
+        val forwards = slot<List<Triple<String, Content, Int?>>>()
+        val queued = CountDownLatch(1)
+        every { queue.enqueueForward(listOf("!target:example.org"), capture(forwards)) } answers { queued.countDown() }
+
+        viewModel.handle(IncomingShareAction.ShareToSelectedRooms())
+
+        assertTrue(queued.await(5, TimeUnit.SECONDS))
+        forwards.captured.map { (it.second["m.forwarded"] as Map<*, *>)["content"].let { content -> (content as Map<*, *>)["body"] } } shouldBeEqualTo
+                listOf("one", "two")
     }
 }

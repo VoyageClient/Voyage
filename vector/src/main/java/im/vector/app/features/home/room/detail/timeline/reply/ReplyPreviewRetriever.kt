@@ -47,6 +47,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
@@ -297,7 +298,10 @@ class ReplyPreviewRetriever(
         }
     }
 
+    // A reply to a forward quotes the original message, so it is attributed to the original sender
+    // ("Sender" when the forward doesn't say), never to whoever forwarded it.
     private fun replySenderName(event: TimelineEvent): String {
+        displayableEventFormatter.forwardedMessages.origin(event)?.let { return it.name }
         val userId = event.senderInfo.userId
         return event.renderPerMessageProfile(
                 currentReplySenderName(userId, event.senderInfo.disambiguatedDisplayName),
@@ -414,6 +418,10 @@ class ReplyPreviewRetriever(
     private val roomForColors by lazy { session.getRoom(roomId) }
 
     fun getMemberNameColor(event: TimelineEvent): Int {
+        displayableEventFormatter.forwardedMessages.origin(event)?.let { origin ->
+            return origin.user?.let { messageColorProvider.getMemberNameTextColor(it) }
+                    ?: messageColorProvider.getMessageTextColor(SendState.SYNCED)
+        }
         return messageColorProvider.getMemberNameTextColor(senderMatrixItem(event))
     }
 
@@ -442,6 +450,7 @@ class ReplyPreviewRetriever(
                 galleryMaxWidth = maxWidth,
                 galleryMaxHeight = maxHeight,
                 isThreadTimeline = isThreadTimeline,
+                framesForwards = false,
         )
     }
 

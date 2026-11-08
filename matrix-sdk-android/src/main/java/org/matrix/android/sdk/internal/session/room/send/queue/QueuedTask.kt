@@ -33,6 +33,8 @@ internal abstract class QueuedTask(
 
     var retryCount = AtomicInteger(0)
 
+    var rateLimitRetryCount = AtomicInteger(0)
+
     private var hasBeenCancelled: Boolean = false
 
     suspend fun execute() {

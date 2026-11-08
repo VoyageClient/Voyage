@@ -3670,4 +3670,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">Aucune demande en attente</string>
     <string name="room_knock_request_reason">Raison : %1$s</string>
+    <string name="action_select_message">Sélectionner</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d sélectionné</item>
+        <item quantity="other">%d sélectionnés</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">Supprimer %d message ?</item>
+        <item quantity="other">Supprimer %d messages ?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Ils seront supprimés pour tous les membres du salon.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">Transfert de %d message…</item>
+        <item quantity="other">Transfert de %d messages…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">Suppression de %d message…</item>
+        <item quantity="other">Suppression de %d messages…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d autre en attente)</item>
+        <item quantity="other">%1$s (%2$d autres en attente)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Arrêter le transfert ?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Les messages qui n\'ont pas encore été envoyés ne seront pas transférés.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Arrêter la suppression ?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Les messages qui n\'ont pas encore été supprimés seront conservés.</string>
+    <string name="bulk_forward_failed_title">Transfert en pause</string>
+    <string name="bulk_forward_failed">Un message n\'a pas pu être transféré. Reprenez pour réessayer.</string>
+    <string name="bulk_delete_failed_title">Certains messages n\'ont pas été supprimés</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d message n\'a pas pu être supprimé. Reprenez pour réessayer.</item>
+        <item quantity="other">%d messages n\'ont pas pu être supprimés. Reprenez pour réessayer.</item>
+    </plurals>
 </resources>

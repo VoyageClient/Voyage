@@ -25,9 +25,23 @@ sealed class SharedData : Parcelable {
             val spoilers: List<Boolean> = emptyList(),
     ) : SharedData()
 
+    /** Sent in list order. */
     @Parcelize
-    data class Forward(val eventType: String, val payloadId: String) : SharedData()
+    data class Forward(val items: List<ForwardItem>) : SharedData()
 }
+
+/**
+ * @param sourceEventId the message being forwarded
+ * @param sourceInReplyToEventId what that message replied to; when it is forwarded in the same batch,
+ * the forwarded copy replies to its copy
+ */
+@Parcelize
+data class ForwardItem(
+        val eventType: String,
+        val payloadId: String,
+        val sourceEventId: String? = null,
+        val sourceInReplyToEventId: String? = null,
+) : Parcelable
 
 // Content is held in-process keyed by payloadId rather than parcelled, so the original
 // Map<String, Any?> reaches the send pipeline untouched.

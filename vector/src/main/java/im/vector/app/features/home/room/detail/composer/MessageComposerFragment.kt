@@ -71,6 +71,7 @@ import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.delayedevents.ScheduleTimePicker
@@ -174,7 +175,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
-    @Inject lateinit var massRedactionManager: MassRedactionManager
+    @Inject lateinit var bulkActionQueue: BulkActionQueue
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
@@ -1166,7 +1167,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     .setTitle(CommonStrings.mass_redaction_confirmation_title)
                     .setMessage(massRedactionConfirmationMessage(target, event.range))
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs, event.range)
+                        val result = bulkActionQueue.startMassRedaction(roomId, event.userId, event.displayName, event.delayMs, event.range)
                         if (result == MassRedactionManager.StartResult.AlreadyRunning) {
                             MaterialAlertDialogBuilder(requireActivity())
                                     .setTitle(CommonStrings.dialog_title_error)

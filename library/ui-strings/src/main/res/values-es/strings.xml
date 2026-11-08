@@ -3658,4 +3658,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">No hay solicitudes pendientes</string>
     <string name="room_knock_request_reason">Razón: %1$s</string>
+    <string name="action_select_message">Seleccionar</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d seleccionado</item>
+        <item quantity="other">%d seleccionados</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">¿Eliminar %d mensaje?</item>
+        <item quantity="other">¿Eliminar %d mensajes?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Se eliminarán para todos en la sala.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">Reenviando %d mensaje…</item>
+        <item quantity="other">Reenviando %d mensajes…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">Eliminando %d mensaje…</item>
+        <item quantity="other">Eliminando %d mensajes…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d más en cola)</item>
+        <item quantity="other">%1$s (%2$d más en cola)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">¿Detener el reenvío?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Los mensajes que aún no se han enviado no se reenviarán.</string>
+    <string name="bulk_delete_cancel_confirmation_title">¿Detener el borrado?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Los mensajes que aún no se han eliminado se conservarán.</string>
+    <string name="bulk_forward_failed_title">Reenvío en pausa</string>
+    <string name="bulk_forward_failed">No se pudo reenviar un mensaje. Reanuda para volver a intentarlo.</string>
+    <string name="bulk_delete_failed_title">Algunos mensajes no se eliminaron</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">No se pudo eliminar %d mensaje. Reanuda para volver a intentarlo.</item>
+        <item quantity="other">No se pudieron eliminar %d mensajes. Reanuda para volver a intentarlo.</item>
+    </plurals>
 </resources>

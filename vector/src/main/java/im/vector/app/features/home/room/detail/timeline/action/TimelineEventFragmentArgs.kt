@@ -19,4 +19,6 @@ data class TimelineEventFragmentArgs(
         val isFromThreadTimeline: Boolean = false,
         /** When set, the sheet is scoped to that item of an MSC4274 gallery. */
         val galleryItemIndex: Int? = null,
+        /** Whether the host timeline supports multi-select. */
+        val canSelect: Boolean = false,
 ) : Parcelable

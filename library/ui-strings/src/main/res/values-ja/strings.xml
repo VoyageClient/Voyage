@@ -3599,4 +3599,31 @@
     </plurals>
     <string name="room_profile_no_pending_requests">保留中のリクエストはありません</string>
     <string name="room_knock_request_reason">理由：%1$s</string>
+    <string name="action_select_message">選択</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="other">%d件を選択中</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="other">%d件のメッセージを削除しますか？</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">ルームの全員に対して削除されます。</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="other">%d件のメッセージを転送中…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="other">%d件のメッセージを削除中…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="other">%1$s（ほかに%2$d件が待機中）</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">転送を中止しますか？</string>
+    <string name="bulk_forward_cancel_confirmation_message">まだ送信されていないメッセージは転送されません。</string>
+    <string name="bulk_delete_cancel_confirmation_title">削除を中止しますか？</string>
+    <string name="bulk_delete_cancel_confirmation_message">まだ削除されていないメッセージはそのまま残ります。</string>
+    <string name="bulk_forward_failed_title">転送を一時停止しました</string>
+    <string name="bulk_forward_failed">メッセージを転送できませんでした。再開して再試行してください。</string>
+    <string name="bulk_delete_failed_title">一部のメッセージを削除できませんでした</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="other">%d件のメッセージを削除できませんでした。再開して再試行してください。</item>
+    </plurals>
 </resources>

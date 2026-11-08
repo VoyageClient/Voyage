@@ -3601,4 +3601,31 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     </plurals>
     <string name="room_profile_no_pending_requests">Tidak ada permintaan tertunda</string>
     <string name="room_knock_request_reason">Alasan: %1$s</string>
+    <string name="action_select_message">Pilih</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="other">%d dipilih</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="other">Hapus %d pesan?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Pesan akan dihapus untuk semua orang di ruangan.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="other">Meneruskan %d pesan…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="other">Menghapus %d pesan…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="other">%1$s (%2$d lagi dalam antrean)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Hentikan penerusan?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Pesan yang belum terkirim tidak akan diteruskan.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Hentikan penghapusan?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Pesan yang belum dihapus akan tetap ada.</string>
+    <string name="bulk_forward_failed_title">Penerusan dijeda</string>
+    <string name="bulk_forward_failed">Sebuah pesan tidak dapat diteruskan. Lanjutkan untuk mencoba lagi.</string>
+    <string name="bulk_delete_failed_title">Beberapa pesan tidak terhapus</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="other">%d pesan tidak dapat dihapus. Lanjutkan untuk mencoba lagi.</item>
+    </plurals>
 </resources>

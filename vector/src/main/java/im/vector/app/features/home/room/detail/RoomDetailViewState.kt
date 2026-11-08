@@ -10,8 +10,8 @@ package im.vector.app.features.home.room.detail
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
+import im.vector.app.features.bulk.BulkActionProgress
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
-import im.vector.app.features.redaction.MassRedactionState
 import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -85,7 +85,7 @@ data class RoomDetailViewState(
         // Event equality ignores the transient decryption result, so a decrypt-triggered re-emission
         // can produce an == list; bump this so Mavericks still notifies and the banner re-renders.
         val pinnedEventsTick: Int = 0,
-        val massRedactionState: MassRedactionState? = null,
+        val bulkActionProgress: BulkActionProgress? = null,
         val userIdentityChangePrompt: UserIdentityChangePrompt? = null,
 ) : MavericksState {
 

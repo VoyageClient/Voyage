@@ -17,6 +17,7 @@ import im.vector.app.core.extensions.toggle
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.home.room.list.BreadcrumbsRoomComparator
 import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import kotlinx.coroutines.CancellationException
@@ -40,7 +41,8 @@ class IncomingShareViewModel @AssistedInject constructor(
         @Assisted initialState: IncomingShareViewState,
         private val session: Session,
         private val breadcrumbsRoomComparator: BreadcrumbsRoomComparator,
-        private val sendMediaMaterializer: SendMediaMaterializer
+        private val sendMediaMaterializer: SendMediaMaterializer,
+        private val bulkActionQueue: BulkActionQueue,
 ) :
         VectorViewModel<IncomingShareViewState, IncomingShareAction, IncomingShareViewEvents>(initialState) {
 
@@ -143,15 +145,22 @@ class IncomingShareViewModel @AssistedInject constructor(
 
     @Suppress("UNCHECKED_CAST")
     private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>, silent: Boolean) {
-        val payload = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
+        val payloads = forward.items.map { it to ForwardPayloadHolder.take(it.payloadId) as? Map<String, Any> }
+        if (payloads.isEmpty() || payloads.any { it.second == null }) {
             _viewEvents.post(IncomingShareViewEvents.ForwardFailed)
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val content = session.buildForwardContent(forward.eventType, payload, silent)
-                roomIds.forEach { roomId ->
-                    requireNotNull(session.getRoom(roomId)).sendService().sendEvent(forward.eventType, content)
+                val batch = ForwardContentBatch(session)
+                val contents = payloads.map { (item, payload) -> item.eventType to batch.build(item.eventType, payload!!, silent) }
+                if (contents.size == 1) {
+                    val (eventType, content) = contents.single()
+                    roomIds.forEach { roomId -> requireNotNull(session.getRoom(roomId)).sendService().sendEvent(eventType, content) }
+                } else {
+                    val replyIndexes = inBatchReplyIndexes(forward.items)
+                    val forwards = contents.mapIndexed { index, (eventType, content) -> Triple(eventType, content, replyIndexes[index]) }
+                    bulkActionQueue.enqueueForward(roomIds.toList(), forwards)
                 }
                 // Opening a room only makes sense when there is exactly one to open.
                 _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.singleOrNull()))
@@ -251,4 +260,14 @@ class IncomingShareViewModel @AssistedInject constructor(
     private fun handleSelectRoom(action: IncomingShareAction.SelectRoom) = setState {
         copy(selectedRoomIds = selectedRoomIds.toggle(action.roomSummary.roomId))
     }
+}
+
+/**
+ * For each item, the index of an earlier item of the same batch it replied to in its source room, or null.
+ * The forwarded copy then replies to that item's copy.
+ */
+internal fun inBatchReplyIndexes(items: List<ForwardItem>): List<Int?> = items.mapIndexed { index, item ->
+    item.sourceInReplyToEventId
+            ?.let { target -> items.subList(0, index).indexOfLast { it.sourceEventId == target } }
+            ?.takeIf { it >= 0 }
 }

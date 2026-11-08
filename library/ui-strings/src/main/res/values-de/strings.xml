@@ -3669,4 +3669,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">Keine ausstehenden Anfragen</string>
     <string name="room_knock_request_reason">Grund: %1$s</string>
+    <string name="action_select_message">Auswählen</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">%d Nachricht löschen?</item>
+        <item quantity="other">%d Nachrichten löschen?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Sie werden für alle im Raum entfernt.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">%d Nachricht wird weitergeleitet…</item>
+        <item quantity="other">%d Nachrichten werden weitergeleitet…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">%d Nachricht wird gelöscht…</item>
+        <item quantity="other">%d Nachrichten werden gelöscht…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d weiterer in der Warteschlange)</item>
+        <item quantity="other">%1$s (%2$d weitere in der Warteschlange)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Weiterleiten beenden?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Nachrichten, die noch nicht gesendet wurden, werden nicht weitergeleitet.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Löschen beenden?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Nachrichten, die noch nicht gelöscht wurden, bleiben erhalten.</string>
+    <string name="bulk_forward_failed_title">Weiterleiten pausiert</string>
+    <string name="bulk_forward_failed">Eine Nachricht konnte nicht weitergeleitet werden. Fortsetzen, um es erneut zu versuchen.</string>
+    <string name="bulk_delete_failed_title">Einige Nachrichten wurden nicht gelöscht</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d Nachricht konnte nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
+        <item quantity="other">%d Nachrichten konnten nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
+    </plurals>
 </resources>

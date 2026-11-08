@@ -113,15 +113,14 @@ class IncomingShareFragment :
         }
 
         val intent = vectorBaseActivity.intent
-        val forwardEventType = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_EVENT_TYPE)
-        val forwardPayloadId = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_PAYLOAD_ID)
-        isForwardMode = forwardEventType != null && forwardPayloadId != null
+        val forwardItems = IncomingShareActivity.forwardItems(intent)
+        isForwardMode = forwardItems != null
         if (isForwardMode) {
             views.incomingShareToolbar.setNavigationIcon(R.drawable.ic_back_24dp)
             views.incomingShareToolbar.setNavigationOnClickListener { requireActivity().finish() }
         }
         val isShareManaged = if (isForwardMode) {
-            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Forward(forwardEventType!!, forwardPayloadId!!)))
+            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Forward(forwardItems!!)))
             true
         } else when (intent?.action) {
             Intent.ACTION_SEND -> {

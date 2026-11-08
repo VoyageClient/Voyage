@@ -33,6 +33,7 @@ class RoomMessageTouchHelperCallback(
         private val context: Context,
         @DrawableRes replyIcon: Int,
         @DrawableRes editIcon: Int,
+        @DrawableRes selectIcon: Int,
         private val handler: QuickReplayHandler,
         private val clock: Clock,
 ) : EpoxyTouchHelperCallback() {
@@ -40,11 +41,21 @@ class RoomMessageTouchHelperCallback(
     interface QuickReplayHandler {
         fun performQuickReplyOnHolder(model: EpoxyModel<*>)
         fun performQuickEditOnHolder(model: EpoxyModel<*>)
+        fun performSelectOnHolder(model: EpoxyModel<*>)
         fun canSwipeModel(model: EpoxyModel<*>): Boolean
         fun canEditModel(model: EpoxyModel<*>): Boolean
+        fun canSelectModel(model: EpoxyModel<*>): Boolean
+
+        /** The swipe has taken over the gesture; other touch listeners won't see the rest of it. */
+        fun onSwipeStarted()
     }
 
-    private enum class SwipeAction { NONE, REPLY, EDIT }
+    override fun onSelectedChanged(viewHolder: EpoxyViewHolder?, actionState: Int) {
+        super.onSelectedChanged(viewHolder, actionState)
+        if (actionState == ACTION_STATE_SWIPE) handler.onSwipeStarted()
+    }
+
+    private enum class SwipeAction { NONE, REPLY, EDIT, SELECT }
 
     private var activeDx = 0f
     private var startTracking = false
@@ -61,14 +72,16 @@ class RoomMessageTouchHelperCallback(
 
     private val replyDrawable = tintedIcon(replyIcon)
     private val editDrawable = tintedIcon(editIcon)
+    private val selectDrawable = tintedIcon(selectIcon)
 
     private val triggerDistance = convertToPx(100)
     private val editTriggerDistance = convertToPx(180)
     private val minShowDistance = convertToPx(20)
     private val triggerDelta = convertToPx(20)
 
-    private val maxTranslation: Float
-        get() = (if (swipedModelEditable) editTriggerDistance else triggerDistance) + triggerDelta
+    // Leftward swipes reach the edit threshold; rightward ones only ever select.
+    private fun maxTranslation(dX: Float): Float =
+            (if (dX < 0 && swipedModelEditable) editTriggerDistance else triggerDistance) + triggerDelta
 
     override fun onSwiped(viewHolder: EpoxyViewHolder, direction: Int) {
     }
@@ -78,11 +91,11 @@ class RoomMessageTouchHelperCallback(
     }
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: EpoxyViewHolder): Int {
-        if (handler.canSwipeModel(viewHolder.model)) {
-            return ItemTouchHelper.Callback.makeMovementFlags(0, ItemTouchHelper.START) // Should we use Left?
-        } else {
-            return 0
-        }
+        val model = viewHolder.model
+        var flags = 0
+        if (handler.canSwipeModel(model)) flags = flags or ItemTouchHelper.START
+        if (handler.canSelectModel(model)) flags = flags or ItemTouchHelper.END
+        return ItemTouchHelper.Callback.makeMovementFlags(0, flags)
     }
 
     // Unreachable thresholds: a released item must always animate back, never fly out.
@@ -122,25 +135,28 @@ class RoomMessageTouchHelperCallback(
                     swipedModelEditable = model != null && handler.canEditModel(model)
                 }
                 swipedModel = model
-                swipeAction = actionForDistance(abs(dX))
+                swipeAction = actionFor(dX)
             }
         }
         val drawDx = if (isCurrentlyActive) {
             activeDx = dX
             startTracking = true
-            dX.coerceIn(-maxTranslation, maxTranslation)
+            val max = maxTranslation(dX)
+            dX.coerceIn(-max, max)
         } else {
             // Scale the release animation down to the clamped position the item was left at.
             val overshoot = abs(activeDx)
-            if (overshoot > maxTranslation) dX * (maxTranslation / overshoot) else dX
+            val max = maxTranslation(activeDx)
+            if (overshoot > max) dX * (max / overshoot) else dX
         }
         super.onChildDraw(c, recyclerView, viewHolder, drawDx, dY, actionState, isCurrentlyActive)
         drawReplyButton(c, viewHolder.itemView, isCurrentlyActive)
     }
 
-    private fun actionForDistance(distance: Float): SwipeAction = when {
-        swipedModelEditable && distance >= editTriggerDistance -> SwipeAction.EDIT
-        distance >= triggerDistance -> SwipeAction.REPLY
+    private fun actionFor(dX: Float): SwipeAction = when {
+        dX > 0 -> if (dX >= triggerDistance) SwipeAction.SELECT else SwipeAction.NONE
+        swipedModelEditable && -dX >= editTriggerDistance -> SwipeAction.EDIT
+        -dX >= triggerDistance -> SwipeAction.REPLY
         else -> SwipeAction.NONE
     }
 
@@ -155,6 +171,7 @@ class RoomMessageTouchHelperCallback(
                         when (swipeAction) {
                             SwipeAction.REPLY -> handler.performQuickReplyOnHolder(it)
                             SwipeAction.EDIT -> handler.performQuickEditOnHolder(it)
+                            SwipeAction.SELECT -> handler.performSelectOnHolder(it)
                             SwipeAction.NONE -> Unit
                         }
                     }
@@ -172,15 +189,19 @@ class RoomMessageTouchHelperCallback(
     }
 
     private fun drawReplyButton(canvas: Canvas, itemView: View, isCurrentlyActive: Boolean) {
-        val translationX = abs(itemView.translationX)
+        val signedTranslationX = itemView.translationX
+        // A released select swipe hands that side to the selection gutter's check circles.
+        if (!isCurrentlyActive && signedTranslationX > 0) return
+        val translationX = abs(signedTranslationX)
         val newTime = clock.epochMillis()
         val dt = min(17, newTime - lastReplyButtonAnimationTime)
         lastReplyButtonAnimationTime = newTime
         val showing = translationX >= minShowDistance
         // Once released, keep the chosen action's icon while the item slides back past the thresholds.
         val icon = when {
-            !isCurrentlyActive -> drawnIcon ?: replyDrawable
-            actionForDistance(translationX) == SwipeAction.EDIT -> editDrawable
+            !isCurrentlyActive -> drawnIcon ?: if (signedTranslationX > 0) selectDrawable else replyDrawable
+            signedTranslationX > 0 -> selectDrawable
+            actionFor(signedTranslationX) == SwipeAction.EDIT -> editDrawable
             else -> replyDrawable
         }
         if (showing && drawnIcon != null && icon !== drawnIcon) {
@@ -227,7 +248,7 @@ class RoomMessageTouchHelperCallback(
 
         icon.alpha = alpha
         if (startTracking && isCurrentlyActive) {
-            val action = actionForDistance(translationX)
+            val action = actionFor(signedTranslationX)
             if (action != hapticAction) {
                 if (action != SwipeAction.NONE) {
                     itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
@@ -236,7 +257,7 @@ class RoomMessageTouchHelperCallback(
             }
         }
 
-        val x: Int = itemView.width - (translationX / 2).toInt()
+        val x: Int = if (signedTranslationX > 0) (translationX / 2).toInt() else itemView.width - (translationX / 2).toInt()
         val y = (itemView.top + itemView.measuredHeight / 2).toFloat()
         val hw = icon.intrinsicWidth / 2f
         val hh = icon.intrinsicHeight / 2f

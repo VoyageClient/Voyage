@@ -3670,4 +3670,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">Nenhum pedido pendente</string>
     <string name="room_knock_request_reason">Motivo: %1$s</string>
+    <string name="action_select_message">Selecionar</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d selecionada</item>
+        <item quantity="other">%d selecionadas</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">Deletar %d mensagem?</item>
+        <item quantity="other">Deletar %d mensagens?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Elas serão removidas para todos na sala.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">Encaminhando %d mensagem…</item>
+        <item quantity="other">Encaminhando %d mensagens…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">Deletando %d mensagem…</item>
+        <item quantity="other">Deletando %d mensagens…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (mais %2$d na fila)</item>
+        <item quantity="other">%1$s (mais %2$d na fila)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Parar o encaminhamento?</string>
+    <string name="bulk_forward_cancel_confirmation_message">As mensagens que ainda não foram enviadas não serão encaminhadas.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Parar a remoção?</string>
+    <string name="bulk_delete_cancel_confirmation_message">As mensagens que ainda não foram deletadas serão mantidas.</string>
+    <string name="bulk_forward_failed_title">Encaminhamento pausado</string>
+    <string name="bulk_forward_failed">Não foi possível encaminhar uma mensagem. Retome para tentar novamente.</string>
+    <string name="bulk_delete_failed_title">Algumas mensagens não foram deletadas</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">Não foi possível deletar %d mensagem. Retome para tentar novamente.</item>
+        <item quantity="other">Não foi possível deletar %d mensagens. Retome para tentar novamente.</item>
+    </plurals>
 </resources>

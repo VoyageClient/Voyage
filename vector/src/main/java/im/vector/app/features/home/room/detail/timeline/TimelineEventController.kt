@@ -277,8 +277,17 @@ class TimelineEventController @Inject constructor(
         buildFocusEventId = eventId
     }
 
-    fun findEventInSnapshot(eventId: String?): TimelineEvent? =
-            eventId?.let { id -> currentSnapshot.firstOrNull { it.eventId == id } }
+    // A drag-select looks up every row it passes on every frame. The snapshot is only ever replaced
+    // whole, never mutated, so its identity keys the index.
+    @Volatile private var snapshotIndex: Pair<List<TimelineEvent>, Map<String, TimelineEvent>>? = null
+
+    fun findEventInSnapshot(eventId: String?): TimelineEvent? {
+        eventId ?: return null
+        val snapshot = currentSnapshot
+        val index = snapshotIndex?.takeIf { it.first === snapshot }?.second
+                ?: snapshot.associateBy { it.eventId }.also { snapshotIndex = snapshot to it }
+        return index[eventId]
+    }
     private val positionsLock = Any()
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()

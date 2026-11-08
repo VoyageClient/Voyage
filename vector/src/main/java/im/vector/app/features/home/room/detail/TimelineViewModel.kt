@@ -35,6 +35,7 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.VectorOverrides
 import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.withRandomizedFilename
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
@@ -48,6 +49,7 @@ import im.vector.app.features.home.room.detail.timeline.format.DecryptionFailure
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
+import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
@@ -58,8 +60,8 @@ import im.vector.app.features.raw.wellknown.CryptoConfig
 import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategyOrDefault
 import im.vector.app.features.raw.wellknown.withElementWellKnown
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
-import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.PrivacyMode
@@ -166,12 +168,13 @@ class TimelineViewModel @AssistedInject constructor(
         private val spaceStateHandler: SpaceStateHandler,
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
-        private val massRedactionManager: MassRedactionManager,
+        private val bulkActionQueue: BulkActionQueue,
         private val recentEmojiDataSource: RecentEmojiDataSource,
         timelineRetrieversFactory: TimelineRetrieversFactory,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val vectorOverrides: VectorOverrides,
         private val redactedContentRepository: RedactedContentRepository,
+        private val redactedContentRestorer: RedactedContentRestorer,
         private val sendMediaMaterializer: SendMediaMaterializer,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val audioMessagePlaybackTracker: AudioMessagePlaybackTracker,
@@ -194,6 +197,8 @@ class TimelineViewModel @AssistedInject constructor(
     private val visibleEventsSource = BehaviorDataSource<RoomDetailAction.TimelineEventTurnsVisible>()
     private var timelineEvents = MutableSharedFlow<List<TimelineEvent>>(0)
     val timeline: Timeline?
+
+    val selection = TimelineSelection(isRevealed = { redactedContentRestorer.isShowingRestoredContent(it) })
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
     private val timelineRetrievers = timelineRetrieversFactory.create(initialState.roomId, viewModelScope, initialState.isThreadTimeline())
@@ -407,9 +412,9 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     private fun observeMassRedaction() {
-        // The job is app-wide, so its banner shows in every room (and on the room list), not just the target.
-        massRedactionManager.stream()
-                .onEach { state -> setState { copy(massRedactionState = state) } }
+        // Jobs are app-wide, so their banner shows in every room (and on the room list), not just the target.
+        bulkActionQueue.progress
+                .onEach { state -> setState { copy(bulkActionProgress = state) } }
                 .launchIn(viewModelScope)
     }
 
@@ -773,8 +778,8 @@ class TimelineViewModel @AssistedInject constructor(
             }
             is RoomDetailAction.EndPoll -> handleEndPoll(action.eventId)
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
-            RoomDetailAction.MassRedactionPauseToggle -> massRedactionManager.togglePause()
-            RoomDetailAction.MassRedactionCancel -> massRedactionManager.cancel()
+            RoomDetailAction.MassRedactionPauseToggle -> bulkActionQueue.togglePause()
+            RoomDetailAction.MassRedactionCancel -> bulkActionQueue.cancel()
             is RoomDetailAction.DismissUserIdentityChange -> handleDismissUserIdentityChange(action.userId)
         }
     }
@@ -2089,6 +2094,10 @@ private fun handleSelectStickerAttachment() {
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
         stopRedactedPlayback(snapshot)
+        if (selection.isActive) {
+            val byId = snapshot.associateBy { it.eventId }
+            selection.refresh { byId[it] }
+        }
         viewModelScope.launch {
             // tryEmit doesn't work with SharedFlow without cache
             timelineEvents.emit(snapshot)

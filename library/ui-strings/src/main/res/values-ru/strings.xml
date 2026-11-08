@@ -3804,4 +3804,49 @@
     </plurals>
     <string name="room_profile_no_pending_requests">Нет ожидающих запросов</string>
     <string name="room_knock_request_reason">Причина: %1$s</string>
+    <string name="action_select_message">Выбрать</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">Выбрано: %d</item>
+        <item quantity="few">Выбрано: %d</item>
+        <item quantity="many">Выбрано: %d</item>
+        <item quantity="other">Выбрано: %d</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">Удалить %d сообщение?</item>
+        <item quantity="few">Удалить %d сообщения?</item>
+        <item quantity="many">Удалить %d сообщений?</item>
+        <item quantity="other">Удалить %d сообщения?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Они будут удалены для всех участников комнаты.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">Пересылка %d сообщения…</item>
+        <item quantity="few">Пересылка %d сообщений…</item>
+        <item quantity="many">Пересылка %d сообщений…</item>
+        <item quantity="other">Пересылка %d сообщения…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">Удаление %d сообщения…</item>
+        <item quantity="few">Удаление %d сообщений…</item>
+        <item quantity="many">Удаление %d сообщений…</item>
+        <item quantity="other">Удаление %d сообщения…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (ещё %2$d в очереди)</item>
+        <item quantity="few">%1$s (ещё %2$d в очереди)</item>
+        <item quantity="many">%1$s (ещё %2$d в очереди)</item>
+        <item quantity="other">%1$s (ещё %2$d в очереди)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Остановить пересылку?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Сообщения, которые ещё не отправлены, не будут пересланы.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Остановить удаление?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Сообщения, которые ещё не удалены, сохранятся.</string>
+    <string name="bulk_forward_failed_title">Пересылка приостановлена</string>
+    <string name="bulk_forward_failed">Не удалось переслать сообщение. Продолжите, чтобы повторить попытку.</string>
+    <string name="bulk_delete_failed_title">Некоторые сообщения не удалены</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">Не удалось удалить %d сообщение. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="few">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="many">Не удалось удалить %d сообщений. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="other">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
+    </plurals>
 </resources>

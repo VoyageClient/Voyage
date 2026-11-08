@@ -170,6 +170,31 @@ class ForwardContentBuilderTest {
     }
 
     @Test
+    fun `a silent forward of a reply keeps only the mentions the message names`() {
+        val content = mapOf(
+                "msgtype" to "m.text",
+                "body" to "carol: see above",
+                "format" to "org.matrix.custom.html",
+                "formatted_body" to "<a href=\"https://matrix.to/#/%40carol%3Aexample.org\">carol</a>: see above",
+                "m.relates_to" to mapOf("m.in_reply_to" to mapOf("event_id" to "\$x")),
+                "m.mentions" to mapOf("user_ids" to listOf("@bob:example.org", "@carol:example.org")),
+        )
+
+        val silent = build(origin("\$original:example.org") + ("content" to content), silent = true)
+        @Suppress("UNCHECKED_CAST")
+        val inner = (silent[ForwardedInfo.STABLE_KEY] as Map<String, Any?>)["content"] as Map<String, Any?>
+        assertEquals(mapOf("user_ids" to listOf("@carol:example.org")), inner["m.mentions"])
+        assertFalse(inner.containsKey("m.relates_to"))
+
+        // Not silent: the forward names the original and its room anyway, so nothing is hidden.
+        @Suppress("UNCHECKED_CAST")
+        val named = ((build(origin("\$original:example.org") + ("content" to content))[ForwardedInfo.STABLE_KEY] as Map<String, Any?>)["content"]
+                as Map<String, Any?>)
+        assertEquals(content["m.mentions"], named["m.mentions"])
+        assertEquals(content["m.relates_to"], named["m.relates_to"])
+    }
+
+    @Test
     fun `the forward's own relation and mentions are not copied from the original`() {
         val content = mapOf(
                 "msgtype" to "m.text",

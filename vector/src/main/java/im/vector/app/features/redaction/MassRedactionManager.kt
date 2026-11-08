@@ -9,11 +9,13 @@ package im.vector.app.features.redaction
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import dagger.Lazy
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.lib.strings.CommonPlurals
@@ -46,7 +48,8 @@ import javax.inject.Singleton
  * Drives the single, global "redact every event from a user" job. Lives at app scope so it keeps running
  * when the room is closed or the app is backgrounded (process alive). It redacts what's already in the local
  * DB first, then pages the server for the rest. Progress is streamed to the room banner; a compact resume
- * record is persisted so a process kill leaves the job paused where it stopped.
+ * record is persisted so a process kill leaves the job paused where it stopped. Jobs are started through
+ * [BulkActionQueue], which holds one back until the jobs asked for before it have finished.
  */
 @Singleton
 class MassRedactionManager @Inject constructor(
@@ -55,6 +58,8 @@ class MassRedactionManager @Inject constructor(
         @DefaultPreferences private val preferences: SharedPreferences,
         private val popupAlertManager: PopupAlertManager,
         private val stringProvider: StringProvider,
+        // Lazy: the queue depends on this manager too.
+        private val bulkActionQueue: Lazy<BulkActionQueue>,
 ) {
 
     sealed interface StartResult {
@@ -154,7 +159,7 @@ class MassRedactionManager @Inject constructor(
     }
 
     private fun sweep(roomId: String, userId: String, displayName: String) {
-        if (start(roomId, userId, displayName, delayMs = 0L) == StartResult.AlreadyRunning) {
+        if (bulkActionQueue.get().startMassRedaction(roomId, userId, displayName, delayMs = 0L) == StartResult.AlreadyRunning) {
             Timber.w("massredact: moderation sweep for $userId skipped, another job is running")
         }
     }

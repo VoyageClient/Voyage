@@ -23,6 +23,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.profile.ProfileFieldsFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
@@ -92,6 +93,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val directRoomHelper: DirectRoomHelper,
         private val massRedactionManager: MassRedactionManager,
+        private val bulkActionQueue: BulkActionQueue,
         private val profileFieldsFormatter: ProfileFieldsFormatter,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val imagePackProvider: ImagePackProvider,
@@ -896,7 +898,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun handleRedactAllMessages() = withState { state ->
         val roomId = state.roomId ?: return@withState
         val displayName = state.userMatrixItem()?.getBestName() ?: state.userId
-        val result = massRedactionManager.start(roomId, state.userId, displayName, delayMs = 0L, range = MassRedactionRange(messagesOnly = true))
+        val result = bulkActionQueue.startMassRedaction(roomId, state.userId, displayName, delayMs = 0L, range = MassRedactionRange(messagesOnly = true))
         if (result == MassRedactionManager.StartResult.AlreadyRunning) {
             _viewEvents.post(RoomMemberProfileViewEvents.MassRedactionAlreadyRunning)
         }

@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         tools:visibility="visible" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <im.vector.app.features.home.room.detail.timeline.view.TimelineMediaContainer
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -119,7 +119,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/messageThumbnailView"
             tools:visibility="visible" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </im.vector.app.features.home.room.detail.timeline.view.TimelineMediaContainer>
 
     <im.vector.app.core.ui.views.FooteredTextView
         android:id="@+id/messageCaptionView"

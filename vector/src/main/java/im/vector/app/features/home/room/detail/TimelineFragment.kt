@@ -7,9 +7,13 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
@@ -22,6 +26,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -29,6 +34,7 @@ import androidx.activity.addCallback
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -52,6 +58,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyModel
+import com.airbnb.epoxy.EpoxyViewHolder
 import com.airbnb.epoxy.EpoxyVisibilityTracker
 import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.epoxy.addGlidePreloader
@@ -99,6 +106,7 @@ import im.vector.app.core.ui.views.badgeTrustLevel
 import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.utils.ExpandingBottomSheetBehavior
 import im.vector.app.core.utils.KeyboardStateUtils
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
 import im.vector.app.core.utils.PerfTrace
@@ -124,6 +132,7 @@ import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.audio.AudioGalleryData
 import im.vector.app.features.audio.AudioPlaybackBannerBinder
 import im.vector.app.features.audio.AudioPlaybackController
+import im.vector.app.features.bulk.BulkActionQueue
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.delayedevents.ScheduledMessagesDialog
@@ -139,7 +148,9 @@ import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.composer.voice.VoiceRecorderFragment
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.action.ActionPermissions
 import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
+import im.vector.app.features.home.room.detail.timeline.action.MessageActionEligibility
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.timeline.action.canBeEditedBy
@@ -173,6 +184,10 @@ import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsB
 import im.vector.app.features.home.room.detail.timeline.readreceipts.DisplayReadReceiptsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
+import im.vector.app.features.home.room.detail.timeline.selection.BulkCopyFormatter
+import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
+import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelectionDecoration
+import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelectionTouchListener
 import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
@@ -198,7 +213,9 @@ import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.EmojiPanelHostLayout
 import im.vector.app.features.reactions.EmojiReactionPickerActivity
+import im.vector.app.features.redaction.MassRedactionBannerBinder
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
 import im.vector.app.features.redaction.preservation.RevealFailure
 import im.vector.app.features.roomprofile.RoomProfileActivity
@@ -206,6 +223,7 @@ import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
+import im.vector.app.features.share.ForwardItem
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.share.isDirectRoom
@@ -216,9 +234,11 @@ import im.vector.app.features.widgets.WidgetArgs
 import im.vector.app.features.widgets.WidgetKind
 import im.vector.app.features.widgets.permissions.RoomWidgetPermissionBottomSheet
 import im.vector.lib.core.utils.timer.Clock
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
@@ -233,6 +253,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.billcarsonfr.jsonviewer.JSonViewerValueKind
 import org.billcarsonfr.jsonviewer.JSonViewerValueListener
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -282,6 +303,8 @@ class TimelineFragment :
         JSonViewerValueListener {
 
     @Inject lateinit var audioPlaybackController: AudioPlaybackController
+    @Inject lateinit var messageActionEligibility: MessageActionEligibility
+    @Inject lateinit var bulkActionQueue: BulkActionQueue
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -298,6 +321,7 @@ class TimelineFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var redactedContentRepository: RedactedContentRepository
+    @Inject lateinit var redactedContentRestorer: RedactedContentRestorer
     @Inject lateinit var threadsManager: ThreadsManager
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var dimensionConverter: DimensionConverter
@@ -320,6 +344,8 @@ class TimelineFragment :
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
         private const val JSON_VIEWER_TAG = "JSON_VIEWER"
+        private const val MESSAGE_ACTIONS_TAG = "MESSAGE_CONTEXTUAL_ACTIONS"
+        private const val COMPOSER_SLIDE_MS = 220L
 
         // How long an action carried in from another screen waits for its event to be paginated in.
         private const val PENDING_ACTION_EVENT_TIMEOUT_MS = 10_000L
@@ -368,6 +394,15 @@ class TimelineFragment :
 
     private var timelineHasContent = false
     private var timelineHeldForModal = false
+
+    private var selectionPermissions = ActionPermissions()
+    private var dragBaseSelection: Map<String, TimelineEvent> = emptyMap()
+    private var dragSelects = true
+    private var selectionDecoration: TimelineSelectionDecoration? = null
+    private var selectionTouchListener: TimelineSelectionTouchListener? = null
+    private var rootBottomMarginBeforeSelection = 0
+    private var composerSlideAnimator: ValueAnimator? = null
+    private var selectionWasActive = false
     private var replyJumpSourceEventId: String? = null
     private var modelBuildListener: OnModelBuildFinishedListener? = null
 
@@ -411,6 +446,7 @@ class TimelineFragment :
         setupToolbar(views.roomToolbar)
                 .allowBack()
         PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
+        setupSelection()
         vectorBaseActivity.excludeFromGlobalColorRefresh(views.timelineRecyclerView)
         setupNotificationView()
         setupJumpToReadMarkerView()
@@ -669,6 +705,10 @@ class TimelineFragment :
 
     private fun setupBackPressHandling() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            if (timelineViewModel.selection.isActive) {
+                timelineViewModel.selection.clear()
+                return@addCallback
+            }
             withState(messageComposerViewModel) { state ->
                 if (state.isFullScreen) {
                     messageComposerViewModel.handle(MessageComposerAction.SetFullScreen(false))
@@ -937,14 +977,10 @@ class TimelineFragment :
             }
 
             override fun onMassRedactionCancelled() {
-                MaterialAlertDialogBuilder(requireActivity())
-                        .setTitle(CommonStrings.mass_redaction_cancel_confirmation_title)
-                        .setMessage(CommonStrings.mass_redaction_cancel_confirmation_message)
-                        .setPositiveButton(android.R.string.ok) { _, _ ->
-                            timelineViewModel.handle(RoomDetailAction.MassRedactionCancel)
-                        }
-                        .setNegativeButton(CommonStrings.action_cancel, null)
-                        .show()
+                val kind = bulkActionQueue.activeKind() ?: return
+                MassRedactionBannerBinder.confirmCancel(requireActivity(), kind) {
+                    timelineViewModel.handle(RoomDetailAction.MassRedactionCancel)
+                }
             }
         }
     }
@@ -1637,7 +1673,8 @@ class TimelineFragment :
             })
         }
 
-        if (vectorPreferences.swipeToReplyIsEnabled()) {
+        val swipeToReplyEnabled = vectorPreferences.swipeToReplyIsEnabled()
+        run {
             val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
                 private fun eventIdOf(model: EpoxyModel<*>): String? =
                         (model as? AbsMessageItem)?.attributes?.informationData?.eventId
@@ -1661,7 +1698,20 @@ class TimelineFragment :
                     return timelineEventOf(model)?.canBeEditedBy(session.myUserId, canSendMessage = true) == true
                 }
 
+                override fun performSelectOnHolder(model: EpoxyModel<*>) {
+                    selectableEventIdOf(model)?.let { toggleSelection(it) }
+                }
+
+                override fun canSelectModel(model: EpoxyModel<*>): Boolean =
+                        !timelineViewModel.selection.isActive && selectableEventIdOf(model) != null
+
+                // Its hold timer would otherwise fire mid-swipe and read the swipe as a hold.
+                override fun onSwipeStarted() {
+                    selectionTouchListener?.cancelGesture()
+                }
+
                 override fun canSwipeModel(model: EpoxyModel<*>): Boolean {
+                    if (!swipeToReplyEnabled || timelineViewModel.selection.isActive) return false
                     if (withState(timelineViewModel) { it.isReadOnlyTimeline() }) {
                         return false
                     }
@@ -1695,7 +1745,9 @@ class TimelineFragment :
                     }
                 }
             }
-            val swipeCallback = RoomMessageTouchHelperCallback(requireContext(), R.drawable.ic_reply, R.drawable.ic_edit, quickReplyHandler, clock)
+            val swipeCallback = RoomMessageTouchHelperCallback(
+                    requireContext(), R.drawable.ic_reply, R.drawable.ic_edit, R.drawable.ic_select_message, quickReplyHandler, clock
+            )
             val touchHelper = ItemTouchHelper(swipeCallback)
             touchHelper.attachToRecyclerView(views.timelineRecyclerView)
         }
@@ -1764,7 +1816,7 @@ class TimelineFragment :
         renderToolbar(summary, mainState.isRoomPreview)
         renderPinnedMessagesBanner(mainState)
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
-        views.massRedactionBanner.render(mainState.massRedactionState)
+        views.massRedactionBanner.render(mainState.bulkActionProgress)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.apply {
                 render(mainState.failedSendingText)
@@ -1784,7 +1836,7 @@ class TimelineFragment :
             timelineEventController.update(mainState)
             lazyLoadedViews.inviteView(false)?.isVisible = false
 
-            views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
+            renderComposerVisibility(messageComposerState.isComposerVisible)
             val recorderVisible = messageComposerState.isComposerVisible && messageComposerState.isVoiceRecording &&
                     vectorPreferences.isVoiceMessageButtonEnabled()
             views.voiceMessageRecorderContainer.isVisible = recorderVisible
@@ -2268,16 +2320,19 @@ class TimelineFragment :
     }
 
     override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean {
+        // While selecting, the selection touch listener owns every gesture.
+        if (timelineViewModel.selection.isActive) return true
         view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         val roomId = timelineArgs.roomId
         this.view?.hideKeyboard()
 
-        showMessageActions(MessageActionsBottomSheet.newInstance(roomId, informationData, isThreadTimeLine()))
+        showMessageActions(MessageActionsBottomSheet.newInstance(roomId, informationData, isThreadTimeLine(), canSelect = true))
 
         return true
     }
 
     override fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean {
+        if (timelineViewModel.selection.isActive) return true
         view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         this.view?.hideKeyboard()
         showMessageActions(
@@ -2303,7 +2358,7 @@ class TimelineFragment :
                 setTimelineHeldForModal(false)
             }
         }
-        sheet.show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
+        sheet.show(requireActivity().supportFragmentManager, MESSAGE_ACTIONS_TAG)
     }
 
     private fun setTimelineHeldForModal(held: Boolean) {
@@ -2468,6 +2523,315 @@ class TimelineFragment :
 
     override fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float) {
         messageComposerViewModel.handle(MessageComposerAction.AudioSeekBarMovedTo(eventId, duration, percentage))
+    }
+
+    private fun setupSelection() {
+        val selection = timelineViewModel.selection
+        val recycler = views.timelineRecyclerView
+        val redactedRowTint = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_redacted_background)
+        selectionDecoration = TimelineSelectionDecoration(
+                requireContext(),
+                recycler,
+                selection,
+                selectableEventIdOf = { child -> selectableEventIdOfChild(child) },
+                isMessageRow = { child -> modelOfChild(child) is AbsMessageItem<*> },
+                rowTintOf = { child ->
+                    redactedRowTint.takeIf { (modelOfChild(child) as? AbsMessageItem<*>)?.attributes?.informationData?.isRevealedRedaction == true }
+                },
+        ).also { recycler.addItemDecoration(it) }
+        selectionTouchListener = TimelineSelectionTouchListener(recycler, object : TimelineSelectionTouchListener.Callback {
+            override fun isSelectionActive() = selection.isActive
+
+            override fun selectableEventIdAt(adapterPosition: Int): String? =
+                    tryOrNull { timelineEventController.adapter.getModelAtPosition(adapterPosition) }?.let { selectableEventIdOf(it) }
+
+            override fun onTap(eventId: String) = toggleSelection(eventId)
+
+            private var cachedAnchorPosition = RecyclerView.NO_POSITION
+
+            // Called every frame of a drag: trust the last position while it still holds the event, and
+            // only search the adapter when rows arriving above have moved it.
+            override fun adapterPositionOf(eventId: String): Int? {
+                val adapter = timelineEventController.adapter
+                fun holds(position: Int) = tryOrNull { adapter.getModelAtPosition(position) }?.let { selectableEventIdOf(it) } == eventId
+                if (cachedAnchorPosition in 0 until adapter.itemCount && holds(cachedAnchorPosition)) return cachedAnchorPosition
+                return (0 until adapter.itemCount).firstOrNull { holds(it) }?.also { cachedAnchorPosition = it }
+            }
+
+            override fun onAnchorReleased() {
+                selection.hold(false)
+            }
+
+            override fun onAnchor(anchorEventId: String, fromHold: Boolean) {
+                (requireActivity().supportFragmentManager.findFragmentByTag(MESSAGE_ACTIONS_TAG) as? MessageActionsBottomSheet)
+                        ?.dismissAllowingStateLoss()
+                selection.hold(true)
+                dragBaseSelection = selection.selected.value
+                // As in Telegram: starting on a selected message deselects what the drag passes over.
+                dragSelects = anchorEventId !in dragBaseSelection
+                if (fromHold) recycler.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                applyDragRange(listOf(anchorEventId))
+            }
+
+            override fun onDragRange(eventIds: List<String>) = applyDragRange(eventIds)
+
+            private fun applyDragRange(eventIds: List<String>) {
+                val events = eventIds.mapNotNull { id ->
+                    (dragBaseSelection[id] ?: timelineEventController.findEventInSnapshot(id))?.takeIf { selection.canSelect(it) }
+                }
+                selection.applyRange(dragBaseSelection, events, dragSelects)
+            }
+        }).also { recycler.addOnItemTouchListener(it) }
+
+        views.selectionToolbar.apply {
+            inflateMenu(R.menu.menu_timeline_selection)
+            navigationIcon = AppCompatResources.getDrawable(context, R.drawable.ic_close_24dp)?.mutate()?.let { icon ->
+                DrawableCompat.wrap(icon).also { DrawableCompat.setTint(it, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)) }
+            }
+            setNavigationContentDescription(CommonStrings.action_close)
+            setNavigationOnClickListener { selection.clear() }
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.selection_copy -> copySelection()
+                    R.id.selection_forward -> forwardSelection()
+                    R.id.selection_delete -> deleteSelection()
+                    else -> return@setOnMenuItemClickListener false
+                }
+                true
+            }
+        }
+        selectionWasActive = false
+        combine(selection.selected, selection.held) { selected, _ -> selected }
+                .onEach { renderSelection(it) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    // Decided from the model alone: it runs for every visible row on every frame while selecting.
+    private fun selectableEventIdOf(model: EpoxyModel<*>): String? {
+        val informationData = when (model) {
+            is MessageFileItem,
+            is MessageAudioItem,
+            is MessageVoiceItem,
+            is MessageImageVideoItem,
+            is MessageGalleryItem,
+            is MessageTextItem,
+            is MessageLocationItem -> (model as AbsMessageItem<*>).attributes.informationData
+            else -> return null
+        }
+        return informationData.eventId.takeIf { informationData.sendState == SendState.SYNCED }
+    }
+
+    private fun modelOfChild(child: View): EpoxyModel<*>? {
+        val holder = views.timelineRecyclerView.getChildViewHolder(child) as? EpoxyViewHolder ?: return null
+        return tryOrNull { holder.model }
+    }
+
+    private fun selectableEventIdOfChild(child: View): String? = modelOfChild(child)?.let { selectableEventIdOf(it) }
+
+    private fun toggleSelection(eventId: String) {
+        val selection = timelineViewModel.selection
+        val event = selection.selected.value[eventId]
+                ?: timelineEventController.findEventInSnapshot(eventId)?.takeIf { selection.canSelect(it) }
+                ?: return
+        selection.toggle(event)
+    }
+
+    private fun renderSelection(selected: Map<String, TimelineEvent>) {
+        val active = timelineViewModel.selection.isActive
+        if (active && !selectionWasActive) {
+            view?.hideKeyboard()
+            selectionPermissions = readSelectionPermissions()
+        }
+        views.selectionToolbar.isVisible = active
+        views.roomToolbar.isVisible = !active
+        views.timelineRecyclerView.blocksChildTouches = active
+        if (active) {
+            views.selectionToolbar.title = resources.getQuantityString(CommonPlurals.timeline_selection_count, selected.size, selected.size)
+            val abilities = selected.values.map { abilitiesOf(it) }
+            views.selectionToolbar.menu.apply {
+                findItem(R.id.selection_copy)?.isVisible = abilities.any { it.copy }
+                findItem(R.id.selection_forward)?.isVisible = abilities.all { it.forward }
+                findItem(R.id.selection_delete)?.isVisible = selectionPermissions.canSendMessage && abilities.all { it.delete }
+            }
+        } else {
+            selectionAbilities.clear()
+        }
+        if (active != selectionWasActive) {
+            animateComposerForSelection(active)
+            withState(messageComposerViewModel) { renderComposerVisibility(it.isComposerVisible) }
+            // The classic composer tints the navigation bar to its own color; with it gone the bar
+            // sits under the timeline instead.
+            vectorBaseActivity.tintNavigationBarStrip(
+                    when {
+                        active -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+                        vectorPreferences.useClassicComposer() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+                        else -> Color.TRANSPARENT
+                    }
+            )
+            // The gutter changes every row's insets; a plain toggle only needs a redraw.
+            selectionDecoration?.animateGutter(active)
+        } else {
+            views.timelineRecyclerView.invalidate()
+        }
+        selectionWasActive = active
+    }
+
+    // Gone rather than invisible while selecting, so the timeline takes the composer's space.
+    private fun renderComposerVisibility(isComposerVisible: Boolean) {
+        if (timelineViewModel.selection.isActive) {
+            // Mid-slide the animation owns both; it ends in exactly this state.
+            if (composerSlideAnimator == null) {
+                views.composerContainer.isVisible = false
+                views.rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = 0 }
+            }
+        } else {
+            views.composerContainer.isVisible = true
+            views.composerContainer.isInvisible = !isComposerVisible
+        }
+    }
+
+    /**
+     * Slides the composer off the bottom while selecting and back afterwards, with the content's bottom
+     * margin following so the timeline moves with it. The composer's behavior normally keeps that margin
+     * equal to the composer's height on every layout pass, so it's paused for the slide. That also covers
+     * the return: left to the behavior, the margin only came back in a later layout pass, leaving the
+     * content (and the jump-to-bottom button) under the composer until something relaid it.
+     */
+    private fun animateComposerForSelection(selecting: Boolean) {
+        val composer = views.composerContainer
+        val behavior = ExpandingBottomSheetBehavior.from(composer)
+        composerSlideAnimator?.cancel()
+        if (selecting) {
+            rootBottomMarginBeforeSelection = (views.rootConstraintLayout.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin
+        }
+        val reserved = rootBottomMarginBeforeSelection
+        behavior?.applyInsetsToContentViewWhenCollapsed = false
+        composer.isVisible = true
+        val hiddenFrom = if (selecting) composer.translationY / reserved.coerceAtLeast(1) else 1f
+        composerSlideAnimator = ValueAnimator.ofFloat(hiddenFrom, if (selecting) 1f else 0f).apply {
+            duration = COMPOSER_SLIDE_MS
+            interpolator = DecelerateInterpolator(1.5f)
+            addUpdateListener {
+                val hidden = it.animatedValue as Float
+                composer.translationY = hidden * reserved
+                views.rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = (reserved * (1 - hidden)).toInt() }
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+
+                override fun onAnimationCancel(animation: Animator) {
+                    cancelled = true
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    if (composerSlideAnimator === animation) composerSlideAnimator = null
+                    if (cancelled || view == null) return
+                    composer.translationY = 0f
+                    if (selecting) {
+                        composer.isVisible = false
+                    } else {
+                        behavior?.applyInsetsToContentViewWhenCollapsed = true
+                        // Selection that outlived a rotation never saw the composer's margin; let the behavior set it.
+                        if (reserved == 0) views.coordinatorLayout.requestLayout()
+                    }
+                }
+            })
+            start()
+        }
+    }
+
+    // canSendMessage stands in for "may send a redaction at all", which even our own messages need.
+    private fun readSelectionPermissions(): ActionPermissions {
+        val room = session.getRoom(timelineArgs.roomId) ?: return ActionPermissions()
+        if (room.roomSummary()?.membership != Membership.JOIN) return ActionPermissions()
+        val powerLevels = room.stateService().getRoomPowerLevels()
+        return ActionPermissions(
+                canSendMessage = powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REDACTION),
+                canRedact = powerLevels.isUserAbleToRedact(session.myUserId),
+        )
+    }
+
+    private fun selectedInTimelineOrder(): List<TimelineEvent> =
+            TimelineSelection.inTimelineOrder(timelineViewModel.selection.selected.value.values)
+
+    // What the timeline is showing for [event]: the recovered content of a revealed deletion.
+    private fun shownContentOf(event: TimelineEvent): TimelineEvent = redactedContentRestorer.restoreEvent(event) ?: event
+
+    private class SelectionAbilities(val event: TimelineEvent, val copy: Boolean, val forward: Boolean, val delete: Boolean)
+
+    // Each check parses the message's content, and the toolbar asks about every selected message on every
+    // change, so the answers are kept per event until the selection's copy of it is replaced.
+    private val selectionAbilities = HashMap<String, SelectionAbilities>()
+
+    private fun abilitiesOf(event: TimelineEvent): SelectionAbilities {
+        selectionAbilities[event.eventId]?.takeIf { it.event === event }?.let { return it }
+        val shown = shownContentOf(event)
+        return SelectionAbilities(
+                event = event,
+                copy = messageActionEligibility.canCopy(shown),
+                forward = messageActionEligibility.canForward(shown),
+                // A revealed deletion has nothing left to redact.
+                delete = !event.root.isRedacted() && messageActionEligibility.canRedact(event, selectionPermissions),
+        ).also { selectionAbilities[event.eventId] = it }
+    }
+
+    private fun copySelection() {
+        val events = selectedInTimelineOrder().map { shownContentOf(it) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val entries = events.mapNotNull { event ->
+                val content = event.getVectorLastMessageContent()?.takeIf { messageActionEligibility.canCopy(it.msgType, it) } ?: return@mapNotNull null
+                BulkCopyFormatter.Entry(
+                        senderId = event.root.senderId ?: event.senderInfo.userId,
+                        senderName = messageActionEligibility.senderDisplayName(event),
+                        body = messageActionEligibility.copyBody(event, content, mentionsAsIds = true),
+                )
+            }
+            if (entries.isEmpty()) return@launch
+            copyToClipboard(requireContext(), BulkCopyFormatter.format(entries, session.myUserId), false)
+            showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
+            timelineViewModel.selection.clear()
+        }
+    }
+
+    private fun forwardSelection() {
+        val items = selectedInTimelineOrder()
+                .map { shownContentOf(it) }
+                .filter { messageActionEligibility.canForward(it) }
+                .map { event ->
+                    ForwardItem(
+                            eventType = event.root.getClearType(),
+                            payloadId = ForwardPayloadHolder.put(messageActionEligibility.forwardPayload(event)),
+                            sourceEventId = event.eventId,
+                            sourceInReplyToEventId = event.root.getRelationContent()
+                                    ?.takeIf { it.isFallingBack != true }
+                                    ?.inReplyTo?.eventId,
+                    )
+                }
+        if (items.isEmpty()) return
+        startActivity(IncomingShareActivity.forwardIntent(requireContext(), items))
+        timelineViewModel.selection.clear()
+    }
+
+    private fun deleteSelection() {
+        val events = selectedInTimelineOrder()
+        if (events.isEmpty()) return
+        val eventIds = events.map { it.eventId }
+        val redact = { reason: String? ->
+            bulkActionQueue.enqueueDelete(timelineArgs.roomId, eventIds, reason)
+            timelineViewModel.selection.clear()
+        }
+        if (vectorPreferences.skipRedactionConfirmation()) {
+            redact(null)
+            return
+        }
+        ConfirmationDialogBuilder.show(
+                activity = requireActivity(),
+                askForReason = events.any { it.root.senderId != session.myUserId },
+                title = resources.getQuantityString(CommonPlurals.delete_messages_dialog_title, events.size, events.size),
+                confirmationText = getString(CommonStrings.delete_messages_dialog_content),
+                positiveRes = CommonStrings.action_delete,
+                reasonHintRes = CommonStrings.redact_event_dialog_reason_hint,
+        ) { reason -> redact(reason) }
     }
 
     private fun onForwardActionClicked(action: EventSharedAction.Forward) {
@@ -2674,6 +3038,9 @@ class TimelineFragment :
             }
             is EventSharedAction.Forward -> {
                 onForwardActionClicked(action)
+            }
+            is EventSharedAction.Select -> {
+                toggleSelection(action.eventId)
             }
             is EventSharedAction.Share -> {
                 onShareActionClicked(action)

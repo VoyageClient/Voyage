@@ -50,6 +50,7 @@ data class MessageActionState(
         val sharedByDisplayName: String? = null,
         // When set, the sheet is scoped to that item of an MSC4274 gallery.
         val galleryItemIndex: Int? = null,
+        val canSelect: Boolean = false,
 ) : MavericksState {
 
     /**
@@ -65,7 +66,8 @@ data class MessageActionState(
             eventId = args.eventId,
             informationData = args.informationData,
             isFromThreadTimeline = args.isFromThreadTimeline,
-            galleryItemIndex = args.galleryItemIndex
+            galleryItemIndex = args.galleryItemIndex,
+            canSelect = args.canSelect,
     )
 
     fun senderName(): String = informationData.memberName?.toString() ?: ""

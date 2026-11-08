@@ -21,15 +21,14 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.PerfTrace
-import im.vector.app.features.home.room.detail.composer.spliceMentionIds
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
+import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.media.FailedMediaTracker
-import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpResult
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pgp.PgpUtils
@@ -83,21 +82,16 @@ import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.forwardOrigin
-import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
-import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
-import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
@@ -117,10 +111,9 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
-        private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
+        private val eligibility: MessageActionEligibility,
         private val failedMediaTracker: FailedMediaTracker,
         private val pgpServiceManager: PgpServiceManager,
-        private val pgpKeyStore: PgpKeyStore,
         private val imagePackProvider: ImagePackProvider,
         private val quickReactionsDataSource: QuickReactionsDataSource,
         private val redactionSettings: RedactionPreservationSettings,
@@ -419,39 +412,11 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    // Decrypted plaintext for a PGP-over-plaintext message, for the long-press preview; null when
-    // not a PGP message, PGP disabled, or it can't be decrypted (then the raw body is shown).
-    private suspend fun computePgpDecryptedBody(timelineEvent: TimelineEvent): CharSequence? {
-        if (!pgpKeyStore.isEnabled || timelineEvent.isEncrypted()) return null
-        val body = (timelineEvent.getVectorLastMessageContent() as? MessageTextContent)?.body ?: return null
-        if (!PgpUtils.bodyContainsPgp(body)) return null
-        val armored = PgpUtils.extractArmoredBlock(body) ?: return null
-        return (pgpServiceManager.decrypt(armored) as? PgpResult.Success)?.data
-    }
+    private suspend fun computePgpDecryptedBody(timelineEvent: TimelineEvent): CharSequence? =
+            eligibility.computePgpDecryptedBody(timelineEvent)
 
-    // Text put on the clipboard by "Copy": the decrypted plaintext for a PGP message, otherwise the
-    // real message with any legacy reply fallback stripped — so a (plaintext or encrypted) reply
-    // copies what's shown, not the quoted "> <@user> …" original (which for a reply to an encrypted
-    // message is a whole armored PGP block).
-    private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent, mentionsAsIds: Boolean = false): String {
-        computePgpDecryptedBody(timelineEvent)?.let { return it.toString() }
-        val profile = timelineEvent.renderPerMessageProfile(
-                timelineEvent.senderInfo.disambiguatedDisplayName,
-                vectorPreferences.arePerMessageProfilesEnabled()
-        )
-        val formatted = (messageContent as? MessageContentWithFormattedBody)
-                ?.matrixFormattedBody
-                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
-        val rawBody = messageContent.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
-        val body = if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
-            ContentUtils.extractUsefulTextFromReply(rawBody, formatted)
-        } else {
-            rawBody
-        }
-        // Mentions read as names in the body; the clipboard carries the ids instead, which a composer
-        // pills back into real mentions.
-        return if (mentionsAsIds) spliceMentionIds(body, formatted?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }) else body
-    }
+    private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent, mentionsAsIds: Boolean = false): String =
+            eligibility.copyBody(timelineEvent, messageContent, mentionsAsIds)
 
     // The formatted body to feed HTML-aware translation; null for a PGP body (only its decrypted plaintext is translatable).
     private suspend fun translatableFormattedBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String? {
@@ -539,6 +504,9 @@ class MessageActionsViewModel @AssistedInject constructor(
             when {
                 isShowingContent -> {
                     add(EventSharedAction.HideRedacted(eventId))
+                    if (initialState.canSelect && TimelineSelection.isSelectable(timelineEvent, revealed = true)) {
+                        add(EventSharedAction.Select(eventId))
+                    }
                     val restoredMessageContent = restoredEvent?.getVectorLastMessageContent()
                     if (restoredEvent != null && canCopy(restoredMessageContent?.msgType, restoredMessageContent)) {
                         add(EventSharedAction.Copy(pgpCopyBody(restoredEvent, restoredMessageContent!!, mentionsAsIds = true)))
@@ -569,6 +537,10 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             if (canEdit(timelineEvent, session.myUserId, actionPermissions)) {
                 add(EventSharedAction.Edit(eventId, timelineEvent.root.getClearType()))
+            }
+
+            if (initialState.canSelect && TimelineSelection.isSelectable(timelineEvent)) {
+                add(EventSharedAction.Select(eventId))
             }
 
             if (canCopy(msgType, messageContent)) {
@@ -758,9 +730,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private fun canRedact(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
-        return checkIfCanRedactEventUseCase.execute(event, actionPermissions)
-    }
+    private fun canRedact(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean =
+            eligibility.canRedact(event, actionPermissions)
 
     /**
      * Offered only for redacted messages we could actually show: either a local copy was captured
@@ -796,40 +767,11 @@ class MessageActionsViewModel @AssistedInject constructor(
             (translationSettings.engine != null || translationSettings.backupEngine != null) &&
                     msgType != MessageType.MSGTYPE_LOCATION && canCopy(msgType, messageContent) && messageContent?.body?.isNotBlank() == true
 
-    private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean {
-        // Text-shaped messages: always copyable (body is the user-typed text).
-        when (msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_NOTICE,
-            MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_LOCATION -> return true
-        }
-        // Media with an MSC2530 caption: body is the caption — copyable.
-        if (messageContent is MessageGalleryContent) return messageContent.galleryCaption() != null
-        return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
-    }
+    private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean = eligibility.canCopy(msgType, messageContent)
 
-    private fun TimelineEvent.forwardPayload(): Map<String, Any?> =
-            root.toForwardPayload(getLastEditNewContent(), includeSourceLink = !session.isDirectRoom(roomId))
+    private fun TimelineEvent.forwardPayload(): Map<String, Any?> = eligibility.forwardPayload(this)
 
-    private fun canForward(event: TimelineEvent, msgType: String?): Boolean {
-        if (event.root.getClearType() == EventType.STICKER) return true
-        if (event.root.getClearType() != EventType.MESSAGE) return false
-        return when (msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_NOTICE,
-            MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_LOCATION,
-            MessageType.MSGTYPE_IMAGE,
-            MessageType.MSGTYPE_AUDIO,
-            MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_FILE,
-            MessageType.MSGTYPE_GALLERY,
-            MessageType.MSGTYPE_GALLERY_STABLE,
-            MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
-        }
-    }
+    private fun canForward(event: TimelineEvent, msgType: String?): Boolean = eligibility.canForward(event, msgType)
 
     // Nothing to hand to another app, and no bytes to write to storage. A format we downloaded but
     // cannot decode is a different case: it failed to *display*, while the file itself is right

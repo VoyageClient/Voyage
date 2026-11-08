@@ -49,7 +49,7 @@
         android:layout_height="40dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/homeserver_urls_remove"
-        app:srcCompat="@drawable/ic_trash_24"
+        app:srcCompat="@drawable/ic_recycle_bin"
         app:tint="?vctr_content_secondary" />
 
 </LinearLayout>

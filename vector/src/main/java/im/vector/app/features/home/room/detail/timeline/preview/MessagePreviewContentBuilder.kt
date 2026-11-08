@@ -116,6 +116,8 @@ class MessagePreviewContentBuilder @Inject constructor(
             val linkify: Boolean = true,
             /** Who an emote is by when it isn't a forward; defaults to the event's sender. */
             val senderItem: MatrixItem? = null,
+            /** Off to show a forward as its original message, for previews already naming the original sender. */
+            val framesForwards: Boolean = true,
     )
 
     /** [text] alone, as a notice, for when the message itself can't be previewed. */
@@ -190,7 +192,9 @@ class MessagePreviewContentBuilder @Inject constructor(
             content.msgType == MessageType.MSGTYPE_LOCATION ->
                 return withMedia.copy(
                         // Only shown where the map can't be.
-                        text = forwardedMessages.framed(event, noticeEventFormatter.formatLocationNotice(event.root, profile.senderName)).toEpoxyCharSequence(),
+                        text = noticeEventFormatter.formatLocationNotice(event.root, profile.senderName)
+                                .let { if (options.framesForwards) forwardedMessages.framed(event, it) else it }
+                                .toEpoxyCharSequence(),
                         textStyle = TextStyle.NOTICE,
                         location = buildLocation(content as? MessageLocationContent, options.senderItem ?: event.senderInfo.toMatrixItem()),
                 )
@@ -232,12 +236,16 @@ class MessagePreviewContentBuilder @Inject constructor(
         val edited = event.hasBeenEdited()
         val shown = if (emote.isEmpty()) emote else suffixFormatter.annotate(emote, edited, translation)
         return withMedia.copy(
-                text = (if (media != null) forwardedMessages.framedTail(event, shown) else forwardedMessages.framed(event, shown)).toEpoxyCharSequence(),
-                captionlessText = media?.let { forwardedMessages.framedTail(event, "").toEpoxyCharSequence() },
+                text = when {
+                    !options.framesForwards -> shown
+                    media != null -> forwardedMessages.framedTail(event, shown)
+                    else -> forwardedMessages.framed(event, shown)
+                }.toEpoxyCharSequence(),
+                captionlessText = media?.let { (if (options.framesForwards) forwardedMessages.framedTail(event, "") else "").toEpoxyCharSequence() },
                 textStyle = if (isNoticeMessage) TextStyle.NOTICE else TextStyle.NORMAL,
                 richSegments = richSegments,
                 richFooter = richSegments?.let { suffixFormatter.footer(edited, translation)?.toEpoxyCharSequence() },
-                forwardFrame = media?.let { forwardedMessages.previewFrame(event) },
+                forwardFrame = media?.takeIf { options.framesForwards }?.let { forwardedMessages.previewFrame(event) },
         )
     }
 

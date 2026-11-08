@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -51,6 +52,7 @@ import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.NoOpCancellable
 import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
+import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
@@ -94,6 +96,7 @@ internal class DefaultSendService @AssistedInject constructor(
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
         private val linkPreviewPrefetcher: LinkPreviewPrefetcher,
         private val mediaSendOrder: MediaSendOrder,
+        private val sendEventTask: SendEventTask,
 ) : SendService {
 
     @AssistedFactory
@@ -105,6 +108,12 @@ internal class DefaultSendService @AssistedInject constructor(
         return localEchoEventFactory.createEvent(roomId, eventType, content, verbatim = verbatim)
                 .also { createLocalEcho(it) }
                 .let { eventSenderProcessor.postEvent(it, cryptoStore.roomWasOnceEncrypted(roomId), bundleUrlPreviews = false) }
+    }
+
+    override suspend fun sendEventNow(eventType: String, content: Content, txnId: String): String {
+        val event = localEchoEventFactory.createEvent(roomId, eventType, content)
+                .copy(eventId = txnId, unsignedData = UnsignedData(age = null, transactionId = txnId))
+        return sendEventTask.execute(SendEventTask.Params(event, cryptoStore.roomWasOnceEncrypted(roomId)))
     }
 
     override fun prefetchLinkPreviews(text: CharSequence) {

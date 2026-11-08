@@ -35,7 +35,7 @@ sealed class RoomAliasBottomSheetSharedAction(
 
     data class DeleteAlias(val alias: String) : RoomAliasBottomSheetSharedAction(
             CommonStrings.action_delete,
-            R.drawable.ic_trash_24,
+            R.drawable.ic_recycle_bin,
             true
     )
 

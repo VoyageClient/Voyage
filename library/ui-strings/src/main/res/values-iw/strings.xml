@@ -3773,4 +3773,49 @@
     </plurals>
     <string name="room_profile_no_pending_requests">אין בקשות ממתינות</string>
     <string name="room_knock_request_reason">סיבה: %1$s</string>
+    <string name="action_select_message">בחר</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d נבחרה</item>
+        <item quantity="two">%d נבחרו</item>
+        <item quantity="many">%d נבחרו</item>
+        <item quantity="other">%d נבחרו</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">למחוק הודעה %d?</item>
+        <item quantity="two">למחוק %d הודעות?</item>
+        <item quantity="many">למחוק %d הודעות?</item>
+        <item quantity="other">למחוק %d הודעות?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">הן יימחקו עבור כל החברים בחדר.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">מעביר הודעה %d…</item>
+        <item quantity="two">מעביר %d הודעות…</item>
+        <item quantity="many">מעביר %d הודעות…</item>
+        <item quantity="other">מעביר %d הודעות…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">מוחק הודעה %d…</item>
+        <item quantity="two">מוחק %d הודעות…</item>
+        <item quantity="many">מוחק %d הודעות…</item>
+        <item quantity="other">מוחק %d הודעות…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (עוד %2$d בתור)</item>
+        <item quantity="two">%1$s (עוד %2$d בתור)</item>
+        <item quantity="many">%1$s (עוד %2$d בתור)</item>
+        <item quantity="other">%1$s (עוד %2$d בתור)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">להפסיק את ההעברה?</string>
+    <string name="bulk_forward_cancel_confirmation_message">הודעות שעדיין לא נשלחו לא יועברו.</string>
+    <string name="bulk_delete_cancel_confirmation_title">להפסיק את המחיקה?</string>
+    <string name="bulk_delete_cancel_confirmation_message">הודעות שעדיין לא נמחקו יישמרו.</string>
+    <string name="bulk_forward_failed_title">ההעברה הושהתה</string>
+    <string name="bulk_forward_failed">לא ניתן היה להעביר הודעה. יש להמשיך כדי לנסות שוב.</string>
+    <string name="bulk_delete_failed_title">חלק מההודעות לא נמחקו</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">לא ניתן היה למחוק הודעה %d. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="two">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="many">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="other">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
+    </plurals>
 </resources>

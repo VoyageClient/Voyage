@@ -3839,4 +3839,61 @@
     </plurals>
     <string name="room_profile_no_pending_requests">لا طلبات معلّقة</string>
     <string name="room_knock_request_reason">السبب: %1$s</string>
+    <string name="action_select_message">حدّد</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="zero">لم يُحدَّد شيء</item>
+        <item quantity="one">حُدّدت رسالة واحدة</item>
+        <item quantity="two">حُدّدت رسالتان</item>
+        <item quantity="few">حُدّدت %d رسائل</item>
+        <item quantity="many">حُدّدت %d رسالة</item>
+        <item quantity="other">حُدّدت %d رسالة</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="zero">أتريد حذف %d رسالة؟</item>
+        <item quantity="one">أتريد حذف رسالة واحدة؟</item>
+        <item quantity="two">أتريد حذف رسالتين؟</item>
+        <item quantity="few">أتريد حذف %d رسائل؟</item>
+        <item quantity="many">أتريد حذف %d رسالة؟</item>
+        <item quantity="other">أتريد حذف %d رسالة؟</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">ستُحذف لدى كل أعضاء الغرفة.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="zero">جارٍ تمرير %d رسالة…</item>
+        <item quantity="one">جارٍ تمرير رسالة واحدة…</item>
+        <item quantity="two">جارٍ تمرير رسالتين…</item>
+        <item quantity="few">جارٍ تمرير %d رسائل…</item>
+        <item quantity="many">جارٍ تمرير %d رسالة…</item>
+        <item quantity="other">جارٍ تمرير %d رسالة…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="zero">جارٍ حذف %d رسالة…</item>
+        <item quantity="one">جارٍ حذف رسالة واحدة…</item>
+        <item quantity="two">جارٍ حذف رسالتين…</item>
+        <item quantity="few">جارٍ حذف %d رسائل…</item>
+        <item quantity="many">جارٍ حذف %d رسالة…</item>
+        <item quantity="other">جارٍ حذف %d رسالة…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="zero">%1$s (%2$d في الانتظار)</item>
+        <item quantity="one">%1$s (%2$d آخر في الانتظار)</item>
+        <item quantity="two">%1$s (%2$d آخران في الانتظار)</item>
+        <item quantity="few">%1$s (%2$d أخرى في الانتظار)</item>
+        <item quantity="many">%1$s (%2$d أخرى في الانتظار)</item>
+        <item quantity="other">%1$s (%2$d أخرى في الانتظار)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">أتريد إيقاف التمرير؟</string>
+    <string name="bulk_forward_cancel_confirmation_message">لن تُمرَّر الرسائل التي لم تُرسَل بعد.</string>
+    <string name="bulk_delete_cancel_confirmation_title">أتريد إيقاف الحذف؟</string>
+    <string name="bulk_delete_cancel_confirmation_message">ستبقى الرسائل التي لم تُحذف بعد.</string>
+    <string name="bulk_forward_failed_title">توقّف التمرير مؤقتًا</string>
+    <string name="bulk_forward_failed">تعذّر تمرير رسالة. استأنف لإعادة المحاولة.</string>
+    <string name="bulk_delete_failed_title">لم تُحذف بعض الرسائل</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="zero">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+        <item quantity="one">تعذّر حذف رسالة واحدة. استأنف لإعادة المحاولة.</item>
+        <item quantity="two">تعذّر حذف رسالتين. استأنف لإعادة المحاولة.</item>
+        <item quantity="few">تعذّر حذف %d رسائل. استأنف لإعادة المحاولة.</item>
+        <item quantity="many">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+        <item quantity="other">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+    </plurals>
 </resources>

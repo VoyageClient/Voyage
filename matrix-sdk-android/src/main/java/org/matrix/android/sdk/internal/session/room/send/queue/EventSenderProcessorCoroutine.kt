@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.room.send.queue
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,6 +45,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private const val RETRY_WAIT_TIME_MS = 10_000L
 private const val MAX_RETRY_COUNT = 3
+private const val MAX_RATE_LIMIT_RETRY_COUNT = 30
 
 /**
  * This class is responsible for sending events in order in each room. It uses the QueuedTask.queueIdentifier to execute tasks sequentially.
@@ -122,9 +124,9 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
 
     override fun postTask(task: QueuedTask): Cancelable {
         markAsManaged(task)
-        val sequencer = sequencers.getOrPut(task.queueIdentifier) {
-            SemaphoreCoroutineSequencer()
-        }
+        // getOrPut isn't atomic: two racing posts could each get their own sequencer and run concurrently.
+        val sequencer = sequencers[task.queueIdentifier]
+                ?: SemaphoreCoroutineSequencer().let { sequencers.putIfAbsent(task.queueIdentifier, it) ?: it }
         Timber.v("## post $task")
         val postedAt = System.currentTimeMillis()
         return taskExecutor.executorScope
@@ -145,11 +147,15 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         cancelableBag[eventId]?.cancel()
     }
 
-    private fun CoroutineScope.launchWith(sequencer: CoroutineSequencer, block: suspend CoroutineScope.() -> Unit) = launch {
-        sequencer.post {
-            block()
-        }
-    }
+    // UNDISPATCHED queues on the room's FIFO semaphore before postTask returns, so tasks run in post
+    // order; a dispatched launch lets pool threads race to the semaphore. The block then hops back to
+    // the pool, since an uncontested permit would otherwise run it on the caller's thread.
+    private fun CoroutineScope.launchWith(sequencer: CoroutineSequencer, block: suspend CoroutineScope.() -> Unit) =
+            launch(start = CoroutineStart.UNDISPATCHED) {
+                sequencer.post {
+                    withContext(Dispatchers.Default) { block() }
+                }
+            }
 
     private suspend fun executeTask(task: QueuedTask) {
         try {
@@ -175,7 +181,14 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
                     task.markAsFailedOrRetry(exception, 0)
                 }
                 (exception.isLimitExceededError()) -> {
-                    task.markAsFailedOrRetry(exception, exception.getRetryDelay(3_000))
+                    // A bulk send outruns the default rate limit within a few events; being told to wait
+                    // isn't a failure, so it gets its own budget instead of consuming the regular retries.
+                    if (task.rateLimitRetryCount.incrementAndGet() >= MAX_RATE_LIMIT_RETRY_COUNT) {
+                        task.onTaskFailed()
+                    } else {
+                        delay(exception.getRetryDelay(3_000))
+                        executeTask(task)
+                    }
                 }
                 (exception.isTransientServerError()) -> {
                     task.markAsFailedOrRetry(exception, 3_000)

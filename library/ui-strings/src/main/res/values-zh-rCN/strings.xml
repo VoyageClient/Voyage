@@ -3601,4 +3601,31 @@
     </plurals>
     <string name="room_profile_no_pending_requests">没有待处理的申请</string>
     <string name="room_knock_request_reason">理由：%1$s</string>
+    <string name="action_select_message">选择</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="other">已选择 %d 条</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="other">删除 %d 条消息？</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">这些消息将为房间内的所有人删除。</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="other">正在转发 %d 条消息…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="other">正在删除 %d 条消息…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="other">%1$s（还有 %2$d 项在排队）</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">停止转发？</string>
+    <string name="bulk_forward_cancel_confirmation_message">尚未发送的消息将不会被转发。</string>
+    <string name="bulk_delete_cancel_confirmation_title">停止删除？</string>
+    <string name="bulk_delete_cancel_confirmation_message">尚未删除的消息将会保留。</string>
+    <string name="bulk_forward_failed_title">转发已暂停</string>
+    <string name="bulk_forward_failed">有一条消息无法转发。继续即可重试。</string>
+    <string name="bulk_delete_failed_title">部分消息未被删除</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="other">%d 条消息无法删除。继续即可重试。</item>
+    </plurals>
 </resources>

@@ -81,9 +81,40 @@ object ConfirmationDialogBuilder {
             duration: DurationOption?,
             confirmation: (String?, Boolean, Long?, Boolean) -> Unit
     ) {
+        show(
+                activity, askForReason, activity.getText(titleRes), activity.getText(confirmationRes), positiveRes, reasonHintRes,
+                offerRedactEvents, duration, confirmation
+        )
+    }
+
+    fun show(
+            activity: Activity,
+            askForReason: Boolean,
+            title: CharSequence,
+            confirmationText: CharSequence,
+            @StringRes positiveRes: Int,
+            @StringRes reasonHintRes: Int,
+            confirmation: (String?) -> Unit
+    ) {
+        show(activity, askForReason, title, confirmationText, positiveRes, reasonHintRes, offerRedactEvents = false, duration = null) { reason, _, _, _ ->
+            confirmation(reason)
+        }
+    }
+
+    private fun show(
+            activity: Activity,
+            askForReason: Boolean,
+            title: CharSequence,
+            confirmationText: CharSequence,
+            @StringRes positiveRes: Int,
+            @StringRes reasonHintRes: Int,
+            offerRedactEvents: Boolean,
+            duration: DurationOption?,
+            confirmation: (String?, Boolean, Long?, Boolean) -> Unit
+    ) {
         val layout = activity.layoutInflater.inflate(R.layout.dialog_confirmation_with_reason, null)
         val views = DialogConfirmationWithReasonBinding.bind(layout)
-        views.dialogConfirmationText.setText(confirmationRes)
+        views.dialogConfirmationText.text = confirmationText
 
         views.dialogReasonTextInputLayout.isVisible = askForReason
         views.dialogRedactEventsCheck.isVisible = offerRedactEvents
@@ -109,7 +140,7 @@ object ConfirmationDialogBuilder {
         }
 
         MaterialAlertDialogBuilder(activity)
-                .setTitle(titleRes)
+                .setTitle(title)
                 .setView(layout)
                 .setPositiveButton(positiveRes) { _, _ ->
                     val reason = views.dialogReasonInput.text.toString()

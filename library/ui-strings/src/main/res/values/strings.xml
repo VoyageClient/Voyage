@@ -3177,6 +3177,16 @@
     <string name="send_as_spoiler">Send as spoiler</string>
     <string name="msc4391_command_description">Added command: %s</string>
     <string name="action_forward">Forward</string>
+    <string name="action_select_message">Select</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">Delete %d message?</item>
+        <item quantity="other">Delete %d messages?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">They will be removed for everyone in the room.</string>
     <string name="account_switcher_toggle_description">Switch account</string>
     <string name="account_switcher_add_account">Add account</string>
     <string name="account_switcher_server_unreachable_title">Server unreachable</string>
@@ -3567,6 +3577,30 @@
     <string name="mass_redaction_confirmation_message_before">This will redact every event from %1$s sent before %2$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_confirmation_scope_messages">Only messages will be redacted.</string>
     <string name="mass_redaction_confirmation_scope_all">All events, including membership changes, will be redacted.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">Forwarding %d message…</item>
+        <item quantity="other">Forwarding %d messages…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">Deleting %d message…</item>
+        <item quantity="other">Deleting %d messages…</item>
+    </plurals>
+    <!-- %1$s is what the running job is doing, %2$d how many jobs wait behind it. -->
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d more queued)</item>
+        <item quantity="other">%1$s (%2$d more queued)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">Stop forwarding?</string>
+    <string name="bulk_forward_cancel_confirmation_message">The messages that haven\'t been sent yet won\'t be forwarded.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Stop deleting?</string>
+    <string name="bulk_delete_cancel_confirmation_message">The messages that haven\'t been deleted yet will be kept.</string>
+    <string name="bulk_forward_failed_title">Forwarding paused</string>
+    <string name="bulk_forward_failed">A message couldn\'t be forwarded. Resume to try again.</string>
+    <string name="bulk_delete_failed_title">Some messages weren\'t deleted</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d message couldn\'t be deleted. Resume to try again.</item>
+        <item quantity="other">%d messages couldn\'t be deleted. Resume to try again.</item>
+    </plurals>
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
     <string name="command_description_view">Open the file at the given mxc:// URL</string>

@@ -3628,4 +3628,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">Bekleyen istek yok</string>
     <string name="room_knock_request_reason">Neden: %1$s</string>
+    <string name="action_select_message">Seç</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d seçildi</item>
+        <item quantity="other">%d seçildi</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">%d mesaj silinsin mi?</item>
+        <item quantity="other">%d mesaj silinsin mi?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">Odadaki herkes için kaldırılacaklar.</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">%d mesaj iletiliyor…</item>
+        <item quantity="other">%d mesaj iletiliyor…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">%d mesaj siliniyor…</item>
+        <item quantity="other">%d mesaj siliniyor…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d tane daha sırada)</item>
+        <item quantity="other">%1$s (%2$d tane daha sırada)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">İletme durdurulsun mu?</string>
+    <string name="bulk_forward_cancel_confirmation_message">Henüz gönderilmemiş mesajlar iletilmeyecek.</string>
+    <string name="bulk_delete_cancel_confirmation_title">Silme durdurulsun mu?</string>
+    <string name="bulk_delete_cancel_confirmation_message">Henüz silinmemiş mesajlar korunacak.</string>
+    <string name="bulk_forward_failed_title">İletme duraklatıldı</string>
+    <string name="bulk_forward_failed">Bir mesaj iletilemedi. Yeniden denemek için devam edin.</string>
+    <string name="bulk_delete_failed_title">Bazı mesajlar silinemedi</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
+        <item quantity="other">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
+    </plurals>
 </resources>

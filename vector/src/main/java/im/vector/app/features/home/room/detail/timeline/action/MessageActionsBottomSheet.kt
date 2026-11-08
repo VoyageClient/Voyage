@@ -112,6 +112,7 @@ class MessageActionsBottomSheet :
                 informationData: MessageInformationData,
                 isFromThreadTimeline: Boolean,
                 galleryItemIndex: Int? = null,
+                canSelect: Boolean = false,
         ): MessageActionsBottomSheet {
             return MessageActionsBottomSheet().apply {
                 setArguments(
@@ -121,6 +122,7 @@ class MessageActionsBottomSheet :
                                 informationData,
                                 isFromThreadTimeline,
                                 galleryItemIndex,
+                                canSelect,
                         )
                 )
             }

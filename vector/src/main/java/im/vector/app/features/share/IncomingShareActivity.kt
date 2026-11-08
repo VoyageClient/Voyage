@@ -65,21 +65,26 @@ class IncomingShareActivity : VectorBaseActivity<ActivitySimpleBinding>() {
 
     override fun onDestroy() {
         if (isFinishing) {
-            intent?.getStringExtra(EXTRA_FORWARD_PAYLOAD_ID)?.let { ForwardPayloadHolder.take(it) }
+            forwardItems(intent)?.forEach { ForwardPayloadHolder.take(it.payloadId) }
         }
         super.onDestroy()
     }
 
     companion object {
-        const val EXTRA_FORWARD_EVENT_TYPE = "IncomingShareActivity.EXTRA_FORWARD_EVENT_TYPE"
-        const val EXTRA_FORWARD_PAYLOAD_ID = "IncomingShareActivity.EXTRA_FORWARD_PAYLOAD_ID"
+        private const val EXTRA_FORWARD_ITEMS = "IncomingShareActivity.EXTRA_FORWARD_ITEMS"
 
-        fun forwardIntent(context: Context, eventType: String, payloadId: String): Intent {
+        fun forwardIntent(context: Context, eventType: String, payloadId: String): Intent =
+                forwardIntent(context, listOf(ForwardItem(eventType, payloadId)))
+
+        fun forwardIntent(context: Context, items: List<ForwardItem>): Intent {
             return Intent(context, IncomingShareActivity::class.java).apply {
-                putExtra(EXTRA_FORWARD_EVENT_TYPE, eventType)
-                putExtra(EXTRA_FORWARD_PAYLOAD_ID, payloadId)
+                putParcelableArrayListExtra(EXTRA_FORWARD_ITEMS, ArrayList(items))
             }
         }
+
+        @Suppress("DEPRECATION") // The typed overload is API 33.
+        fun forwardItems(intent: Intent?): List<ForwardItem>? =
+                intent?.getParcelableArrayListExtra<ForwardItem>(EXTRA_FORWARD_ITEMS)?.takeIf { it.isNotEmpty() }
     }
 
     private fun startLoginActivity() {

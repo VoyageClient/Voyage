@@ -60,6 +60,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Message forwarding**: forward messages, using their most recent edit, to as many rooms as you like at once; the same picker handles content shared from other apps. Messages and stickers follow MSC4553, including attribution on older MSC2723 forwards, and are framed with the original sender, room and date, linking back to the original when available. DM forwards keep the sender and date without a source link. Long-pressing send forwards without saying where the message came from.
 
+- **Selecting multiple messages**: select several messages to copy, forward or delete them at once.
+
 - **Polls**: create polls in the stable MSC3381 format, read both formats, and match votes, closure and edits to the original poll's format. Tap your selected answer to retract your votes; tallies update when responses are redacted.
 
 - **Poll voters**: long-press a poll answer to see who voted for it.

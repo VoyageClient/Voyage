@@ -39,6 +39,13 @@
 
         </com.google.android.material.appbar.MaterialToolbar>
 
+        <!-- Swapped in for roomToolbar while messages are multi-selected. -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/selectionToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            android:visibility="gone" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -154,7 +161,7 @@
             app:layout_constraintTop_toBottomOf="@id/userIdentityWarningView"
             tools:visibility="visible" />
 
-        <androidx.recyclerview.widget.RecyclerView
+        <im.vector.app.features.home.room.detail.timeline.view.TimelineRecyclerView
             android:id="@+id/timelineRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"

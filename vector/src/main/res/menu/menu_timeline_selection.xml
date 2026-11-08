@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2026 Voyage Client
+
+  SPDX-License-Identifier: AGPL-3.0-only
+  Please see LICENSE files in the repository root for full details.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="AlwaysShowAction">
+
+    <item
+        android:id="@+id/selection_copy"
+        android:icon="@drawable/ic_copy"
+        android:title="@string/action_copy"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/selection_forward"
+        android:icon="@drawable/ic_forward"
+        android:title="@string/action_forward"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/selection_delete"
+        android:icon="@drawable/ic_recycle_bin"
+        android:title="@string/action_delete"
+        app:iconTint="?colorError"
+        app:showAsAction="always" />
+
+</menu>

@@ -3552,4 +3552,37 @@
     </plurals>
     <string name="room_profile_no_pending_requests">कोई लंबित अनुरोध नहीं</string>
     <string name="room_knock_request_reason">कारण: %1$s</string>
+    <string name="action_select_message">चुनें</string>
+    <plurals name="timeline_selection_count">
+        <item quantity="one">%d चुना गया</item>
+        <item quantity="other">%d चुने गए</item>
+    </plurals>
+    <plurals name="delete_messages_dialog_title">
+        <item quantity="one">%d मैसेज हटाएं?</item>
+        <item quantity="other">%d मैसेज हटाएं?</item>
+    </plurals>
+    <string name="delete_messages_dialog_content">ये रूम में सभी के लिए हटा दिए जाएंगे।</string>
+    <plurals name="bulk_forwarding">
+        <item quantity="one">%d मैसेज फ़ॉरवर्ड किया जा रहा है…</item>
+        <item quantity="other">%d मैसेज फ़ॉरवर्ड किए जा रहे हैं…</item>
+    </plurals>
+    <plurals name="bulk_deleting">
+        <item quantity="one">%d मैसेज हटाया जा रहा है…</item>
+        <item quantity="other">%d मैसेज हटाए जा रहे हैं…</item>
+    </plurals>
+    <plurals name="bulk_queued">
+        <item quantity="one">%1$s (%2$d और कतार में)</item>
+        <item quantity="other">%1$s (%2$d और कतार में)</item>
+    </plurals>
+    <string name="bulk_forward_cancel_confirmation_title">फ़ॉरवर्ड करना बंद करें?</string>
+    <string name="bulk_forward_cancel_confirmation_message">जो मैसेज अभी तक नहीं भेजे गए हैं, वे फ़ॉरवर्ड नहीं होंगे।</string>
+    <string name="bulk_delete_cancel_confirmation_title">हटाना बंद करें?</string>
+    <string name="bulk_delete_cancel_confirmation_message">जो मैसेज अभी तक नहीं हटाए गए हैं, वे बने रहेंगे।</string>
+    <string name="bulk_forward_failed_title">फ़ॉरवर्ड करना रुका हुआ है</string>
+    <string name="bulk_forward_failed">एक मैसेज फ़ॉरवर्ड नहीं हो सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</string>
+    <string name="bulk_delete_failed_title">कुछ मैसेज नहीं हटाए गए</string>
+    <plurals name="bulk_delete_failed">
+        <item quantity="one">%d मैसेज हटाया नहीं जा सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+        <item quantity="other">%d मैसेज हटाए नहीं जा सके। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+    </plurals>
 </resources>

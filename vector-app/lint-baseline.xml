@@ -13126,61 +13126,6 @@
 
     <issue
         id="VectorRaster"
-        message="Resource references will not work correctly in images generated for this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
-        errorLine1="        tools:strokeColor=&quot;?colorError&quot; />"
-        errorLine2="                           ~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_trash_24.xml"
-            line="14"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
-        message="Resource references will not work correctly in images generated for this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
-        errorLine1="        tools:strokeColor=&quot;?colorError&quot; />"
-        errorLine2="                           ~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_trash_24.xml"
-            line="22"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
-        message="Resource references will not work correctly in images generated for this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
-        errorLine1="        tools:strokeColor=&quot;?colorError&quot; />"
-        errorLine2="                           ~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_trash_24.xml"
-            line="30"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
-        message="Resource references will not work correctly in images generated for this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
-        errorLine1="        tools:strokeColor=&quot;?colorError&quot; />"
-        errorLine2="                           ~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_trash_24.xml"
-            line="38"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
-        message="Resource references will not work correctly in images generated for this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
-        errorLine1="        tools:strokeColor=&quot;?colorError&quot; />"
-        errorLine2="                           ~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/ic_trash_24.xml"
-            line="46"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
         message="Resource references will not work correctly in images generated for this vector icon for API &lt; 24; check generated icon to make sure it looks acceptable"
         errorLine1="      android:fillColor=&quot;?vctr_content_secondary&quot;"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~">

@@ -48,6 +48,9 @@ sealed class EventSharedAction(
     object ViewInRoom :
             EventSharedAction(CommonStrings.view_in_room, R.drawable.ic_threads_view_in_room_24)
 
+    data class Select(val eventId: String) :
+            EventSharedAction(CommonStrings.action_select_message, R.drawable.ic_select_message)
+
     data class Forward(val eventId: String, val eventType: String, val content: Map<String, Any?>) :
             EventSharedAction(CommonStrings.action_forward, R.drawable.ic_forward)
 
@@ -64,7 +67,7 @@ sealed class EventSharedAction(
             EventSharedAction(CommonStrings.global_retry, R.drawable.ic_refresh_cw)
 
     data class Redact(val eventId: String, val askForReason: Boolean, val dialogTitleRes: Int, val dialogDescriptionRes: Int) :
-            EventSharedAction(CommonStrings.message_action_item_redact, R.drawable.ic_delete, true)
+            EventSharedAction(CommonStrings.message_action_item_redact, R.drawable.ic_recycle_bin, true)
 
     data class RevealRedacted(val eventId: String) :
             EventSharedAction(CommonStrings.message_action_reveal_redacted, R.drawable.ic_reveal_redacted)
