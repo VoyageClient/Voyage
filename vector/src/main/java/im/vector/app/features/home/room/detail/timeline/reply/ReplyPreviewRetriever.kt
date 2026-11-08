@@ -318,16 +318,7 @@ class ReplyPreviewRetriever(
         return ProfileOverrides.displayNameOr(userId, currentName) ?: userId
     }
 
-    /**
-     * Re-resolve everything a reveal of [eventIds] (or its content arriving) can change.
-     *
-     * Two directions. A revealed event may itself *become* a reply: redaction prunes `m.relates_to`, so it
-     * was resolved as no-reply and nothing re-runs that until the next snapshot. And replies *pointing at*
-     * one of these quote content that has
-     * just been restored; there the resolved state is unchanged, so its rebuilt Epoxy model compares equal
-     * to the bound one and never re-binds, leaving the removed-message placeholder up until the row left the
-     * pool. [InReplyToView] substitutes the restored content itself, so re-delivering the state is enough.
-     */
+    // Redaction prunes m.relates_to, so revealing content can turn a cached NoReply into a reply.
     fun onRevealChanged(eventIds: Collection<String>) {
         if (eventIds.isEmpty()) return
         val ids = eventIds.toHashSet()
@@ -338,6 +329,13 @@ class ReplyPreviewRetriever(
             revealed.forEach { getReplyTo(it) }
         }
 
+        onQuotedContentChanged(ids)
+    }
+
+    fun onQuotedContentChanged(eventIds: Collection<String>) {
+        if (eventIds.isEmpty()) return
+        val ids = eventIds.toHashSet()
+        // Unchanged Epoxy models don't rebind; the view must recheck content held outside the event.
         val quoting = synchronized(data) {
             data.filter { it.value.latestRepliedToEventId in ids }.map { it.key to it.value.previewReplyUiState }
         }

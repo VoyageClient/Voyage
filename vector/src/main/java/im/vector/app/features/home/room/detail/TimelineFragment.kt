@@ -511,7 +511,7 @@ class TimelineFragment :
                         // Replies quoting a translated event render its translation in their header;
                         // re-deliver their state too, since an unchanged Epoxy model never re-binds.
                         timelineEventController.invalidateReplyEventCaches()
-                        timelineViewModel.replyPreviewRetriever.onRevealChanged(batch)
+                        timelineViewModel.replyPreviewRetriever.onQuotedContentChanged(batch)
                     }
         }
         messageTranslationStore.errors
