@@ -303,8 +303,6 @@
     <string name="ssl_unexpected_existing_expl">憑證已從您手機原先信任的憑證更改為另一張憑證。這種情形非常不尋常，建議您「不要」接受這張新憑證。</string>
     <string name="title_activity_choose_sticker">傳送貼圖</string>
     <string name="action_download">下載</string>
-    <string name="option_send_voice">發送語音訊息</string>
-    <string name="option_send_sticker">傳送貼圖</string>
     <string name="no_sticker_application_dialog_content">您目前沒有啟用任何貼圖包。
 \n
 \n要現在新增一些貼圖嗎？</string>
@@ -343,7 +341,6 @@
     <string name="settings_privacy_policy">隱私權政策</string>
     <string name="settings_clear_cache">清除快取</string>
     <string name="settings_clear_media_cache">清除媒體快取</string>
-    <string name="settings_keep_media">保留媒體檔案</string>
     <string name="settings_user_settings">使用者設定</string>
     <string name="settings_notifications">通知</string>
     <string name="settings_ignored_users">已忽略的使用者</string>
@@ -382,10 +379,6 @@
     <string name="settings_password_updated">您的密碼已更新</string>
     <string name="settings_unignore_user">顯示所有來自 %s 的訊息？</string>
     <string name="settings_select_country">選擇國家</string>
-    <string name="media_saving_period_3_days">3 天</string>
-    <string name="media_saving_period_1_week">1 週</string>
-    <string name="media_saving_period_1_month">1 個月</string>
-    <string name="media_saving_period_forever">永遠</string>
     <string name="room_settings_topic">主題</string>
     <string name="room_settings_room_read_history_rules_pref_title">聊天室歷史紀錄的可讀性</string>
     <string name="room_settings_room_read_history_rules_pref_dialog_title">誰可以讀取歷史紀錄？</string>
@@ -455,7 +448,6 @@
     <string name="widget_integration_room_not_visible">聊天室 %s 不可見。</string>
     <string name="widget_integration_missing_parameter">缺少必需的參數。</string>
     <string name="room_add_matrix_apps">新增 Matrix 應用程式</string>
-    <string name="settings_labs_native_camera">使用原生相機</string>
     <string name="you_added_a_new_device">您新增的工作階段「%s」正在請求加密金鑰。</string>
     <string name="your_unverified_device_requesting">您未驗證的工作階段「%s」正在請求加密金鑰。</string>
     <string name="start_verification">開始驗證</string>
@@ -479,7 +471,6 @@
 \nMatrix 中的訊息可見度類似電子郵件。刪除您的訊息只是代表您發送的訊息不會再顯示給任何新的或未註冊的使用者，但是已註冊並曾經取得訊息的使用者，仍然可以存取他們收到的訊息。</string>
     <string name="deactivate_account_submit">停用帳號</string>
     <string name="error_empty_field_your_password">請輸入您的密碼。</string>
-    <string name="settings_preview_media_before_sending">在傳送前預覽媒體</string>
     <string name="command_description_emote">顯示動作</string>
     <string name="command_description_ban_user">封鎖特定 ID 的使用者</string>
     <string name="command_description_op_user">定義使用者的權限等級</string>
@@ -520,7 +511,6 @@
     <string name="settings_show_read_receipts_summary">點擊讀取回條以顯示詳細資料。</string>
     <string name="settings_show_avatar_display_name_changes_messages">顯示帳號事件</string>
     <string name="settings_password">密碼</string>
-    <string name="settings_labs_native_camera_summary">使用系統相機而非自訂的相機畫面。</string>
     <string name="command_problem_with_parameters">指令「%s」需要更多參數，或是有一些參數不正確。</string>
     <string name="markdown_has_been_enabled">Markdown 已啟用。</string>
     <string name="markdown_has_been_disabled">Markdown 已停用。</string>
@@ -703,9 +693,6 @@
     <string name="settings_send_message_with_enter_summary">軟體鍵盤的 Enter 按鈕將會傳送訊息而非換行</string>
     <string name="settings_fail_to_update_password_invalid_current_password">密碼無效</string>
     <string name="settings_media">媒體</string>
-    <string name="settings_default_media_source">預設媒體來源</string>
-    <string name="media_source_choose">選擇</string>
-    <string name="settings_play_shutter_sound">播放快門聲</string>
     <string name="action_mark_room_read">標示為已讀</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="other">%1$s：%2$d 則訊息</item>

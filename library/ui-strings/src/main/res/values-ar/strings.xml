@@ -250,10 +250,6 @@
     <string name="settings_password_updated">حُدّثت كلمة السر</string>
     <string name="settings_unignore_user">أأعرض كل الرسائل من ⁨%s⁩؟ سيُعيد هذا الإجراء تشغيل التطبيق وقد يأخذ بعض الوقت.</string>
     <string name="settings_select_country">اختر دولة</string>
-    <string name="media_saving_period_3_days">٣ أيام</string>
-    <string name="media_saving_period_1_week">أسبوع واحد</string>
-    <string name="media_saving_period_1_month">شهر واحد</string>
-    <string name="media_saving_period_forever">للأبد</string>
     <string name="room_settings_topic">الموضوع</string>
     <string name="room_settings_room_read_history_rules_pref_title">إمكانيّة قراءة تأريخ الغرفة</string>
     <string name="room_settings_room_read_history_rules_pref_dialog_title">من يمكنه قراءة التأريخ؟</string>
@@ -269,7 +265,6 @@
     <string name="widget_integration_failed_to_send_request">فشل إرسال الطلب.</string>
     <string name="widget_integration_must_be_in_room">لست في هذه الغرفة.</string>
     <string name="widget_integration_no_permission_in_room">ليس لديك تصريح لفعل هذا في هذه الغرفة.</string>
-    <string name="settings_labs_native_camera">استخدم الكمرة الأصيلة</string>
     <string name="room_settings_set_main_address">اضبطه كعنوان رئيسي</string>
     <string name="room_settings_unset_main_address">ألغِ ضبطه كعنوان رئيسي</string>
     <string name="settings_theme">السمة</string>
@@ -383,7 +378,6 @@
     <string name="settings_olm_version">إصدارة Olm</string>
     <string name="settings_app_term_conditions">الأحكام والشروط</string>
     <string name="settings_third_party_notices">إشعارات الأطراف الثالثة</string>
-    <string name="settings_keep_media">أبقِ الوسائط</string>
     <string name="settings_ignored_users">المستخدمون المتجاهلون</string>
     <string name="settings_other">أخرى</string>
     <string name="settings_cryptography">التعمية</string>
@@ -431,8 +425,6 @@
     <string name="widget_integration_positive_power_level">يجب أن يكون مستوى السلطة عددا صحيحا موجبا.</string>
     <string name="title_activity_choose_sticker">أرسِل ملصقا</string>
     <string name="action_download">نزِّل</string>
-    <string name="option_send_voice">أرسِل صوتًا</string>
-    <string name="option_send_sticker">أرسِل ملصقًا</string>
     <string name="no_sticker_application_dialog_content">ليس ثمة أية حزمة ملصقات مفعّلة حاليًا.
 \n|
 \nأتريد إضافة حزمة الآن؟</string>
@@ -455,7 +447,6 @@
         <item quantity="many">%d محدّدة</item>
         <item quantity="other">%d محدّدة</item>
     </plurals>
-    <string name="settings_preview_media_before_sending">عايِن الوسيط قبل إرساله</string>
     <plurals name="notification_unread_notified_messages">
         <item quantity="zero">لا رسائل إخطار غير مقروءة</item>
         <item quantity="one">رسالة إخطار واحدة غير مقروءة</item>
@@ -926,8 +917,6 @@
     <string name="room_alias_unpublish_confirmation">أتريد إلغاء تشر العنوان \"%1$s\" ؟</string>
     <string name="room_alias_published_alias_add_manually_submit">انشر</string>
     <string name="settings_presence">الحظور</string>
-    <string name="media_source_choose">اختر</string>
-    <string name="settings_default_media_source">المصدر الافتراضي للوسائط</string>
     <string name="settings_media">الوسائط</string>
     <string name="settings_emails_and_phone_numbers_summary">أدر البريد الإلكتروني وأرقام الهاتف المرتبطة بحسابك</string>
     <string name="settings_emails_and_phone_numbers_title">البريد الإلكتروني وأرقام الهاتف</string>
@@ -1182,7 +1171,6 @@
     <string name="legals_no_policy_provided">لا يوفّر هذا الخادوم أي سياسة.</string>
     <string name="disabled_integration_dialog_title">التكاملات معطّلة</string>
     <string name="disabled_integration_dialog_content">فعّل ”اسمح بالتكاملات“ في الإعدادات لفعل هذا.</string>
-    <string name="settings_play_shutter_sound">شغّل صوت الغالق</string>
     <string name="settings_presence_user_always_appears_offline">وضع عدم الاتصال</string>
     <string name="settings_presence_user_always_appears_offline_summary">إن فُعّل، ستظهر دائمًا غير متصل للمستخدمين الآخرين، حتى أثناء استخدامك للتطبيق.</string>
     <string name="room_settings_room_notifications_encryption_notice">لاحظ أن إخطارات الإشارات والكلمات المفتاحية غير متوفّرة في الغرف المعمّاة على الجوال.</string>
@@ -1273,7 +1261,6 @@
     <string name="room_widget_resource_permission_title">تريد هذه الودجة استخدام الموارد التالية:</string>
     <string name="room_widget_webview_read_protected_media">قراءة الوسائط المحمية بـ DRM</string>
     <string name="room_manage_integrations">أدِر التكاملات</string>
-    <string name="settings_labs_native_camera_summary">شغّل كاميرا النظام بدلًا من شاشة الكاميرا المخصّصة.</string>
     <string name="widget_integration_review_terms">للمتابعة عليك قبول شروط هذه الخدمة.</string>
     <string name="timeline_error_room_not_found">آسفون، لم يُعثر على هذه الغرفة.\nرجاءً أعِد المحاولة لاحقًا.%s</string>
     <string name="you_added_a_new_device_with_info">تطلب جلسة جديدة مفاتيح التعمية.\nاسم الجلسة: %1$s\nآخر ظهور: %2$s\nإن لم تلِج من جلسة أخرى، فتجاهل هذا الطلب.</string>

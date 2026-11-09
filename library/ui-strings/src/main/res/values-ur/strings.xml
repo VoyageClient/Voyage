@@ -350,7 +350,6 @@
     <string name="no_result_placeholder">کوئی نتائج نہیں</string>
     <string name="rooms_header">کمرے</string>
     <string name="labs_enable_deferred_dm_title">مؤخر براہِ راست پیغامات فعال کریں</string>
-    <string name="option_send_voice">آواز بھیجیں</string>
     <string name="settings_room_directory_show_all_rooms">واضح مواد والے کمرے دکھائیں</string>
     <string name="logout">خارج ہوں</string>
     <string name="spaces_header">جگہیں</string>
@@ -368,7 +367,6 @@
     <string name="auth_submit">جمع کرائیں</string>
     <string name="auth_email_already_defined">یہ برقی ڈاک پتہ پہلے سے ہی معرف ہے۔</string>
     <string name="auth_msisdn_already_defined">یہ رقم ہاتف پہلے سے ہی معرف ہے۔</string>
-    <string name="option_send_sticker">برچسب کریں</string>
     <string name="no_sticker_application_dialog_content">آپ کے پاس کوئی بستۂ برچسب فعال نہیں ہے۔
 \n
 \nاب کچھ شامل کریں؟</string>
@@ -657,7 +655,6 @@
     <string name="settings_third_party_notices">فریقِ ثالث کے نوٹس</string>
     <string name="settings_copyright">حقِ اشاعت</string>
     <string name="settings_privacy_policy">رازداری کی پالیسی</string>
-    <string name="settings_keep_media">میڈیا رکھیں</string>
     <string name="settings_clear_cache">کیش صاف کریں</string>
     <string name="settings_clear_media_cache">میڈیا کیش صاف کریں</string>
     <string name="settings_user_settings">صارف کی ترتیبات</string>
@@ -691,7 +688,6 @@
     <string name="settings_enable_direct_share_summary">نظام کے اشتراک مینو میں حالیہ گفتگوئیں دکھائیں</string>
     <string name="settings_show_avatar_display_name_changes_messages">کھاتے کے واقعات دکھائیں</string>
     <string name="settings_vibrate_on_mention">کسی صارف کا تذکرہ کرتے وقت ارتعاش</string>
-    <string name="settings_preview_media_before_sending">بھیجنے سے پہلے میڈیا کا پیش منظر دیکھیں</string>
     <string name="settings_send_message_with_enter">Enter سے پیغام بھیجیں</string>
     <string name="settings_send_message_with_enter_summary">سافٹ کی بورڈ کا Enter بٹن نئی سطر شامل کرنے کے بجائے پیغام بھیجے گا</string>
     <string name="settings_show_emoji_keyboard">ایموجی کی بورڈ دکھائیں</string>
@@ -740,13 +736,6 @@
     <string name="settings_emails_and_phone_numbers_summary">اپنے Matrix کھاتے سے منسلک ای میل پتوں اور فون نمبروں کا انتظام کریں</string>
     <string name="settings_select_country">ملک منتخب کریں</string>
     <string name="settings_media">میڈیا</string>
-    <string name="settings_default_media_source">طے شدہ میڈیا ماخذ</string>
-    <string name="media_source_choose">منتخب کریں</string>
-    <string name="settings_play_shutter_sound">شٹر کی آواز چلائیں</string>
-    <string name="media_saving_period_3_days">3 دن</string>
-    <string name="media_saving_period_1_week">1 ہفتہ</string>
-    <string name="media_saving_period_1_month">1 مہینہ</string>
-    <string name="media_saving_period_forever">ہمیشہ</string>
     <string name="settings_presence">موجودگی</string>
     <string name="settings_presence_user_always_appears_offline">آف لائن موڈ</string>
     <string name="settings_presence_user_always_appears_offline_summary">فعال ہونے پر آپ دوسرے صارفین کو ہمیشہ آف لائن دکھائی دیں گے، چاہے ایپ استعمال کر رہے ہوں۔</string>
@@ -941,8 +930,6 @@
     <string name="room_add_matrix_apps">Matrix ایپس شامل کریں</string>
     <string name="room_manage_integrations">انضمامات کا انتظام کریں</string>
     <string name="room_no_active_widgets">کوئی فعال وجیٹ نہیں</string>
-    <string name="settings_labs_native_camera">نظام کا کیمرہ استعمال کریں</string>
-    <string name="settings_labs_native_camera_summary">حسبِ ضرورت کیمرہ اسکرین کے بجائے نظام کا کیمرہ شروع کریں۔</string>
     <string name="widget_integration_review_terms">جاری رکھنے کے لیے آپ کو اس سروس کی شرائط قبول کرنی ہوں گی۔</string>
     <string name="timeline_error_room_not_found">معذرت، یہ کمرہ نہیں ملا۔\nبراہ کرم بعد میں دوبارہ کوشش کریں۔%s</string>
     <string name="you_added_a_new_device">آپ نے ایک نیا جلسہ \'%s\' شامل کیا ہے، جو مرموزکاری کی چابیاں طلب کر رہا ہے۔</string>

@@ -465,11 +465,8 @@
     <string name="hs_client_url">Homeserver API URL</string>
     <string name="search">Search</string>
 
-    <string name="option_send_voice">Send voice</string>
-
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
     <string name="option_send_files">Send files</string>
-    <string name="option_send_sticker">Send sticker</string>
     <string name="option_take_photo_video">Take photo or video</string>
     <string name="option_take_photo">Take photo</string>
     <string name="option_take_video">Take video</string>
@@ -872,7 +869,6 @@
     <string name="settings_third_party_notices">Third party notices</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_privacy_policy">Privacy policy</string>
-    <string name="settings_keep_media">Keep media</string>
     <string name="settings_clear_cache">Clear cache</string>
     <string name="settings_clear_media_cache">Clear media cache</string>
 
@@ -913,7 +909,6 @@
     <string name="settings_show_avatar_display_name_changes_messages">Show account events</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar, display name and name color changes.</string>
     <string name="settings_vibrate_on_mention">Vibrate when mentioning a user</string>
-    <string name="settings_preview_media_before_sending">Preview media before sending</string>
     <string name="settings_send_message_with_enter">Send message with enter</string>
     <string name="settings_send_message_with_enter_summary">Enter button of the soft keyboard will send message instead of adding a line break</string>
     <string name="settings_show_emoji_keyboard">Show emoji keyboard</string>
@@ -987,15 +982,6 @@
     <string name="settings_media">Media</string>
     <string name="settings_compress_media_by_default">Compress images and videos</string>
     <string name="settings_compress_media_by_default_summary">Shrink uploaded images and videos by default so they send faster</string>
-    <string name="settings_default_media_source">Default media source</string>
-    <string name="media_source_choose">Choose</string>
-    <string name="settings_play_shutter_sound">Play shutter sound</string>
-
-    <!-- medias saving settings -->
-    <string name="media_saving_period_3_days">3 days</string>
-    <string name="media_saving_period_1_week">1 week</string>
-    <string name="media_saving_period_1_month">1 month</string>
-    <string name="media_saving_period_forever">Forever</string>
 
     <!-- Presence settings -->
     <string name="settings_presence">Presence</string>
@@ -1243,8 +1229,6 @@
     <string name="room_add_matrix_apps">Add Matrix apps</string>
     <string name="room_manage_integrations">Manage Integrations</string>
     <string name="room_no_active_widgets">No active widgets</string>
-    <string name="settings_labs_native_camera">Use native camera</string>
-    <string name="settings_labs_native_camera_summary">Start the system camera instead of the custom camera screen.</string>
     <string name="widget_integration_review_terms">To continue you need to accept the Terms of this service.</string>
 
     <!-- Room not found. %s will contain some debug info in developer mode.  -->

@@ -390,11 +390,6 @@
     <string name="settings_select_language">Elige idioma</string>
     <string name="settings_start_on_boot">Iniciar en el arranque</string>
     <string name="settings_clear_media_cache">Borrar caché de medios</string>
-    <string name="settings_keep_media">Guardar medios</string>
-    <string name="media_saving_period_3_days">3 días</string>
-    <string name="media_saving_period_1_week">1 semana</string>
-    <string name="media_saving_period_1_month">1 mes</string>
-    <string name="media_saving_period_forever">Para siempre</string>
     <string name="font_size">Tamaño de letra</string>
     <string name="small">Pequeño</string>
     <string name="normal">Normal</string>
@@ -424,7 +419,6 @@
     <string name="widget_integration_missing_user_id">Falta el user_id en la solicitud.</string>
     <string name="widget_integration_room_not_visible">La sala %s no está visible.</string>
     <string name="room_add_matrix_apps">Añadir aplicaciones de Matrix</string>
-    <string name="settings_labs_native_camera">Utilizar cámara nativa</string>
     <string name="you_added_a_new_device">Has añadido una nueva sesión \'%s\', que está solicitando claves de cifrado.</string>
     <string name="your_unverified_device_requesting">Tu sesión sin verificar \'%s\' está solicitando claves de cifrado.</string>
     <string name="start_verification">Iniciar verificación</string>
@@ -487,8 +481,6 @@
     <string name="settings_deactivate_account_section">Desactivar cuenta</string>
     <string name="settings_deactivate_my_account">Desactivar mi cuenta</string>
     <string name="action_download">Descargar</string>
-    <string name="option_send_voice">Enviar audio</string>
-    <string name="option_send_sticker">Enviar pegatina</string>
     <string name="error_empty_field_your_password">Ingresa tu contraseña por favor.</string>
     <string name="widget_integration_missing_parameter">Falta un parámetro requerido.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Por favor, inicia ${app_name} en otro dispositivo que pueda descifrar el mensaje para que pueda enviar las claves a esta sesión.</string>
@@ -504,7 +496,6 @@
     <string name="command_description_nick">Cambia tu apodo público</string>
     <string name="command_description_markdown">Activar/Desactivar markdown</string>
     <string name="command_description_clear_scalar_token">Para reparar la gestión de las Aplicaciones de Matrix</string>
-    <string name="settings_preview_media_before_sending">Vista previa de medios antes de enviar</string>
     <string name="room_tombstone_continuation_description">Esta sala es una continuación de otra conversación</string>
     <string name="room_tombstone_predecessor_link">Haz clic aquí para ver mensajes más antiguos</string>
     <string name="command_description_deop_user">Degrada al usuario con la ID dada</string>
@@ -628,7 +619,6 @@
     <string name="settings_password">Contraseña</string>
     <string name="settings_fail_to_update_password_invalid_current_password">La contraseña no es válida</string>
     <string name="settings_media">Media</string>
-    <string name="media_source_choose">Seleccionar</string>
     <string name="encryption_message_recovery">Recuperación de mensajes cifrados</string>
     <string name="encryption_settings_manage_message_recovery_summary">Gestionar copia de seguridad clave</string>
     <plurals name="notification_compat_summary_line_for_room">
@@ -645,7 +635,6 @@
     <string name="notification_new_invitation">Nueva invitación</string>
     <string name="notification_sender_me">Yo</string>
     <string name="notification_inline_reply_failed">** Error al enviar - por favor abra la sala</string>
-    <string name="settings_labs_native_camera_summary">Iniciar la cámara del sistema en lugar de la pantalla de cámara personalizada.</string>
     <string name="command_problem_with_parameters">El comando \"%s\" necesita mas parámetros o algunos parámetros son incorrectos.</string>
     <string name="markdown_has_been_enabled">Markdown activado.</string>
     <string name="markdown_has_been_disabled">Markdown desactivado.</string>
@@ -727,7 +716,6 @@
         <item quantity="other">Cargando %d de las claves…</item>
     </plurals>
     <string name="keys_backup_info_title_signature">Firma</string>
-    <string name="settings_default_media_source">Origen predeterminado de medios</string>
     <string name="keys_backup_setup">Configurar copia de seguridad de las claves de cifrado</string>
     <string name="keys_backup_restore_is_getting_backup_version">Obteniendo una versión de copia de seguridad…</string>
     <string name="keys_backup_settings_valid_signature_from_unverified_device">La copia de seguridad tiene una firma valida de la sesión no verificada %s</string>
@@ -735,7 +723,6 @@
     <string name="keys_backup_settings_invalid_signature_from_unverified_device">La copia de seguridad tiene una firma inválida de la sesión no verificada %s</string>
     <string name="keys_backup_settings_untrusted_backup">Para usar la copia de seguridad de la clave en esta sesión introduce tu contraseña o tu clave de recuperación ahora.</string>
     <string name="keys_backup_settings_delete_confirm_message">¿Deseas borrar tus claves de cifrado guardadas en el servidor\? No podrás usar tu clave de recuperación para leer el historial de mensajes cifrados.</string>
-    <string name="settings_play_shutter_sound">Reproducir sonido de cámara</string>
     <string name="encryption_information_unknown_ip">ip desconocida</string>
     <string name="you_added_a_new_device_with_info">Una nueva sesión solicita claves de cifrado.
 \nSesión: %1$s

@@ -7,9 +7,7 @@
 
 package im.vector.app.features.settings
 
-import android.content.Context
 import androidx.preference.Preference
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.dialogs.PhotoOrVideoDialog
@@ -31,29 +29,6 @@ class VectorSettingsComposerFragment :
     }
 
     override fun bindPref() {
-        // update keep medias period
-        findPreference<VectorPreference>(VectorPreferences.SETTINGS_MEDIA_SAVING_PERIOD_KEY)!!.let {
-            it.summary = vectorPreferences.getSelectedMediasSavingPeriodString()
-
-            it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                context?.let { context: Context ->
-                    MaterialAlertDialogBuilder(context)
-                            .setSingleChoiceItems(
-                                    im.vector.lib.strings.R.array.media_saving_choice,
-                                    vectorPreferences.getSelectedMediasSavingPeriod()
-                            ) { d, n ->
-                                vectorPreferences.setSelectedMediasSavingPeriod(n)
-                                d.cancel()
-
-                                it.summary = vectorPreferences.getSelectedMediasSavingPeriodString()
-                            }
-                            .show()
-                }
-
-                false
-            }
-        }
-
         // Take photo or video
         updateTakePhotoOrVideoPreferenceSummary()
         takePhotoOrVideoPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {

@@ -47,9 +47,7 @@
     <string name="logout">Çıkış yap</string>
     <string name="hs_url">Ana Sunucu URL\'si</string>
     <string name="search">Ara</string>
-    <string name="option_send_voice">Sesli mesej gönder</string>
     <string name="option_send_files">Dosya gönder</string>
-    <string name="option_send_sticker">Çıkartma gönder</string>
     <string name="option_take_photo_video">Video kaydet veya fotoğraf çek</string>
     <string name="option_take_photo">Fotoğraf çek</string>
     <string name="option_take_video">Video kaydet</string>
@@ -240,7 +238,6 @@
     <string name="settings_third_party_notices">Üçüncü parti uyarıları</string>
     <string name="settings_copyright">Telif hakkı</string>
     <string name="settings_privacy_policy">Gizlilik politikası</string>
-    <string name="settings_keep_media">Medyayı sakla</string>
     <string name="settings_clear_cache">Ön belleği temizle</string>
     <string name="settings_clear_media_cache">Medya ön belleğini temizle</string>
     <string name="settings_user_settings">Kullanıcı ayarları</string>
@@ -268,7 +265,6 @@
     <string name="settings_show_read_receipts_summary">Detaylı liste için okundu ibaresine tıkla.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Hesap olaylarını göster</string>
     <string name="settings_vibrate_on_mention">Bir kullanıcıdan söz ederken titreşim ver</string>
-    <string name="settings_preview_media_before_sending">Medyayı göndermeden önce önizleme göster</string>
     <string name="settings_deactivate_account_section">Hesabı devre dışı bırak</string>
     <string name="settings_deactivate_my_account">Hesabımı devre dışı bırak</string>
     <string name="devices_details_id_title">ID</string>
@@ -294,10 +290,6 @@
 \n
 \nNot bu eylem uygulamayı yeniden başlatacak ve biraz zaman alabilir.</string>
     <string name="settings_select_country">Ülke seç</string>
-    <string name="media_saving_period_3_days">3 gün</string>
-    <string name="media_saving_period_1_week">1 hafta</string>
-    <string name="media_saving_period_1_month">1 ay</string>
-    <string name="media_saving_period_forever">Sonsuza dek</string>
     <string name="room_settings_topic">Konu</string>
     <string name="room_settings_room_read_history_rules_pref_title">Oda Geçmiş Okunurluğu</string>
     <string name="room_settings_room_read_history_rules_pref_dialog_title">Kimler geçmişi okuyabilir\?</string>
@@ -371,8 +363,6 @@
     <string name="widget_integration_room_not_visible">%s adlı oda görünür değil.</string>
     <string name="widget_integration_missing_parameter">Gerekli değerler eksik.</string>
     <string name="room_add_matrix_apps">Matrix uygulamaları ekle</string>
-    <string name="settings_labs_native_camera">Yerel kamerayı kullan</string>
-    <string name="settings_labs_native_camera_summary">Özel kamera ekranı açmak yerine sistem kamerasını kullan.</string>
     <string name="you_added_a_new_device">%s adlı şifreleme anahatarlarını isteyebilen yeni bir oturum eklediniz.</string>
     <string name="your_unverified_device_requesting">%s adlı doğrulanmamış oturum şifreleme anahtarlarını istiyor.</string>
     <string name="start_verification">Doğrulamayı başlat</string>
@@ -534,9 +524,6 @@
     <string name="settings_integration_manager">Entegrasyon yöneticisi</string>
     <string name="settings_fail_to_update_password_invalid_current_password">Şifre geçersiz</string>
     <string name="settings_media">Medya</string>
-    <string name="settings_default_media_source">Varsayılan medya kaynağı</string>
-    <string name="media_source_choose">Seç</string>
-    <string name="settings_play_shutter_sound">Deklanşör sesi çal</string>
     <string name="encryption_information_unknown_ip">bilinmeyen ip</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="one">%1$s: 1 mesaj</item>

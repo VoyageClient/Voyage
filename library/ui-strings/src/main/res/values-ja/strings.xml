@@ -124,7 +124,6 @@
     <string name="settings_set_sync_delay">同期の間隔</string>
     <string name="settings_clear_cache">キャッシュを消去</string>
     <string name="settings_clear_media_cache">メディアのキャッシュを消去</string>
-    <string name="settings_keep_media">メディアファイルを保存</string>
     <string name="settings_user_settings">ユーザー設定</string>
     <string name="settings_notifications">通知</string>
     <string name="settings_ignored_users">無視しているユーザー</string>
@@ -148,10 +147,6 @@
     <string name="account_email_already_used_error">このメールアドレスは既に使用されています。</string>
     <string name="settings_password_updated">パスワードを更新しました</string>
     <string name="settings_select_country">国を選択</string>
-    <string name="media_saving_period_3_days">3日</string>
-    <string name="media_saving_period_1_week">1週間</string>
-    <string name="media_saving_period_1_month">1ヵ月</string>
-    <string name="media_saving_period_forever">永久に</string>
     <string name="room_settings_topic">トピック</string>
     <string name="room_settings_room_read_history_rules_pref_title">ルームの履歴の表示対象</string>
     <string name="room_settings_room_read_history_rules_pref_dialog_title">履歴を閲覧できる人は？</string>
@@ -275,7 +270,6 @@
     <string name="directory_server_placeholder">サーバー名</string>
     <string name="directory_server_all_rooms_on_server">%sサーバー上の全てのルーム</string>
     <string name="directory_server_native_rooms">全てのローカルの%sルーム</string>
-    <string name="settings_labs_native_camera">端末のカメラを使用</string>
     <string name="command_error">コマンドエラー</string>
     <string name="unrecognized_command">認識されないコマンド：%s</string>
     <string name="notification_off">オフ</string>
@@ -306,8 +300,6 @@
     <string name="title_activity_choose_sticker">ステッカーを送信</string>
     <string name="action_download">ダウンロード</string>
     <string name="system_alerts_header">システムアラート</string>
-    <string name="option_send_voice">音声を送信</string>
-    <string name="option_send_sticker">ステッカーを送信</string>
     <string name="no_sticker_application_dialog_content">現在、ステッカーパックが有効になっていません。
 \n
 \nいくつか追加しますか？</string>
@@ -318,7 +310,6 @@
         <item quantity="other">%d個選択済</item>
     </plurals>
     <string name="settings_vibrate_on_mention">ユーザーをメンションするとき、バイブレーションで通知</string>
-    <string name="settings_preview_media_before_sending">送信の前にメディアをプレビュー</string>
     <string name="settings_deactivate_account_section">アカウントを無効化</string>
     <string name="settings_deactivate_my_account">自分のアカウントを無効化</string>
     <plurals name="notification_unread_notified_messages">
@@ -390,7 +381,6 @@
     <string name="settings_password">パスワード</string>
     <string name="settings_fail_to_update_password_invalid_current_password">パスワードが無効です</string>
     <string name="settings_media">メディア</string>
-    <string name="settings_play_shutter_sound">シャッター音を再生</string>
     <string name="notification_silent">サイレント</string>
     <string name="login_reset_password_password_hint">新しいパスワード</string>
     <string name="login_signup_password_hint">パスワード</string>
@@ -882,7 +872,6 @@
     </plurals>
     <string name="encryption_settings_manage_message_recovery_summary">鍵のバックアップを管理</string>
     <string name="encryption_exported_successfully">鍵のエクスポートに成功しました</string>
-    <string name="media_source_choose">選択</string>
     <string name="room_alias_local_address_add">ローカルアドレスを追加</string>
     <string name="room_alias_local_address_empty">このルームにはローカルアドレスがありません</string>
     <string name="room_alias_delete_confirmation">アドレス\"%1$s\"を削除しますか？</string>
@@ -977,7 +966,6 @@
 \n直近のオンライン日時：%2$s
 \n新しいセッションにログインしなかった場合、この要求を無視してください。</string>
     <string name="key_share_request">鍵の共有リクエスト</string>
-    <string name="settings_labs_native_camera_summary">ユーザー定義のカメラ画面の代わりにシステムカメラを開始。</string>
     <string name="room_no_active_widgets">使用中のウィジェットがありません</string>
     <string name="room_manage_integrations">インテグレーションを管理</string>
     <string name="room_widget_webview_read_protected_media">DRMで保護されているメディアを読み込む</string>
@@ -1148,7 +1136,6 @@
     <string name="allow_space_member_to_find_and_access">スペースのメンバーに発見とアクセスを許可します。</string>
     <string name="room_create_member_of_space_name_can_join">スペース %s のメンバーが検索、プレビュー、参加できます。</string>
     <string name="room_settings_room_access_private_invite_only_title">非公開（招待者のみ参加可能）</string>
-    <string name="settings_default_media_source">既定のメディアソース</string>
     <string name="settings_room_upgrades">ルームのアップグレード</string>
     <string name="settings_messages_by_bot">ボットによるメッセージ</string>
     <string name="settings_room_invitations">ルームへの招待</string>

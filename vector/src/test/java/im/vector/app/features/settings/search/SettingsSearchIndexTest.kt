@@ -56,7 +56,6 @@ class SettingsSearchIndexTest {
     fun `skips rows hidden in XML`() {
         val keys = build().mapNotNull { it.highlight?.key }
 
-        keys shouldNotContain "SETTINGS_MEDIA_SAVING_PERIOD_KEY"
         keys shouldNotContain "SETTINGS_12_24_TIMESTAMPS_KEY"
         keys shouldNotContain "SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY"
         keys shouldNotContain "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"

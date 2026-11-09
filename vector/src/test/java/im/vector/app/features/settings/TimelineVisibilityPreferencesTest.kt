@@ -36,11 +36,9 @@ class TimelineVisibilityPreferencesTest {
     private val storage = PreferenceManager.getDefaultSharedPreferences(context)
     private val preferences = VectorPreferences(
             context = context,
-            clock = mockk(relaxed = true),
             buildMeta = mockk(relaxed = true),
             vectorFeatures = mockk(relaxed = true),
             defaultPrefs = storage,
-            stringProvider = mockk(relaxed = true),
     )
     private val visibility = TimelineEventVisibilityHelper(
             UserPreferencesProvider(preferences),

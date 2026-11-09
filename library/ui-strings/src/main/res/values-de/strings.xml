@@ -391,11 +391,6 @@
     <string name="settings_select_language">Wähle Sprache</string>
     <string name="settings_start_on_boot">Starte beim Systemstart</string>
     <string name="settings_clear_media_cache">Medien-Cache leeren</string>
-    <string name="settings_keep_media">Medien behalten</string>
-    <string name="media_saving_period_3_days">3 Tage</string>
-    <string name="media_saving_period_1_week">1 Woche</string>
-    <string name="media_saving_period_1_month">1 Monat</string>
-    <string name="media_saving_period_forever">Unbegrenzt</string>
     <string name="font_size">Schriftgröße</string>
     <string name="small">Klein</string>
     <string name="normal">Normal</string>
@@ -428,7 +423,6 @@
     <string name="notification_silent_notifications">Stumme Benachrichtigungen</string>
     <string name="option_take_photo">Foto aufnehmen</string>
     <string name="option_take_video">Video aufnehmen</string>
-    <string name="settings_labs_native_camera">Systemeigene Kamera verwenden</string>
     <string name="command_error">Befehlsfehler</string>
     <string name="unrecognized_command">Unbekanntes Kommando: %s</string>
     <string name="notification_off">Aus</string>
@@ -472,7 +466,6 @@
     </plurals>
     <string name="notification_unread_notified_messages_in_room">%1$s in %2$s</string>
     <string name="title_activity_choose_sticker">Sticker senden</string>
-    <string name="option_send_sticker">Sticker senden</string>
     <string name="no_sticker_application_dialog_content">Du hast aktuell keine Stickerpakete aktiviert.
 \n
 \nMöchtest du welche hinzufügen\?</string>
@@ -492,10 +485,8 @@
     <string name="action_download">Download</string>
     <string name="e2e_re_request_encryption_key">Schlüssel von deinen anderen Sitzungen erneut anfordern.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Bitte öffne ${app_name} auf einem anderen Gerät, das die Nachricht entschlüsseln kann, damit es die Schlüssel an diese Sitzung senden kann.</string>
-    <string name="option_send_voice">Sprachnachricht senden</string>
     <string name="error_no_external_application_found">Für diese Aktion wurde keine passende App gefunden.</string>
     <string name="error_empty_field_your_password">Bitte gib dein Passwort ein.</string>
-    <string name="settings_preview_media_before_sending">Medienvorschau vor dem Senden</string>
     <string name="command_description_emote">Zeigt Aktionen</string>
     <string name="command_description_ban_user">Bannt Benutzer mit angegebener ID</string>
     <string name="command_description_op_user">Bestimmt das Berechtigungslevel des Benutzers</string>
@@ -538,7 +529,6 @@
     <string name="settings_show_read_receipts">Lesebestätigungen zeigen</string>
     <string name="settings_show_read_receipts_summary">Klicke auf die Lesebestätigungen für eine detailliertere Liste.</string>
     <string name="settings_password">Passwort</string>
-    <string name="settings_labs_native_camera_summary">Starte die Kamera des Systems anstelle der selbstdefinierten.</string>
     <string name="command_problem_with_parameters">Das Kommando \"%s\" braucht mehr Parameter oder einige Parameter sind inkorrekt.</string>
     <string name="markdown_has_been_enabled">Markdown wurde aktiviert.</string>
     <string name="markdown_has_been_disabled">Markdown wurde deaktiviert.</string>
@@ -723,9 +713,6 @@
     <string name="settings_send_message_with_enter_summary">Eingabetaste der Bildschirmtastatur schickt die Nachricht ab, statt einen Zeilenumbruch zu erzeugen</string>
     <string name="settings_fail_to_update_password_invalid_current_password">Das Passwort ist ungültig</string>
     <string name="settings_media">Medien</string>
-    <string name="settings_default_media_source">Standard-Medienquelle</string>
-    <string name="media_source_choose">Wählen</string>
-    <string name="settings_play_shutter_sound">Auslöseton abspielen</string>
     <string name="action_mark_room_read">Gelesen</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="one">%1$s: %2$d Nachricht</item>

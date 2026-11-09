@@ -122,8 +122,6 @@
 \nআপনি অন্য সেশানে লগ ইন না করলে, এই অনুরোধটি উপেক্ষা করুন।</string>
     <string name="you_added_a_new_device">আপনি একটি নতুন সেশান \'%s\' যোগ করেছেন, যা এনক্রিপশন কীগুলির জন্য অনুরোধ করছে।</string>
     <string name="widget_integration_review_terms">চালিয়ে যেতে আপনার এই পরিষেবার শর্তাদি স্বীকার করতে হবে।</string>
-    <string name="settings_labs_native_camera_summary">কাস্টম ক্যামেরা স্ক্রীনের পরিবর্তে সিস্টেম ক্যামেরাটি শুরু করে।</string>
-    <string name="settings_labs_native_camera">নেটিভ ক্যামেরা ব্যবহার করুন</string>
     <string name="room_add_matrix_apps">ম্যাট্রিক্স এপ্লিকেশনগুলি যোগ করুন</string>
     <string name="widget_integration_missing_parameter">একটি প্রয়োজনীয় প্যারামিটারটি অনুপস্থিত আছে।</string>
     <string name="widget_integration_room_not_visible">রুম %s দৃশ্যমান নয়।</string>
@@ -347,9 +345,7 @@
     <string name="option_take_video">ভিডিও নিন</string>
     <string name="option_take_photo">ছবি তোল</string>
     <string name="option_take_photo_video">ছবি বা ভিডিও নিন</string>
-    <string name="option_send_sticker">স্টিকার পাঠাও</string>
     <string name="option_send_files">ফাইলগুলো পাঠাও</string>
-    <string name="option_send_voice">ভয়েস পাঠান</string>
     <string name="search">অনুসন্ধান</string>
     <string name="hs_url">হোম সার্ভার ইউআরএল</string>
     <string name="logout">সাইন আউট</string>
@@ -400,13 +396,6 @@
     <string name="room_settings_room_read_history_rules_pref_dialog_title">কে ইতিহাস পড়তে পারে\?</string>
     <string name="room_settings_room_read_history_rules_pref_title">কক্ষ ইতিহাস পাঠযোগ্যতা</string>
     <string name="room_settings_topic">বিষয়</string>
-    <string name="media_saving_period_forever">চিরতরে</string>
-    <string name="media_saving_period_1_month">১ মাস</string>
-    <string name="media_saving_period_1_week">১ সপ্তা</string>
-    <string name="media_saving_period_3_days">৩ দিন</string>
-    <string name="settings_play_shutter_sound">শাটার শব্দ চালান</string>
-    <string name="media_source_choose">চয়ন</string>
-    <string name="settings_default_media_source">ডিফল্ট মিডিয়া উৎস</string>
     <string name="settings_media">মিডিয়া</string>
     <string name="settings_select_country">দেশ বেঁচে নিন</string>
     <string name="settings_unignore_user">%s থেকে সব বার্তা দেখতে চান\?
@@ -448,7 +437,6 @@
     <string name="settings_secure_backup_enter_to_setup">এই ডিভাইসে সেট আপ করুন</string>
     <string name="settings_send_message_with_enter_summary">নরম কীবোর্ডের প্রবেশ বোতামটি লাইন বিরতি যোগ করার পরিবর্তে বার্তা পাঠাবে</string>
     <string name="settings_send_message_with_enter">এন্টার বোতাম টিপে বার্তা পাঠান</string>
-    <string name="settings_preview_media_before_sending">পাঠানোর আগে মিডিয়া প্রিভিউ কর</string>
     <string name="settings_vibrate_on_mention">একটি ব্যবহারকারী উল্লেখ এর সময় কম্পন করুন</string>
     <string name="settings_show_avatar_display_name_changes_messages">অ্যাকাউন্ট ইভেন্ট দেখান</string>
     <string name="settings_show_read_receipts_summary">একটি বিস্তারিত তালিকা জন্য পঠন প্রাপ্তি ক্লিক করুন।</string>
@@ -479,7 +467,6 @@
     <string name="settings_user_settings">ব্যবহারকারী সেটিংস</string>
     <string name="settings_clear_media_cache">মিডিয়া ক্যাশে পরিষ্কার করুন</string>
     <string name="settings_clear_cache">ক্যাশে পরিষ্কার করুন</string>
-    <string name="settings_keep_media">মিডিয়া রাখুন</string>
     <string name="settings_privacy_policy">গোপনীয়তা নীতি</string>
     <string name="settings_copyright">কপিরাইট</string>
     <string name="settings_third_party_notices">তৃতীয় পক্ষের নোটিশ</string>

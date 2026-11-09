@@ -342,11 +342,6 @@
     <string name="settings_select_language">请选择语言</string>
     <string name="settings_start_on_boot">开机时自动启动</string>
     <string name="settings_clear_media_cache">清空缓存的媒体文件</string>
-    <string name="settings_keep_media">保留媒体文件</string>
-    <string name="media_saving_period_3_days">3天</string>
-    <string name="media_saving_period_1_week">1周</string>
-    <string name="media_saving_period_1_month">1个月</string>
-    <string name="media_saving_period_forever">永远</string>
     <string name="settings_theme">主题</string>
     <string name="font_size">文字大小</string>
     <string name="tiny">微小</string>
@@ -377,7 +372,6 @@
     <string name="start_verification">开始验证</string>
     <string name="option_take_photo">拍摄照片</string>
     <string name="option_take_video">拍摄视频</string>
-    <string name="settings_labs_native_camera">使用原生相机</string>
     <string name="command_error">命令错误</string>
     <string name="unrecognized_command">不可识别的命令：%s</string>
     <string name="notification_off">关闭</string>
@@ -427,7 +421,6 @@
     <string name="deactivate_account_delete_checkbox">请在我停用账户的同时忘记我发送的所有消息（警告：这将导致未来的用户看到残缺的对话）</string>
     <string name="deactivate_account_submit">停用账户</string>
     <string name="title_activity_choose_sticker">发送贴纸</string>
-    <string name="option_send_sticker">发送贴纸</string>
     <string name="no_sticker_application_dialog_content">你目前没有启用任何贴纸包。
 \n
 \n要添加一些吗？</string>
@@ -435,12 +428,10 @@
     <string name="dialog_user_consent_content">要想继续使用家服务器 %1$s 你必须阅读并同意其服务条款。</string>
     <string name="dialog_user_consent_submit">现在阅读</string>
     <string name="action_download">下载</string>
-    <string name="option_send_voice">发送语音消息</string>
     <string name="error_no_external_application_found">对不起，没有可完成此操作的外部应用。</string>
     <string name="e2e_re_request_encryption_key">从你的其它会话上重新请求加密密钥。</string>
     <string name="e2e_re_request_encryption_key_dialog_content">请在其它可解密此消息的设备上启动 ${app_name}，以便其将密钥发送至当前会话。</string>
     <string name="error_empty_field_your_password">请输入你的密码。</string>
-    <string name="settings_preview_media_before_sending">发送前预览媒体文件</string>
     <string name="command_description_emote">显示动作</string>
     <string name="command_description_ban_user">按照 ID 封禁用户</string>
     <string name="command_description_op_user">定义用户的权限等级</string>
@@ -504,7 +495,6 @@
     <string name="settings_troubleshoot_test_token_registration_success">FCM令牌已成功注册至家服务器。</string>
     <string name="settings_troubleshoot_test_token_registration_failed">未能将FCM令牌注册到家服务器：
 \n %1$s</string>
-    <string name="settings_labs_native_camera_summary">启动系统相机而非自定义的相机屏幕。</string>
     <string name="settings_troubleshoot_test_service_boot_title">开机时启动</string>
     <string name="settings_troubleshoot_test_service_boot_quickfix">启用开机时启动</string>
     <string name="settings_troubleshoot_test_bg_restricted_title">检查后台限制</string>
@@ -661,9 +651,6 @@
     <string name="settings_send_message_with_enter_summary">软键盘的 Enter 按钮将发送消息而不是添加换行符</string>
     <string name="settings_fail_to_update_password_invalid_current_password">密码无效</string>
     <string name="settings_media">媒体</string>
-    <string name="settings_default_media_source">默认媒体来源</string>
-    <string name="media_source_choose">选择</string>
-    <string name="settings_play_shutter_sound">播放快门声</string>
     <string name="action_mark_room_read">标记为已读</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="other">%1$s：%2$d条消息</item>

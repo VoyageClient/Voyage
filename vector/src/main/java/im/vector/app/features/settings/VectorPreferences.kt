@@ -18,7 +18,6 @@ import androidx.core.content.edit
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
-import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.ui.views.RoomBadgeConfig
 import im.vector.app.core.utils.DeviceCapabilities
@@ -32,7 +31,6 @@ import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.useragent.UserAgentSettings
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
-import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -117,12 +115,10 @@ enum class AvatarShape(val storageKey: String, @StringRes val titleRes: Int, val
 
 class VectorPreferences @Inject constructor(
         private val context: Context,
-        private val clock: Clock,
         private val buildMeta: BuildMeta,
         private val vectorFeatures: VectorFeatures,
         @DefaultPreferences
         private val defaultPrefs: SharedPreferences,
-        private val stringProvider: StringProvider,
 ) : StaticScSdkHelper.ScSdkPreferenceProvider {
 
     companion object {
@@ -309,9 +305,6 @@ class VectorPreferences @Inject constructor(
 
         // media
         private const val SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY = "SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY"
-        private const val SETTINGS_DEFAULT_MEDIA_SOURCE_KEY = "SETTINGS_DEFAULT_MEDIA_SOURCE_KEY"
-        private const val SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY = "SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY"
-        private const val SETTINGS_PLAY_SHUTTER_SOUND_KEY = "SETTINGS_PLAY_SHUTTER_SOUND_KEY"
 
         // background sync
         const val SETTINGS_START_ON_BOOT_PREFERENCE_KEY = "SETTINGS_START_ON_BOOT_PREFERENCE_KEY"
@@ -327,7 +320,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LAZY_LOADING_PREFERENCE_KEY = "SETTINGS_LAZY_LOADING_PREFERENCE_KEY"
         const val SETTINGS_USER_REFUSED_LAZY_LOADING_PREFERENCE_KEY = "SETTINGS_USER_REFUSED_LAZY_LOADING_PREFERENCE_KEY"
         const val SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY = "SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY"
-        private const val SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY = "SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY"
         private const val SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY = "SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY"
 
         const val SETTINGS_LABS_ALLOW_EXTENDED_LOGS = "SETTINGS_LABS_ALLOW_EXTENDED_LOGS"
@@ -373,17 +365,10 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SESSION_MANAGER_SHOW_IP_ADDRESS = "SETTINGS_SESSION_MANAGER_SHOW_IP_ADDRESS"
 
         // other
-        const val SETTINGS_MEDIA_SAVING_PERIOD_KEY = "SETTINGS_MEDIA_SAVING_PERIOD_KEY"
-        private const val SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY = "SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY"
         private const val DID_ASK_TO_IGNORE_BATTERY_OPTIMIZATIONS_KEY = "DID_ASK_TO_IGNORE_BATTERY_OPTIMIZATIONS_KEY"
         private const val DID_MIGRATE_TO_NOTIFICATION_REWORK = "DID_MIGRATE_TO_NOTIFICATION_REWORK"
         private const val DID_ASK_TO_USE_ANALYTICS_TRACKING_KEY = "DID_ASK_TO_USE_ANALYTICS_TRACKING_KEY"
         private const val SETTINGS_DISPLAY_ALL_EVENTS_KEY = "SETTINGS_DISPLAY_ALL_EVENTS_KEY"
-
-        private const val MEDIA_SAVING_3_DAYS = 0
-        private const val MEDIA_SAVING_1_WEEK = 1
-        private const val MEDIA_SAVING_1_MONTH = 2
-        private const val MEDIA_SAVING_FOREVER = 3
 
         private const val TAKE_PHOTO_VIDEO_MODE = "TAKE_PHOTO_VIDEO_MODE"
 
@@ -415,8 +400,6 @@ class VectorPreferences @Inject constructor(
         // some preferences keys must be kept after a logout
         private val mKeysToKeepAfterLogout = listOf(
                 SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY,
-                SETTINGS_DEFAULT_MEDIA_SOURCE_KEY,
-                SETTINGS_PLAY_SHUTTER_SOUND_KEY,
 
                 SETTINGS_SEND_READ_RECEIPT_KEY,
                 SETTINGS_SEND_TYPING_NOTIF_KEY,
@@ -429,9 +412,6 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SHOW_ACL_EVENTS_KEY,
                 SETTINGS_SHOW_REACTIONS_KEY,
                 SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY,
-                SETTINGS_MEDIA_SAVING_PERIOD_KEY,
-                SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY,
-                SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY,
                 SETTINGS_SEND_MESSAGE_WITH_ENTER,
                 SETTINGS_SHOW_EMOJI_KEYBOARD,
                 SETTINGS_CLASSIC_COMPOSER,
@@ -844,15 +824,6 @@ class VectorPreferences @Inject constructor(
     }
 
     /**
-     * Tells the native camera to take a photo or record a video.
-     *
-     * @return true to use the native camera app to record video or take photo.
-     */
-    fun useNativeCamera(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY, false)
-    }
-
-    /**
      * Tells if the send voice feature is enabled.
      *
      * @return true if the send voice feature is enabled.
@@ -871,24 +842,6 @@ class VectorPreferences @Inject constructor(
     /** Whether images and videos start out compressed in the attachment preview. */
     fun compressMediaByDefault(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY, true)
-    }
-
-    /**
-     * Tells which media source to use by default.
-     *
-     * @return the selected media source
-     */
-    fun getSelectedDefaultMediaSource(): Int {
-        return Integer.parseInt(defaultPrefs.getString(SETTINGS_DEFAULT_MEDIA_SOURCE_KEY, "0")!!)
-    }
-
-    /**
-     * Tells whether to use shutter sound.
-     *
-     * @return true if shutter sound should play
-     */
-    fun useShutterSound(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_PLAY_SHUTTER_SOUND_KEY, true)
     }
 
     /**
@@ -1033,56 +986,6 @@ class VectorPreferences @Inject constructor(
     fun setAutoStartOnBoot(value: Boolean) {
         defaultPrefs.edit {
             putBoolean(SETTINGS_START_ON_BOOT_PREFERENCE_KEY, value)
-        }
-    }
-
-    /**
-     * Provides the selected saving period.
-     *
-     * @return the selected period
-     */
-    fun getSelectedMediasSavingPeriod(): Int {
-        return defaultPrefs.getInt(SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY, MEDIA_SAVING_1_WEEK)
-    }
-
-    /**
-     * Updates the selected saving period.
-     *
-     * @param index the selected period index
-     */
-    fun setSelectedMediasSavingPeriod(index: Int) {
-        defaultPrefs.edit {
-            putInt(SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY, index)
-        }
-    }
-
-    /**
-     * Provides the minimum last access time to keep a media file.
-     *
-     * @return the min last access time (in seconds)
-     */
-    fun getMinMediasLastAccessTime(): Long {
-        return when (getSelectedMediasSavingPeriod()) {
-            MEDIA_SAVING_3_DAYS -> clock.epochMillis() / 1000 - 3 * 24 * 60 * 60
-            MEDIA_SAVING_1_WEEK -> clock.epochMillis() / 1000 - 7 * 24 * 60 * 60
-            MEDIA_SAVING_1_MONTH -> clock.epochMillis() / 1000 - 30 * 24 * 60 * 60
-            MEDIA_SAVING_FOREVER -> 0
-            else -> 0
-        }
-    }
-
-    /**
-     * Provides the selected saving period.
-     *
-     * @return the selected period
-     */
-    fun getSelectedMediasSavingPeriodString(): String {
-        return when (getSelectedMediasSavingPeriod()) {
-            MEDIA_SAVING_3_DAYS -> stringProvider.getString(CommonStrings.media_saving_period_3_days)
-            MEDIA_SAVING_1_WEEK -> stringProvider.getString(CommonStrings.media_saving_period_1_week)
-            MEDIA_SAVING_1_MONTH -> stringProvider.getString(CommonStrings.media_saving_period_1_month)
-            MEDIA_SAVING_FOREVER -> stringProvider.getString(CommonStrings.media_saving_period_forever)
-            else -> "?"
         }
     }
 
@@ -1402,15 +1305,6 @@ class VectorPreferences @Inject constructor(
      */
     fun showUrlPreviews(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_URL_PREVIEW_KEY, true)
-    }
-
-    /**
-     * Tells if media should be previewed before sending.
-     *
-     * @return true to preview media
-     */
-    fun previewMediaWhenSending(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY, false)
     }
 
     /**

@@ -390,12 +390,7 @@
     <string name="directory_server_native_rooms">Todas as salas nativas de %s</string>
     <string name="settings_start_on_boot">Começar em boot</string>
     <string name="settings_clear_media_cache">Limpar cache de mídia</string>
-    <string name="settings_keep_media">Manter mídia</string>
     <string name="settings_select_language">Escolher língua</string>
-    <string name="media_saving_period_3_days">3 dias</string>
-    <string name="media_saving_period_1_week">1 semana</string>
-    <string name="media_saving_period_1_month">1 mês</string>
-    <string name="media_saving_period_forever">Para sempre</string>
     <string name="settings_theme">Tema</string>
     <string name="font_size">Tamanho de fonte</string>
     <string name="tiny">Minúsculo</string>
@@ -431,7 +426,6 @@
     <string name="widget_integration_missing_user_id">user_id faltando em requisição.</string>
     <string name="widget_integration_room_not_visible">Sala %s não está visível.</string>
     <string name="room_add_matrix_apps">Adicionar apps Matrix</string>
-    <string name="settings_labs_native_camera">Usar câmera nativa</string>
     <string name="you_added_a_new_device">Você adicionou uma nova sessão \'%s\', que está requisitando chaves de encriptação.</string>
     <string name="your_unverified_device_requesting">Sua sessão não-verificada \'%s\' está requisitando chaves de encriptação.</string>
     <string name="start_verification">Começar verificação</string>
@@ -474,8 +468,6 @@
     <string name="title_activity_choose_sticker">Enviar um sticker</string>
     <string name="action_download">Fazer Download</string>
     <string name="system_alerts_header">Alertas de Sistema</string>
-    <string name="option_send_voice">Enviar voz</string>
-    <string name="option_send_sticker">Enviar sticker</string>
     <string name="no_sticker_application_dialog_content">Você não tem atualmente nenhum pacote de stickers habilitado.
 \n
 \nAdicionar alguns agora\?</string>
@@ -486,7 +478,6 @@
         <item quantity="one">%d selecionada</item>
         <item quantity="other">%d selecionadas</item>
     </plurals>
-    <string name="settings_preview_media_before_sending">Previsualizar mídia antes de enviar</string>
     <string name="settings_deactivate_account_section">Desativar conta</string>
     <string name="settings_deactivate_my_account">Desativar minha conta</string>
     <string name="widget_integration_missing_parameter">Um parâmetro requerido está faltando.</string>
@@ -584,7 +575,6 @@
     <string name="settings_send_markdown">Formatação markdown</string>
     <string name="settings_send_markdown_summary">Formatar mensagens usando sintaxe markdown antes que elas são enviadas. Isto permite formatação avançada tal como usar asteriscos para exibir texto itálico.</string>
     <string name="settings_password">Senha</string>
-    <string name="settings_labs_native_camera_summary">Começar a câmera de sistema em vez da tela de câmera personalizada.</string>
     <string name="command_problem_with_parameters">O comando \"%s\" precisa de mais parâmetros, ou alguns parâmetros estão incorretos.</string>
     <string name="markdown_has_been_enabled">Markdown tem sido habilitado.</string>
     <string name="markdown_has_been_disabled">Markdown tem sido desabilitado.</string>
@@ -682,9 +672,6 @@
     <string name="disabled_integration_dialog_content">Habilite \'Permitir integrações\' em Configurações para fazer isto.</string>
     <string name="settings_fail_to_update_password_invalid_current_password">A senha não é válida</string>
     <string name="settings_media">Mídia</string>
-    <string name="settings_default_media_source">Fonte de mídia default</string>
-    <string name="media_source_choose">Escolher</string>
-    <string name="settings_play_shutter_sound">Tocar som de obturador</string>
     <plurals name="room_settings_banned_users_count">
         <item quantity="one">%d usuário banido</item>
         <item quantity="other">%d usuários banidos</item>

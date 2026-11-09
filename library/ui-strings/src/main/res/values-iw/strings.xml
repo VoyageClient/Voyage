@@ -72,7 +72,6 @@
     <string name="bottom_action_rooms">חדרים</string>
     <string name="no_more_results">אין תוצאות נוספות</string>
     <string name="no_result_placeholder">אין תוצאות</string>
-    <string name="option_send_voice">שלח קול</string>
     <string name="search">חיפוש</string>
     <string name="hs_url">קישור לשרת הבית</string>
     <string name="logout">יציאה</string>
@@ -104,7 +103,6 @@
     <string name="option_take_video">צלם סרטון</string>
     <string name="option_take_photo">צלם תמונה</string>
     <string name="option_take_photo_video">צלם תמונה או סרטון</string>
-    <string name="option_send_sticker">שלח סטיקר</string>
     <string name="option_send_files">שלח קבצים</string>
     <string name="room_jump_to_first_unread">עבור להודעה שלא נקראה</string>
     <string name="list_members">שותפים</string>
@@ -136,7 +134,6 @@
     <string name="settings_user_settings">הגדרות משתמש</string>
     <string name="settings_clear_media_cache">נקה מטמון מדיה</string>
     <string name="settings_clear_cache">נקה את זיכרון המטמון</string>
-    <string name="settings_keep_media">שמור על מדיה</string>
     <string name="settings_privacy_policy">מדיניות הפרטיות</string>
     <string name="settings_copyright">זכויות יוצרים</string>
     <string name="settings_third_party_notices">התראות צד שלישי</string>
@@ -309,8 +306,6 @@
 \nאם לא נכנסת למפגש אחר, התעלם מבקשה זו.</string>
     <string name="you_added_a_new_device">הוספת מושב חדש \'%s\', המבקש מפתחות הצפנה.</string>
     <string name="widget_integration_review_terms">כדי להמשיך עליך לקבל את תנאי השירות הזה.</string>
-    <string name="settings_labs_native_camera_summary">הפעל את מצלמת המערכת במקום את מסך המצלמה המותאם אישית.</string>
-    <string name="settings_labs_native_camera">השתמש במצלמה מקומית</string>
     <string name="room_no_active_widgets">אין יישומונים פעילים</string>
     <string name="room_manage_integrations">נהל אינטגרציות</string>
     <string name="room_add_matrix_apps">הוסף אפליקציות מטריקס</string>
@@ -472,13 +467,6 @@
     <string name="room_settings_room_read_history_rules_pref_dialog_title">מי יכול לקרוא היסטוריה\?</string>
     <string name="room_settings_room_read_history_rules_pref_title">הקריאה בהיסטוריה של החדרים</string>
     <string name="room_settings_topic">נושא</string>
-    <string name="media_saving_period_forever">לעד</string>
-    <string name="media_saving_period_1_month">חודש 1</string>
-    <string name="media_saving_period_1_week">שבוע 1</string>
-    <string name="media_saving_period_3_days">3 ימים</string>
-    <string name="settings_play_shutter_sound">השמע צליל תריס</string>
-    <string name="media_source_choose">בחרו</string>
-    <string name="settings_default_media_source">מקור מדיה ברירת מחדל</string>
     <string name="settings_media">מדיה</string>
     <string name="settings_select_country">בחר\\י מדינה</string>
     <string name="settings_emails_and_phone_numbers_summary">נהל מיילים ומספרי טלפון המקושרים לחשבון מטריקס שלך</string>
@@ -575,7 +563,6 @@
     <string name="share_without_verifying_short_label">שיתוף</string>
     <string name="settings_send_message_with_enter_summary">כפתור Enter על המקלדת הרכה ישלח הודעה במקום להוסיף מעבר שורה</string>
     <string name="settings_send_message_with_enter">שלח הודעה עם Enter</string>
-    <string name="settings_preview_media_before_sending">הצג תצוגה מקדימה של מדיה לפני השליחה</string>
     <string name="settings_vibrate_on_mention">רטוט בעת אזכור משתמש</string>
     <string name="settings_show_avatar_display_name_changes_messages">הצג אירועי חשבון</string>
     <string name="settings_show_read_receipts_summary">לחץ על אישורי הקריאה לרשימה מפורטת.</string>

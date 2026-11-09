@@ -25,11 +25,9 @@ class QuickReactionsPreferencesTest {
 
     private val vectorPreferences = VectorPreferences(
             context = context,
-            clock = mockk(relaxed = true),
             buildMeta = mockk(relaxed = true),
             vectorFeatures = mockk(relaxed = true),
             defaultPrefs = defaultPrefs,
-            stringProvider = mockk(relaxed = true),
     )
 
     @Test

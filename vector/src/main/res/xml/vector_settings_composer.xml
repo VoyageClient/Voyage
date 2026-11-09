@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <im.vector.app.core.preference.VectorSwitchPreference
@@ -68,37 +67,5 @@
         android:key="SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
         android:summary="@string/settings_jump_to_bottom_on_send_summary"
         android:title="@string/settings_jump_to_bottom_on_send" />
-
-    <im.vector.app.core.preference.VectorPreferenceCategory
-        android:title="@string/settings_media"
-        app:isPreferenceVisible="@bool/false_not_implemented">
-
-        <im.vector.app.core.preference.VectorPreference
-            android:key="SETTINGS_MEDIA_SAVING_PERIOD_KEY"
-            android:title="@string/settings_keep_media" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:key="SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY"
-            android:summary="@string/settings_labs_native_camera_summary"
-            android:title="@string/settings_labs_native_camera" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="true"
-            android:key="SETTINGS_PLAY_SHUTTER_SOUND_KEY"
-            android:title="@string/settings_play_shutter_sound" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:key="SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY"
-            android:title="@string/settings_preview_media_before_sending" />
-
-        <im.vector.app.core.preference.VectorListPreference
-            android:defaultValue="0"
-            android:entries="@array/media_sources"
-            android:entryValues="@array/media_source_values"
-            android:key="SETTINGS_DEFAULT_MEDIA_SOURCE_KEY"
-            android:title="@string/settings_default_media_source"
-            app:useSimpleSummaryProvider="true" />
-
-    </im.vector.app.core.preference.VectorPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

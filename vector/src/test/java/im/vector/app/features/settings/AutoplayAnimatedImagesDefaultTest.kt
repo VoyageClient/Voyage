@@ -24,11 +24,9 @@ class AutoplayAnimatedImagesDefaultTest {
 
     private val vectorPreferences = VectorPreferences(
             context = context,
-            clock = mockk(relaxed = true),
             buildMeta = mockk(relaxed = true),
             vectorFeatures = mockk(relaxed = true),
             defaultPrefs = PreferenceManager.getDefaultSharedPreferences(context),
-            stringProvider = mockk(relaxed = true),
     )
 
     @Test

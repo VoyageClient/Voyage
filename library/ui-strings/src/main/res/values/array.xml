@@ -2,22 +2,6 @@
 <resources>
 
     <!-- media settings -->
-    <string-array name="media_sources">
-        <item>@string/media_source_choose</item>
-        <item>@string/option_send_files</item>
-        <item>@string/option_send_voice</item>
-        <item>@string/option_send_sticker</item>
-        <item>@string/option_take_photo</item>
-        <item>@string/option_take_video</item>
-    </string-array>
-    <string-array name="media_source_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-    </string-array>
     <string-array name="media_preview_modes">
         <item>@string/settings_media_preview_always_show</item>
         <item>@string/settings_media_preview_always_hide</item>
@@ -163,14 +147,5 @@
     <!-- Room settings notification -->
 
     <!-- Theme -->
-
-
-    <!-- media saving choice list -->
-    <string-array name="media_saving_choice">
-        <item>@string/media_saving_period_3_days</item>
-        <item>@string/media_saving_period_1_week</item>
-        <item>@string/media_saving_period_1_month</item>
-        <item>@string/media_saving_period_forever</item>
-    </string-array>
 
 </resources>

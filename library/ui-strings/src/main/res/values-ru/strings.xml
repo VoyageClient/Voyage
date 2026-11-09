@@ -384,10 +384,6 @@
     <string name="directory_server_native_rooms">Все местные комнаты %s</string>
     <string name="settings_select_language">Выберите язык</string>
     <string name="settings_start_on_boot">Запускать при загрузке</string>
-    <string name="media_saving_period_3_days">3 дня</string>
-    <string name="media_saving_period_1_week">1 неделя</string>
-    <string name="media_saving_period_1_month">1 месяц</string>
-    <string name="media_saving_period_forever">Навсегда</string>
     <string name="settings_clear_media_cache">Очистить медиа кэш</string>
     <string name="settings_theme">Тема</string>
     <string name="font_size">Размер шрифта</string>
@@ -398,7 +394,6 @@
     <string name="larger">Большой</string>
     <string name="largest">Самый большой</string>
     <string name="huge">Огромный</string>
-    <string name="settings_keep_media">Сохранить медиа</string>
     <string name="light_theme">Светлая тема</string>
     <string name="dark_theme">Тёмная тема</string>
     <string name="black_theme">Чёрная тема</string>
@@ -422,7 +417,6 @@
     <string name="notification_silent_notifications">Беззвучные уведомления</string>
     <string name="option_take_photo">Сделать фото</string>
     <string name="option_take_video">Снять видео</string>
-    <string name="settings_labs_native_camera">Использовать встроенную камеру</string>
     <string name="command_error">Ошибка команды</string>
     <string name="unrecognized_command">Нераспознанная команда: %s</string>
     <string name="notification_off">Выкл</string>
@@ -442,7 +436,6 @@
     <string name="notification_unread_notified_messages_in_room">%1$s в %2$s</string>
     <string name="avatar">Аватар</string>
     <string name="title_activity_choose_sticker">Отправить стикер</string>
-    <string name="option_send_sticker">Отправить стикер</string>
     <string name="no_sticker_application_dialog_content">У вас сейчас нет доступных наклеек.
 \n
 \nДобавить сейчас\?</string>
@@ -462,10 +455,8 @@
     <string name="action_download">Скачать</string>
     <string name="e2e_re_request_encryption_key">Перезапросить ключи шифрования у других ваших сессий.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Запустите ${app_name} на другом устройстве, которое может расшифровать сообщение, для отправки ключа на эту сессию.</string>
-    <string name="option_send_voice">Отправить голосовое сообщение</string>
     <string name="error_no_external_application_found">К сожалению, внешнее приложение для выполнения этого действия не найдено.</string>
     <string name="error_empty_field_your_password">Пожалуйста, введите ваш пароль.</string>
-    <string name="settings_preview_media_before_sending">Предварительный просмотр медиа перед отправкой</string>
     <string name="command_description_emote">Отображает действие</string>
     <string name="command_description_ban_user">Блокирует пользователя с данным ID</string>
     <string name="command_description_op_user">Определение уровня доступа пользователя</string>
@@ -559,7 +550,6 @@
     <string name="settings_show_read_receipts">Уведомления о прочтении</string>
     <string name="settings_show_read_receipts_summary">Нажмите на уведомление о прочтении для подробного списка.</string>
     <string name="settings_show_avatar_display_name_changes_messages">События учётной записи</string>
-    <string name="settings_labs_native_camera_summary">Использовать системную камеру вместо камеры Element.</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
     <string name="no_valid_google_play_services_apk">Не найден APK сервисов Google Play. Уведомления могут работать неправильно.</string>
@@ -683,8 +673,6 @@
     <string name="settings_send_message_with_enter">Отправить сообщение нажав ввод</string>
     <string name="settings_fail_to_update_password_invalid_current_password">Пароль не действителен</string>
     <string name="settings_media">Медиа</string>
-    <string name="settings_default_media_source">Источник медиа по умолчанию</string>
-    <string name="media_source_choose">Выберите</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="one">%1$s: %2$d сообщение</item>
         <item quantity="few">%1$s: %2$d сообщения</item>
@@ -697,7 +685,6 @@
     <string name="notification_new_invitation">Новое приглашение</string>
     <string name="notification_sender_me">Мне</string>
     <string name="settings_send_message_with_enter_summary">Клавиша Ввод отправит сообщение вместо переноса строки</string>
-    <string name="settings_play_shutter_sound">Воспроизвести звук затвора</string>
     <string name="encryption_information_unknown_ip">неизвестный IP</string>
     <string name="notification_inline_reply_failed">** Отправить не удалось — пожалуйста, откройте комнату</string>
     <string name="you_added_a_new_device_with_info">Новый сеанс запрашивает ключи шифрования.

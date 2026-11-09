@@ -368,11 +368,6 @@
     <string name="account_phone_number_already_used_error">Ce numéro de téléphone est déjà utilisé.</string>
     <string name="settings_start_on_boot">Lancer au démarrage</string>
     <string name="settings_clear_media_cache">Vider le cache des médias</string>
-    <string name="settings_keep_media">Conserver les médias</string>
-    <string name="media_saving_period_3_days">3 jours</string>
-    <string name="media_saving_period_1_week">1 semaine</string>
-    <string name="media_saving_period_1_month">1 mois</string>
-    <string name="media_saving_period_forever">Pas de limite</string>
     <string name="settings_theme">Thème</string>
     <string name="font_size">Taille de la police</string>
     <string name="tiny">Minuscule</string>
@@ -405,7 +400,6 @@
     <string name="notification_silent_notifications">Notifications muettes</string>
     <string name="option_take_photo">Prendre une photo</string>
     <string name="option_take_video">Prendre une vidéo</string>
-    <string name="settings_labs_native_camera">Utiliser la caméra de l’appareil</string>
     <string name="command_error">Erreur de commande</string>
     <string name="unrecognized_command">Commande non reconnue : %s</string>
     <string name="notification_off">Désactivé</string>
@@ -449,7 +443,6 @@
         <item quantity="other">%d changements de statut</item>
     </plurals>
     <string name="title_activity_choose_sticker">Envoyer un autocollant</string>
-    <string name="option_send_sticker">Envoyer un autocollant</string>
     <string name="no_sticker_application_dialog_content">Vous n’avez aucun jeu d\'autocollants activé pour le moment.
 \n
 \nVoulez-vous en ajouter \?</string>
@@ -469,10 +462,8 @@
     <string name="action_download">Télécharger</string>
     <string name="e2e_re_request_encryption_key">Redemander les clés de chiffrement à vos autres sessions.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Veuillez lancer ${app_name} sur un autre appareil qui peut déchiffrer le message pour qu’il puisse envoyer les clés à cette session.</string>
-    <string name="option_send_voice">Envoyer un message vocal</string>
     <string name="error_no_external_application_found">Désolé, aucune application externe n’a été trouvée pour effectuer cette action.</string>
     <string name="error_empty_field_your_password">Veuillez renseigner votre mot de passe.</string>
-    <string name="settings_preview_media_before_sending">Afficher un aperçu du média avant de l’envoyer</string>
     <string name="command_description_emote">Affiche une action</string>
     <string name="command_description_ban_user">Exclus l’utilisateur avec l’identifiant fourni</string>
     <string name="command_description_op_user">Définit le rang d’un utilisateur</string>
@@ -516,7 +507,6 @@
     <string name="settings_show_read_receipts_summary">Cliquer sur les accusés de réception pour une liste détaillée.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Afficher les événements liés au compte</string>
     <string name="settings_password">Mot de passe</string>
-    <string name="settings_labs_native_camera_summary">Lancer l’appareil photo du système plutôt que l’écran d’appareil photo personnalisé.</string>
     <string name="command_problem_with_parameters">La commande « %s » nécessite plus de paramètres, ou certains paramètres ne sont pas corrects.</string>
     <string name="markdown_has_been_enabled">Le Markdown a été activé.</string>
     <string name="markdown_has_been_disabled">Le Markdown a été désactivé.</string>
@@ -700,9 +690,6 @@
     <string name="settings_send_message_with_enter_summary">Le bouton Entrée sur le clavier logiciel enverra le message au lieu d’aller à la ligne</string>
     <string name="settings_fail_to_update_password_invalid_current_password">Le mot de passe n’est pas valide</string>
     <string name="settings_media">Média</string>
-    <string name="settings_default_media_source">Source de médias par défaut</string>
-    <string name="media_source_choose">Choisir</string>
-    <string name="settings_play_shutter_sound">Jouer le son de l’obturateur</string>
     <string name="action_mark_room_read">Marquer comme lu</string>
     <plurals name="notification_compat_summary_line_for_room">
         <item quantity="one">%1$s : %2$d message</item>

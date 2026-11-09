@@ -337,9 +337,7 @@
     <string name="hs_url">होमसर्वर URL</string>
     <string name="hs_client_url">होमसर्वर API URL</string>
     <string name="search">खोजें</string>
-    <string name="option_send_voice">आवाज़ भेजें</string>
     <string name="option_send_files">फ़ाइलें भेजें</string>
-    <string name="option_send_sticker">स्टिकर भेजें</string>
     <string name="option_take_photo_video">फ़ोटो या वीडियो लें</string>
     <string name="option_take_photo">फ़ोटो लें</string>
     <string name="option_take_video">वीडियो लें</string>
@@ -634,7 +632,6 @@
     <string name="settings_third_party_notices">थर्ड पार्टी नोटिस</string>
     <string name="settings_copyright">कॉपीराइट</string>
     <string name="settings_privacy_policy">गोपनीयता नीति</string>
-    <string name="settings_keep_media">मीडिया रखें</string>
     <string name="settings_clear_cache">कैश साफ़ करें</string>
     <string name="settings_clear_media_cache">मीडिया कैश साफ़ करें</string>
     <string name="settings_user_settings">उपयोगकर्ता सेटिंग</string>
@@ -668,7 +665,6 @@
     <string name="settings_enable_direct_share_summary">सिस्टम शेयर मेनू में हाल की चैट दिखाएं</string>
     <string name="settings_show_avatar_display_name_changes_messages">खाता इवेंट दिखाएं</string>
     <string name="settings_vibrate_on_mention">किसी उपयोगकर्ता का उल्लेख करते समय वाइब्रेट करें</string>
-    <string name="settings_preview_media_before_sending">भेजने से पहले मीडिया का प्रीव्यू देखें</string>
     <string name="settings_send_message_with_enter">एंटर से मैसेज भेजें</string>
     <string name="settings_send_message_with_enter_summary">सॉफ़्ट कीबोर्ड का एंटर बटन नई लाइन जोड़ने के बजाय मैसेज भेजेगा</string>
     <string name="settings_show_emoji_keyboard">इमोजी कीबोर्ड दिखाएं</string>
@@ -717,13 +713,6 @@
     <string name="settings_emails_and_phone_numbers_summary">अपने Matrix खाते से जुड़े ईमेल पते और फ़ोन नंबर मैनेज करें</string>
     <string name="settings_select_country">देश चुनें</string>
     <string name="settings_media">मीडिया</string>
-    <string name="settings_default_media_source">डिफ़ॉल्ट मीडिया स्रोत</string>
-    <string name="media_source_choose">चुनें</string>
-    <string name="settings_play_shutter_sound">शटर की आवाज़ चलाएं</string>
-    <string name="media_saving_period_3_days">3 दिन</string>
-    <string name="media_saving_period_1_week">1 सप्ताह</string>
-    <string name="media_saving_period_1_month">1 महीना</string>
-    <string name="media_saving_period_forever">हमेशा</string>
     <string name="settings_presence">उपस्थिति</string>
     <string name="settings_presence_user_always_appears_offline">ऑफ़लाइन मोड</string>
     <string name="settings_presence_user_always_appears_offline_summary">चालू होने पर, आप ऐप का उपयोग करते समय भी दूसरे उपयोगकर्ताओं को हमेशा ऑफ़लाइन दिखेंगे।</string>
@@ -918,8 +907,6 @@
     <string name="room_add_matrix_apps">Matrix ऐप जोड़ें</string>
     <string name="room_manage_integrations">इंटीग्रेशन मैनेज करें</string>
     <string name="room_no_active_widgets">कोई सक्रिय विजेट नहीं</string>
-    <string name="settings_labs_native_camera">नेटिव कैमरे का उपयोग करें</string>
-    <string name="settings_labs_native_camera_summary">कस्टम कैमरा स्क्रीन के बजाय सिस्टम कैमरा शुरू करें।</string>
     <string name="widget_integration_review_terms">जारी रखने के लिए आपको इस सेवा की शर्तें स्वीकार करनी होंगी।</string>
     <string name="timeline_error_room_not_found">क्षमा करें, यह रूम नहीं मिला।\nकृपया बाद में फिर से कोशिश करें।%s</string>
     <string name="you_added_a_new_device">आपने एक नया सेशन \'%s\' जोड़ा है, जो एन्क्रिप्शन कुंजियों का अनुरोध कर रहा है।</string>

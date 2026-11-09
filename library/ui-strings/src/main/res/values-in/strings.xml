@@ -81,8 +81,6 @@
     <string name="loading">Memuat…</string>
     <string name="action_download">Unduh</string>
     <string name="system_alerts_header">Peringatan Sistem</string>
-    <string name="option_send_voice">Kirim Pesan Suara</string>
-    <string name="option_send_sticker">Kirim Sticker</string>
     <string name="option_take_photo">Ambil foto</string>
     <string name="option_take_video">Ambil video</string>
     <string name="no_sticker_application_dialog_content">Saat ini Anda belum memiliki paket stiker apa pun.
@@ -173,7 +171,6 @@
     <string name="widget_integration_room_not_visible">Ruang %s tidak terlihat.</string>
     <string name="widget_integration_missing_parameter">Ada parameter penting yang hilang.</string>
     <string name="room_add_matrix_apps">Tambahkan aplikasi Matrix</string>
-    <string name="settings_labs_native_camera">Gunakan kamera bawaan</string>
     <string name="you_added_a_new_device">Anda menambahkan perangkat baru \'%s\', yang sedang meminta kunci enkripsi.</string>
     <string name="your_unverified_device_requesting">Perangkat Anda yang belum terverifikasi \'%s\' sedang meminta kunci enkripsi.</string>
     <string name="start_verification">Mulai verifikasi</string>
@@ -264,7 +261,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_privacy_policy">Kebijakan privasi</string>
     <string name="settings_clear_cache">Bersihkan cache</string>
     <string name="settings_clear_media_cache">Bersihkan cache media</string>
-    <string name="settings_keep_media">Pertahankan media</string>
     <string name="settings_user_settings">Pengaturan Pengguna</string>
     <string name="settings_notifications">Pemberitahuan</string>
     <string name="settings_ignored_users">Pengguna yang Diabaikan</string>
@@ -281,7 +277,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_inline_url_preview">Pratinjau URL dalam obrolan</string>
     <string name="settings_12_24_timestamps">Tampilkan waktu kirim dalam format 12 jam</string>
     <string name="settings_vibrate_on_mention">Bergetar ketika menyebut seorang pengguna</string>
-    <string name="settings_preview_media_before_sending">Pratinjau media sebelum dikirim</string>
     <string name="settings_deactivate_account_section">Nonaktifkan akun</string>
     <string name="settings_deactivate_my_account">Nonaktifkan akun saya</string>
     <string name="devices_details_id_title">ID</string>
@@ -304,10 +299,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_password_updated">Kata sandi Anda telah diperbaharui</string>
     <string name="settings_unignore_user">Tampilkan semua pesan dari %s\?</string>
     <string name="settings_select_country">Pilih negara</string>
-    <string name="media_saving_period_3_days">3 hari</string>
-    <string name="media_saving_period_1_week">1 minggu</string>
-    <string name="media_saving_period_1_month">1 bulan</string>
-    <string name="media_saving_period_forever">Selamanya</string>
     <string name="room_settings_topic">Topik</string>
     <string name="command_description_deop_user">Demosi pengguna dengan id berikut</string>
     <string name="action_accept">Terima</string>
@@ -712,7 +703,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
 \nTerakhir dilihat: %2$s
 \nJika Anda tidak masuk pada sesi lain, abaikan permintaan ini.</string>
     <string name="widget_integration_review_terms">Untuk melanjutkan, Anda harus menerima persyaratan layanan ini.</string>
-    <string name="settings_labs_native_camera_summary">Mulai kamera sistem daripada layar kamera khusus.</string>
     <string name="room_no_active_widgets">Tidak ada widget yang aktif</string>
     <string name="room_manage_integrations">Kelola Integrasi</string>
     <string name="room_widget_webview_read_protected_media">Baca Media yang dilindungi DRM</string>
@@ -822,9 +812,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_settings_room_notifications_manage_notifications">Anda dapat mengelola notifikasi di %1$s.</string>
     <string name="room_settings_room_notifications_encryption_notice">Harap dicatat bahwa pemberitahuan sebutan &amp; kata kunci tidak tersedia dalam ruangan terenkripsi di ponsel.</string>
     <string name="room_settings_room_notifications_notify_me">Beri tahu saya untuk</string>
-    <string name="settings_play_shutter_sound">Putar suara rana</string>
-    <string name="media_source_choose">Pilih</string>
-    <string name="settings_default_media_source">Sumber media bawaan</string>
     <string name="settings_media">Media</string>
     <string name="settings_emails_and_phone_numbers_summary">Kelola alamat email dan nomor telepon yang ditautkan ke akun Matrix Anda</string>
     <string name="settings_emails_and_phone_numbers_title">Email dan nomor telepon</string>
