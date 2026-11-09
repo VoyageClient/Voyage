@@ -25,8 +25,7 @@ import org.matrix.android.sdk.internal.session.room.summary.getUpdatablePagedRoo
 import javax.inject.Inject
 
 /**
- * The RoomService the android app gets: [DefaultRoomService] (plain-JVM) plus the paged and LiveData
- * room-summary views, which need androidx.paging.
+ * [DefaultRoomService] plus the paged and LiveData room-summary views.
  */
 @SessionScope
 internal class AndroidRoomService @Inject constructor(

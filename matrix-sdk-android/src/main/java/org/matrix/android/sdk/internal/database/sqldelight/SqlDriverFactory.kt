@@ -13,11 +13,8 @@ import app.cash.sqldelight.db.SqlSchema
 import java.io.File
 
 /**
- * Platform seam for opening SQLDelight databases: everything above this interface is
- * platform-neutral JVM code; only the bound implementation touches the platform's SQLite stack.
- *
- * Implementations create the schema on first open and drop-and-recreate on any version change
- * (migrations are out of scope).
+ * Opens SQLDelight databases. Implementations create the schema on first open and drop-and-recreate
+ * on any version change (migrations are out of scope).
  */
 internal interface SqlDriverFactory {
 

@@ -15,10 +15,6 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlinx.coroutines.CoroutineDispatcher
 
-// LiveData query views (Android reactive layer). The neutral coroutine/transaction helpers live in
-// DbReactiveCoroutines.kt so the core module can reuse them; the desktop app observes queries as
-// Flow directly instead of these.
-
 /** Replacement for `monarchy.findAllMappedWithChanges` — an auto-updating list as LiveData. */
 internal fun <T : Any> Query<T>.asLiveList(dispatcher: CoroutineDispatcher): LiveData<List<T>> =
         asFlow().mapToList(dispatcher).asLiveData()

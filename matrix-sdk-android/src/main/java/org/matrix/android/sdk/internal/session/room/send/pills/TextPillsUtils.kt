@@ -17,8 +17,7 @@ package org.matrix.android.sdk.internal.session.room.send.pills
 
 /**
  * Detects special spans (mention pills, custom-emote images) in a CharSequence and turns them into
- * the HTML/markdown sent in a Matrix message. Span detection is a platform concern (android uses
- * Spannable); a desktop impl that carries no spans returns null (no transformation).
+ * the HTML/markdown sent in a Matrix message.
  */
 internal interface TextPillsUtils {
 

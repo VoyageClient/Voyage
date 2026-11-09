@@ -19,8 +19,7 @@ import kotlin.random.Random
 
 /**
  * Pins the java.util.Base64-based replacements against the real android.util.Base64 (provided by
- * Robolectric) so encodings that reach the wire, exports or persisted storage stay byte-identical
- * after the desktop-port migration off the Android framework.
+ * Robolectric) so encodings that reach the wire, exports or persisted storage stay byte-identical.
  */
 @RunWith(RobolectricTestRunner::class)
 class Base64CompatTest {

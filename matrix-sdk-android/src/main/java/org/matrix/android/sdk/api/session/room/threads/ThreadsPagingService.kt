@@ -10,9 +10,7 @@ package org.matrix.android.sdk.api.session.room.threads
 import androidx.paging.PagedList
 
 /**
- * Android-only paged thread list, kept off [ThreadsService] (which stays plain-JVM, no
- * androidx.paging). The android ThreadsService impl also implements this; cast threadsService()
- * to reach it.
+ * Paged thread list; cast threadsService() to reach it.
  */
 interface ThreadsPagingService {
 

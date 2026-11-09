@@ -28,8 +28,8 @@ import org.matrix.android.sdk.internal.util.ensureTrailingSlash
  * This data class holds how to connect to a specific Homeserver.
  * It's used with [org.matrix.android.sdk.api.auth.AuthenticationService] class.
  * You should use the [Builder] to create one.
- * URIs are held as strings so the class stays platform-neutral; the JSON shape is unchanged from
- * when they were android Uri (which always serialized as the plain string).
+ * URIs are held as strings; the JSON shape is unchanged from when they were android Uri (which
+ * always serialized as the plain string).
  */
 @JsonClass(generateAdapter = true)
 data class HomeServerConnectionConfig(

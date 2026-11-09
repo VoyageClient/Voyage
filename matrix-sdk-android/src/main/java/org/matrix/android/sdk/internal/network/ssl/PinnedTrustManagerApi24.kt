@@ -32,7 +32,7 @@ import javax.net.ssl.X509ExtendedTrustManager
  * @property defaultTrustManager Optional trust manager to fall back on if cert does not match
  * any of the fingerprints. Can be null.
  */
-// Requires X509ExtendedTrustManager: Android N+ / any desktop JVM. Only constructed behind
+// Requires X509ExtendedTrustManager (Android N+). Only constructed behind
 // PinnedTrustManagerProvider's availability check.
 @RequiresApi(24)
 internal class PinnedTrustManagerApi24(

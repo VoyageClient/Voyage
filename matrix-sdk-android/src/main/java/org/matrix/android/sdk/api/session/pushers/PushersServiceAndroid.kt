@@ -11,8 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 
 /**
- * Android-only LiveData view over [PushersService.getPushersFlow], for consumers that still combine
- * pushers via LiveData transformations. The service itself exposes a platform-neutral Flow so it can
- * live in the shared core. Not part of the core module.
+ * LiveData view over [PushersService.getPushersFlow], for consumers that still combine pushers via
+ * LiveData transformations.
  */
 fun PushersService.getPushersLive(): LiveData<List<Pusher>> = getPushersFlow().asLiveData()

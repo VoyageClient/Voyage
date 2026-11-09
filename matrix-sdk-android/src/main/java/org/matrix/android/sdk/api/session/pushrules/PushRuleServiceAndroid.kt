@@ -11,8 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 
 /**
- * Android-only LiveData view over [PushRuleService.getKeywordsFlow], for consumers that observe via a
- * lifecycle owner. The service itself exposes a platform-neutral Flow so it can live in the shared
- * core. Not part of the core module.
+ * LiveData view over [PushRuleService.getKeywordsFlow], for consumers that observe via a lifecycle
+ * owner.
  */
 fun PushRuleService.getKeywordsLive(): LiveData<Set<String>> = getKeywordsFlow().asLiveData()

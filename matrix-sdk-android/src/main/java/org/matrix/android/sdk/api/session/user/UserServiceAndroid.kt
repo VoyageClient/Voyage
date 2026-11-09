@@ -14,14 +14,12 @@ import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 
 /**
- * Android-only LiveData view over [UserService.getUserFlow], for consumers that observe via a
- * lifecycle owner. The service exposes a platform-neutral Flow so it can live in the shared core.
+ * LiveData view over [UserService.getUserFlow], for consumers that observe via a lifecycle owner.
  */
 fun UserService.getUserLive(userId: String): LiveData<Optional<User>> = getUserFlow(userId).asLiveData()
 
 /**
- * Android-only paged user list, kept off [UserService] (which stays plain-JVM, no androidx.paging).
- * The android UserService impl also implements this; cast userService() to reach it.
+ * Paged user list; cast userService() to reach it.
  */
 interface UserPagingService {
 

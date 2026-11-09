@@ -41,6 +41,7 @@ class MessageTimestampVisibilityTest {
         listOf(false, true).forEach { singleSided ->
             listOf(true, false, true).forEach { showTimestamp ->
                 val information = PollFixture.A_MESSAGE_INFORMATION_DATA.copy(
+                        senderId = "@alice:example.org",
                         memberName = "Alice",
                         sentByMe = false,
                         time = "12:34",

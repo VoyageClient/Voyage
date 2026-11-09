@@ -16,8 +16,7 @@ import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
 /**
- * The UserService the android app gets: [DefaultUserService] (plain-JVM) plus the paged user list,
- * which needs androidx.paging.
+ * [DefaultUserService] plus the paged user list.
  */
 @SessionScope
 internal class AndroidUserService @Inject constructor(

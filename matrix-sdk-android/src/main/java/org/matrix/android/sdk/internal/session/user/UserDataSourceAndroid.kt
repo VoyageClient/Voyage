@@ -12,8 +12,6 @@ import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 
-// The PagedList user-directory surface; kept off UserDataSource so that stays android-free. The Flow
-// accessors on the data source are primary; DefaultUserService (UserPagingService) uses this.
 internal fun UserDataSource.getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
     val query = if (filter.isNullOrEmpty()) {
         database.userQueries.selectAll()

@@ -11,8 +11,7 @@ import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 
 // Narrow seam over EventIndexer so the room-summary decryptor can feed decrypted events to the local
-// search index without depending on EventIndexer itself (which observes the Session lifecycle). A
-// desktop build without local search can bind a no-op.
+// search index without depending on EventIndexer itself (which observes the Session lifecycle).
 internal interface DecryptedEventIndexer {
     fun onEventsDecrypted(events: List<Pair<Event, MXEventDecryptionResult>>)
 }

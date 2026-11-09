@@ -11,8 +11,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 
 /**
- * Android-only LiveData view over [SyncService.getSyncStateFlow]. The service itself exposes a
- * platform-neutral Flow (so it can live in the shared core); consumers that still want LiveData use
- * this extension. Not part of the core module.
+ * LiveData view over [SyncService.getSyncStateFlow].
  */
 fun SyncService.getSyncStateLive(): LiveData<SyncState> = getSyncStateFlow().asLiveData()

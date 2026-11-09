@@ -10,9 +10,7 @@ package org.matrix.android.sdk.internal.platform
 import org.matrix.android.sdk.internal.network.NetworkCallbackStrategy
 
 /**
- * Platform seam for network-reachability change notifications. Android picks a
- * ConnectivityManager-based strategy by API level; a desktop implementation can assume-online
- * (the sync loop and send queue already recover via homeserver pings and backoff).
+ * Network-reachability change notifications; picks a ConnectivityManager-based strategy by API level.
  */
 internal interface NetworkCallbackStrategyFactory {
 

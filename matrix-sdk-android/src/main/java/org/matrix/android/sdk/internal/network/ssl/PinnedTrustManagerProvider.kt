@@ -24,7 +24,7 @@ internal object PinnedTrustManagerProvider {
     // Set to false to perform some tests
     private const val USE_DEFAULT_TRUST_MANAGER = true
 
-    // X509ExtendedTrustManager exists on Android N+ and every desktop JVM
+    // X509ExtendedTrustManager exists on Android N+
     private val extendedTrustManagerAvailable =
             runCatching { Class.forName("javax.net.ssl.X509ExtendedTrustManager") }.isSuccess
 

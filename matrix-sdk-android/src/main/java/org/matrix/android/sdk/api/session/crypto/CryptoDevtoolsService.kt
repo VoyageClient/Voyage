@@ -13,9 +13,8 @@ import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 import org.matrix.android.sdk.api.session.crypto.model.IncomingRoomKeyRequest
 
 /**
- * Android-only paged views of the crypto key-request / gossiping audit trail, used by the settings
- * devtools screens. Kept off [CryptoService] so that interface stays plain-JVM (no androidx.paging);
- * the android CryptoService impl also implements this. Cast the CryptoService to reach it.
+ * Paged views of the crypto key-request / gossiping audit trail, used by the settings devtools
+ * screens. Cast the CryptoService to reach it.
  */
 interface CryptoDevtoolsService {
 

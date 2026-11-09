@@ -21,8 +21,7 @@ import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
 /**
- * The CryptoService the android app gets: [DefaultCryptoService] (plain-JVM) plus the paged
- * devtools views, which need androidx.paging and so cannot live on the shared impl.
+ * [DefaultCryptoService] plus the paged devtools views.
  */
 @SessionScope
 internal class AndroidCryptoService @Inject constructor(

@@ -23,8 +23,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 
 /**
- * The ThreadsService the android app gets: [DefaultThreadsService] (plain-JVM) plus the paged thread
- * list, which needs androidx.paging.
+ * [DefaultThreadsService] plus the paged thread list.
  */
 internal class AndroidThreadsService @AssistedInject constructor(
         @Assisted private val roomId: String,

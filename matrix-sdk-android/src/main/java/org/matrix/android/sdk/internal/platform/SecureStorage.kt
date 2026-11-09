@@ -8,9 +8,8 @@
 package org.matrix.android.sdk.internal.platform
 
 /**
- * Platform seam for encrypting small secrets at rest under a named key alias. Android backs this
- * with the Keystore (via SecretStoringUtils); a desktop implementation can use an OS keyring or a
- * file-based key with an encrypt-then-MAC envelope.
+ * Encrypts small secrets at rest under a named key alias, backed by the Keystore (via
+ * SecretStoringUtils).
  */
 internal interface SecureStorage {
 

@@ -19,8 +19,6 @@ package org.matrix.android.sdk.internal.session.content
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import java.io.File
 
-// Platform seam for generating a video thumbnail frame. The android impl uses MediaMetadataRetriever
-// + Bitmap; a desktop impl can decode a frame via ffmpeg or return null (no thumbnail).
 internal interface ThumbnailExtractor {
 
     class ThumbnailData(

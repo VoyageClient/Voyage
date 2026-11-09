@@ -12,12 +12,10 @@ import org.matrix.android.sdk.internal.worker.SessionWorkerParams
 import java.util.UUID
 
 /**
- * Platform seam for persistent background tasks, covering exactly the semantics the SDK uses from
- * WorkManager: fire-and-forget enqueue, named unique queues (serialized FIFO with append/replace),
- * one two-stage chain whose first task's output params feed the second, and cancellation by handle,
- * queue name, tag, or everything for the session. A desktop implementation can run these as
- * supervisor-scoped coroutines with params persisted for restart resume — it does not need
- * OS-scheduled deferral.
+ * Persistent background tasks, covering exactly the semantics the SDK uses from WorkManager:
+ * fire-and-forget enqueue, named unique queues (serialized FIFO with append/replace), one two-stage
+ * chain whose first task's output params feed the second, and cancellation by handle, queue name,
+ * tag, or everything for the session.
  */
 internal interface BackgroundTaskScheduler {
 

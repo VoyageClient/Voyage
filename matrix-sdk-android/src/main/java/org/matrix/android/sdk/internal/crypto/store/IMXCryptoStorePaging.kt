@@ -13,8 +13,7 @@ import org.matrix.android.sdk.api.session.crypto.OutgoingKeyRequest
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 import org.matrix.android.sdk.api.session.crypto.model.TrailType
 
-// The PagedList devtools surface of the crypto store; kept out of IMXCryptoStore so that stays
-// android-free. SqlCryptoStore implements both; DefaultCryptoService casts to reach these.
+// The PagedList devtools surface of the crypto store; DefaultCryptoService casts to reach it.
 internal interface IMXCryptoStorePaging {
     fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>>
     fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>>

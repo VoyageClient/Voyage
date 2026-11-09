@@ -19,7 +19,7 @@ package org.matrix.android.sdk.internal.util
 /**
  * Platform seam for HTML-to-plain-text conversion: Android swaps in an HtmlCompat-based
  * implementation at Matrix init (see [installAndroidHtmlConverter]) to keep its exact historical
- * rendering; the default is a basic strip-tags + unescape-entities fallback for desktop.
+ * rendering; the default is a basic strip-tags + unescape-entities fallback.
  */
 internal object HtmlToPlainTextConverter {
 

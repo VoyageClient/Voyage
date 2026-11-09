@@ -65,9 +65,7 @@ import org.matrix.android.sdk.internal.util.AndroidTemporaryFileCreator
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 
 /**
- * Everything a session graph needs that only the android platform can supply. It is the shopping
- * list for any other platform: whatever is bound here has to be bound there too, by an impl of the
- * same core interface.
+ * Session-graph bindings for the Android implementations of the SDK's platform interfaces.
  */
 @Module
 internal abstract class AndroidSessionModule {

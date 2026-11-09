@@ -10,9 +10,8 @@ package org.matrix.android.sdk.internal.worker
 import timber.log.Timber
 
 /**
- * The work a background task actually does, independent of what schedules it: the android
- * [SessionSafeCoroutineWorker] shells run these through WorkManager, a desktop scheduler runs the
- * same bodies as coroutines.
+ * The work a background task actually does, independent of what schedules it: the
+ * [SessionSafeCoroutineWorker] shells run these through WorkManager.
  */
 internal interface BackgroundTaskBody<PARAM : SessionWorkerParams> {
 

@@ -12,9 +12,8 @@ import androidx.lifecycle.asLiveData
 import org.matrix.android.sdk.api.session.identity.ThreePid
 
 /**
- * Android-only LiveData view over [ProfileService.getThreePidsFlow], for consumers that combine
- * three-pids via LiveData transformations. The service itself exposes a platform-neutral Flow so it
- * can live in the shared core. Not part of the core module.
+ * LiveData view over [ProfileService.getThreePidsFlow], for consumers that combine three-pids via
+ * LiveData transformations.
  */
 fun ProfileService.getThreePidsLive(refreshData: Boolean): LiveData<List<ThreePid>> =
         getThreePidsFlow(refreshData).asLiveData()

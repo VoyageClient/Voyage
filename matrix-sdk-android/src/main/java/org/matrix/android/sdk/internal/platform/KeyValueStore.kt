@@ -8,9 +8,8 @@
 package org.matrix.android.sdk.internal.platform
 
 /**
- * Platform seam for small persistent key-value data (queue mementos, lightweight settings,
- * encrypted database keys). Android backs this with SharedPreferences; a desktop implementation
- * can use a flat file. Not for large data sets — use a database for those.
+ * Small persistent key-value data (queue mementos, lightweight settings, encrypted database keys),
+ * backed by SharedPreferences. Not for large data sets — use a database for those.
  */
 internal interface KeyValueStore {
 

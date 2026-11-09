@@ -7,8 +7,7 @@
 
 package org.matrix.android.sdk.api.session.widgets
 
-// The WebView-backed admin-widget JS bridge; kept off WidgetService so that stays android-free.
-// DefaultWidgetService implements both; consumers cast session.widgetService() to reach it.
+// The WebView-backed admin-widget JS bridge; consumers cast session.widgetService() to reach it.
 interface WidgetServiceAndroid {
 
     /**

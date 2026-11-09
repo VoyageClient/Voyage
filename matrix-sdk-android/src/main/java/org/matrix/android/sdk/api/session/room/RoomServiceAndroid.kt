@@ -24,18 +24,14 @@ fun RoomService.getRoomSummariesLive(
 ): LiveData<List<RoomSummary>> = getRoomSummariesFlow(queryParams, sortOrder).asLiveData()
 
 /**
- * Android-only LiveData views over the room-summary Flows. The services expose platform-neutral Flows
- * (so they can live in the shared core); consumers that still want LiveData use these. Not part of the
- * core module.
+ * LiveData views over the room-summary Flows.
  */
 fun Room.getRoomSummaryLive(): LiveData<Optional<RoomSummary>> = getRoomSummaryFlow().asLiveData()
 
 fun RoomService.getRoomSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> = getRoomSummaryFlow(roomId).asLiveData()
 
 /**
- * Android-only paged / LiveData room-summary views, kept off [RoomService] (which stays plain-JVM, no
- * androidx.paging/lifecycle). The android RoomService impl also implements this; cast roomService() to
- * reach it.
+ * Paged / LiveData room-summary views; cast roomService() to reach it.
  */
 interface RoomPagingService {
 

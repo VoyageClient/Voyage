@@ -15,8 +15,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 
 /**
- * Feeds Android process-lifecycle transitions into the platform-neutral
- * [BackgroundDetectionObserver]. A desktop app instead calls onAppForeground() once at startup.
+ * Feeds Android process-lifecycle transitions into [BackgroundDetectionObserver].
  */
 internal class AndroidAppStateDriver(
         private val observer: BackgroundDetectionObserver,

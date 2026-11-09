@@ -10,8 +10,7 @@ package org.matrix.android.sdk.internal.session.content
 import java.io.File
 
 /**
- * Reads a platform content URI (as a string) into a local temp file. Android backs this with
- * ContentResolver; a desktop impl can treat the string as a file path.
+ * Reads a content URI (as a string) into a local temp file via ContentResolver.
  */
 internal interface ContentUriResolver {
 

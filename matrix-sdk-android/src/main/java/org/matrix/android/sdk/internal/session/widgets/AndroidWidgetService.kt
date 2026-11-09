@@ -13,7 +13,6 @@ import org.matrix.android.sdk.api.session.widgets.WidgetServiceAndroid
 import javax.inject.Inject
 import javax.inject.Provider
 
-// Adds the WebView-backed JS bridge to the shared widget service, so that one stays android-free.
 internal class AndroidWidgetService @Inject constructor(
         delegate: DefaultWidgetService,
         private val widgetPostAPIMediator: Provider<WidgetPostAPIMediator>,

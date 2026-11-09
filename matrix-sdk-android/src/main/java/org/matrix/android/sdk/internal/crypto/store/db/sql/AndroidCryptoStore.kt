@@ -21,8 +21,7 @@ import org.matrix.android.sdk.internal.util.time.Clock
 import javax.inject.Inject
 
 /**
- * The crypto store the android app gets: [SqlCryptoStore] (plain-JVM) plus the paged key-request and
- * audit-trail views the devtools screens read, which need androidx.paging.
+ * [SqlCryptoStore] plus the paged key-request and audit-trail views the devtools screens read.
  */
 @SessionScope
 internal class AndroidCryptoStore @Inject constructor(

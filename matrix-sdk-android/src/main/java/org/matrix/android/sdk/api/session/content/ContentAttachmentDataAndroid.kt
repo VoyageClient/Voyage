@@ -9,6 +9,6 @@ package org.matrix.android.sdk.api.session.content
 
 import android.net.Uri
 
-/** Android view of [ContentAttachmentData.queryUri]; moves to the android layer at the core split. */
+/** [ContentAttachmentData.queryUri] parsed as an android [Uri]. */
 val ContentAttachmentData.queryUriAndroid: Uri
     get() = Uri.parse(queryUri)
