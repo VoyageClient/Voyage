@@ -42,6 +42,10 @@ abstract class RoomAclEntryItem : VectorEpoxyModel<RoomAclEntryItem.Holder>(R.la
         holder.type.isEnabled = editable
         holder.type.isClickable = editable
         holder.delete.isEnabled = editable
+        val alpha = if (editable) 1f else DISABLED_ALPHA
+        holder.server.alpha = alpha
+        holder.type.alpha = alpha
+        holder.delete.alpha = alpha
         holder.watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
@@ -64,5 +68,9 @@ abstract class RoomAclEntryItem : VectorEpoxyModel<RoomAclEntryItem.Holder>(R.la
         val type by bind<ImageButton>(R.id.roomAclType)
         val delete by bind<ImageButton>(R.id.roomAclDelete)
         var watcher: TextWatcher? = null
+    }
+
+    companion object {
+        private const val DISABLED_ALPHA = 0.4f
     }
 }

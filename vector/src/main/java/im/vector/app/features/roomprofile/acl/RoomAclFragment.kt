@@ -66,6 +66,7 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
         com.airbnb.epoxy.EpoxyTouchHelper.initDragging(controller).withRecyclerView(views.roomSettingsRecyclerView).forVerticalList()
                 .withTarget(RoomAclEntryItem_::class.java)
                 .andCallbacks(object : com.airbnb.epoxy.EpoxyTouchHelper.DragCallbacks<RoomAclEntryItem_>() {
+                    override fun isDragEnabledForModel(model: RoomAclEntryItem_?): Boolean = model?.editable() == true
                     override fun onDragStarted(model: RoomAclEntryItem_?, itemView: View?, adapterPosition: Int) {
                         itemView?.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                     }
