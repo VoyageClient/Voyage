@@ -252,13 +252,16 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.hasFailedSending = hasFailedSending(stores, roomId)
 
         if (updateMembers) {
-            val otherRoomMembers = SqlRoomMemberHelper(stores, roomId)
-                    .queryActiveRoomMembersEvent()
+            val activeMembers = SqlRoomMemberHelper(stores, roomId).queryActiveRoomMembersEvent()
+            val otherRoomMembers = activeMembers
                     .filter { it.userId != userId }
                     .map { it.userId }
             entity.otherMemberIds = ArrayList<String>().apply { addAll(otherRoomMembers) }
             if (roomSummary?.joinedMembersCount == null) {
-                entity.joinedMembersCount = otherRoomMembers.size + 1
+                entity.joinedMembersCount = activeMembers.count { it.membership == Membership.JOIN }
+            }
+            if (roomSummary?.invitedMembersCount == null) {
+                entity.invitedMembersCount = activeMembers.count { it.membership == Membership.INVITE }
             }
         }
 
