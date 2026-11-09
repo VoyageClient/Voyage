@@ -24,15 +24,20 @@ class TranslationExceptions private constructor(
         val out = StringBuilder()
         var last = 0
         for (match in PLACEHOLDER.findAll(translated)) {
-            out.append(translated, last, match.range.first)
+            val before = translated.substring(last, match.range.first)
+            out.append(before)
             val item = protected.getOrNull(match.groupValues[1].toInt()) ?: match.value
             // Engines may glue a placeholder to the surrounding words; a link needs its whitespace
-            // boundaries back or it stops being recognised as one.
+            // boundaries back or it stops being recognised as one. Next to another placeholder (a tag
+            // or entity) the original adjacency is kept.
             val isolate = ISOLATED.matches(item)
-            if (isolate && out.isNotEmpty() && !out.last().isWhitespace()) out.append(' ')
+            if (isolate && before.isNotEmpty() && !before.last().isWhitespace()) out.append(' ')
             out.append(item)
             last = match.range.last + 1
-            if (isolate && last < translated.length && !translated[last].isWhitespace()) out.append(' ')
+            if (isolate && last < translated.length && !translated[last].isWhitespace() &&
+                    PLACEHOLDER.find(translated, last)?.range?.first != last) {
+                out.append(' ')
+            }
         }
         out.append(translated, last, translated.length)
         return out.toString()
@@ -55,9 +60,10 @@ class TranslationExceptions private constructor(
         private val ISOLATED = Regex("(?:$URL|$MATRIX_ID)")
 
         // Chunks of a formatted body that must survive verbatim: whole code/pre blocks, whole
-        // matrix.to mention pills (their display name included), every other tag, and entities.
+        // matrix.to mention pills (their display name included), every other tag, bare URLs in the
+        // text (whole, so an escaped `&amp;via=` stays attached), and entities.
         private val HTML_CHUNK = Regex(
-                """<(code|pre)\b[^>]*>.*?</\1\s*>|<a\b[^>]*matrix\.to[^>]*>.*?</a\s*>|<[^>]+>|&[#A-Za-z0-9]+;""",
+                """<(code|pre)\b[^>]*>.*?</\1\s*>|<a\b[^>]*matrix\.to[^>]*>.*?</a\s*>|<[^>]+>|(?:https?|matrix|mxc)://[^\s<]+|&[#A-Za-z0-9]+;""",
                 setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
         )
 

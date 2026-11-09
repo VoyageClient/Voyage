@@ -518,7 +518,7 @@ class TimelineEventController @Inject constructor(
                 currentSnapshot.forEachIndexed { index, event ->
                     if (index >= modelCache.size) return@forEachIndexed
                     if (modelCache[index] == null) return@forEachIndexed
-                    if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
+                    if (event.eventId in ids || event.timelineStableId() in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
                         invalidateAt(index)
                     }
                 }

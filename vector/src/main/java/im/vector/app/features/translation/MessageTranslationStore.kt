@@ -8,7 +8,6 @@
 package im.vector.app.features.translation
 
 import androidx.core.text.HtmlCompat
-import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
@@ -36,10 +35,16 @@ class MessageTranslationStore @Inject constructor(
     /** [formatted] is the translated formatted body (markup/pills preserved), when the message had one. */
     data class Translation(val text: String, val sourceLanguage: String?, val targetLanguage: String, val formatted: String? = null)
 
-    private class Entry(val translation: Translation, val source: String?)
+    /** The latest edit a translation was made from; a null revision is the unedited original. */
+    data class Revision(val editId: String?, val editTs: Long)
+
+    private class Entry(val translation: Translation, val source: Revision?)
 
     private val translations = ConcurrentHashMap<String, Entry>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
+
+    // Local echo id -> synced event id, for own messages translated before their send completed.
+    private val remoteIds = ConcurrentHashMap<String, String>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _updates = MutableSharedFlow<String>(extraBufferCapacity = 64)
@@ -50,10 +55,11 @@ class MessageTranslationStore @Inject constructor(
 
     /** Unchecked against edits; only for callers that already went through [get] with the event. */
     fun get(eventId: String): Translation? {
-        val entry = translations[eventId] ?: return null
+        val key = resolve(eventId)
+        val entry = translations[key] ?: return null
         // A language switch makes old translations stale — they targeted the previous app language.
         if (entry.translation.targetLanguage != TranslationLanguages.appLanguage()) {
-            translations.remove(eventId, entry)
+            translations.remove(key, entry)
             return null
         }
         return entry.translation
@@ -61,8 +67,8 @@ class MessageTranslationStore @Inject constructor(
 
     /** Also drops the translation once the message has been edited since it was translated. */
     fun get(event: TimelineEvent): Translation? {
-        val entry = translations[event.eventId] ?: return null
-        if (entry.source != sourceOf(event)) {
+        val entry = translations[event.eventId] ?: adoptLocalEcho(event) ?: return null
+        if (isEditedSince(entry.source, sourceOf(event))) {
             translations.remove(event.eventId, entry)
             return null
         }
@@ -71,10 +77,23 @@ class MessageTranslationStore @Inject constructor(
 
     fun isTranslated(event: TimelineEvent): Boolean = get(event) != null
 
-    fun isTranslating(eventId: String): Boolean = eventId in inFlight
+    fun isTranslating(eventId: String): Boolean =
+            eventId in inFlight || remoteIds.any { (localEchoId, remoteId) -> remoteId == eventId && localEchoId in inFlight }
 
     fun untranslate(eventId: String) {
-        if (translations.remove(eventId) != null) _updates.tryEmit(eventId)
+        val key = resolve(eventId)
+        if (translations.remove(key) != null) _updates.tryEmit(key)
+    }
+
+    private fun resolve(eventId: String): String = remoteIds[eventId] ?: eventId
+
+    // The synced copy of an own message carries its local echo id as the transaction id.
+    private fun adoptLocalEcho(event: TimelineEvent): Entry? {
+        val localEchoId = event.root.unsignedData?.transactionId?.takeIf { it.isNotEmpty() && it != event.eventId } ?: return null
+        if (localEchoId !in inFlight && !translations.containsKey(localEchoId)) return null
+        remoteIds[localEchoId] = event.eventId
+        val entry = translations.remove(localEchoId) ?: return null
+        return translations.putIfAbsent(event.eventId, entry) ?: entry
     }
 
     /**
@@ -82,7 +101,7 @@ class MessageTranslationStore @Inject constructor(
      * When [formattedBody] is given, it is translated instead — markup, mention pills and line
      * structure survive — and the plain text is derived from the result.
      */
-    fun translate(eventId: String, source: String?, text: String, formattedBody: String? = null) {
+    fun translate(eventId: String, source: Revision?, text: String, formattedBody: String? = null) {
         if (!inFlight.add(eventId)) return
         scope.launch {
             try {
@@ -103,8 +122,9 @@ class MessageTranslationStore @Inject constructor(
                         } else {
                             Translation(restored, result.detectedSource, TranslationLanguages.appLanguage())
                         }
-                        translations[eventId] = Entry(translation, source)
-                        _updates.tryEmit(eventId)
+                        val key = resolve(eventId)
+                        translations[key] = Entry(translation, source)
+                        _updates.tryEmit(key)
                     }
                 }
             } finally {
@@ -117,7 +137,19 @@ class MessageTranslationStore @Inject constructor(
             HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
 
     companion object {
-        /** What a translation was made from; a differing value means the message was edited since. */
-        fun sourceOf(event: TimelineEvent): String? = event.getVectorLastMessageContent()?.body
+        // Keyed on the edit rather than the body: the same event loaded elsewhere (a jump-to context,
+        // the actions sheet's fresh copy) can have its edit still undecrypted or its aggregation
+        // missing, and must not count as edited.
+        fun sourceOf(event: TimelineEvent): Revision? {
+            val edit = event.annotations?.editSummary?.latestEdit ?: return null
+            return Revision(edit.eventId, edit.originServerTs ?: event.annotations?.editSummary?.lastEditTs ?: 0L)
+        }
+
+        // Only a newer edit than the translated one invalidates it; a view that knows of no edit, or of
+        // an older one, is just behind.
+        private fun isEditedSince(translated: Revision?, current: Revision?): Boolean {
+            if (current == null || current.editId == translated?.editId) return false
+            return current.editTs > (translated?.editTs ?: Long.MIN_VALUE)
+        }
     }
 }
