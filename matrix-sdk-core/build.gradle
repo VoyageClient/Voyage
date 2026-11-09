@@ -18,8 +18,7 @@ buildscript {
 }
 
 // Generate the SQLDelight databases from the android module's .sq files — same schemas, same
-// generated API, verified here to compile as plain JVM. The desktop driver is JDBC (proven by
-// matrix-sdk-android's JdbcSqlDriverTest); the android module keeps its FrameworkSqliteDriver.
+// generated API, verified here to compile as plain JVM.
 sqldelight {
     databases {
         GlobalSqlDatabase {
@@ -1611,5 +1610,3 @@ dependencies {
     // The JVM has no org.json of its own, so core's own tests need a real one.
     testImplementation 'org.json:json:20240303'
 }
-
-apply from: "$rootDir/gradle/jvm-publish.gradle"

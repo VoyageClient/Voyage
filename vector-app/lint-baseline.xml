@@ -13654,17 +13654,6 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of app.cash.sqldelight:sqlite-driver than 2.0.2 is available: 2.3.2"
-        errorLine1="    testImplementation &quot;app.cash.sqldelight:sqlite-driver:2.0.2&quot;"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="285"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
         message="A newer version of org.jsoup:jsoup than 1.17.2 is available: 1.23.2"
         errorLine1="    implementation &apos;org.jsoup:jsoup:1.17.2&apos;"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~">
