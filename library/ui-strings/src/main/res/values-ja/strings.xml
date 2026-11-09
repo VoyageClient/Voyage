@@ -87,10 +87,6 @@
     <string name="auth_email_already_defined">このメールアドレスは既に登録されています。</string>
     <string name="auth_forgot_password">パスワードを忘れましたか？</string>
     <string name="login_error_invalid_home_server">正しいURLを入力してください</string>
-    <string name="compression_opt_list_original">原寸</string>
-    <string name="compression_opt_list_large">大</string>
-    <string name="compression_opt_list_medium">中</string>
-    <string name="compression_opt_list_small">小</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="_continue">続行</string>
@@ -521,9 +517,6 @@
     <string name="attachment_type_gallery">ギャラリー</string>
     <string name="attachment_type_sticker">ステッカー</string>
     <string name="message_ignore_user">ユーザーを無視</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="other">元の大きさのまま画像を送信</item>
-    </plurals>
     <string name="settings_send_markdown">マークダウン書式</string>
     <string name="settings_send_markdown_summary">メッセージ送信前にマークダウン書式を適用します。アスタリスクを使用して斜字体のテキストを表示するなどの高度な書式設定が利用できます。</string>
     <string name="preference_voice_and_video">音声とビデオ</string>
@@ -890,7 +883,6 @@
     <string name="encryption_settings_manage_message_recovery_summary">鍵のバックアップを管理</string>
     <string name="encryption_exported_successfully">鍵のエクスポートに成功しました</string>
     <string name="media_source_choose">選択</string>
-    <string name="compression_opt_list_choose">選択</string>
     <string name="room_alias_local_address_add">ローカルアドレスを追加</string>
     <string name="room_alias_local_address_empty">このルームにはローカルアドレスがありません</string>
     <string name="room_alias_delete_confirmation">アドレス\"%1$s\"を削除しますか？</string>
@@ -1157,7 +1149,6 @@
     <string name="room_create_member_of_space_name_can_join">スペース %s のメンバーが検索、プレビュー、参加できます。</string>
     <string name="room_settings_room_access_private_invite_only_title">非公開（招待者のみ参加可能）</string>
     <string name="settings_default_media_source">既定のメディアソース</string>
-    <string name="settings_default_compression">既定の圧縮率</string>
     <string name="settings_room_upgrades">ルームのアップグレード</string>
     <string name="settings_messages_by_bot">ボットによるメッセージ</string>
     <string name="settings_room_invitations">ルームへの招待</string>
@@ -1639,9 +1630,6 @@
     <string name="login_reset_password_mail_confirmation_notice">%1$sに認証メールを送信しました。</string>
     <string name="login_reset_password_mail_confirmation_title">メールボックスを確認してください</string>
     <string name="login_reset_password_success_submit">サインインに戻る</string>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="other">元の大きさのまま動画を送信</item>
-    </plurals>
     <string name="no_connectivity_to_the_server_indicator">サーバーとの接続が失われました</string>
     <string name="verification_cannot_access_other_session">復旧用のパスフレーズか、リカバリーキーを使用</string>
     <string name="initialize_cross_signing">クロス署名を開始</string>
@@ -3661,4 +3649,10 @@
     <string name="settings_backup_import_device">端末の設定</string>
     <string name="settings_backup_import_not_signed_in">%1$s（未サインイン）</string>
     <string name="settings_backup_import_action">インポートして再起動</string>
+    <string name="settings_compress_media_by_default">画像と動画を圧縮</string>
+    <string name="settings_compress_media_by_default_summary">アップロードする画像と動画をデフォルトで縮小し、より速く送信します</string>
+    <string name="attachment_send_original">オリジナル</string>
+    <string name="attachment_compress">圧縮</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">すべてに適用</string>
 </resources>

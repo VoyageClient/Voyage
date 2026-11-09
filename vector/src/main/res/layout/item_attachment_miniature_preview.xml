@@ -30,4 +30,22 @@
         app:tint="@android:color/white"
         tools:ignore="MissingPrefix" />
 
+    <TextView
+        android:id="@+id/attachmentMiniatureOriginalBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="4dp"
+        android:background="@drawable/bg_attachment_original_badge"
+        android:ellipsize="end"
+        android:maxWidth="56dp"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
+        android:singleLine="true"
+        android:text="@string/attachment_send_original"
+        android:textColor="@android:color/white"
+        android:textSize="9sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
 </androidx.cardview.widget.CardView>

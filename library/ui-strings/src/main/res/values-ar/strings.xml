@@ -342,7 +342,6 @@
     </plurals>
     <string name="action_invite">ادعُ</string>
     <string name="join_room">انضم إلى الغرفة</string>
-    <string name="compression_opt_list_original">الأصلي</string>
     <string name="room_participants_header_direct_chats">الدردشات المباشرة</string>
     <string name="room_participants_action_mention">أشِر إليه</string>
     <string name="room_participants_power_level_prompt">لا يمكن التراجع عن هذا التغيير إذ أنك تمنح المستخدم نفس مستوى الصلاحيات الخاص بك.
@@ -379,9 +378,6 @@
     <string name="invited">المدعوّون</string>
     <string name="has_been_banned">لقد مُنعت من ⁨%1$s⁩ على يد ⁨%2$s⁩</string>
     <string name="reason_colon">السبب: ⁨%1$s⁩</string>
-    <string name="compression_opt_list_large">كبير</string>
-    <string name="compression_opt_list_medium">متوسط</string>
-    <string name="compression_opt_list_small">صغير</string>
     <string name="settings_set_sync_delay">التأخير بين كل طلبي مزامنة</string>
     <string name="settings_version">الإصدارة</string>
     <string name="settings_olm_version">إصدارة Olm</string>
@@ -932,7 +928,6 @@
     <string name="settings_presence">الحظور</string>
     <string name="media_source_choose">اختر</string>
     <string name="settings_default_media_source">المصدر الافتراضي للوسائط</string>
-    <string name="compression_opt_list_choose">اختر</string>
     <string name="settings_media">الوسائط</string>
     <string name="settings_emails_and_phone_numbers_summary">أدر البريد الإلكتروني وأرقام الهاتف المرتبطة بحسابك</string>
     <string name="settings_emails_and_phone_numbers_title">البريد الإلكتروني وأرقام الهاتف</string>
@@ -1187,7 +1182,6 @@
     <string name="legals_no_policy_provided">لا يوفّر هذا الخادوم أي سياسة.</string>
     <string name="disabled_integration_dialog_title">التكاملات معطّلة</string>
     <string name="disabled_integration_dialog_content">فعّل ”اسمح بالتكاملات“ في الإعدادات لفعل هذا.</string>
-    <string name="settings_default_compression">الضغط المبدئي</string>
     <string name="settings_play_shutter_sound">شغّل صوت الغالق</string>
     <string name="settings_presence_user_always_appears_offline">وضع عدم الاتصال</string>
     <string name="settings_presence_user_always_appears_offline_summary">إن فُعّل، ستظهر دائمًا غير متصل للمستخدمين الآخرين، حتى أثناء استخدامك للتطبيق.</string>
@@ -1835,22 +1829,6 @@
     <string name="verification_cannot_access_other_session">استخدم عبارة مرور الاسترداد أو المفتاح</string>
     <string name="verification_use_passphrase">إن لم تستطع النفاذ إلى جلسة موجودة</string>
     <string name="enter_secret_storage_invalid">تعذّر العثور على الأسرار في المخزن</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="zero">أرسِل الصور بالحجم الأصلي</item>
-        <item quantity="one">أرسِل الصورة بالحجم الأصلي</item>
-        <item quantity="two">أرسِل الصورتين بالحجم الأصلي</item>
-        <item quantity="few">أرسِل الصور بالحجم الأصلي</item>
-        <item quantity="many">أرسِل الصور بالحجم الأصلي</item>
-        <item quantity="other">أرسِل الصور بالحجم الأصلي</item>
-    </plurals>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="zero">أرسِل الفيديوهات بالحجم الأصلي</item>
-        <item quantity="one">أرسِل الفيديو بالحجم الأصلي</item>
-        <item quantity="two">أرسِل الفيديوين بالحجم الأصلي</item>
-        <item quantity="few">أرسِل الفيديوهات بالحجم الأصلي</item>
-        <item quantity="many">أرسِل الفيديوهات بالحجم الأصلي</item>
-        <item quantity="other">أرسِل الفيديوهات بالحجم الأصلي</item>
-    </plurals>
     <string name="settings_key_requests">طلبات المفاتيح</string>
     <string name="settings_export_trail">صدّر سجل التدقيق</string>
     <string name="settings_nightly_build">البناء الليلي</string>
@@ -3931,4 +3909,10 @@
     <string name="settings_backup_import_device">إعدادات الجهاز</string>
     <string name="settings_backup_import_not_signed_in">%1$s (غير مسجَّل الدخول)</string>
     <string name="settings_backup_import_action">استورد وأعد التشغيل</string>
+    <string name="settings_compress_media_by_default">ضغط الصور ومقاطع الفيديو</string>
+    <string name="settings_compress_media_by_default_summary">تصغير الصور ومقاطع الفيديو المرفوعة افتراضيًا لإرسالها بشكل أسرع</string>
+    <string name="attachment_send_original">الأصلي</string>
+    <string name="attachment_compress">ضغط</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">تطبيق على الكل</string>
 </resources>

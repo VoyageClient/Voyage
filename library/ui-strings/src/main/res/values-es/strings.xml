@@ -258,10 +258,6 @@
     <string name="login_error_bad_json">JSON mal formado</string>
     <string name="login_error_not_json">No contenía un JSON válido</string>
     <string name="login_error_limit_exceeded">Se enviaron demasiadas solicitudes</string>
-    <string name="compression_opt_list_original">Original</string>
-    <string name="compression_opt_list_large">Grande</string>
-    <string name="compression_opt_list_medium">Mediano</string>
-    <string name="compression_opt_list_small">Pequeño</string>
     <string name="permissions_rationale_popup_title">Información</string>
     <string name="yes">SÍ</string>
     <string name="no">NO</string>
@@ -632,8 +628,6 @@
     <string name="settings_password">Contraseña</string>
     <string name="settings_fail_to_update_password_invalid_current_password">La contraseña no es válida</string>
     <string name="settings_media">Media</string>
-    <string name="settings_default_compression">Compresión predeterminada</string>
-    <string name="compression_opt_list_choose">Seleccionar</string>
     <string name="media_source_choose">Seleccionar</string>
     <string name="encryption_message_recovery">Recuperación de mensajes cifrados</string>
     <string name="encryption_settings_manage_message_recovery_summary">Gestionar copia de seguridad clave</string>
@@ -1311,10 +1305,6 @@
     <string name="verification_cannot_access_other_session">Use una contraseña o clave de recuperación</string>
     <string name="verification_use_passphrase">Si no puede acceder a una sesión existente</string>
     <string name="enter_secret_storage_invalid">No puedo encontrar secretos almacenados</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">Enviar imagen con el tamaño original</item>
-        <item quantity="other">Envía imágenes con el tamaño original</item>
-    </plurals>
     <string name="settings_key_requests">Solicitudes clave</string>
     <string name="e2e_use_keybackup">Desbloquear el historial de mensajes cifrados</string>
     <string name="verify_new_session_notice">Utilice esta sesión para verificar su nuevo, otorgándole acceso a mensajes cifrados.</string>
@@ -1628,10 +1618,6 @@
         <item quantity="other">%d entradas</item>
     </plurals>
     <string name="room_settings_set_avatar">Configurar avatar</string>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="one">Enviar el video con el tamaño original</item>
-        <item quantity="other">Enviar los videos con el tamaño original</item>
-    </plurals>
     <string name="settings_server_upload_size_unknown">El limite es desconocido.</string>
     <string name="settings_server_version">Versión del servidor</string>
     <string name="settings_server_name">Nombre del servidor</string>
@@ -3726,4 +3712,10 @@
     <string name="settings_backup_import_device">Ajustes del dispositivo</string>
     <string name="settings_backup_import_not_signed_in">%1$s (sin sesión iniciada)</string>
     <string name="settings_backup_import_action">Importar y reiniciar</string>
+    <string name="settings_compress_media_by_default">Comprimir imágenes y vídeos</string>
+    <string name="settings_compress_media_by_default_summary">Reducir por defecto las imágenes y vídeos que subes para que se envíen más rápido</string>
+    <string name="attachment_send_original">Original</string>
+    <string name="attachment_compress">Comprimir</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">Aplicar a todos</string>
 </resources>

@@ -893,23 +893,23 @@ internal class UploadContentTaskBody @Inject constructor(
     }
 
     companion object {
-        private const val MAX_IMAGE_SIZE = 800
+        internal const val MAX_IMAGE_SIZE = 800
 
         /**
          * The slider is anchored so that [STANDARD_QUALITY] reproduces exactly what compression did
          * before it existed; below that trades quality for size, above it the other way.
          */
-        private const val STANDARD_QUALITY = 70
+        internal const val STANDARD_QUALITY = 70
         private const val MIN_IMAGE_QUALITY = 40
         private const val STANDARD_IMAGE_QUALITY = 80
         private const val MIN_VIDEO_BITRATE = 200_000
         private const val STANDARD_VIDEO_BITRATE = 2_000_000
         private const val MAX_VIDEO_BITRATE = 8_000_000
 
-        private fun imageQualityFor(quality: Int) =
+        internal fun imageQualityFor(quality: Int) =
                 anchoredScale(quality, MIN_IMAGE_QUALITY, STANDARD_IMAGE_QUALITY, 100)
 
-        private fun videoBitrateFor(quality: Int) =
+        internal fun videoBitrateFor(quality: Int) =
                 anchoredScale(quality, MIN_VIDEO_BITRATE, STANDARD_VIDEO_BITRATE, MAX_VIDEO_BITRATE)
 
         private fun anchoredScale(quality: Int, low: Int, standard: Int, high: Int): Int {

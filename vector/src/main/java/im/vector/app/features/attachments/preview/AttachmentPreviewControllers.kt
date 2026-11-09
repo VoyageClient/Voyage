@@ -46,6 +46,7 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
         data.attachments.forEachIndexed { index, contentAttachmentData ->
             val settings = data.compressionSettings[data.stableIdOf(contentAttachmentData)]
                     .takeIf { !data.isSvg(contentAttachmentData) || data.rasterize.contains(data.stableIdOf(contentAttachmentData)) }
+                    ?.takeUnless { data.isSentOriginal(contentAttachmentData) }
             attachmentBigPreviewItem {
                 id(data.stableIdOf(contentAttachmentData))
                 attachment(data.previewOf(contentAttachmentData))
@@ -78,6 +79,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
                 id(data.stableIdOf(contentAttachmentData))
                 attachment(data.previewOf(contentAttachmentData))
                 checked(data.currentAttachmentIndex == index)
+                sentOriginal(data.isSentOriginal(contentAttachmentData))
                 clickListener { _ ->
                     host.callback?.onAttachmentClicked(index, contentAttachmentData)
                 }

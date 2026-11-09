@@ -17,6 +17,8 @@ sealed class AttachmentsPreviewAction : VectorViewModelAction {
     data class SetRasterize(val rasterize: Boolean) : AttachmentsPreviewAction()
     data class SetCompression(val settings: CompressionSettings) : AttachmentsPreviewAction()
     data class SetKeepOriginalSize(val keep: Boolean) : AttachmentsPreviewAction()
+    data class SetKeepOriginalSizeForAll(val keep: Boolean) : AttachmentsPreviewAction()
+    data class ApplyCompressionDefault(val compress: Boolean) : AttachmentsPreviewAction()
     data class SetSendAsSpoiler(val sendAsSpoiler: Boolean) : AttachmentsPreviewAction()
     data class SetCaption(val caption: String) : AttachmentsPreviewAction()
     data class SetSharesOneCaption(val shared: Boolean) : AttachmentsPreviewAction()

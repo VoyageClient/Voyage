@@ -116,10 +116,6 @@
     <string name="yes">כן</string>
     <string name="permissions_denied_add_contact">אפשר הרשאה לגשת לאנשי הקשר שלך.</string>
     <string name="permissions_rationale_popup_title">מידע</string>
-    <string name="compression_opt_list_small">קטן</string>
-    <string name="compression_opt_list_medium">בינוני</string>
-    <string name="compression_opt_list_large">גדול</string>
-    <string name="compression_opt_list_original">מקור</string>
     <plurals name="membership_changes">
         <item quantity="one">%d שינוי בפרט חברות</item>
         <item quantity="two">%d שינוי בפרטי חברות</item>
@@ -483,8 +479,6 @@
     <string name="settings_play_shutter_sound">השמע צליל תריס</string>
     <string name="media_source_choose">בחרו</string>
     <string name="settings_default_media_source">מקור מדיה ברירת מחדל</string>
-    <string name="compression_opt_list_choose">בחרו</string>
-    <string name="settings_default_compression">דחיסת ברירת מחדל</string>
     <string name="settings_media">מדיה</string>
     <string name="settings_select_country">בחר\\י מדינה</string>
     <string name="settings_emails_and_phone_numbers_summary">נהל מיילים ומספרי טלפון המקושרים לחשבון מטריקס שלך</string>
@@ -1318,12 +1312,6 @@
 \n- חיבור האינטרנט שמשני המכשירים משתמשים בו
 \n
 \nאנו ממליצים לך לשנות את הסיסמה ומפתח השחזור שלך בהגדרות באופן מיידי.</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">שלח תמונה בגודל המקורי</item>
-        <item quantity="two">שלח תמוננות בגודל המקורי</item>
-        <item quantity="many">שלח תמונות בגודל המקורי</item>
-        <item quantity="other">שלח תמונות בגודל המקורי</item>
-    </plurals>
     <string name="create_pin_title">בחר PIN לאבטחה</string>
     <string name="too_many_pin_failures">שגיאות רבות מדי, יצאת מהחשבון</string>
     <string name="wrong_pin_message_last_remaining_attempt">אַזהָרָה! ניסיון אחרון שנותר לפני היציאה!</string>
@@ -2000,12 +1988,6 @@
     </plurals>
     <string name="encryption_misconfigured">ההצפנה מוגדרת בצורה שגויה</string>
     <string name="threads_notice_migration_title">שרשורים מתקרבים לגרסת ביטא 🎉</string>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="one">שלח סרט וידאו בגודל המקורי</item>
-        <item quantity="two">שלח שני סרטי וידאו בגודל המקורי</item>
-        <item quantity="many">שלח סרטי וידאו בגודלם המקורי</item>
-        <item quantity="other">שלח סרט וידאו בגודל המקורי</item>
-    </plurals>
     <string name="settings_server_room_version_unstable">לא יציב</string>
     <string name="settings_server_room_version_stable">יציב</string>
     <string name="settings_server_default_room_version">גרסת ברירת מחדל</string>
@@ -3853,4 +3835,10 @@
     <string name="settings_backup_import_device">הגדרות המכשיר</string>
     <string name="settings_backup_import_not_signed_in">%1$s (לא מחובר)</string>
     <string name="settings_backup_import_action">ייבוא והפעלה מחדש</string>
+    <string name="settings_compress_media_by_default">דחיסת תמונות וסרטונים</string>
+    <string name="settings_compress_media_by_default_summary">הקטנת תמונות וסרטונים שמועלים כברירת מחדל כדי שיישלחו מהר יותר</string>
+    <string name="attachment_send_original">מקורי</string>
+    <string name="attachment_compress">דחיסה</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">החלה על הכול</string>
 </resources>

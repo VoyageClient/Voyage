@@ -31,10 +31,12 @@ import okhttp3.RequestBody
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.file.FileService
+import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.md5
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.di.Authenticated
@@ -42,7 +44,9 @@ import org.matrix.android.sdk.internal.di.SessionDownloadsDirectory
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificateWithProgress
 import org.matrix.android.sdk.internal.network.httpclient.addAuthenticationHeader
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
+import org.matrix.android.sdk.internal.session.content.UploadContentTaskBody
 import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
+import org.matrix.android.sdk.internal.session.content.VideoCompressor
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor.Companion.DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER
 import org.matrix.android.sdk.internal.util.file.AtomicFileCreator
 import org.matrix.android.sdk.internal.util.file.safeFileName
@@ -67,6 +71,7 @@ internal class DefaultFileService @Inject constructor(
         @Authenticated private val accessTokenProvider: AccessTokenProvider,
         private val fileUploader: org.matrix.android.sdk.internal.session.content.FileUploader,
         private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
+        private val videoCompressor: VideoCompressor,
         private val pendingMediaUploadRegistry: org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry,
         private val taskExecutor: org.matrix.android.sdk.internal.task.TaskExecutor,
 ) : FileService, UploadedMediaCache {
@@ -108,6 +113,45 @@ internal class DefaultFileService @Inject constructor(
                 if (compressed.file != workingFile) workingFile.delete()
                 FileService.CompressedImageResult(Uri.fromFile(compressed.file).toString(), compressed.mimeType ?: mimeType)
             }
+        }
+    }
+
+    override suspend fun estimateUploadSize(attachment: ContentAttachmentData): Long? = withContext(coroutineDispatchers.io) {
+        val sourceSize = attachment.size.takeIf { it > 0 }
+        // Mirrors UploadContentTaskBody's compressThisOne for a send that compresses.
+        if (attachment.keepOriginalSize && !attachment.hasCustomCompression) return@withContext sourceSize
+        when (attachment.type) {
+            ContentAttachmentData.Type.IMAGE -> if (attachment.getSafeMimeType() == MimeTypes.Svg) null else estimateImageUploadSize(attachment)
+            ContentAttachmentData.Type.VIDEO -> videoCompressor.estimateSize(
+                    Uri.parse(attachment.queryUri),
+                    attachment.size,
+                    targetWidth = attachment.compressionWidth,
+                    targetHeight = attachment.compressionHeight,
+                    targetBitrate = attachment.compressionQuality?.let { UploadContentTaskBody.videoBitrateFor(it) },
+            ).takeIf { it > 0 }
+            else -> sourceSize
+        }
+    }
+
+    private suspend fun estimateImageUploadSize(attachment: ContentAttachmentData): Long? {
+        val workingFile = File.createTempFile("estimate", null, context.cacheDir)
+        return try {
+            context.contentResolver.openInputStream(Uri.parse(attachment.queryUri))?.use { input ->
+                workingFile.outputStream().use { input.copyTo(it) }
+            } ?: return null
+            val compressed = imageCompressor.compress(
+                    workingFile,
+                    attachment.compressionWidth ?: UploadContentTaskBody.MAX_IMAGE_SIZE,
+                    attachment.compressionHeight ?: UploadContentTaskBody.MAX_IMAGE_SIZE,
+                    UploadContentTaskBody.imageQualityFor(attachment.compressionQuality ?: UploadContentTaskBody.STANDARD_QUALITY),
+                    exactSize = attachment.compressionWidth != null,
+            )
+            compressed.file.length().also { if (compressed.file != workingFile) compressed.file.delete() }
+        } catch (failure: Throwable) {
+            Timber.w(failure, "Could not estimate the upload size")
+            null
+        } finally {
+            workingFile.delete()
         }
     }
 

@@ -29,6 +29,8 @@ data class AttachmentsPreviewViewState(
         val currentAttachmentIndex: Int = 0,
         /** Keyed by [stableIdOf]: sending untouched is a choice per attachment, not per send. */
         val keepOriginalSize: Set<String> = emptySet(),
+        /** The fragment asks on every view creation; only the first may seed [keepOriginalSize]. */
+        val compressionDefaultApplied: Boolean = false,
         val sendAsSpoiler: Set<String> = emptySet(),
         val rasterize: Set<String> = emptySet(),
         /** Keyed by the attachment's current queryUri. */
@@ -61,6 +63,34 @@ data class AttachmentsPreviewViewState(
 
     fun previewOf(attachment: ContentAttachmentData): ContentAttachmentData =
             if (isSvg(attachment) && !rasterize.contains(stableIdOf(attachment))) originalOf(attachment) else attachment
+
+    fun canSendOriginal(attachment: ContentAttachmentData): Boolean = attachment.isCompressible() && !isSvg(attachment)
+
+    // An edit can turn an item into something uncompressible (audio taken from a video) under the same id.
+    fun isSentOriginal(attachment: ContentAttachmentData): Boolean = canSendOriginal(attachment) && keepOriginalSize.contains(stableIdOf(attachment))
+
+    /** [preview] (from [previewOf]) with the choices made on this screen written into its compression fields. */
+    fun outgoingOf(preview: ContentAttachmentData, rasterizing: Boolean): ContentAttachmentData {
+        if (preview.getSafeMimeType() == MimeTypes.Svg && !rasterizing) {
+            return preview.copy(compressionQuality = null, compressionWidth = null, compressionHeight = null)
+        }
+        // Anything non-null in the compression fields would re-encode (and, for video, transcode) it.
+        if (isSentOriginal(preview)) {
+            return preview.copy(keepOriginalSize = true, compressionQuality = null, compressionWidth = null, compressionHeight = null)
+        }
+        // Boxes left at the source size are not a resize request, so they must not make the
+        // attachment look custom-compressed.
+        val sourceWidth = preview.displayWidth?.toInt()
+        val sourceHeight = preview.displayHeight?.toInt()
+        val settings = compressionSettings[stableIdOf(preview)]
+                ?.let { if (!isSvg(preview) && sourceWidth != null && sourceHeight != null) it.withoutRedundantSize(sourceWidth, sourceHeight) else it }
+                ?: return preview
+        return preview.copy(
+                compressionQuality = settings.quality.takeIf { it != CompressionSettings.STANDARD_QUALITY },
+                compressionWidth = settings.width,
+                compressionHeight = settings.height,
+        )
+    }
 
     fun captionOf(attachment: ContentAttachmentData): String = captions[stableIdOf(attachment)].orEmpty()
 

@@ -58,6 +58,12 @@
         tools:summary="@string/option_always_ask" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY"
+        android:summary="@string/settings_compress_media_by_default_summary"
+        android:title="@string/settings_compress_media_by_default" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="false"
         android:key="SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
         android:summary="@string/settings_jump_to_bottom_on_send_summary"
@@ -84,14 +90,6 @@
         <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY"
             android:title="@string/settings_preview_media_before_sending" />
-
-        <im.vector.app.core.preference.VectorListPreference
-            android:defaultValue="0"
-            android:entries="@array/compression_levels"
-            android:entryValues="@array/compression_level_values"
-            android:key="SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY"
-            android:title="@string/settings_default_compression"
-            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:defaultValue="0"

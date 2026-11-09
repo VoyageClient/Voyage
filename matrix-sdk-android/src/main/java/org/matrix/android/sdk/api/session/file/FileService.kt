@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.file
 
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
@@ -150,6 +151,12 @@ interface FileService {
     suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): CompressedImageResult
 
     data class CompressedImageResult(val uri: String, val mimeType: String?)
+
+    /**
+     * Bytes [attachment] would upload as, with its compression fields applied as a send would, or
+     * null when that can't be told. Images are actually compressed, so this is slow.
+     */
+    suspend fun estimateUploadSize(attachment: ContentAttachmentData): Long? = null
 
     /**
      * Clears all the files downloaded by the service, including decrypted files.

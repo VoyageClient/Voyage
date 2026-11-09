@@ -239,6 +239,9 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
     @EpoxyAttribute
     var checked: Boolean = false
 
+    @EpoxyAttribute
+    var sentOriginal: Boolean = false
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.imageView.isChecked = checked
@@ -252,6 +255,7 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
         holder.imageView.setBackgroundColor(border)
         holder.imageView.setPadding(pad, pad, pad, pad)
         holder.miniatureVideoIndicator.isVisible = attachment.type == ContentAttachmentData.Type.VIDEO
+        holder.originalBadge.isVisible = sentOriginal
         holder.view.setOnClickListener(clickListener)
     }
 
@@ -260,6 +264,7 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
             get() = miniatureImageView
         private val miniatureImageView by bind<CheckableImageView>(R.id.attachmentMiniatureImageView)
         val miniatureVideoIndicator by bind<ImageView>(R.id.attachmentMiniatureVideoIndicator)
+        val originalBadge by bind<TextView>(R.id.attachmentMiniatureOriginalBadge)
     }
 }
 

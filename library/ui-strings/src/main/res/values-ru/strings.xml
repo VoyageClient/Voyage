@@ -253,10 +253,6 @@
     <string name="login_error_bad_json">Неверный формат JSON</string>
     <string name="login_error_not_json">Не содержит допустимого JSON</string>
     <string name="login_error_limit_exceeded">Отправлено слишком много запросов</string>
-    <string name="compression_opt_list_original">Оригинал</string>
-    <string name="compression_opt_list_large">Крупный</string>
-    <string name="compression_opt_list_medium">Средний</string>
-    <string name="compression_opt_list_small">Мелкий</string>
     <string name="permissions_rationale_popup_title">Информация</string>
     <string name="yes">ДА</string>
     <string name="no">НЕТ</string>
@@ -687,8 +683,6 @@
     <string name="settings_send_message_with_enter">Отправить сообщение нажав ввод</string>
     <string name="settings_fail_to_update_password_invalid_current_password">Пароль не действителен</string>
     <string name="settings_media">Медиа</string>
-    <string name="settings_default_compression">Сжатия по умолчанию</string>
-    <string name="compression_opt_list_choose">Выберите</string>
     <string name="settings_default_media_source">Источник медиа по умолчанию</string>
     <string name="media_source_choose">Выберите</string>
     <plurals name="notification_compat_summary_line_for_room">
@@ -1682,12 +1676,6 @@
     <string name="command_description_create_space">Создать пространство</string>
     <string name="a11y_public_room">Публичная комната</string>
     <string name="a11y_unchecked">Непроверенные</string>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="one">Отправить видео в исходном размере</item>
-        <item quantity="few">Отправить видео в исходном размере</item>
-        <item quantity="many">Отправить видео в исходном размере</item>
-        <item quantity="other">Отправить видео в исходном размере</item>
-    </plurals>
     <string name="settings_server_room_version_unstable">нестабильная</string>
     <string name="settings_server_room_version_stable">стабильная</string>
     <string name="settings_server_default_room_version">Версия по умолчанию</string>
@@ -3547,12 +3535,6 @@
         <item quantity="many">%d сессий активно</item>
         <item quantity="other">%d сессии активны</item>
     </plurals>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">Отправить изображение в оригинальном размере</item>
-        <item quantity="few">Отправить изображения в оригинальном размере</item>
-        <item quantity="many">Отправить изображения в оригинальном размере</item>
-        <item quantity="other">Отправить изображения в оригинальном размере</item>
-    </plurals>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="one">Приглашения отправлены %1$s и еще одному пользователю</item>
         <item quantity="few">Приглашения отправлены %1$s и еще %2$d пользователям</item>
@@ -3884,4 +3866,10 @@
     <string name="settings_backup_import_device">Настройки устройства</string>
     <string name="settings_backup_import_not_signed_in">%1$s (вход не выполнен)</string>
     <string name="settings_backup_import_action">Импортировать и перезапустить</string>
+    <string name="settings_compress_media_by_default">Сжимать изображения и видео</string>
+    <string name="settings_compress_media_by_default_summary">По умолчанию уменьшать загружаемые изображения и видео, чтобы они отправлялись быстрее</string>
+    <string name="attachment_send_original">Оригинал</string>
+    <string name="attachment_compress">Сжать</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">Применить ко всем</string>
 </resources>

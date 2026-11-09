@@ -193,9 +193,6 @@
     <string name="login_error_invalid_home_server">请输入有效的 URL</string>
     <string name="login_error_not_json">没有包含有效的 JSON</string>
     <string name="login_error_limit_exceeded">发送了过多的请求</string>
-    <string name="compression_opt_list_large">大</string>
-    <string name="compression_opt_list_medium">中</string>
-    <string name="compression_opt_list_small">小</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="search_hint">搜索</string>
@@ -227,7 +224,6 @@
     <string name="option_take_photo_video">拍摄照片或视频</string>
     <string name="auth_recaptcha_message">此家服务器想确认你不是机器人</string>
     <string name="auth_reset_password_error_unauthorized">电子邮件地址验证失败：请确保你已点击邮件中的链接</string>
-    <string name="compression_opt_list_original">原始</string>
     <string name="room_participants_header_direct_chats">私聊</string>
     <string name="room_participants_action_invite">邀请</string>
     <string name="room_participants_action_ban">封禁</string>
@@ -665,8 +661,6 @@
     <string name="settings_send_message_with_enter_summary">软键盘的 Enter 按钮将发送消息而不是添加换行符</string>
     <string name="settings_fail_to_update_password_invalid_current_password">密码无效</string>
     <string name="settings_media">媒体</string>
-    <string name="settings_default_compression">默认压缩</string>
-    <string name="compression_opt_list_choose">选择</string>
     <string name="settings_default_media_source">默认媒体来源</string>
     <string name="media_source_choose">选择</string>
     <string name="settings_play_shutter_sound">播放快门声</string>
@@ -1167,9 +1161,6 @@
     <string name="verification_cannot_access_other_session">使用恢复密码短语或密钥</string>
     <string name="verification_use_passphrase">如果你无法访问已有会话</string>
     <string name="enter_secret_storage_invalid">无法在存储中找到秘密</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="other">发送原始尺寸图片</item>
-    </plurals>
     <string name="settings_key_requests">密钥请求</string>
     <string name="e2e_use_keybackup">解锁加密消息历史</string>
     <string name="refresh">刷新</string>
@@ -1655,9 +1646,6 @@
     <string name="settings_security_pin_code_change_pin_title">更改 PIN</string>
     <string name="invite_friends_rich_title">🔐️ 在 ${app_name} 上加入我的行列</string>
     <string name="invite_friends_text">嗨，和我在 ${app_name} 上聊天吧：%s</string>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="other">发送原始大小的视频</item>
-    </plurals>
     <string name="settings_server_upload_size_unknown">限制未知。</string>
     <string name="settings_server_upload_size_content">你的家服务器能接受大小最大为 %s 的附件（文件、媒体等）。</string>
     <string name="settings_server_upload_size_title">服务器文件上传限制</string>
@@ -3663,4 +3651,10 @@
     <string name="settings_backup_import_device">设备设置</string>
     <string name="settings_backup_import_not_signed_in">%1$s（未登录）</string>
     <string name="settings_backup_import_action">导入并重启</string>
+    <string name="settings_compress_media_by_default">压缩图片和视频</string>
+    <string name="settings_compress_media_by_default_summary">默认缩小上传的图片和视频，以便更快发送</string>
+    <string name="attachment_send_original">原图</string>
+    <string name="attachment_compress">压缩</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">应用到全部</string>
 </resources>

@@ -401,10 +401,6 @@
         <item quantity="one">رکنیت میں %d تبدیلی</item>
         <item quantity="other">رکنیت میں %d تبدیلیاں</item>
     </plurals>
-    <string name="compression_opt_list_original">اصل</string>
-    <string name="compression_opt_list_large">بڑا</string>
-    <string name="compression_opt_list_medium">درمیانہ</string>
-    <string name="compression_opt_list_small">چھوٹا</string>
     <string name="permissions_rationale_popup_title">معلومات</string>
     <string name="permissions_rationale_msg_notification">${app_name} کو اطلاعات دکھانے کی اجازت درکار ہے۔ اطلاعات آپ کے پیغامات، دعوتیں وغیرہ دکھا سکتی ہیں۔\n\nاطلاعات دیکھنے کے لیے براہ کرم اگلے پاپ اپ میں رسائی کی اجازت دیں۔</string>
     <string name="permissions_denied_add_contact">اپنے رابطوں تک رسائی کی اجازت دیں۔</string>
@@ -744,8 +740,6 @@
     <string name="settings_emails_and_phone_numbers_summary">اپنے Matrix کھاتے سے منسلک ای میل پتوں اور فون نمبروں کا انتظام کریں</string>
     <string name="settings_select_country">ملک منتخب کریں</string>
     <string name="settings_media">میڈیا</string>
-    <string name="settings_default_compression">طے شدہ کمپریشن</string>
-    <string name="compression_opt_list_choose">منتخب کریں</string>
     <string name="settings_default_media_source">طے شدہ میڈیا ماخذ</string>
     <string name="media_source_choose">منتخب کریں</string>
     <string name="settings_play_shutter_sound">شٹر کی آواز چلائیں</string>
@@ -1663,14 +1657,6 @@
     <string name="verification_cannot_access_other_session">بازیابی پاس فریز یا چابی استعمال کریں</string>
     <string name="verification_use_passphrase">اگر آپ کسی موجودہ جلسے تک رسائی حاصل نہیں کر سکتے</string>
     <string name="enter_secret_storage_invalid">ذخیرے میں راز نہیں مل سکے</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">تصویر اصل سائز میں بھیجیں</item>
-        <item quantity="other">تصاویر اصل سائز میں بھیجیں</item>
-    </plurals>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="one">ویڈیو اصل سائز میں بھیجیں</item>
-        <item quantity="other">ویڈیوز اصل سائز میں بھیجیں</item>
-    </plurals>
     <string name="keys_backup_restore_success_title_already_up_to_date">چابیاں پہلے ہی تازہ ترین ہیں!</string>
     <string name="settings_key_requests">چابی کی درخواستیں</string>
     <string name="settings_export_trail">آڈٹ برآمد کریں</string>
@@ -3632,4 +3618,10 @@
     <string name="settings_backup_import_device">آلے کی ترتیبات</string>
     <string name="settings_backup_import_not_signed_in">%1$s (سائن اِن نہیں)</string>
     <string name="settings_backup_import_action">درآمد کریں اور دوبارہ شروع کریں</string>
+    <string name="settings_compress_media_by_default">تصاویر اور ویڈیوز کمپریس کریں</string>
+    <string name="settings_compress_media_by_default_summary">اپ لوڈ کی گئی تصاویر اور ویڈیوز کو بطور ڈیفالٹ چھوٹا کریں تاکہ وہ جلدی بھیجی جائیں</string>
+    <string name="attachment_send_original">اصل</string>
+    <string name="attachment_compress">کمپریس</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">سب پر لاگو کریں</string>
 </resources>

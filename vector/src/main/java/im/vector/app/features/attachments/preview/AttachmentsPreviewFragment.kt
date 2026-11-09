@@ -17,12 +17,19 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.StateListDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
 import android.text.format.DateUtils
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -35,6 +42,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -54,17 +62,20 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.flattenAsScrim
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.removeParagraphLayoutSpans
 import im.vector.app.core.extensions.resourcesFor
+import im.vector.app.core.extensions.setBackgroundKeepingPadding
 import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
 import im.vector.app.core.utils.SnapOnScrollListener
+import im.vector.app.core.utils.TextUtils
 import im.vector.app.core.utils.attachSnapHelperWithListener
 import im.vector.app.databinding.BottomSheetAttachmentCompressionBinding
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
@@ -81,11 +92,12 @@ import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
-import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -95,6 +107,8 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 @Parcelize
 data class AttachmentsPreviewArgs(
@@ -114,6 +128,7 @@ class AttachmentsPreviewFragment :
     @Inject lateinit var attachmentBigPreviewController: AttachmentBigPreviewController
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var twemojiProvider: TwemojiProvider
+    @Inject lateinit var activeSessionHolder: ActiveSessionHolder
 
     private val fragmentArgs: AttachmentsPreviewArgs by args()
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
@@ -125,6 +140,15 @@ class AttachmentsPreviewFragment :
 
     /** True while the checkbox is being set from state, so its listener knows it was not a tap. */
     private var bindingKeepOriginalSize = false
+
+    /** Keyed by [estimateKey]; a null value is an estimate that could not be made. */
+    private val sizeEstimates = mutableMapOf<String, Long?>()
+    private val estimatesInFlight = mutableSetOf<String>()
+    private val estimateLock = Mutex()
+    private var displayedEstimateKey: String? = null
+    private val sizeLineColor by lazy {
+        ThemeUtils.getColorFromContextTheme(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_notice_secondary)
+    }
 
     /** As above, for the caption field: a state-driven set must not be read back as typing. */
     private var bindingCaption = false
@@ -167,6 +191,7 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
+        viewModel.handle(AttachmentsPreviewAction.ApplyCompressionDefault(vectorPreferences.compressMediaByDefault()))
         // A gallery event has one body, so its items cannot caption themselves separately.
         viewModel.handle(AttachmentsPreviewAction.SetSharesOneCaption(
                 vectorPreferences.sendMediaGalleries() && fragmentArgs.attachments.size >= 2
@@ -182,19 +207,55 @@ class AttachmentsPreviewFragment :
         val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(requireContext())
         views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(fill)
         ImageViewCompat.setImageTintList(views.attachmentPreviewerSendButton, ColorStateList.valueOf(onFill))
-        CompoundButtonCompat.setButtonTintList(
-                views.attachmentPreviewerSendImageOriginalSize,
-                ColorStateList.valueOf(accent)
-        )
-        views.attachmentPreviewerSendImageOriginalSize.setOnCheckedChangeListener { _, checked ->
-            if (!bindingKeepOriginalSize) viewModel.handle(AttachmentsPreviewAction.SetKeepOriginalSize(checked))
-        }
+        setupCompressToggle(accent)
         setupVideoControls(accent)
     }
 
+    private fun setupCompressToggle(accent: Int) {
+        val toggle = views.attachmentPreviewerCompressToggle
+        CompoundButtonCompat.setButtonTintList(toggle, ColorStateList.valueOf(accent))
+        val density = resources.displayMetrics.density
+        fun box(stroke: Int) = GradientDrawable().apply {
+            cornerRadius = TOGGLE_CORNER_DP * density
+            setColor(TOGGLE_FILL)
+            setStroke((1 * density).roundToInt().coerceAtLeast(1), stroke)
+        }
+        toggle.setBackgroundKeepingPadding(StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_checked), box(accent))
+            addState(intArrayOf(), box(TOGGLE_STROKE))
+        })
+        // Sized once for the widest it can read, so it doesn't resize the caption as sizes come and go.
+        val sizePaint = TextPaint(toggle.paint).apply { textSize *= SIZE_LINE_SCALE }
+        val widestSize = SIZE_WIDTH_SAMPLES.maxOf { bytes ->
+            sizePaint.measureText(getString(CommonStrings.attachment_estimated_size, TextUtils.formatFileSize(requireContext(), bytes, true)))
+        }
+        val labelWidth = toggle.paint.measureText(getString(CommonStrings.attachment_compress))
+        toggle.layoutParams = toggle.layoutParams.apply {
+            width = toggle.compoundPaddingLeft + toggle.compoundPaddingRight + ceil(maxOf(widestSize, labelWidth)).toInt() + 1
+        }
+        toggle.setOnCheckedChangeListener { _, checked ->
+            if (!bindingKeepOriginalSize) viewModel.handle(AttachmentsPreviewAction.SetKeepOriginalSize(!checked))
+        }
+        toggle.setOnLongClickListener { anchor ->
+            val keep = withState(viewModel) { state ->
+                state.attachments.getOrNull(state.currentAttachmentIndex)
+                        ?.takeIf { state.attachments.count { state.canSendOriginal(it) } >= 2 }
+                        ?.let { state.isSentOriginal(it) }
+            } ?: return@setOnLongClickListener false
+            PopupMenu(requireContext(), anchor).apply {
+                menu.add(CommonStrings.attachment_apply_to_all)
+                setOnMenuItemClickListener {
+                    viewModel.handle(AttachmentsPreviewAction.SetKeepOriginalSizeForAll(keep))
+                    true
+                }
+            }.show()
+            true
+        }
+    }
+
     /**
-     * The bar belongs to the fragment rather than the attachment on show: it sits under the send
-     * options, and whichever video is on screen hands it the player to drive.
+     * The bar belongs to the fragment rather than the attachment on show: it sits under the
+     * thumbnail strip, and whichever video is on screen hands it the player to drive.
      */
     private fun setupVideoControls(accent: Int) {
         // progressTintList is API 21+, and this fork runs from 14.
@@ -431,7 +492,8 @@ class AttachmentsPreviewFragment :
             }
             menu.findItem(R.id.attachmentsPreviewCompressionAction).apply {
                 isVisible = isSvg || current?.isCompressible().orFalse()
-                isEnabled = !isSvg || rasterizing
+                // An original goes out untouched, so there is nothing to tune.
+                isEnabled = (!isSvg || rasterizing) && current?.let { state.isSentOriginal(it) } != true
                 setTitle(if (isSvg) CommonStrings.attachment_rasterization_title else CommonStrings.attachment_compression_title)
                 icon?.mutate()?.alpha = if (isEnabled) 255 else 80
             }
@@ -467,6 +529,7 @@ class AttachmentsPreviewFragment :
         val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return@withState
         val isSvg = state.isSvg(current)
         if (isSvg && !state.rasterize.contains(state.stableIdOf(current))) return@withState
+        if (state.isSentOriginal(current)) return@withState
         // This screen's own theme has no accent variant, so ?colorAccent inside it is always the
         // default green. Hosting the sheet in the configured application theme fixes every widget
         // at once — seek bar, buttons, the text cursor and its selection handles — rather than
@@ -485,8 +548,6 @@ class AttachmentsPreviewFragment :
         // the box the user typed in left the other null, and a half-specified size does nothing.
         var settings = state.compressionSettings[state.stableIdOf(current)]
                 ?: if (isSvg) recommended else CompressionSettings(width = sourceWidth.takeIf { it > 0 }, height = sourceHeight.takeIf { it > 0 })
-        // "Original size" is a quality decision of its own, so the slider has nothing left to say.
-        val originalSize = !isSvg && state.keepOriginalSize.contains(state.stableIdOf(current))
 
         // Writing the linked dimension back into its field would otherwise re-enter this watcher.
         var updating = false
@@ -524,8 +585,6 @@ class AttachmentsPreviewFragment :
         } else {
             getString(CommonStrings.attachment_compression_source, sourceWidth, sourceHeight)
         }
-        binding.compressionQualitySeekBar.isEnabled = !originalSize
-        if (originalSize) settings = settings.copy(quality = CompressionSettings.MAX_QUALITY)
         render(fields = true)
 
         binding.compressionQualitySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -567,7 +626,6 @@ class AttachmentsPreviewFragment :
         }
         binding.compressionReset.setOnClickListener {
             settings = if (isSvg) recommended else CompressionSettings(
-                    quality = if (originalSize) CompressionSettings.MAX_QUALITY else CompressionSettings.STANDARD_QUALITY,
                     width = sourceWidth.takeIf { it > 0 },
                     height = sourceHeight.takeIf { it > 0 }
             )
@@ -635,7 +693,7 @@ class AttachmentsPreviewFragment :
                 bigListSnapListener?.onScrolledProgrammatically(state.currentAttachmentIndex)
                 if (!reorderingAttachments) views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             }
-            renderKeepOriginalSize(state)
+            renderCompressToggle(state)
             renderCaption(state)
             renderAudioBackdrop(state)
         }
@@ -673,24 +731,83 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerBackdropScrim.isVisible = backdrop != null
     }
 
-    /** Only what the compressors touch can be sent untouched, and only the one on show is asked about. */
-    private fun renderKeepOriginalSize(state: AttachmentsPreviewViewState) {
-        val current = state.attachments.getOrNull(state.currentAttachmentIndex)
-        val checkbox = views.attachmentPreviewerSendImageOriginalSize
-        checkbox.isVisible = current?.let { it.isCompressible() && !state.isSvg(it) } == true
-        if (current == null || !checkbox.isVisible) return
-        checkbox.text = resources.getQuantityString(
-                if (current.type == ContentAttachmentData.Type.VIDEO) {
-                    CommonPlurals.send_videos_with_original_size
-                } else {
-                    CommonPlurals.send_images_with_original_size
-                },
-                1
-        )
+    /**
+     * Only what the compressors touch can be flipped. Everything else (files, audio, SVG) always goes
+     * out untouched, so it shows as uncompressed and locked, with its size still useful.
+     */
+    private fun renderCompressToggle(state: AttachmentsPreviewViewState) {
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return
+        val toggle = views.attachmentPreviewerCompressToggle
+        val preview = state.previewOf(current)
+        val rasterizing = preview.getSafeMimeType() == MimeTypes.Svg && state.rasterize.contains(state.stableIdOf(current))
+        val choosable = state.canSendOriginal(current)
+        val original = if (choosable) state.isSentOriginal(current) else !rasterizing
+        val outgoing = state.outgoingOf(preview, rasterizing)
+        val sizeLine = if (original) {
+            displayedEstimateKey = null
+            outgoing.size.takeIf { it > 0 }?.let { TextUtils.formatFileSize(requireContext(), it, true) }
+        } else {
+            val key = estimateKey(outgoing)
+            displayedEstimateKey = key
+            when {
+                sizeEstimates.containsKey(key) -> sizeEstimates[key]?.let {
+                    getString(CommonStrings.attachment_estimated_size, TextUtils.formatFileSize(requireContext(), it, true))
+                }
+                rasterizing -> null
+                else -> {
+                    startEstimate(key, outgoing)
+                    "…"
+                }
+            }
+        }
+        toggle.text = SpannableStringBuilder(getString(CommonStrings.attachment_compress)).apply {
+            if (sizeLine == null) return@apply
+            append('\n')
+            val start = length
+            append(sizeLine)
+            setSpan(RelativeSizeSpan(SIZE_LINE_SCALE), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(ForegroundColorSpan(sizeLineColor), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        toggle.isEnabled = choosable
+        toggle.alpha = if (choosable) 1f else DISABLED_TOGGLE_ALPHA
         // Writing the state back must not read as the user having ticked it.
         bindingKeepOriginalSize = true
-        checkbox.isChecked = state.keepOriginalSize.contains(state.stableIdOf(current))
+        toggle.isChecked = !original
         bindingKeepOriginalSize = false
+    }
+
+    private fun estimateKey(outgoing: ContentAttachmentData) = with(outgoing) {
+        "$queryUri|$size|$keepOriginalSize|$compressionQuality|${compressionWidth}x$compressionHeight"
+    }
+
+    /** Images are estimated by really compressing them, so one at a time, and only while still on show. */
+    private fun startEstimate(key: String, outgoing: ContentAttachmentData) {
+        if (!estimatesInFlight.add(key)) return
+        val fileService = activeSessionHolder.getSafeActiveSession()?.fileService()
+        if (fileService == null) {
+            estimatesInFlight.remove(key)
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val bytes = estimateLock.withLock {
+                    // Swiped past before its turn: it is asked for again if it comes back on show.
+                    if (displayedEstimateKey != key) return@launch
+                    try {
+                        fileService.estimateUploadSize(outgoing)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (failure: Throwable) {
+                        Timber.w(failure, "Upload size estimate failed")
+                        null
+                    }
+                }
+                sizeEstimates[key] = bytes
+                if (displayedEstimateKey == key) withState(viewModel) { renderCompressToggle(it) }
+            } finally {
+                estimatesInFlight.remove(key)
+            }
+        }
     }
 
     /** Each attachment keeps its own caption, unless they are all going out as one gallery event. */
@@ -714,36 +831,7 @@ class AttachmentsPreviewFragment :
         val rasterizing = previews.indices.filter { index ->
             previews[index].getSafeMimeType() == MimeTypes.Svg && state.rasterize.contains(state.stableIdOf(state.attachments[index]))
         }.toSet()
-        val attachments = previews.mapIndexed { index, attachment ->
-            if (attachment.getSafeMimeType() == MimeTypes.Svg && index !in rasterizing) return@mapIndexed attachment.copy(
-                    compressionQuality = null, compressionWidth = null, compressionHeight = null
-            )
-            val originalSize = state.keepOriginalSize.contains(state.stableIdOf(attachment))
-            // Boxes left at the source size are not a resize request, so they must not make the
-            // attachment look custom-compressed.
-            val sourceWidth = attachment.displayWidth?.toInt()
-            val sourceHeight = attachment.displayHeight?.toInt()
-            val svgSource = state.isSvg(attachment)
-            val settings = state.compressionSettings[state.stableIdOf(attachment)]
-                    ?.let { if (!svgSource && sourceWidth != null && sourceHeight != null) it.withoutRedundantSize(sourceWidth, sourceHeight) else it }
-            if (originalSize) {
-                // Original size means the file is uploaded untouched: anything non-null here sets
-                // hasCustomCompression, which is what re-encodes (and, for video, transcodes) it.
-                // Only an explicitly typed size overrides that, and then at full quality.
-                if (settings?.width == null) return@mapIndexed attachment.copy(keepOriginalSize = true)
-                return@mapIndexed attachment.copy(
-                        compressionQuality = CompressionSettings.MAX_QUALITY,
-                        compressionWidth = settings.width,
-                        compressionHeight = settings.height,
-                )
-            }
-            if (settings == null) return@mapIndexed attachment
-            attachment.copy(
-                    compressionQuality = settings.quality.takeIf { it != CompressionSettings.STANDARD_QUALITY },
-                    compressionWidth = settings.width,
-                    compressionHeight = settings.height,
-            )
-        }
+        val attachments = previews.mapIndexed { index, attachment -> state.outgoingOf(attachment, rasterizing = index in rasterizing) }
         val captions = state.attachments.map { state.captionOf(it) }
         val spoilers = state.attachments.map { state.sendAsSpoiler.contains(state.stableIdOf(it)) }
         if (rasterizing.isEmpty()) {
@@ -1053,5 +1141,11 @@ class AttachmentsPreviewFragment :
 
     companion object {
         private const val TOP_BAR_DIM = 0x40000000
+        private const val TOGGLE_FILL = 0x33000000
+        private const val TOGGLE_STROKE = 0x66FFFFFF
+        private const val TOGGLE_CORNER_DP = 4
+        private const val DISABLED_TOGGLE_ALPHA = 0.5f
+        private const val SIZE_LINE_SCALE = 10f / 12f
+        private val SIZE_WIDTH_SAMPLES = listOf(8_880_000L, 88_800_000L, 888_800_000L, 8_880_000_000L)
     }
 }

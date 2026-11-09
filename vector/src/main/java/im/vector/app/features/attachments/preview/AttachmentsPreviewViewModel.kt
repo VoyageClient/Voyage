@@ -24,6 +24,8 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             is AttachmentsPreviewAction.SetRasterize -> handleSetRasterize(action)
             is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
             is AttachmentsPreviewAction.SetKeepOriginalSize -> handleSetKeepOriginalSize(action)
+            is AttachmentsPreviewAction.SetKeepOriginalSizeForAll -> handleSetKeepOriginalSizeForAll(action)
+            is AttachmentsPreviewAction.ApplyCompressionDefault -> handleApplyCompressionDefault(action)
             is AttachmentsPreviewAction.SetSendAsSpoiler -> handleSetSendAsSpoiler(action)
             is AttachmentsPreviewAction.SetCaption -> handleSetCaption(action)
             is AttachmentsPreviewAction.SetSharesOneCaption -> handleSetSharesOneCaption(action)
@@ -105,6 +107,17 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         val key = it.stableIdOf(current)
         setState { copy(keepOriginalSize = if (action.keep) keepOriginalSize + key else keepOriginalSize - key) }
     }
+
+    private fun handleSetKeepOriginalSizeForAll(action: AttachmentsPreviewAction.SetKeepOriginalSizeForAll) = setState {
+        copy(keepOriginalSize = if (action.keep) allSendableOriginal() else emptySet())
+    }
+
+    private fun handleApplyCompressionDefault(action: AttachmentsPreviewAction.ApplyCompressionDefault) = setState {
+        if (compressionDefaultApplied) return@setState this
+        copy(compressionDefaultApplied = true, keepOriginalSize = if (action.compress) keepOriginalSize else allSendableOriginal())
+    }
+
+    private fun AttachmentsPreviewViewState.allSendableOriginal() = attachments.filter { canSendOriginal(it) }.map { stableIdOf(it) }.toSet()
 
     private fun handleSetSendAsSpoiler(action: AttachmentsPreviewAction.SetSendAsSpoiler) = withState {
         val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState

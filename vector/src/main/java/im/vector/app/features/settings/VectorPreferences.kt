@@ -308,7 +308,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_NOTIFICATION_RINGTONE_SELECTION_PREFERENCE_KEY = "SETTINGS_NOTIFICATION_RINGTONE_SELECTION_PREFERENCE_KEY"
 
         // media
-        private const val SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY = "SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY"
+        private const val SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY = "SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY"
         private const val SETTINGS_DEFAULT_MEDIA_SOURCE_KEY = "SETTINGS_DEFAULT_MEDIA_SOURCE_KEY"
         private const val SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY = "SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY"
         private const val SETTINGS_PLAY_SHUTTER_SOUND_KEY = "SETTINGS_PLAY_SHUTTER_SOUND_KEY"
@@ -414,7 +414,7 @@ class VectorPreferences @Inject constructor(
 
         // some preferences keys must be kept after a logout
         private val mKeysToKeepAfterLogout = listOf(
-                SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY,
+                SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY,
                 SETTINGS_DEFAULT_MEDIA_SOURCE_KEY,
                 SETTINGS_PLAY_SHUTTER_SOUND_KEY,
 
@@ -868,13 +868,9 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS, true)
     }
 
-    /**
-     * Tells which compression level to use by default.
-     *
-     * @return the selected compression level
-     */
-    fun getSelectedDefaultMediaCompressionLevel(): Int {
-        return Integer.parseInt(defaultPrefs.getString(SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY, "0")!!)
+    /** Whether images and videos start out compressed in the attachment preview. */
+    fun compressMediaByDefault(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_COMPRESS_MEDIA_BY_DEFAULT_KEY, true)
     }
 
     /**

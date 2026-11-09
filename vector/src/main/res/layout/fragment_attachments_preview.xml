@@ -114,15 +114,6 @@
 
         </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/attachmentPreviewerSendImageOriginalSize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:padding="8dp"
-            android:textColor="@android:color/white"
-            tools:text="@plurals/send_images_with_original_size" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -153,6 +144,28 @@
             android:textColor="@android:color/white"
             android:textColorHint="#B3FFFFFF"
             tools:text="A caption" />
+
+        <!-- Background, check tint and width are set from code: they follow the accent and the
+             widest text it can show. -->
+        <CheckBox
+            android:id="@+id/attachmentPreviewerCompressToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:minHeight="0dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:paddingLeft="2dp"
+            android:paddingStart="2dp"
+            android:paddingRight="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:text="Compress\n~640 KB" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/attachmentPreviewerSendButton"

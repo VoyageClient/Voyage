@@ -53,8 +53,6 @@ data class CompressionSettings(
             return CompressionSettings(width = (w * scale).roundToInt().coerceAtLeast(1), height = (h * scale).roundToInt().coerceAtLeast(1))
         }
 
-        const val MAX_QUALITY = 100
-
         /** Reproduces what compression did before the slider existed — see UploadContentWorker. */
         const val STANDARD_QUALITY = 70
     }

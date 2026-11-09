@@ -117,6 +117,27 @@ internal class VideoCompressor @Inject constructor(
         VideoCompressionResult.Success(destinationFile)
     }
 
+    /**
+     * Roughly what [compress] would produce, without transcoding: the encoder holds close to its
+     * target bitrate, so bitrate times duration is a fair guess. Follows the same skip rules.
+     */
+    fun estimateSize(
+            sourceUri: Uri,
+            sourceSize: Long,
+            targetWidth: Int? = null,
+            targetHeight: Int? = null,
+            targetBitrate: Int? = null,
+    ): Long {
+        if (!VideoEditExporter.isSupported()) return sourceSize
+        val chosenBySender = targetWidth != null || targetHeight != null || targetBitrate != null
+        if (!chosenBySender && isAlreadyWithinTargets(sourceUri, sourceSize)) return sourceSize
+        val source = MediaSourceInfo.probe(context, sourceUri)
+        if (source == null || source.durationUs <= 0) return sourceSize
+        val audioBitrate = if (source.audioMime != null) ESTIMATED_AUDIO_BITRATE else 0
+        val estimate = (targetBitrate ?: TARGET_BITRATE).plus(audioBitrate).toLong() * source.durationUs / 8_000_000
+        return if (!chosenBySender && sourceSize > 0 && estimate >= sourceSize) sourceSize else estimate
+    }
+
     /** The size the sender asked for, with a missing axis taken from the source's shape. */
     private fun requestedSize(source: MediaSourceInfo, width: Int?, height: Int?): Pair<Int, Int>? {
         val aspect = source.displayWidth.toFloat() / source.displayHeight.coerceAtLeast(1)
@@ -162,5 +183,8 @@ internal class VideoCompressor @Inject constructor(
         private const val TARGET_SHORTEST_SIDE = 720
         private const val TARGET_BITRATE = 2_000_000
         private const val SKIP_TRANSCODE_BYTES = 4L * 1024 * 1024
+
+        // The audio track is mostly copied through, and its bitrate isn't probed; typical AAC.
+        private const val ESTIMATED_AUDIO_BITRATE = 128_000
     }
 }

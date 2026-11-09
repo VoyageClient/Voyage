@@ -376,10 +376,6 @@
         <item quantity="one">%d सदस्यता बदलाव</item>
         <item quantity="other">%d सदस्यता बदलाव</item>
     </plurals>
-    <string name="compression_opt_list_original">मूल</string>
-    <string name="compression_opt_list_large">बड़ा</string>
-    <string name="compression_opt_list_medium">मध्यम</string>
-    <string name="compression_opt_list_small">छोटा</string>
     <string name="permissions_rationale_popup_title">जानकारी</string>
     <string name="permissions_rationale_msg_notification">${app_name} को सूचनाएं दिखाने के लिए अनुमति चाहिए। सूचनाएं आपके मैसेज, आमंत्रण आदि दिखा सकती हैं।\n\nसूचनाएं देखने के लिए कृपया अगले पॉप-अप में पहुंच की अनुमति दें।</string>
     <string name="permissions_denied_add_contact">अपने संपर्कों तक पहुंच की अनुमति दें।</string>
@@ -721,8 +717,6 @@
     <string name="settings_emails_and_phone_numbers_summary">अपने Matrix खाते से जुड़े ईमेल पते और फ़ोन नंबर मैनेज करें</string>
     <string name="settings_select_country">देश चुनें</string>
     <string name="settings_media">मीडिया</string>
-    <string name="settings_default_compression">डिफ़ॉल्ट कम्प्रेशन</string>
-    <string name="compression_opt_list_choose">चुनें</string>
     <string name="settings_default_media_source">डिफ़ॉल्ट मीडिया स्रोत</string>
     <string name="media_source_choose">चुनें</string>
     <string name="settings_play_shutter_sound">शटर की आवाज़ चलाएं</string>
@@ -1657,14 +1651,6 @@
     <string name="verification_cannot_access_other_session">रिकवरी पासफ़्रेज़ या कुंजी का उपयोग करें</string>
     <string name="verification_use_passphrase">अगर आप किसी मौजूदा सेशन तक नहीं पहुंच सकते</string>
     <string name="enter_secret_storage_invalid">स्टोरेज में सीक्रेट नहीं मिले</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">इमेज मूल साइज़ में भेजें</item>
-        <item quantity="other">इमेज मूल साइज़ में भेजें</item>
-    </plurals>
-    <plurals name="send_videos_with_original_size">
-        <item quantity="one">वीडियो मूल साइज़ में भेजें</item>
-        <item quantity="other">वीडियो मूल साइज़ में भेजें</item>
-    </plurals>
     <string name="keys_backup_restore_success_title_already_up_to_date">कुंजियां पहले से अप टू डेट हैं!</string>
     <string name="settings_key_requests">कुंजी अनुरोध</string>
     <string name="settings_export_trail">ऑडिट एक्सपोर्ट करें</string>
@@ -3620,4 +3606,10 @@
     <string name="settings_backup_import_device">डिवाइस सेटिंग</string>
     <string name="settings_backup_import_not_signed_in">%1$s (साइन-इन नहीं है)</string>
     <string name="settings_backup_import_action">इम्पोर्ट करें और रीस्टार्ट करें</string>
+    <string name="settings_compress_media_by_default">छवियाँ और वीडियो कंप्रेस करें</string>
+    <string name="settings_compress_media_by_default_summary">अपलोड की गई छवियों और वीडियो को डिफ़ॉल्ट रूप से छोटा करें ताकि वे जल्दी भेजे जाएँ</string>
+    <string name="attachment_send_original">मूल</string>
+    <string name="attachment_compress">कंप्रेस करें</string>
+    <string name="attachment_estimated_size">~%1$s</string>
+    <string name="attachment_apply_to_all">सभी पर लागू करें</string>
 </resources>
