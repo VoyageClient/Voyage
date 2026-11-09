@@ -22,6 +22,7 @@ import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import im.vector.app.core.utils.MediaPlayerCompat
+import timber.log.Timber
 import java.io.File
 
 internal interface MessageAudioPlayer {
@@ -40,9 +41,25 @@ internal interface MessageAudioPlayer {
     }
 
     companion object {
-        fun open(context: Context, file: File, listener: Listener): MessageAudioPlayer =
-                if (Build.VERSION.SDK_INT >= 16) ExoMessageAudioPlayer(context, file, listener)
+        // ExoPlayer has no MIDI extractor, but the platform's Sonivox synth plays MIDI on every API level.
+        fun open(context: Context, file: File, midi: Boolean, listener: Listener): MessageAudioPlayer =
+                if (Build.VERSION.SDK_INT >= 16 && !midi) ExoMessageAudioPlayer(context, file, listener)
                 else LegacyMessageAudioPlayer(context, file, listener)
+
+        // Otherwise speed and pitch need the file preprocessed, which only works for WAV.
+        fun adjustsLive(midi: Boolean): Boolean = Build.VERSION.SDK_INT >= if (midi) 23 else 16
+
+        fun isMidi(file: File): Boolean = runCatching {
+            val head = ByteArray(12)
+            val count = file.inputStream().use { it.read(head) }
+            isMidiHeader(head, count)
+        }.getOrDefault(false)
+
+        internal fun isMidiHeader(head: ByteArray, count: Int): Boolean {
+            fun at(offset: Int, tag: String) = count >= offset + tag.length &&
+                    tag.indices.all { head[offset + it] == tag[it].code.toByte() }
+            return at(0, "MThd") || at(0, "XMF_") || (at(0, "RIFF") && at(8, "RMID"))
+        }
     }
 }
 
@@ -77,6 +94,8 @@ private class ExoMessageAudioPlayer(context: Context, file: File, listener: Mess
 
 private class LegacyMessageAudioPlayer(context: Context, file: File, listener: MessageAudioPlayer.Listener) : MessageAudioPlayer {
     private var prepared = false
+    private var speed = 1f
+    private var pitch = 1f
     private val player = MediaPlayer()
 
     init {
@@ -95,11 +114,26 @@ private class LegacyMessageAudioPlayer(context: Context, file: File, listener: M
     }
     override val position get() = if (prepared) player.currentPosition else 0
     override val duration get() = if (prepared) player.duration else 0
-    override fun play() { if (prepared) player.start() }
+    override fun play() {
+        if (!prepared) return
+        if (Build.VERSION.SDK_INT >= 23) applyParameters() else player.start()
+    }
     override fun pause() { if (prepared) player.pause() }
     override fun seek(position: Int) { if (prepared) player.seekTo(position) }
 
-    // API 14 plays a PCM file processed with these parameters before opening the player.
-    override fun parameters(speed: Float, pitch: Float) = Unit
+    // API 14/15 instead play a PCM file processed with these parameters before opening the player.
+    override fun parameters(speed: Float, pitch: Float) {
+        this.speed = speed
+        this.pitch = pitch
+        // A non-zero speed starts a paused player, so a paused one only takes them on play().
+        if (Build.VERSION.SDK_INT >= 23 && prepared && player.isPlaying) applyParameters()
+    }
+
+    @RequiresApi(23)
+    private fun applyParameters() {
+        runCatching { player.playbackParams = player.playbackParams.setSpeed(speed).setPitch(pitch) }
+                .onFailure { Timber.w(it, "Cannot set playback speed $speed / pitch $pitch") }
+        if (!player.isPlaying) player.start()
+    }
     override fun release() = player.release()
 }

@@ -81,6 +81,8 @@ class AudioPlaybackController @Inject constructor(
     private var session: Session? = null
     private var source: File? = null
     private var processed: File? = null
+    private var sourceIsMidi = false
+    private val liveParameters get() = MessageAudioPlayer.adjustsLive(sourceIsMidi)
     private var timeScale = 1f
     private var queue = emptyList<Track>()
     private var playlistLoad: Job? = null
@@ -367,8 +369,10 @@ class AudioPlaybackController @Inject constructor(
                 val activeSession = session ?: return@launch
                 val file = preparedFile ?: withContext(Dispatchers.IO) { localFile(track.content.getFileUrl()) ?: activeSession.fileService().downloadFile(track.content) }
                 source = withContext(Dispatchers.IO) { legacySource(file) }
+                sourceIsMidi = withContext(Dispatchers.IO) { MessageAudioPlayer.isMidi(source!!) }
                 mutableState.value = state.value?.copy(
-                        adjustable = Build.VERSION.SDK_INT >= 16 || withContext(Dispatchers.IO) { PlaybackPcmFile.supports(source!!) },
+                        adjustable = liveParameters ||
+                                (Build.VERSION.SDK_INT < 16 && withContext(Dispatchers.IO) { PlaybackPcmFile.supports(source!!) }),
                 )
                 val adjustable = state.value?.adjustable == true
                 if (!adjustable) mutableState.value = state.value?.copy(speed = 1f, pitch = 1f)
@@ -450,9 +454,9 @@ class AudioPlaybackController @Inject constructor(
         val original = source ?: return
         val current = state.value ?: return
         releasePlayer()
-        timeScale = if (Build.VERSION.SDK_INT < 16 && current.adjustable) speed else 1f
+        timeScale = if (!liveParameters && current.adjustable) speed else 1f
         var file = original
-        if (Build.VERSION.SDK_INT < 16 && current.adjustable && (speed != 1f || pitch != 1f)) {
+        if (!liveParameters && current.adjustable && (speed != 1f || pitch != 1f)) {
             val adjusted = File.createTempFile("playback-pcm-", ".wav", context.cacheDir)
             processed = adjusted
             try {
@@ -492,7 +496,7 @@ class AudioPlaybackController @Inject constructor(
                 if (playerGeneration == generation) this@AudioPlaybackController.failed(error)
             }
         }
-        player = MessageAudioPlayer.open(context, file, listener)
+        player = MessageAudioPlayer.open(context, file, sourceIsMidi, listener)
         tracker.activePlayerStopper = stopper
     }
 
@@ -573,7 +577,7 @@ class AudioPlaybackController @Inject constructor(
         pitch = newPitch.coerceIn(0.1f, 3f)
         mutableState.value = current.copy(speed = speed, pitch = pitch)
         if (current.loading) return
-        if (Build.VERSION.SDK_INT >= 16) {
+        if (liveParameters) {
             player?.parameters(speed, pitch)
         } else {
             pause()
