@@ -65,6 +65,7 @@ internal class SqlTimeline(
         private val paginationTask: PaginationTask,
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
         private val contextOfEventTask: GetContextOfEventTask,
+        private val fetchEventTokenTask: FetchEventTokenTask,
         private val fetchRoomStartTask: FetchRoomStartTask,
         private val database: SessionSqlDatabase,
         private val sessionDispatcher: CoroutineDispatcher,
@@ -283,7 +284,7 @@ internal class SqlTimeline(
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             if (initialNavigation != navigationGeneration.get()) return@launch
             RoomOpenTrace.stageFor(roomId, "sdk.seedResolved", "chunk=$seed")
-            seedFrom(seed)
+            seedFrom(seed, atLiveEdge = seedsAtLiveEdge(seed))
             RoomOpenTrace.stageFor(roomId, "sdk.seeded")
             rebuildSnapshot()
             RoomOpenTrace.stageFor(roomId, "sdk.firstRebuild", "built=${builtEvents.size}")
@@ -402,7 +403,7 @@ internal class SqlTimeline(
             oldestShownEventId = null
             newestShownEventId = null
             viewAtLiveEdge = eventId == null
-            seedFrom(seed)
+            seedFrom(seed, atLiveEdge = seedsAtLiveEdge(seed))
             rebuildSnapshot()
         }
     }
@@ -521,6 +522,10 @@ internal class SqlTimeline(
         else -> stores.chunk.lastForward(roomId)?.id
     }
 
+    // Without a target, a main-timeline seed was resolved as the live range. Not re-checked here: it may
+    // already be demoted, which is exactly the case the first rebuild must follow.
+    private fun seedsAtLiveEdge(seed: Long?): Boolean = seed != null && !isThreadTimeline && pendingShowEventId == null
+
     // Thread ranges hold copies of events and cannot seed the main timeline.
     private fun storedChunkForEvent(eventId: String): Long? =
             if (isThreadTimeline) stores.chunk.findChunkIdIncludingEvent(roomId, eventId)
@@ -546,7 +551,7 @@ internal class SqlTimeline(
             if (loadedChunkIds.isNotEmpty() || request != navigationGeneration.get()) break
             val seed = resolveSeedChunkId() ?: continue
             if (request != navigationGeneration.get()) return
-            seedFrom(seed)
+            seedFrom(seed, atLiveEdge = seedsAtLiveEdge(seed))
             rebuildSnapshot()
         }
     }
@@ -565,7 +570,9 @@ internal class SqlTimeline(
         }
     }
 
-    private fun seedFrom(seedChunkId: Long?) {
+    // [atLiveEdge]: the seed was read as the live range. A gappy sync can demote it before the first rebuild,
+    // and only a timeline known to have been live follows the new live range.
+    private fun seedFrom(seedChunkId: Long?, atLiveEdge: Boolean = false) {
         seedGeneration.incrementAndGet()
         observeJob?.cancel()
         sendingJob?.cancel()
@@ -580,6 +587,7 @@ internal class SqlTimeline(
         liveEdgeLoaded = false
         gaveUpOnHiddenOlder = false
         if (seedChunkId == null) return
+        liveEdgeLoaded = atLiveEdge
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
         observeJob = timelineScope.launch {
@@ -780,13 +788,23 @@ internal class SqlTimeline(
                 val newestNextToken = newest.next_token
                 when {
                     newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
-                    newestNextToken != null -> {
-                        // Catch-up pages are large, but the first one after a jump is what fills the screen
-                        // below the target, so it gets the same size as a backward page.
-                        val pageCount = if (forwardServerPaged) count else minOf(count, FIRST_FORWARD_PAGE_COUNT)
-                        forwardServerPaged = true
-                        if (!paginateThroughHidden(newestNextToken, Timeline.Direction.FORWARDS, pageCount, newest.id)) return
-                        rebuildSnapshot()
+                    newestNextToken != null -> pageForward(newestNextToken, count, newest.id)
+                    hasNewerRange(newest.id) -> when (val token = fetchForwardToken(newest.id)) {
+                        ForwardToken.Unavailable -> Unit
+                        // Only the live edge is left to show; staying put would strand the reader here.
+                        ForwardToken.None -> {
+                            val liveId = stores.chunk.lastForward(roomId)?.id
+                            if (isCurrentWindow(navigation, seed) && liveId != null) {
+                                Timber.w("SqlTimeline $roomId: no way forward from range ${newest.id}, joining the live edge")
+                                viewAtLiveEdge = true
+                                needsJumpPageRefresh = false
+                                reseedAtLiveEdge(liveId)
+                            }
+                        }
+                        is ForwardToken.Found -> if (isCurrentWindow(navigation, seed)) {
+                            database.awaitDbTransaction(sessionDispatcher) { stores.chunk.updateNextToken(newest.id, token.token) }
+                            if (isCurrentWindow(navigation, seed)) pageForward(token.token, count, newest.id)
+                        }
                     }
                     else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
                 }
@@ -873,6 +891,47 @@ internal class SqlTimeline(
             from = (if (backwards) range.prev_token else range.next_token)?.takeIf { it != from } ?: return true
         }
         return true
+    }
+
+    private suspend fun pageForward(token: String, count: Int, rangeId: Long) {
+        // Catch-up pages are large, but the first one after a jump is what fills the screen
+        // below the target, so it gets the same size as a backward page.
+        val pageCount = if (forwardServerPaged) count else minOf(count, FIRST_FORWARD_PAGE_COUNT)
+        forwardServerPaged = true
+        if (!paginateThroughHidden(token, Timeline.Direction.FORWARDS, pageCount, rangeId)) return
+        rebuildSnapshot()
+    }
+
+    // A range without a forward token can still sit below newer history: a gappy sync demotes the live range
+    // it was, and a gap split leaves its older side tokenless. Without this the reader's scroll ends there.
+    private fun hasNewerRange(rangeId: Long): Boolean =
+            stores.chunk.lastForward(roomId)?.id?.let { it != rangeId } == true
+
+    private sealed class ForwardToken {
+        class Found(val token: String) : ForwardToken()
+
+        /** The server can't give one; only the live edge is reachable. */
+        object None : ForwardToken()
+
+        /** Offline or similar; the next load retries. */
+        object Unavailable : ForwardToken()
+    }
+
+    private suspend fun fetchForwardToken(rangeId: Long): ForwardToken {
+        val newestEventId = stores.timelineEvent.getByChunkNewest(rangeId, 1).firstOrNull()?.eventId ?: return ForwardToken.None
+        updateState(Timeline.Direction.FORWARDS) { it.copy(loading = true) }
+        return try {
+            fetchEventTokenTask.execute(FetchEventTokenTask.Params(roomId, newestEventId, PaginationDirection.FORWARDS))
+                    ?.let { ForwardToken.Found(it) }
+                    ?: ForwardToken.None
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            Timber.w(failure, "SqlTimeline $roomId forward token fetch failed for range $rangeId")
+            // Anything but a connectivity failure is the server's answer, and asking again would not change it.
+            if (failure is Failure.NetworkConnection || failure is java.io.IOException) ForwardToken.Unavailable else ForwardToken.None
+        } finally {
+            updateState(Timeline.Direction.FORWARDS) { it.copy(loading = false) }
+        }
     }
 
     /** What a round of paging did, beyond the rows it wrote. */
@@ -1347,7 +1406,8 @@ internal class SqlTimeline(
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
 
         val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
-        val moreForward = windowHasMoreNewer || (newest != null && newest.is_last_forward == 0L && newest.next_token != null)
+        val moreForward = windowHasMoreNewer ||
+                (newest != null && newest.is_last_forward == 0L && (newest.next_token != null || hasNewerRange(newest.id)))
         updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = moreForward) }
     }
 
@@ -1451,7 +1511,7 @@ internal class SqlTimeline(
         pendingShowEventId = null
         oldestShownEventId = null
         newestShownEventId = null
-        seedFrom(chunkId)
+        seedFrom(chunkId, atLiveEdge = seedsAtLiveEdge(chunkId))
         rebuildSnapshot()
     }
 

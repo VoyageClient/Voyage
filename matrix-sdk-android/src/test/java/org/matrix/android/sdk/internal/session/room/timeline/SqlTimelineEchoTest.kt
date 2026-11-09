@@ -65,6 +65,7 @@ internal class SqlTimelineEchoTest {
                 paginationTask = mockk(relaxed = true),
                 fetchThreadTimelineTask = mockk(relaxed = true),
                 contextOfEventTask = mockk(relaxed = true),
+                fetchEventTokenTask = mockk(relaxed = true),
                 fetchRoomStartTask = mockk(relaxed = true),
                 database = db.database,
                 sessionDispatcher = read,

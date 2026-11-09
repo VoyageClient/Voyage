@@ -1151,6 +1151,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/store/db/model/OutboundGroupSessionInfoEntity.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationCryptoPrimitiveProvider.kt',
         'org/matrix/android/sdk/internal/session/room/draft/DefaultDraftService.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/FetchEventTokenTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/FetchTokenAndPaginateTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/GetContextOfEventTask.kt',
         'org/matrix/android/sdk/internal/session/search/SearchTask.kt',

@@ -146,6 +146,7 @@ import org.matrix.android.sdk.internal.session.room.tags.AddTagToRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DefaultAddTagToRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DefaultDeleteTagFromRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DeleteTagFromRoomTask
+import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchEventTokenTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchRoomStartTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchTokenAndPaginateTask
@@ -154,6 +155,7 @@ import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultPaginationTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultReanchorRejoinedRoomTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultSeedJoinedRoomHistoryTask
+import org.matrix.android.sdk.internal.session.room.timeline.FetchEventTokenTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchRoomStartTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchTokenAndPaginateTask
@@ -323,6 +325,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindFetchNextTokenAndPaginateTask(task: DefaultFetchTokenAndPaginateTask): FetchTokenAndPaginateTask
+
+    @Binds
+    abstract fun bindFetchEventTokenTask(task: DefaultFetchEventTokenTask): FetchEventTokenTask
 
     @Binds
     abstract fun bindFetchEditHistoryTask(task: DefaultFetchEditHistoryTask): FetchEditHistoryTask
