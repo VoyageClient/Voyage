@@ -8,9 +8,11 @@
 package im.vector.app.core.epoxy
 
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
+import im.vector.app.features.themes.ThemeUtils
 
 @EpoxyModelClass
 abstract class NoResultItem : VectorEpoxyModel<NoResultItem.Holder>(R.layout.item_no_result) {
@@ -18,9 +20,16 @@ abstract class NoResultItem : VectorEpoxyModel<NoResultItem.Holder>(R.layout.ite
     @EpoxyAttribute
     var text: String? = null
 
+    @EpoxyAttribute
+    @ColorInt
+    var textColor: Int? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.textView.text = text
+        holder.textView.setTextColor(
+                textColor ?: ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+        )
     }
 
     class Holder : VectorEpoxyHolder() {

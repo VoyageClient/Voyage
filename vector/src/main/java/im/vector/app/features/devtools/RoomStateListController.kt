@@ -38,6 +38,9 @@ class RoomStateListController @Inject constructor(
 
     var interactionListener: DevToolsInteractionListener? = null
 
+    private val noResultColor: Int
+        get() = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+
     override fun buildModels(data: RoomDevToolViewState?) {
         val host = this
         val query = DevToolsSearchQuery.parse(data?.searchQuery.orEmpty())
@@ -50,6 +53,7 @@ class RoomStateListController @Inject constructor(
                         noResultItem {
                             id("no state events")
                             text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
+                            textColor(host.noResultColor)
                         }
                     } else {
                         stateEventsGroups.forEach { entry ->
@@ -93,6 +97,7 @@ class RoomStateListController @Inject constructor(
                     noResultItem {
                         id("no account data")
                         text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
+                        textColor(host.noResultColor)
                     }
                 } else {
                     accountDataEvents.forEach { event ->
@@ -176,6 +181,7 @@ class RoomStateListController @Inject constructor(
             noResultItem {
                 id("no state events")
                 text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
+                textColor(host.noResultColor)
             }
             return
         }

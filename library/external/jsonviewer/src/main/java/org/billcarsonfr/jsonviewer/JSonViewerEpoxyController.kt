@@ -15,6 +15,7 @@ import com.airbnb.mvrx.Fail
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.Span
 import me.gujun.android.span.span
 import org.json.JSONArray
@@ -77,9 +78,10 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                     if (query.isEmpty()) {
                         buildRec(root, 0, "")
                     } else if (!buildFiltered(root, 0, "", query)) {
-                        valueItem {
+                        noResultItem {
                             id("no_search_result")
-                            text(host.context.getString(R.string.jv_no_search_result).toEpoxyCharSequence())
+                            text(host.context.getString(CommonStrings.no_result_placeholder))
+                            textColor(host.styleProvider.secondaryColor)
                         }
                     }
                 }
