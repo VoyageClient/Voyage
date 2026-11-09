@@ -40,6 +40,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.glide.RestartAnimationListener
+import im.vector.app.core.glide.ViewerDownsample
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.ui.model.Size
 import im.vector.app.core.utils.DimensionConverter
@@ -815,9 +816,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     /**
-     * Used by Attachment Viewer. Decodes at the source's native resolution rather than the
-     * target view's bounds — the viewer supports pinch-to-zoom, so a screen-sized bitmap
-     * gets visibly blurry once magnified.
+     * Used by Attachment Viewer. Decodes at the source's native resolution (up to [ViewerDownsample]'s
+     * cap) rather than the target view's bounds — the viewer supports pinch-to-zoom, so a screen-sized
+     * bitmap gets visibly blurry once magnified.
      */
     fun render(data: Data, contextView: View, target: CustomViewTarget<*, Drawable>) {
         // Glide reuses equivalent requests with their original target and potentially stale page uid.
@@ -856,6 +857,8 @@ class ImageContentRenderer @Inject constructor(
         req
                 .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                 .optionalFitCenter()
+                // After optionalFitCenter(), which sets its own downsample strategy.
+                .downsample(ViewerDownsample)
                 // Whatever the mime type claimed: the still-image target would never start it otherwise.
                 .addListener(RestartAnimationListener)
                 .into(target)
@@ -910,6 +913,8 @@ class ImageContentRenderer @Inject constructor(
                 // Appended, not listener(): that one drops whatever was registered before it.
                 .addListener(RestartAnimationListener)
                 .optionalFitCenter()
+                // Same strategy as the pager's request, or the two never share a cache key.
+                .downsample(ViewerDownsample)
                 .into(imageView)
     }
 

@@ -43,14 +43,15 @@ internal object PlatformGifRegistrar {
 }
 
 @RequiresApi(28)
-private fun decodeAnimated(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Resource<Drawable>? {
-    val drawable = decodeGif(bytes, requestedWidth, requestedHeight) ?: return null
+private fun decodeAnimated(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int, options: Options): Resource<Drawable>? {
+    val bounded = ViewerDownsample.appliesTo(options)
+    val drawable = decodeGif(bytes, requestedWidth, requestedHeight, bounded) ?: return null
     if (drawable !is AnimatedImageDrawable) return null
     return object : Resource<Drawable> {
         override fun getResourceClass(): Class<Drawable> = Drawable::class.java
 
         // AnimatedImageDrawable owns one callback and playback state, so each target needs its own instance.
-        override fun get(): Drawable = decodeGif(bytes, requestedWidth, requestedHeight)
+        override fun get(): Drawable = decodeGif(bytes, requestedWidth, requestedHeight, bounded)
                 ?: error("Unable to decode previously validated GIF")
         override fun getSize(): Int = bytes.size
         override fun recycle() = Unit
@@ -58,11 +59,12 @@ private fun decodeAnimated(bytes: ByteArray, requestedWidth: Int, requestedHeigh
 }
 
 @RequiresApi(28)
-private fun decodeGif(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Drawable? {
+private fun decodeGif(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int, viewerBounded: Boolean): Drawable? {
     val drawable = try {
         ImageDecoder.decodeDrawable(ImageDecoder.createSource(ByteBuffer.wrap(bytes))) { decoder, info, _ ->
             decoder.isMutableRequired = false
             val (targetWidth, targetHeight) = boundedSize(info.size.width, info.size.height, requestedWidth, requestedHeight)
+                    .let { if (viewerBounded) ViewerDownsample.bounded(it.first, it.second) else it }
             decoder.setTargetSize(targetWidth, targetHeight)
         }
     } catch (t: Throwable) {
@@ -102,7 +104,7 @@ private class ByteBufferPlatformGifDecoder : ResourceDecoder<ByteBuffer, Drawabl
     override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
         val bytes = ByteArray(source.remaining())
         source.duplicate().get(bytes)
-        return decodeAnimated(bytes, width, height)
+        return decodeAnimated(bytes, width, height, options)
     }
 }
 
@@ -124,6 +126,6 @@ private class StreamPlatformGifDecoder : ResourceDecoder<InputStream, Drawable> 
     override fun decode(source: InputStream, width: Int, height: Int, options: Options): Resource<Drawable>? {
         val buffer = ByteArrayOutputStream()
         source.copyTo(buffer)
-        return decodeAnimated(buffer.toByteArray(), width, height)
+        return decodeAnimated(buffer.toByteArray(), width, height, options)
     }
 }

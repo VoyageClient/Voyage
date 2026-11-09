@@ -62,7 +62,7 @@ internal object JxlBitmaps {
     /** Bounded by the requested box rather than a pixel count, for Glide's decoders. */
     fun decodeForRequest(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int, options: Options): Bitmap? {
         val (srcWidth, srcHeight) = readSize(bytes) ?: return null
-        val (targetWidth, targetHeight) = targetSize(srcWidth, srcHeight, requestedWidth, requestedHeight)
+        val (targetWidth, targetHeight) = targetSize(srcWidth, srcHeight, requestedWidth, requestedHeight, options)
         return decode(bytes, targetWidth, targetHeight, preferredColorConfig(options))
     }
 
@@ -81,10 +81,10 @@ internal object JxlBitmaps {
      * own frame state. Frames are pulled lazily, bounded by the requested box. The decoder is owned
      * by the drawable and outlives this call, so it is deliberately not closed here.
      */
-    fun animatedDrawable(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Drawable? {
+    fun animatedDrawable(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int, options: Options): Drawable? {
         return try {
             val animation = openAnimation(bytes)
-            val (targetWidth, targetHeight) = targetSize(animation.getWidth(), animation.getHeight(), requestedWidth, requestedHeight)
+            val (targetWidth, targetHeight) = targetSize(animation.getWidth(), animation.getHeight(), requestedWidth, requestedHeight, options)
             JxlAnimatedDrawable(JxlAnimatedStore(animation, targetWidth, targetHeight))
         } catch (t: Throwable) {
             Timber.w(t, "Unable to open JPEG XL animation")
@@ -128,6 +128,11 @@ internal object JxlBitmaps {
     }
 
     private fun scaled(value: Int, scale: Float) = (value * scale).toInt().coerceAtLeast(1)
+
+    private fun targetSize(srcWidth: Int, srcHeight: Int, requestedWidth: Int, requestedHeight: Int, options: Options): Pair<Int, Int> {
+        val (width, height) = targetSize(srcWidth, srcHeight, requestedWidth, requestedHeight)
+        return if (ViewerDownsample.appliesTo(options)) ViewerDownsample.bounded(width, height) else width to height
+    }
 
     /** Aspect-preserving box fit. Returns the source size when Glide asks for the original. */
     private fun targetSize(srcWidth: Int, srcHeight: Int, requestedWidth: Int, requestedHeight: Int): Pair<Int, Int> {

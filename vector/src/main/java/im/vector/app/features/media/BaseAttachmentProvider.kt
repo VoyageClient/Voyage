@@ -50,6 +50,9 @@ abstract class BaseAttachmentProvider<Type>(
     // and a "1 of 1" counter over the message it came from is just noise.
     var showOverlayInfo = true
 
+    // Off for the tapped item shown alone while the room's media list loads: its count isn't known yet.
+    var showCounter = true
+
     var showInChat = true
 
     var showForward = true
@@ -80,7 +83,7 @@ abstract class BaseAttachmentProvider<Type>(
         overlayView?.showInChat = showInChat
         overlayView?.showForward = showForward
 
-        val counter = if (showOverlayInfo) {
+        val counter = if (showOverlayInfo && showCounter) {
             stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())
         } else {
             ""

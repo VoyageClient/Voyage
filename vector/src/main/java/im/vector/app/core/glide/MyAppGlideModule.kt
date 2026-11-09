@@ -80,6 +80,7 @@ class MyAppGlideModule : AppGlideModule() {
         registry.prepend(InputStream::class.java, Drawable::class.java, AnimatedStreamDrawableDecoder(byteBufferAnimated))
         // Without an encoder a DiskCacheStrategy.ALL load (the pickers) fails outright on an APNG.
         registry.append(APNGDrawable::class.java, ApngSourceEncoder())
+        ViewerBoundedDecoders.register(context, glide, registry)
         // Give Glide a Uri -> ByteBuffer path so attachment-preview loads can hand bytes straight
         // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
         // them ourselves. The fetcher runs on Glide's source executor.

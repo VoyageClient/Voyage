@@ -39,16 +39,16 @@ internal class JxlAnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable
     override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
         val bytes = ByteArray(source.remaining())
         source.duplicate().get(bytes)
-        return decodeBytes(bytes, width, height)
+        return decodeBytes(bytes, width, height, options)
     }
 
     companion object {
 
-        fun decodeBytes(bytes: ByteArray, width: Int, height: Int): Resource<Drawable>? {
+        fun decodeBytes(bytes: ByteArray, width: Int, height: Int, options: Options): Resource<Drawable>? {
             if ((JxlBitmaps.frameCount(bytes) ?: return null) <= 1) return null
             return object : Resource<Drawable> {
                 override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-                override fun get(): Drawable = JxlBitmaps.animatedDrawable(bytes, width, height)
+                override fun get(): Drawable = JxlBitmaps.animatedDrawable(bytes, width, height, options)
                         ?: error("Unable to decode previously validated JPEG XL animation")
                 override fun getSize(): Int = bytes.size
                 override fun recycle() = Unit
@@ -75,6 +75,6 @@ internal class JxlAnimatedStreamDrawableDecoder : ResourceDecoder<InputStream, D
     override fun decode(source: InputStream, width: Int, height: Int, options: Options): Resource<Drawable>? {
         val buffer = ByteArrayOutputStream()
         source.copyTo(buffer)
-        return JxlAnimatedDrawableDecoder.decodeBytes(buffer.toByteArray(), width, height)
+        return JxlAnimatedDrawableDecoder.decodeBytes(buffer.toByteArray(), width, height, options)
     }
 }

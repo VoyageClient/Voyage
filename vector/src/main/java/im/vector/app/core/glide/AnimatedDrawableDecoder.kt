@@ -16,14 +16,18 @@ import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.gif.GifOptions
 import com.bumptech.glide.util.ByteBufferUtil
 import com.github.penfeizhou.animation.apng.APNGDrawable
+import com.github.penfeizhou.animation.apng.decode.APNGDecoder
 import com.github.penfeizhou.animation.apng.decode.APNGParser
+import com.github.penfeizhou.animation.decode.FrameSeqDecoder
 import com.github.penfeizhou.animation.io.ByteBufferReader
 import com.github.penfeizhou.animation.loader.ByteBufferLoader
+import com.github.penfeizhou.animation.loader.Loader
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * Decodes APNG straight into penfeizhou's FrameAnimationDrawable.
@@ -63,19 +67,45 @@ internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
         }
         // penfeizhou's autoPlay restarts the animation on every setVisible(true), outliving a target's stop().
         val autoPlay = options.get(GifOptions.DISABLE_ANIMATION) != true
+        val viewerSize = pngSize(buffer).takeIf { ViewerDownsample.appliesTo(options) }
+        val sampleSize = viewerSize?.let { ViewerDownsample.sampleSizeFor(it.first, it.second) } ?: 1
         return object : Resource<Drawable> {
             // The real class, since Glide picks the cache encoder by it (ApngSourceEncoder).
             @Suppress("UNCHECKED_CAST")
             override fun getResourceClass(): Class<Drawable> = SourceApngDrawable::class.java as Class<Drawable>
-            override fun get(): Drawable = SourceApngDrawable(loader, buffer).apply { setAutoPlay(autoPlay) }
+            override fun get(): Drawable = SourceApngDrawable(SampledLoader(loader, sampleSize), buffer).apply { setAutoPlay(autoPlay) }
             override fun getSize(): Int = buffer.capacity()
             override fun recycle() = Unit
         }
     }
 }
 
+private fun pngSize(buffer: ByteBuffer): Pair<Int, Int>? {
+    val view = buffer.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN)
+    if (view.remaining() < PNG_IHDR_SIZE_END) return null
+    val base = view.position()
+    return view.getInt(base + PNG_IHDR_WIDTH_OFFSET) to view.getInt(base + PNG_IHDR_WIDTH_OFFSET + 4)
+}
+
+private const val PNG_IHDR_WIDTH_OFFSET = 16
+private const val PNG_IHDR_SIZE_END = 24
+
+// createFrameSeqDecoder() runs inside the super constructor, before any field of ours is set.
+private class SampledLoader(private val delegate: Loader, val sampleSize: Int) : Loader by delegate
+
 /** Keeps the APNG's bytes, which are what [ApngSourceEncoder] stores as its resource-cache entry. */
-internal class SourceApngDrawable(loader: ByteBufferLoader, val source: ByteBuffer) : APNGDrawable(loader)
+internal class SourceApngDrawable(loader: Loader, val source: ByteBuffer) : APNGDrawable(loader) {
+
+    override fun createFrameSeqDecoder(loader: Loader, listener: FrameSeqDecoder.RenderListener): APNGDecoder =
+            SampledApngDecoder(loader, listener, (loader as? SampledLoader)?.sampleSize ?: 1)
+}
+
+// penfeizhou sizes the frame buffer by the sample size at first parse, so it must be set up front.
+private class SampledApngDecoder(loader: Loader, listener: FrameSeqDecoder.RenderListener, sample: Int) : APNGDecoder(loader, listener) {
+    init {
+        sampleSize = sample
+    }
+}
 
 /**
  * Caches a decoded APNG as its original bytes, which [AnimatedDrawableDecoder] reads back on a cache hit.

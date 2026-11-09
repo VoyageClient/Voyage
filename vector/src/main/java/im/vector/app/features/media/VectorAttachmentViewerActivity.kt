@@ -234,7 +234,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             val provisionalItem = tapped
             if (provisionalItem != null) {
                 initialIndex = 0
-                installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
+                installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope), provisional = true)
             }
             lifecycleScope.launch {
                 val events = withContext(Dispatchers.IO) { loadRoomAttachmentEvents(room) }
@@ -248,7 +248,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                     // Tapped event missing from the room's media list (e.g. a still-sending echo):
                     // show it alone rather than landing on an unrelated first entry.
                     initialIndex = 0
-                    installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
+                    installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope), provisional = true)
                 }
             }
         }
@@ -271,8 +271,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         return if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
     }
 
-    private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {
+    private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>, provisional: Boolean = false) {
         sourceProvider.interactionListener = this
+        sourceProvider.showCounter = !provisional
         sourceProvider.showInChat = args()?.hideShowInChat != true
         sourceProvider.showForward = args()?.hideForward != true
         sourceProvider.imageSettledListener = { uid ->
