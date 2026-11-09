@@ -7,7 +7,9 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
+import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.internal.database.mapper.asDomain
@@ -78,14 +80,18 @@ internal class LocalEventSearchTask @Inject constructor(
             }
         }
 
+        val roomEncrypted by lazy { stores.roomSummary.isEncrypted(roomId) }
         val results = rows.mapNotNull { row ->
-            val event = tryParse(row.event_json)?.unwrapReplaceForSearch() ?: return@mapNotNull null
-            val localTimelineEvent = stores.timelineEvent.getByRoomAndEventId(row.room_id, event.eventId ?: row.event_id)
-            event.threadDetails = localTimelineEvent
-                    ?.root
+            val clearEvent = tryParse(row.event_json)?.unwrapReplaceForSearch() ?: return@mapNotNull null
+            val localTimelineEvent = stores.timelineEvent.getByRoomAndEventId(row.room_id, clearEvent.eventId ?: row.event_id)
+            val localRootEntity = localTimelineEvent?.root
+            val localRoot = localRootEntity?.asDomain()
+            // NULL: indexed before the flag existed.
+            val wasEncrypted = row.encrypted?.let { it != 0L } ?: localRoot?.isEncrypted() ?: roomEncrypted
+            val event = if (wasEncrypted && !clearEvent.isRedacted()) clearEvent.asDecrypted(localRoot?.mxDecryptionResult) else clearEvent
+            event.threadDetails = localRootEntity
                     ?.takeIf { it.isRootThread || it.isThread() }
-                    ?.asDomain()
-                    ?.threadDetails
+                    ?.let { localRoot?.threadDetails }
             val sender = row.sender
             val senderItem = sender?.let {
                 // The name and avatar the sender had when the event was sent, as the timeline shows
@@ -110,6 +116,14 @@ internal class LocalEventSearchTask @Inject constructor(
     }
 
     private fun tryParse(json: String): Event? = runCatching { eventAdapter.fromJson(json) }.getOrNull()
+
+    // Unwrapped, the UI reads the hit as sent in the clear. Wire content stays clear so m.relates_to resolves.
+    private fun Event.asDecrypted(localResult: OlmDecryptionResult?): Event {
+        val payload = mapOf<String, Any>("type" to type.orEmpty(), "content" to content.orEmpty())
+        return copyAll(type = EventType.ENCRYPTED).also {
+            it.mxDecryptionResult = localResult?.copy(payload = payload) ?: OlmDecryptionResult(payload = payload, isSafe = true)
+        }
+    }
 
     private fun makeToken(offset: Int, term: String) = "$offset:${term.hashCode()}"
 

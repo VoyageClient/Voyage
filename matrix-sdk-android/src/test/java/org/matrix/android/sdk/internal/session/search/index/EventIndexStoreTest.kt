@@ -7,11 +7,13 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
+import android.database.sqlite.SQLiteDatabase
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqlDriverFactory
+import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.io.File
@@ -54,6 +56,7 @@ class EventIndexStoreTest {
                         eventJson = payload,
                         msgtype = "m.text",
                         mentions = null,
+                        encrypted = false,
                 )
             })
             val databaseFile = File(directory, "event_index.db")
@@ -96,6 +99,34 @@ class EventIndexStoreTest {
     }
 
     @Test
+    fun `an index from before the encrypted flag keeps its rows and gains the column`() = runBlocking {
+        val directory = File(RuntimeEnvironment.getApplication().filesDir, "event-index-encrypted-flag-test")
+        directory.deleteRecursively()
+        directory.mkdirs()
+        SQLiteDatabase.openOrCreateDatabase(File(directory, "event_index.db"), null).use { legacy ->
+            legacy.execSQL(
+                    "CREATE TABLE indexed_event (event_id TEXT NOT NULL PRIMARY KEY, room_id TEXT NOT NULL, sender TEXT, " +
+                            "origin_server_ts INTEGER NOT NULL, content_text TEXT NOT NULL, event_json TEXT NOT NULL, msgtype TEXT, mentions TEXT)"
+            )
+            legacy.execSQL("INSERT INTO indexed_event VALUES ('\$old', '$ROOM', NULL, 100, 'hello', '{}', 'm.text', NULL)")
+            legacy.version = EventIndexSqlDatabase.Schema.version.toInt()
+        }
+        val store = EventIndexStore(directory, "@user:example.org", FrameworkSqlDriverFactory(RuntimeEnvironment.getApplication()))
+        try {
+            store.addEvents(listOf(
+                    indexable("\$clear", ts = 200, msgtype = "m.text").copy(contentText = "hello"),
+                    indexable("\$encrypted", ts = 300, msgtype = "m.text").copy(contentText = "hello", encrypted = true),
+            ))
+
+            store.search(ROOM, "hello", 10, 0).map { it.event_id to it.encrypted } shouldBeEqualTo
+                    listOf("\$encrypted" to 1L, "\$clear" to 0L, "\$old" to null)
+        } finally {
+            store.onSessionReleased()
+        }
+        Unit
+    }
+
+    @Test
     fun `the crawl frontier only ever moves back in time`() = withStore("event-index-frontier-test") { store ->
         store.getCrawlFrontier(ROOM) shouldBeEqualTo null
         store.lowerCrawlFrontier(ROOM, 500)
@@ -126,6 +157,7 @@ class EventIndexStoreTest {
             eventJson = "{}",
             msgtype = msgtype,
             mentions = null,
+            encrypted = false,
     )
 
     private companion object {

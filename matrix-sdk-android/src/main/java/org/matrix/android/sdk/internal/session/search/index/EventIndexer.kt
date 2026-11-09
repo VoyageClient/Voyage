@@ -349,6 +349,7 @@ internal class EventIndexer @Inject constructor(
                 eventJson = eventAdapter.toJson(clearEvent),
                 msgtype = msgtypes.joinToString(" ").takeIf { it.isNotEmpty() },
                 mentions = mentions.takeIf { it.isNotEmpty() }?.joinToString(" ") { it.lowercase() },
+                encrypted = event.isEncrypted(),
         )
     }
 
@@ -364,6 +365,7 @@ internal class EventIndexer @Inject constructor(
                 eventJson = eventAdapter.toJson(event.redactedStub(null)),
                 msgtype = null,
                 mentions = null,
+                encrypted = event.isEncrypted(),
         )
     }
 

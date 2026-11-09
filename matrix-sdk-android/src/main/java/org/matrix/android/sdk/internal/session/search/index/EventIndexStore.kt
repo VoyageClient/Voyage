@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -33,6 +34,7 @@ internal data class IndexableEvent(
         val eventJson: String,
         val msgtype: String?,
         val mentions: String?,
+        val encrypted: Boolean,
 )
 
 /** The slice of an indexed row a cross-room reader needs; the stored clear event carries the rest. */
@@ -92,6 +94,12 @@ internal class EventIndexStore @Inject constructor(
             )
         """.trimIndent(), 0)
         opened.execute(null, "CREATE INDEX IF NOT EXISTS mention_hit_ts ON mention_hit(origin_server_ts)", 0)
+        val hasEncrypted = opened.executeQuery(null, "PRAGMA table_info(indexed_event)", { cursor ->
+            var found = false
+            while (cursor.next().value) if (cursor.getString(1) == "encrypted") found = true
+            QueryResult.Value(found)
+        }, 0).value
+        if (!hasEncrypted) opened.execute(null, "ALTER TABLE indexed_event ADD COLUMN encrypted INTEGER", 0)
         return EventIndexSqlDatabase(opened).also { openedDatabase = it }
     }
 
@@ -119,6 +127,7 @@ internal class EventIndexStore @Inject constructor(
                             event.eventJson,
                             event.msgtype,
                             event.mentions,
+                            if (event.encrypted) 1L else 0L,
                     )
                     recordMentionHit(event)
                     added++
@@ -139,6 +148,7 @@ internal class EventIndexStore @Inject constructor(
                 event.eventJson,
                 event.msgtype,
                 event.mentions,
+                if (event.encrypted) 1L else 0L,
         )
         recordMentionHit(event)
     }

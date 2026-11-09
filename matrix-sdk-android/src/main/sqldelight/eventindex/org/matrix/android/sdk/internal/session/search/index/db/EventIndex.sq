@@ -16,7 +16,9 @@ CREATE TABLE indexed_event (
     -- the pseudo-msgtypes "m.sticker" / "m.poll.start"
     msgtype TEXT,
     -- space-joined lowercased user ids the event mentions (mentions: filter)
-    mentions TEXT
+    mentions TEXT,
+    -- 1 when the event arrived as m.room.encrypted; NULL for rows indexed before the column existed
+    encrypted INTEGER
 );
 
 CREATE INDEX indexed_event_room_ts ON indexed_event(room_id, origin_server_ts);
@@ -65,8 +67,8 @@ CREATE TABLE index_meta (
 );
 
 insertEvent:
-INSERT OR IGNORE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions, encrypted)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 eventExists:
 SELECT 1 FROM indexed_event WHERE event_id = ? LIMIT 1;
@@ -83,8 +85,8 @@ stripEvent:
 UPDATE indexed_event SET content_text = '', msgtype = NULL, mentions = NULL, event_json = ? WHERE event_id = ?;
 
 upsertEvent:
-INSERT OR REPLACE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions, encrypted)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteEvent:
 DELETE FROM indexed_event WHERE event_id = ?;

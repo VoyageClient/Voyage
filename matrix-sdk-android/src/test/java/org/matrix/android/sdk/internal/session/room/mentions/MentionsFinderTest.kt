@@ -263,6 +263,7 @@ class MentionsFinderTest {
                         """"origin_server_ts":$ts,"content":{"msgtype":"m.text","body":"$body"$mentions}}""",
                 msgtype = "m.text",
                 mentions = if (mentionsMe) ME.lowercase() else null,
+                encrypted = false,
         ))
     }
 
