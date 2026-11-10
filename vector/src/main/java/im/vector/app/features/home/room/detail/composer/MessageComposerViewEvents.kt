@@ -10,8 +10,8 @@ package im.vector.app.features.home.room.detail.composer
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
+import im.vector.app.features.media.MxcMediaOpener
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
-import java.io.File
 
 sealed class MessageComposerViewEvents : VectorViewEvents {
 
@@ -41,7 +41,7 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class OpenRoomMemberProfile(val userId: String) : MessageComposerViewEvents()
 
-    data class OpenMedia(val mxcUrl: String, val file: File, val mimeType: String?, val externalUri: String?) : MessageComposerViewEvents()
+    data class OpenMedia(val media: MxcMediaOpener.Media) : MessageComposerViewEvents()
 
     data class ShowMassRedactConfirmation(
             val userId: String,

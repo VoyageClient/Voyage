@@ -32,8 +32,10 @@ import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.createJSonViewerStyleProvider
+import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerFragment
@@ -51,6 +53,8 @@ class RoomDevToolActivity :
     @Inject lateinit var permalinkHandler: PermalinkHandler
 
     @Inject lateinit var colorProvider: ColorProvider
+
+    @Inject lateinit var mxcMediaOpener: MxcMediaOpener
 
     //    private lateinit var viewModel: RoomDevToolViewModel
     private val viewModel: RoomDevToolViewModel by viewModel()
@@ -196,7 +200,28 @@ class RoomDevToolActivity :
                     ?.createRoomPermalink(value, forceMatrixTo = true)
                     ?.let { openPermalink(it) }
             JSonViewerValueKind.USER_ID -> navigator.openRoomMemberProfile(userId = value, roomId = roomId, context = this)
+            JSonViewerValueKind.MXC_URL -> viewMxcUrl(roomId, value)
             JSonViewerValueKind.TIMESTAMP -> Unit
+        }
+    }
+
+    private fun viewMxcUrl(roomId: String, mxcUrl: String) {
+        showWaitingView()
+        lifecycleScope.launch {
+            val media = try {
+                mxcMediaOpener.download(mxcUrl)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                hideWaitingView()
+                MaterialAlertDialogBuilder(this@RoomDevToolActivity)
+                        .setMessage(errorFormatter.toHumanReadable(failure))
+                        .setPositiveButton(CommonStrings.ok, null)
+                        .show()
+                return@launch
+            }
+            hideWaitingView()
+            mxcMediaOpener.open(this@RoomDevToolActivity, roomId, media, views.root)
         }
     }
 

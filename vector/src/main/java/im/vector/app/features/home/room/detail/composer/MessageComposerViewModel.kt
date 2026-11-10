@@ -35,6 +35,7 @@ import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.imagepack.telegram.TelegramPackImporter
+import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
@@ -113,8 +114,6 @@ import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
-import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -139,6 +138,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val emojiShortNames: EmojiShortNames,
         private val recentEmojiDataSource: RecentEmojiDataSource,
         private val downloadMediaUseCase: DownloadMediaUseCase,
+        private val mxcMediaOpener: MxcMediaOpener,
         private val massRedactionManager: MassRedactionManager,
         private val telegramPackImporter: Provider<TelegramPackImporter>,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialComposerState(initialState, session)) {
@@ -2829,24 +2829,7 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleViewSlashCommand(room: Room, parsedCommand: ParsedCommand.ViewFile) {
         launchSlashCommandFlowSuspendable(room, parsedCommand) {
-            val file = session.fileService().downloadFile(
-                    fileName = parsedCommand.mxcUrl.substringAfterLast('/'),
-                    mimeType = null,
-                    url = parsedCommand.mxcUrl,
-                    elementToDecrypt = null,
-            )
-            val mimeType = downloadMediaUseCase.mimeTypeOf(file)
-            val externalUri = if (mimeType.isMimeTypeImage() || mimeType.isMimeTypeVideo()) {
-                null
-            } else {
-                requireNotNull(session.fileService().getTemporarySharableURI(
-                        mxcUrl = parsedCommand.mxcUrl,
-                        fileName = parsedCommand.mxcUrl.substringAfterLast('/'),
-                        mimeType = null,
-                        elementToDecrypt = null,
-                ))
-            }
-            _viewEvents.post(MessageComposerViewEvents.OpenMedia(parsedCommand.mxcUrl, file, mimeType, externalUri))
+            _viewEvents.post(MessageComposerViewEvents.OpenMedia(mxcMediaOpener.download(parsedCommand.mxcUrl)))
         }
     }
 

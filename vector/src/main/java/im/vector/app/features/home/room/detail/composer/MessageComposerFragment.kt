@@ -28,7 +28,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.core.net.toUri
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -58,7 +57,6 @@ import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
-import im.vector.app.core.utils.safeStartActivity
 import im.vector.app.databinding.FragmentComposerBinding
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.attachments.AttachmentType
@@ -99,9 +97,8 @@ import im.vector.app.features.imagepack.edit.ImagePackProgressDialog
 import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.matrixto.OriginOfMatrixTo
-import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
-import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.permalink.NavigationInterceptor
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
@@ -143,9 +140,6 @@ import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.util.MatrixItem
-import org.matrix.android.sdk.api.util.MimeTypes
-import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
-import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.api.util.toRoomAliasMatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
@@ -180,6 +174,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
     @Inject lateinit var homeserverInfoCollector: HomeserverInfoCollector
+    @Inject lateinit var mxcMediaOpener: MxcMediaOpener
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -1062,61 +1057,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         keyboardWasVisibleBeforeCommandLoading = false
         (parentFragment as TimelineFragment).openAfterKeyboardDismissal(restoreKeyboardOnReturn = restoreKeyboard) {
             if (!isAdded || view == null) return@openAfterKeyboardDismissal
-            val activity = requireActivity()
-            val imageData = ImageContentRenderer.Data(
-                    eventId = action.mxcUrl,
-                    filename = action.file.name,
-                    mimeType = action.mimeType,
-                    url = action.mxcUrl,
-                    elementToDecrypt = null,
-                    height = null,
-                    maxHeight = 1024,
-                    width = null,
-                    maxWidth = 2048,
-            )
-            when {
-                action.mimeType.isMimeTypeImage() -> {
-                    dismissViewLoadingOnPause = true
-                    navigator.openMediaViewer(
-                            activity = activity,
-                            roomId = roomId,
-                            mediaData = imageData,
-                            view = views.root,
-                            standalonePreview = true,
-                            hideShowInChat = true,
-                            morphFromView = false,
-                            options = null,
-                    )
-                }
-                action.mimeType.isMimeTypeVideo() -> {
-                    dismissViewLoadingOnPause = true
-                    navigator.openMediaViewer(
-                            activity = activity,
-                            roomId = roomId,
-                            mediaData = VideoContentRenderer.Data(
-                                    eventId = action.mxcUrl,
-                                    filename = action.file.name,
-                                    mimeType = action.mimeType,
-                                    url = action.mxcUrl,
-                                    elementToDecrypt = null,
-                                    thumbnailMediaData = imageData,
-                            ),
-                            view = views.root,
-                            standalonePreview = true,
-                            hideShowInChat = true,
-                            morphFromView = false,
-                            options = null,
-                    )
-                }
-                else -> {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(requireNotNull(action.externalUri).toUri(), action.mimeType ?: MimeTypes.Any)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    requireContext().safeStartActivity(Intent.createChooser(intent, null))
-                    dismissLoadingDialog()
-                    slashCommandLoadingShown = false
-                }
+            if (mxcMediaOpener.open(requireActivity(), roomId, action.media, views.root)) {
+                dismissViewLoadingOnPause = true
+            } else {
+                dismissLoadingDialog()
+                slashCommandLoadingShown = false
             }
         }
     }

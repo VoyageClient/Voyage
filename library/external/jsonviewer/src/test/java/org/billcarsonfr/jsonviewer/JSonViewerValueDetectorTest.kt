@@ -49,6 +49,18 @@ class JSonViewerValueDetectorTest {
     }
 
     @Test
+    fun `detects mxc URLs`() {
+        assertEquals(JSonViewerValueKind.MXC_URL, string("mxc://matrix.org/SEsfnsuifSDFSSEF"))
+        assertEquals(JSonViewerValueKind.MXC_URL, string("mxc://example.org:8448/abc_DEF-123"))
+        assertEquals(JSonViewerValueKind.MXC_URL, string("mxc://[1234:5678::abcd]/media"))
+        assertNull(string("mxc://matrix.org"))
+        assertNull(string("mxc://matrix.org/"))
+        assertNull(string("mxc://matrix.org/a/b"))
+        assertNull(string("mxc://matrix.org/a b"))
+        assertNull(string("https://matrix.org/media"))
+    }
+
+    @Test
     fun `rejects IDs over 255 bytes`() {
         assertNull(string("@" + "a".repeat(250) + ":example.org"))
     }

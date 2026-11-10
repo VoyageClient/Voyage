@@ -13,10 +13,11 @@ enum class JSonViewerValueKind {
     USER_ID,
     ROOM_ID,
     EVENT_ID,
+    MXC_URL,
     TIMESTAMP
 }
 
-/** Receives double taps on ID values; timestamps are toggled by the viewer itself and never reach it. */
+/** Receives double taps on ID and mxc:// values; timestamps are toggled by the viewer itself and never reach it. */
 fun interface JSonViewerValueListener {
     fun onJsonValueDoubleTapped(kind: JSonViewerValueKind, value: String)
 }
@@ -37,6 +38,9 @@ internal object JSonViewerValueDetector {
     // v12 room IDs are the create event's ID with a '!' sigil, so they carry no server name.
     private val ROOM_ID = Regex("!(?:$OPAQUE:$SERVER_NAME|[A-Za-z0-9_-]{43})")
     private val EVENT_ID = Regex("\\$(?:$OPAQUE:$SERVER_NAME|$HASH)")
+
+    // The spec limits media IDs to [A-Za-z0-9_-], but /view takes any media ID, so this does too.
+    private val MXC_URL = Regex("mxc://$SERVER_NAME/[^/\\s]+")
 
     private const val MAX_ID_BYTES = 255
 
@@ -61,6 +65,7 @@ internal object JSonViewerValueDetector {
     }
 
     private fun detectId(value: String): JSonViewerValueKind? {
+        if (MXC_URL.matches(value)) return JSonViewerValueKind.MXC_URL
         if (value.length < 2 || value.toByteArray(Charsets.UTF_8).size > MAX_ID_BYTES) return null
         return when (value[0]) {
             '@' -> JSonViewerValueKind.USER_ID.takeIf { USER_ID.matches(value) }

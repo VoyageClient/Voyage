@@ -203,6 +203,7 @@ import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -236,6 +237,7 @@ import im.vector.app.features.widgets.permissions.RoomWidgetPermissionBottomShee
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
@@ -340,6 +342,7 @@ class TimelineFragment :
     @Inject lateinit var permalinkFactory: PermalinkFactory
     @Inject lateinit var displayableEventFormatter: DisplayableEventFormatter
     @Inject lateinit var dateFormatter: VectorDateFormatter
+    @Inject lateinit var mxcMediaOpener: MxcMediaOpener
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
@@ -2399,10 +2402,31 @@ class TimelineFragment :
                 openRoomMemberProfile(value)
                 return
             }
+            JSonViewerValueKind.MXC_URL -> {
+                viewMxcUrl(value)
+                return
+            }
             JSonViewerValueKind.TIMESTAMP -> return
         } ?: return
         (childFragmentManager.findFragmentByTag(JSON_VIEWER_TAG) as? JSonViewerDialog)?.dismiss()
         onUrlClicked(permalink, permalink)
+    }
+
+    private fun viewMxcUrl(mxcUrl: String) {
+        showLoadingDialog()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val media = try {
+                mxcMediaOpener.download(mxcUrl)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                dismissLoadingDialog()
+                showFailure(failure)
+                return@launch
+            }
+            dismissLoadingDialog()
+            mxcMediaOpener.open(requireActivity(), timelineArgs.roomId, media, views.root)
+        }
     }
 
     override fun onMemberNameClicked(informationData: MessageInformationData) {
