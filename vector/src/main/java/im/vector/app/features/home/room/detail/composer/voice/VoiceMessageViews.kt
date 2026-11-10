@@ -8,12 +8,14 @@
 package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.res.Resources
+import android.graphics.drawable.GradientDrawable
 import android.text.format.DateUtils
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.importantForAccessibilityCompat
 import im.vector.app.databinding.ViewVoiceMessageRecorderBinding
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -51,69 +53,84 @@ class VoiceMessageViews(
         views.voicePlaybackControlButton.setOnClickListener {
             actions.onVoicePlaybackButtonClicked()
         }
+        // The waveform is narrow on small screens, so the whole field takes the tap that stops a recording.
+        views.voiceMessageField.setOnClickListener {
+            actions.onWaveformClicked()
+        }
+    }
+
+    /** The modern composer boxes its text field, so the clip gets the same box; the classic bar is flat. */
+    fun applyComposerStyle(classic: Boolean) {
+        if (classic) {
+            views.voiceMessageField.backgroundCompat = null
+            return
+        }
+        val density = resources.displayMetrics.density
+        // Built here rather than from the composer's XML drawable: a theme attribute inside a shape needs API 21.
+        views.voiceMessageField.backgroundCompat = GradientDrawable().apply {
+            cornerRadius = 8 * density
+            setStroke(
+                    (density + 0.5f).toInt().coerceAtLeast(1),
+                    ThemeUtils.getColor(views.root.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
+            )
+        }
     }
 
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
 
-    private fun hideRecordingViews() {
-        views.voiceMessageBackgroundView.isVisible = false
-        views.voiceMessagePlaybackLayout.isVisible = false
-        hideToast()
-    }
-
-    private fun hideToast() {
-        views.voiceMessageToast.isVisible = false
-    }
-
     fun showDraftViews() {
-        hideRecordingViews()
-        views.voiceMessageBackgroundView.isVisible = true
-        views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = false
         views.voicePlaybackControlButton.isVisible = true
+        views.voiceMessageField.isClickable = false
         views.voicePlaybackWaveform.importantForAccessibilityCompat = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     fun showRecordingViews() {
-        hideRecordingViews()
-        views.voiceMessageBackgroundView.isVisible = true
-        views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = true
         views.voicePlaybackControlButton.isVisible = false
+        views.voiceMessageField.isClickable = true
         views.voicePlaybackWaveform.importantForAccessibilityCompat = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-        renderToast(resources.getString(CommonStrings.voice_message_tap_to_stop_toast))
+        unplayedTimeText = null
     }
 
     fun initViews() {
-        hideRecordingViews()
+        unplayedTimeText = null
         views.voicePlaybackWaveform.post { views.voicePlaybackWaveform.clear() }
     }
 
+    // The recording's length, shown again once playback ends.
+    private var unplayedTimeText: CharSequence? = null
+
     fun renderPlaying(state: AudioMessagePlaybackTracker.Listener.State.Playing) {
-        views.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_pause)
-        views.voicePlaybackControlButton.contentDescription = resources.getString(CommonStrings.a11y_pause_voice_message)
-        val formattedTimerText = DateUtils.formatElapsedTime((state.playbackTime / 1000).toLong())
-        views.voicePlaybackTime.text = formattedTimerText
-        val waveformColorIdle = ThemeUtils.getColor(views.voicePlaybackWaveform.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
-        val waveformColorPlayed = ThemeUtils.getColor(views.voicePlaybackWaveform.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        views.voicePlaybackWaveform.updateColors(state.percentage, waveformColorPlayed, waveformColorIdle)
+        if (unplayedTimeText == null) unplayedTimeText = views.voicePlaybackTime.text
+        renderPlayButton(playing = true)
+        views.voicePlaybackTime.text = DateUtils.formatElapsedTime((state.playbackTime / 1000).toLong())
+        renderProgress(state.percentage)
     }
+
+    fun renderPaused() = renderPlayButton(playing = false)
 
     fun renderIdle() {
-        views.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
-        views.voicePlaybackControlButton.contentDescription = resources.getString(CommonStrings.a11y_play_voice_message)
+        renderPlayButton(playing = false)
+        unplayedTimeText?.let { views.voicePlaybackTime.text = it }
+        unplayedTimeText = null
         views.voicePlaybackWaveform.summarize()
+        renderProgress(0f)
     }
 
-    fun renderToast(message: String) {
-        views.voiceMessageToast.removeCallbacks(hideToastRunnable)
-        views.voiceMessageToast.text = message
-        views.voiceMessageToast.isVisible = true
-        views.voiceMessageToast.postDelayed(hideToastRunnable, 2_000)
+    private fun renderPlayButton(playing: Boolean) {
+        views.voicePlaybackControlButton.setImageResource(if (playing) R.drawable.ic_play_pause_pause else R.drawable.ic_play_pause_play)
+        views.voicePlaybackControlButton.contentDescription =
+                resources.getString(if (playing) CommonStrings.a11y_pause_voice_message else CommonStrings.a11y_play_voice_message)
     }
 
-    private val hideToastRunnable = Runnable {
-        views.voiceMessageToast.isVisible = false
+    private fun renderProgress(percentage: Float) {
+        val context = views.voicePlaybackWaveform.context
+        views.voicePlaybackWaveform.updateColors(
+                percentage,
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary),
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary),
+        )
     }
 
     fun renderRecordingTimer(recordingTimeMillis: Long) {
@@ -127,9 +144,10 @@ class VoiceMessageViews(
         views.voicePlaybackWaveform.doOnLayout { waveFormView ->
             val waveformColor = ThemeUtils.getColor(waveFormView.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
             (waveFormView as AudioWaveformView).apply {
-                // The tracker resends the full amplitude list each tick, so rebuild instead of appending
+                // Rebuilt each tick from the full list, normalized as it will be sent and stretched over the full width.
                 clear()
-                amplitudeList.forEach { add(AudioWaveformView.FFT(it.toFloat(), waveformColor)) }
+                AudioWaveformView.normalize(amplitudeList, AudioWaveformView.MAX_FFT).forEach { add(AudioWaveformView.FFT(it.toFloat(), waveformColor)) }
+                summarize()
             }
         }
     }

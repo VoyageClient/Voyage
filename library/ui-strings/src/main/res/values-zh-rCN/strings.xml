@@ -1724,9 +1724,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">语音消息处于活动状态时无法回复或编辑</string>
     <string name="error_voice_message_unable_to_record">无法录制语音消息</string>
     <string name="error_voice_message_unable_to_play">无法播放此语音消息</string>
-    <string name="voice_message_tap_to_stop_toast">点按你的录音以停止或收听</string>
-    <string name="voice_message_n_seconds_warning_toast">剩余 %1$d秒</string>
-    <string name="voice_message_release_to_send_toast">按住录音，松开发送</string>
     <string name="a11y_delete_recorded_voice_message">删除录音</string>
     <string name="a11y_recording_voice_message">录制语音消息</string>
     <string name="a11y_pause_voice_message">暂停语音消息</string>

@@ -1703,9 +1703,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">Вы не можете отвечать или редактировать, пока активно голосовое сообщение</string>
     <string name="error_voice_message_unable_to_record">Не удалось записать голосовое сообщение</string>
     <string name="error_voice_message_unable_to_play">Не удалось воспроизвести это голосовое сообщение</string>
-    <string name="voice_message_tap_to_stop_toast">Нажмите на запись, чтобы остановить или прослушать ее</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$d осталось</string>
-    <string name="voice_message_release_to_send_toast">Удерживайте для записи, отпустите для отправки</string>
     <string name="a11y_delete_recorded_voice_message">Удалить запись</string>
     <string name="a11y_recording_voice_message">Запись голосового сообщения</string>
     <string name="a11y_pause_voice_message">Приостановить голосовое сообщение</string>

@@ -40,11 +40,6 @@ object Config {
     const val SUPPORT_FUNCTIONAL_MEMBERS = true
 
     /**
-     * The maximum length of voice messages in milliseconds.
-     */
-    const val VOICE_MESSAGE_LIMIT_MS = 120_000L
-
-    /**
      * The strategy for sharing device keys.
      */
     val KEY_SHARING_STRATEGY = KeySharingStrategy.WhenTyping

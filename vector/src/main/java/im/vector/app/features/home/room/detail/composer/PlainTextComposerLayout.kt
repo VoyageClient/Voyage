@@ -44,6 +44,7 @@ import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
@@ -150,6 +151,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
      */
     val composerSurface: View get() = getChildAt(0) ?: this
 
+    val voiceRecorderView: VoiceMessageRecorderView get() = views.voiceMessageRecorderView
+
+    /** A voice message sits above the input row, whose text becomes its caption. */
+    fun renderVoiceMode(active: Boolean) {
+        views.voiceMessageRecorderView.isVisible = active
+    }
+
     init {
         inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
         views = ComposerLayoutBinding.bind(this)
@@ -210,6 +218,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.attachmentButton.setOnClickListener {
             callback?.onAddAttachment()
         }
+        views.voiceMessageRecorderView.applyComposerStyle(classic)
     }
 
     private var lastSpecialModeKey: Pair<String, String>? = null

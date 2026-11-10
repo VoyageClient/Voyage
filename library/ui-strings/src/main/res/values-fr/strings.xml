@@ -1761,9 +1761,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">Impossible de répondre ou d’éditer tant qu’un message vocal est actif</string>
     <string name="error_voice_message_unable_to_record">Impossible d’enregistrer un message vocal</string>
     <string name="error_voice_message_unable_to_play">Impossible de lire ce message vocal</string>
-    <string name="voice_message_tap_to_stop_toast">Touchez l’enregistrement pour l’arrêter ou l’écouter</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$ds restant</string>
-    <string name="voice_message_release_to_send_toast">Maintenir pour enregistrer, relâcher pour envoyer</string>
     <string name="a11y_delete_recorded_voice_message">Supprimer l’enregistrement</string>
     <string name="a11y_recording_voice_message">Enregistrement du message vocal</string>
     <string name="a11y_pause_voice_message">Mettre en pause le message vocal</string>

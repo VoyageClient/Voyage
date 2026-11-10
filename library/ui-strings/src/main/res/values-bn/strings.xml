@@ -2078,9 +2078,6 @@
     <string name="a11y_stop_voice_message">রেকর্ডিং বন্ধ করুন</string>
     <string name="a11y_recording_voice_message">ভয়েস বার্তা রেকর্ড করা হচ্ছে</string>
     <string name="a11y_delete_recorded_voice_message">রেকর্ডিং মুছুন</string>
-    <string name="voice_message_release_to_send_toast">রেকর্ড করতে ধরে রাখুন, পাঠাতে ছেড়ে দিন</string>
-    <string name="voice_message_n_seconds_warning_toast">আর %1$d সেকেন্ড বাকি</string>
-    <string name="voice_message_tap_to_stop_toast">বন্ধ করতে বা শুনতে আপনার রেকর্ডিংয়ে ট্যাপ করুন</string>
     <string name="error_voice_message_unable_to_play">এই ভয়েস বার্তাটি চালানো যাচ্ছে না</string>
     <string name="error_voice_message_unable_to_record">ভয়েস বার্তা রেকর্ড করা যাচ্ছে না</string>
     <string name="error_voice_message_cannot_reply_or_edit">ভয়েস বার্তা সক্রিয় থাকা অবস্থায় উত্তর বা সম্পাদনা করা যাবে না</string>

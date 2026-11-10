@@ -2087,9 +2087,6 @@
     <string name="a11y_stop_voice_message">Kaydı Durdur</string>
     <string name="a11y_recording_voice_message">Sesli mesaj kaydediliyor</string>
     <string name="a11y_delete_recorded_voice_message">Kaydı sil</string>
-    <string name="voice_message_release_to_send_toast">Kaydetmek için basılı tutun, göndermek için bırakın</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$d sn kaldı</string>
-    <string name="voice_message_tap_to_stop_toast">Durdurmak veya dinlemek için kaydınıza dokunun</string>
     <string name="error_voice_message_unable_to_play">Bu sesli mesaj oynatılamıyor</string>
     <string name="error_voice_message_unable_to_record">Sesli mesaj kaydedilemiyor</string>
     <string name="error_voice_message_cannot_reply_or_edit">Sesli mesaj etkinken yanıtlanamaz veya düzenlenemez</string>

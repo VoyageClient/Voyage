@@ -2018,9 +2018,6 @@
     <string name="a11y_stop_voice_message">रिकॉर्डिंग बंद करें</string>
     <string name="a11y_recording_voice_message">वॉइस मैसेज रिकॉर्ड हो रहा है</string>
     <string name="a11y_delete_recorded_voice_message">रिकॉर्डिंग हटाएं</string>
-    <string name="voice_message_release_to_send_toast">रिकॉर्ड करने के लिए दबाकर रखें, भेजने के लिए छोड़ें</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$d सेकंड बाकी</string>
-    <string name="voice_message_tap_to_stop_toast">रोकने या सुनने के लिए अपनी रिकॉर्डिंग पर टैप करें</string>
     <string name="error_voice_message_unable_to_play">यह वॉइस मैसेज नहीं चल सकता</string>
     <string name="error_voice_message_unable_to_record">वॉइस मैसेज रिकॉर्ड नहीं हो सकता</string>
     <string name="error_voice_message_cannot_reply_or_edit">वॉइस मैसेज चालू रहते जवाब या संपादन नहीं किया जा सकता</string>

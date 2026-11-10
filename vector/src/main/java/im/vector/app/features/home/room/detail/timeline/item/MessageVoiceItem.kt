@@ -61,6 +61,9 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
+    var playable = true
+
+    @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
 
     @EpoxyAttribute
@@ -101,6 +104,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
+        holder.voicePlaybackControlButton.isEnabled = playable
+        holder.voicePlaybackControlButton.alpha = if (playable) 1f else 0.4f
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
@@ -153,7 +158,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         holder.voicePlaybackWaveform.summarize()
 
         holder.voicePlaybackWaveform.setOnTouchListener { view, motionEvent ->
-            when (motionEvent.action) {
+            if (playable) when (motionEvent.action) {
                 MotionEvent.ACTION_UP -> {
                     val percentage = getTouchedPositionPercentage(motionEvent, view)
                     waveformTouchListener?.onWaveformTouchedUp(percentage)

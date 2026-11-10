@@ -2030,9 +2030,6 @@
     <string name="a11y_stop_voice_message">ریکارڈنگ بند کریں</string>
     <string name="a11y_recording_voice_message">صوتی پیغام ریکارڈ ہو رہا ہے</string>
     <string name="a11y_delete_recorded_voice_message">ریکارڈنگ حذف کریں</string>
-    <string name="voice_message_release_to_send_toast">ریکارڈ کرنے کے لیے دبائے رکھیں، بھیجنے کے لیے چھوڑ دیں</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$ds باقی</string>
-    <string name="voice_message_tap_to_stop_toast">روکنے یا سننے کے لیے اپنی ریکارڈنگ پر تھپتھپائیں</string>
     <string name="error_voice_message_unable_to_play">یہ صوتی پیغام نہیں چلایا جا سکتا</string>
     <string name="error_voice_message_unable_to_record">صوتی پیغام ریکارڈ نہیں کیا جا سکتا</string>
     <string name="error_voice_message_cannot_reply_or_edit">صوتی پیغام فعال ہونے کے دوران جواب یا ترمیم نہیں کی جا سکتی</string>

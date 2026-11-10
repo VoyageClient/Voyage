@@ -16,6 +16,7 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MediaPlayerCompat
 import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.voice.AudioWaveformView
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
 import im.vector.app.features.voice.VoiceRecorderProvider
@@ -31,9 +32,11 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import javax.inject.Inject
-import kotlin.math.sqrt
 
 private const val AMPLITUDE_INTERVAL_MS = 50
+
+/** The Matrix spec's waveform maximum. */
+private const val MATRIX_WAVEFORM_MAX = 1024
 
 /**
  * Helper class to record audio for voice messages.
@@ -57,6 +60,9 @@ class AudioMessageHelper @Inject constructor(
 
     private val amplitudeList = mutableListOf<Int>()
 
+    // Saved again as it was restored: every round trip through denormalize and normalize loses a little to rounding.
+    private var restoredWaveform: List<Int>? = null
+
     private var amplitudeTicker: CountUpTimer? = null
     private var playbackTicker: CountUpTimer? = null
     private var lastCompletionAtMs = 0L
@@ -64,8 +70,10 @@ class AudioMessageHelper @Inject constructor(
     fun initializeRecorder(roomId: String, attachmentData: ContentAttachmentData) {
         voiceRecorder.initializeRecord(roomId, attachmentData)
         amplitudeList.clear()
-        attachmentData.waveform?.let {
-            amplitudeList.addAll(it)
+        restoredWaveform = attachmentData.waveform
+        attachmentData.waveform?.let { waveform ->
+            // A saved draft holds the normalized Matrix waveform; the composer normalizes what it shows itself.
+            amplitudeList.addAll(AudioWaveformView.denormalize(waveform, MATRIX_WAVEFORM_MAX))
             playbackTracker.updateCurrentRecording(AudioMessagePlaybackTracker.RECORDING_ID, amplitudeList)
         }
     }
@@ -74,6 +82,7 @@ class AudioMessageHelper @Inject constructor(
         stopPlayback()
         playbackTracker.pauseAllPlaybacks()
         amplitudeList.clear()
+        restoredWaveform = null
 
         try {
             voiceRecorder.startRecord(roomId)
@@ -110,11 +119,14 @@ class AudioMessageHelper @Inject constructor(
                             audioType.copy(duration = duration)
                         }
                         ?.apply {
-                            waveform = if (amplitudeList.size < 50) {
-                                amplitudeList
-                            } else {
-                                amplitudeList.chunked(amplitudeList.size / 50) { items -> items.maxOrNull() ?: 0 }
-                            }.normalizeWaveform()
+                            waveform = restoredWaveform ?: AudioWaveformView.normalize(
+                                    if (amplitudeList.size < 50) {
+                                        amplitudeList
+                                    } else {
+                                        amplitudeList.chunked(amplitudeList.size / 50) { items -> items.maxOrNull() ?: 0 }
+                                    },
+                                    scale = MATRIX_WAVEFORM_MAX,
+                            )
                         }
             }
         } catch (e: FileNotFoundException) {
@@ -383,12 +395,6 @@ class AudioMessageHelper @Inject constructor(
         }
         return audioType
     }
-}
-
-// Peak-normalize with sqrt companding so bar heights stay legible regardless of recording volume
-private fun List<Int>.normalizeWaveform(): List<Int> {
-    val peak = maxOrNull()?.takeIf { it > 0 } ?: return this
-    return map { (sqrt(it.coerceAtLeast(0) / peak.toDouble()) * 1024).toInt() }
 }
 
 /** How often playback reports where it is. */

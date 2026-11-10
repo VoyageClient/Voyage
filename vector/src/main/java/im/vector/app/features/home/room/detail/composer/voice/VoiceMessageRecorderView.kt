@@ -9,17 +9,15 @@ package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.view.Gravity
+import android.widget.LinearLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
-import im.vector.app.core.hardware.vibrate
 import im.vector.app.databinding.ViewVoiceMessageRecorderBinding
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.core.utils.timer.CountUpTimer
-import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
-import kotlin.math.floor
 
 /**
  * Encapsulates the voice message recording view and animations.
@@ -29,19 +27,17 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), AudioMessagePlaybackTracker.Listener {
+) : LinearLayout(context, attrs, defStyleAttr), AudioMessagePlaybackTracker.Listener {
 
     interface Callback {
         fun onVoicePlaybackButtonClicked()
         fun onDeleteVoiceMessage()
-        fun onRecordingLimitReached()
         fun onRecordingWaveformClicked()
         fun onVoiceWaveformTouchedUp(percentage: Float, duration: Int)
         fun onVoiceWaveformMoved(percentage: Float, duration: Int)
     }
 
     @Inject lateinit var clock: Clock
-    @Inject lateinit var voiceMessageConfig: VoiceMessageConfig
 
     private val voiceMessageViews: VoiceMessageViews
     lateinit var callback: Callback
@@ -51,6 +47,9 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     private var recordingDuration: Long = 0
 
     init {
+        orientation = HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        minimumHeight = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
         inflate(this.context, R.layout.view_voice_message_recorder, this)
         voiceMessageViews = VoiceMessageViews(
                 this.context.resources,
@@ -83,6 +82,8 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
             }
         })
     }
+
+    fun applyComposerStyle(classic: Boolean) = voiceMessageViews.applyComposerStyle(classic)
 
     fun render(recordingState: RecordingUiState) {
         if (lastKnownState == recordingState) return
@@ -123,18 +124,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 
     private fun onRecordingTick(milliseconds: Long) {
         voiceMessageViews.renderRecordingTimer(milliseconds / 1_000)
-        val timeDiffToRecordingLimit = voiceMessageConfig.lengthLimitMs - milliseconds
-        if (timeDiffToRecordingLimit <= 0) {
-            post {
-                callback.onRecordingLimitReached()
-            }
-        } else if (timeDiffToRecordingLimit in 10_000..10_999) {
-            post {
-                val secondsRemaining = floor(timeDiffToRecordingLimit / 1000f).toInt()
-                voiceMessageViews.renderToast(context.getString(CommonStrings.voice_message_n_seconds_warning_toast, secondsRemaining))
-                vibrate(context)
-            }
-        }
     }
 
     private fun stopRecordingTicker() {
@@ -147,11 +136,15 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         when (state) {
             is AudioMessagePlaybackTracker.Listener.State.Recording -> {
                 voiceMessageViews.renderRecordingWaveform(state.amplitudeList.toList())
+                // Re-applying a draft (as on every return to the app) stops its playback without telling this view.
+                if (lastKnownState == RecordingUiState.Draft) voiceMessageViews.renderIdle()
             }
             is AudioMessagePlaybackTracker.Listener.State.Playing -> {
                 voiceMessageViews.renderPlaying(state)
             }
-            is AudioMessagePlaybackTracker.Listener.State.Paused,
+            is AudioMessagePlaybackTracker.Listener.State.Paused -> {
+                voiceMessageViews.renderPaused()
+            }
             is AudioMessagePlaybackTracker.Listener.State.Error,
             is AudioMessagePlaybackTracker.Listener.State.Idle -> {
                 voiceMessageViews.renderIdle()

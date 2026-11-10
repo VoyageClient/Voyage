@@ -14,18 +14,12 @@ import dagger.hilt.components.SingletonComponent
 import im.vector.app.config.Config
 import im.vector.app.config.KeySharingStrategy
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
-import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageConfig
 import im.vector.app.features.location.LocationSharingConfig
 import im.vector.app.features.raw.wellknown.CryptoConfig
 
 @InstallIn(SingletonComponent::class)
 @Module
 object ConfigurationModule {
-
-    @Provides
-    fun providesVoiceMessageConfig() = VoiceMessageConfig(
-            lengthLimitMs = Config.VOICE_MESSAGE_LIMIT_MS
-    )
 
     @Provides
     fun providesCryptoConfig() = CryptoConfig(

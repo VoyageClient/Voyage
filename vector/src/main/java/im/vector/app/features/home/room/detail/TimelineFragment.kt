@@ -49,7 +49,6 @@ import androidx.core.view.isEmpty
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -143,9 +142,7 @@ import im.vector.app.features.home.room.detail.composer.CanSendStatus
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
 import im.vector.app.features.home.room.detail.composer.MessageComposerFragment
 import im.vector.app.features.home.room.detail.composer.MessageComposerViewModel
-import im.vector.app.features.home.room.detail.composer.MessageComposerViewState
 import im.vector.app.features.home.room.detail.composer.boolean
-import im.vector.app.features.home.room.detail.composer.voice.VoiceRecorderFragment
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.action.ActionPermissions
@@ -432,12 +429,6 @@ class TimelineFragment :
                 replace(R.id.composerContainer, MessageComposerFragment())
             }
         }
-
-        if (childFragmentManager.findFragmentById(R.id.voiceMessageRecorderContainer) == null) {
-            childFragmentManager.commitTransaction {
-                replace(R.id.voiceMessageRecorderContainer, VoiceRecorderFragment())
-            }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = PerfTrace.time("timeline.onViewCreated") {
@@ -460,7 +451,7 @@ class TimelineFragment :
         setupUserIdentityWarning()
         setupLiveLocationIndicator()
         setupBackPressHandling()
-        setupVoiceRecorderStacking()
+        setupSuggestionsStacking()
         observeRedactionRevealChanges()
         observeRedactionRevealFailures()
 
@@ -659,50 +650,28 @@ class TimelineFragment :
         }
     }
 
-    private var voiceRecorderStackLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+    private var suggestionsStackLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
-    private fun setupVoiceRecorderStacking() {
+    private fun setupSuggestionsStacking() {
         val listener = ViewTreeObserver.OnGlobalLayoutListener {
             if (view == null) return@OnGlobalLayoutListener
-            withState(messageComposerViewModel, ::syncVoiceRecorderStackMargin)
+            syncSuggestionsMargin()
         }
-        voiceRecorderStackLayoutListener = listener
+        suggestionsStackLayoutListener = listener
         views.composerContainer.viewTreeObserver.addOnGlobalLayoutListener(listener)
     }
 
-    private fun syncVoiceRecorderStackMargin(state: MessageComposerViewState) {
-        val recorder = views.voiceMessageRecorderContainer
-        val recorderParams = recorder.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+    // Sits directly on top of the composer, whatever height it currently is.
+    private fun syncSuggestionsMargin() {
         val composerHeight = childFragmentManager.findFragmentById(R.id.composerContainer)?.view?.height
                 ?.takeIf { it > 0 }
                 ?: resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
-        val recorderTarget = if (state.isVoiceRecording) composerHeight else 0
-        if (recorderParams.bottomMargin != recorderTarget) {
-            recorderParams.bottomMargin = recorderTarget
-            recorder.layoutParams = recorderParams
-        }
-
-        // Sits directly on top of the composer, whatever height it currently is.
         val suggestions = views.autocompleteContainer
         (suggestions.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
             if (params.bottomMargin != composerHeight) {
                 params.bottomMargin = composerHeight
                 suggestions.layoutParams = params
             }
-        }
-
-        val recorderVisible = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
-        val timelinePadding = if (state.isVoiceRecording) recorderVisible else 0
-        if (views.timelineRecyclerView.paddingBottom != timelinePadding) {
-            views.timelineRecyclerView.updatePadding(bottom = timelinePadding)
-        }
-
-        val jumpParams = views.jumpToBottomView.layoutParams as? ViewGroup.MarginLayoutParams ?: return
-        val baseMargin = (16f * resources.displayMetrics.density).toInt()
-        val jumpTarget = baseMargin + if (state.isVoiceRecording) recorderVisible else 0
-        if (jumpParams.bottomMargin != jumpTarget) {
-            jumpParams.bottomMargin = jumpTarget
-            views.jumpToBottomView.layoutParams = jumpParams
         }
     }
 
@@ -950,7 +919,7 @@ class TimelineFragment :
         floatingDateHeader?.release()
         floatingDateHeader = null
         mediaContentRevealManager.clearAll()
-        voiceRecorderStackLayoutListener?.let {
+        suggestionsStackLayoutListener?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 views.composerContainer.viewTreeObserver.removeOnGlobalLayoutListener(it)
             } else {
@@ -958,7 +927,7 @@ class TimelineFragment :
                 views.composerContainer.viewTreeObserver.removeGlobalOnLayoutListener(it)
             }
         }
-        voiceRecorderStackLayoutListener = null
+        suggestionsStackLayoutListener = null
         lazyLoadedViews.unBind()
         timelineEventController.callback = null
         timelineEventController.removeModelBuildListener(modelBuildListener)
@@ -1840,10 +1809,6 @@ class TimelineFragment :
             lazyLoadedViews.inviteView(false)?.isVisible = false
 
             renderComposerVisibility(messageComposerState.isComposerVisible)
-            val recorderVisible = messageComposerState.isComposerVisible && messageComposerState.isVoiceRecording &&
-                    vectorPreferences.isVoiceMessageButtonEnabled()
-            views.voiceMessageRecorderContainer.isVisible = recorderVisible
-            syncVoiceRecorderStackMargin(messageComposerState)
             when (messageComposerState.canSendMessage) {
                 CanSendStatus.Allowed -> {
                     NotificationAreaView.State.Hidden
@@ -1977,7 +1942,6 @@ class TimelineFragment :
 
     private fun FragmentTimelineBinding.hideComposerViews() {
         composerContainer.isVisible = false
-        voiceMessageRecorderContainer.isVisible = false
         // CoordinatorLayout skips a GONE child's onLayoutChild, so the composer's behavior never clears the
         // bottom inset it reserved on the content view. Drop it so a composer-less screen (invite / read-only
         // room) fills the full height instead of leaving an empty band where the composer would sit.

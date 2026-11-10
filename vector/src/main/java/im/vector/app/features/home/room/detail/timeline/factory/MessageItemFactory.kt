@@ -30,6 +30,7 @@ import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojisAndEmotes
 import im.vector.app.features.attachments.preview.AudioDetails
 import im.vector.app.features.audio.AudioGalleryData
+import im.vector.app.features.audio.isUnuploadedAudio
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -417,6 +418,7 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .playable(!messageContent.isUnuploadedAudio())
                 .audioMetadata(messageContent.audioInfo?.metadata)
                 .coverArtHashLoader(coverArtHashLoader(messageContent.audioInfo?.metadata, informationData))
                 .localSource(localAudioSource(messageContent, fileUrl))
@@ -517,6 +519,7 @@ class MessageItemFactory @Inject constructor(
                 .waveformTouchListener(waveformTouchListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .playable(!messageContent.isUnuploadedAudio())
                 .mxcUrl(fileUrl)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)

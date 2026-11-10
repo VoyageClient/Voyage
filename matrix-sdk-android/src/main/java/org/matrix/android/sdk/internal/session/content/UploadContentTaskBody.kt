@@ -396,10 +396,6 @@ internal class UploadContentTaskBody @Inject constructor(
                     )
                 }
 
-                if (params.attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE) {
-                    media.deleteSource(params.attachment)
-                }
-
                 val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)
                 val imageBlurHash = if (attachment.type == ContentAttachmentData.Type.IMAGE) {
                     media.encodeBlurHash(fileToUpload)
@@ -629,6 +625,10 @@ internal class UploadContentTaskBody @Inject constructor(
                     it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes,
                     params.galleryItemIndex,
             )
+        }
+        // Not before: until the echo points at the uploaded media, playing it reads this file.
+        if (params.attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE) {
+            media.deleteSource(params.attachment)
         }
         // A deferred upload's bytes are still to come; UploadMediaBytesWorker settles that item.
         if (deferredUpload == null) {

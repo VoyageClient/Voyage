@@ -118,6 +118,13 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- The voice message being recorded; the input row below it holds its caption. -->
+    <im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
+        android:id="@+id/voiceMessageRecorderView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
     <!-- Must fill composerLayout's 56dp minHeight, or it is top-aligned and leaves a gap below. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

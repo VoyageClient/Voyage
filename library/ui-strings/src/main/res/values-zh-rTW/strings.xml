@@ -1726,9 +1726,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">播放語音訊息時無法回覆或編輯</string>
     <string name="error_voice_message_unable_to_record">無法錄製語音訊息</string>
     <string name="error_voice_message_unable_to_play">無法播放此語音訊息</string>
-    <string name="voice_message_tap_to_stop_toast">點擊您的錄音以停止或收聽</string>
-    <string name="voice_message_n_seconds_warning_toast">剩下 %1$d 秒</string>
-    <string name="voice_message_release_to_send_toast">按住以錄製，放開以傳送</string>
     <string name="a11y_delete_recorded_voice_message">刪除錄音</string>
     <string name="a11y_recording_voice_message">正在錄製語音訊息</string>
     <string name="a11y_pause_voice_message">暫停語音訊息</string>

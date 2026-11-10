@@ -30,6 +30,7 @@ import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.devtools.DevToolsJson
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
+import im.vector.app.features.home.room.detail.composer.voice.VoiceDraftCaption
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.imagepack.EmojiShortNames
@@ -2719,7 +2720,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         if (isVoiceRecording) {
             viewModelScope.launch {
                 playingAudioContent?.toContentAttachmentData()?.let { voiceDraft ->
-                    val content = voiceDraft.toJsonString()
+                    val content = VoiceDraftCaption.write(voiceDraft.toJsonString(), composerText)
                     room.draftService().saveDraft(UserDraft.Voice(content))
                     setState { copy(sendMode = SendMode.Voice(content)) }
                 }

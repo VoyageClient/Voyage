@@ -14,6 +14,8 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class AudioWaveformView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -192,5 +194,15 @@ class AudioWaveformView @JvmOverloads constructor(
 
     companion object {
         const val MAX_FFT = 32760
+
+        /** Peak-normalized with sqrt companding so bar heights stay legible regardless of recording volume. */
+        fun normalize(amplitudes: List<Int>, scale: Int): List<Int> {
+            val peak = amplitudes.maxOrNull()?.takeIf { it > 0 } ?: return amplitudes
+            return amplitudes.map { (sqrt(it.coerceAtLeast(0) / peak.toDouble()) * scale).toInt() }
+        }
+
+        /** The inverse of [normalize], for amplitudes that will be normalized again. */
+        fun denormalize(waveform: List<Int>, scale: Int): List<Int> =
+                waveform.map { ((it.coerceAtLeast(0).toDouble() / scale).pow(2) * MAX_FFT).toInt() }
     }
 }

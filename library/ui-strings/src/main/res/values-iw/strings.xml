@@ -1945,9 +1945,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">לא ניתן להשיב או לערוך במהלך הודעה קולית</string>
     <string name="error_voice_message_unable_to_record">לא ניתן להקליט את ההודעה הקולית</string>
     <string name="error_voice_message_unable_to_play">לא ניתן לנגן את ההודעה הקולית</string>
-    <string name="voice_message_tap_to_stop_toast">לחץ על הקלטה כדי לעצור או להאזין</string>
-    <string name="voice_message_n_seconds_warning_toast">נשארו עוד %1$d שניות</string>
-    <string name="voice_message_release_to_send_toast">החזק להקלטה, שחרר לשיחה</string>
     <string name="a11y_play_voice_message">נגן הודעה קולית</string>
     <string name="a11y_pause_voice_message">השהה הודעה קולית</string>
     <string name="a11y_delete_recorded_voice_message">מחיקת הקלטה</string>

@@ -1560,7 +1560,6 @@
     <string name="spaces_no_server_support_description">ホームサーバーの管理者にお問い合わせください</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">あなたが参加している全てのルームがホームに表示されます。</string>
     <string name="upgrade_room_update_parent_space">上位のスペースを自動的に更新</string>
-    <string name="voice_message_n_seconds_warning_toast">残り%1$d秒</string>
     <string name="upgrade_room_for_restricted">%sに属する人は、誰でもこのルームを検索し、参加することができます。手動で全員を招待する必要はありません。これはルームの設定からいつでも変更できます。</string>
     <string name="upgrade_room_for_restricted_no_param">上位のスペースに属する人は、誰でもこのルームを検索し、参加することができます。手動で全員を招待する必要はありません。これはルームの設定からいつでも変更できます。</string>
     <plurals name="poll_total_vote_count_before_ended_and_voted">
@@ -1838,7 +1837,6 @@
     <string name="secure_backup_reset_all">全てリセット</string>
     <string name="contacts_book_title">連絡先</string>
     <string name="verify_cancelled_notice">認証をキャンセルしました。改めて開始してください。</string>
-    <string name="voice_message_release_to_send_toast">押し続けて録音し、離すと送信</string>
     <string name="create_pin_title">PINコードを設定してください</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="other">%d個のサーバーアクセス制御リストの変更</item>
@@ -2251,7 +2249,6 @@
 \nさらにアンケートを読み込み、前の月のアンケートを表示。</item>
     </plurals>
     <string name="a11y_audio_message_item">%1$s、%2$s、%3$s</string>
-    <string name="voice_message_tap_to_stop_toast">録音をタップして停止または再生</string>
     <string name="space_explore_filter_no_result_description">非公開で招待が必要なものは表示されていません。</string>
     <string name="a11y_unsent_draft">下書きを取り消しました</string>
     <string name="qr_code_login_header_failed_other_device_not_signed_in_description">もう一方の端末でサインインしてください。</string>

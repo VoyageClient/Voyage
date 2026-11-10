@@ -1741,9 +1741,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">Antworten und Bearbeiten ist während einer aktiven Sprachnachricht nicht möglich</string>
     <string name="error_voice_message_unable_to_record">Fehler beim Aufnehmen der Sprachnachricht</string>
     <string name="error_voice_message_unable_to_play">Sprachnachricht kann nicht abgespielt werden</string>
-    <string name="voice_message_tap_to_stop_toast">Klicke, um die Aufnahme zu starten oder stoppen</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$ds übrig</string>
-    <string name="voice_message_release_to_send_toast">Zum Aufnehmen drücken, zum Senden loslassen</string>
     <string name="a11y_delete_recorded_voice_message">Aufnahme löschen</string>
     <string name="a11y_recording_voice_message">Sprachnachricht wird aufgenommen</string>
     <string name="a11y_pause_voice_message">Sprachnachricht pausieren</string>

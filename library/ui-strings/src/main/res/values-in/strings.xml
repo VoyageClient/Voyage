@@ -1411,9 +1411,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="error_voice_message_cannot_reply_or_edit">Tidak dapat membalas atau mengedit saat pesan suara aktif</string>
     <string name="error_voice_message_unable_to_record">Tidak dapat merekam sebuah pesan suara</string>
     <string name="error_voice_message_unable_to_play">Tidak dapat memainkan pesan suara ini</string>
-    <string name="voice_message_tap_to_stop_toast">Ketuk pada rekaman Anda untuk dihentikan atau didengarkan</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$dd lagi</string>
-    <string name="voice_message_release_to_send_toast">Tahan untuk merekam, lepaskan untuk mengirimnya</string>
     <string name="a11y_delete_recorded_voice_message">Hapus rekaman</string>
     <string name="a11y_recording_voice_message">Merekam pesan suara</string>
     <string name="a11y_pause_voice_message">Jeda Pesan Suara</string>

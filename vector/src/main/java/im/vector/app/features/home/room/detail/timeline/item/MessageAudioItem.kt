@@ -87,6 +87,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     var izLocalFile = false
 
+    @EpoxyAttribute
+    var playable = true
+
     /**
      * What the sender said the track is (MSC4549). Believed over anything the file on this device
      * says about itself: the sender is describing what they sent.
@@ -160,6 +163,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         bindFileDetails(holder)
         bindSeekBar(holder)
         holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
+        holder.audioPlaybackControlButton.isEnabled = playable
+        holder.audioPlaybackControlButton.alpha = if (playable) 1f else 0.4f
+        holder.audioSeekBar.isEnabled = playable
         renderStateBasedOnAudioPlayback(holder)
         MediaCaptionBinder.bind(
                 view = holder.captionView,

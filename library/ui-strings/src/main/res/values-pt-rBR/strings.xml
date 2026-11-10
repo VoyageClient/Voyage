@@ -1761,9 +1761,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">Não dá para responder ou editar enquanto mensagem de voz está ativa</string>
     <string name="error_voice_message_unable_to_record">Não dá para gravar uma mensagem de voz</string>
     <string name="error_voice_message_unable_to_play">Não dá para tocar esta mensagem de voz</string>
-    <string name="voice_message_tap_to_stop_toast">Toque em sua gravação para parar ou escutar</string>
-    <string name="voice_message_n_seconds_warning_toast">%1$ds restando</string>
-    <string name="voice_message_release_to_send_toast">Segure para gravar, solte para enviar</string>
     <string name="a11y_delete_recorded_voice_message">Deletar gravação</string>
     <string name="a11y_recording_voice_message">Gravando mensagem de voz</string>
     <string name="a11y_pause_voice_message">Pausar Mensagem de Voz</string>

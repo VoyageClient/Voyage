@@ -39,8 +39,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -57,6 +61,9 @@ import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
+
+// A voice recording is deleted once its upload finishes, so a local source cannot be relied on until the echo points at the upload.
+fun MessageAudioContent.isUnuploadedAudio(): Boolean = getFileUrl()?.isMxcUrl() != true
 
 @Singleton
 class AudioPlaybackController @Inject constructor(
@@ -86,7 +93,8 @@ class AudioPlaybackController @Inject constructor(
     private var timeScale = 1f
     private var queue = emptyList<Track>()
     private var playlistLoad: Job? = null
-    private val queueEvents = linkedMapOf<String, TimelineEvent>()
+    private val queueEvents = linkedMapOf<String, QueueEntry>()
+    private val queueMerge = Mutex()
     private var activeRoom: String? = null
     private var speed = 1f
     private var pitch = 1f
@@ -101,6 +109,8 @@ class AudioPlaybackController @Inject constructor(
     val hasPendingSelection: Boolean get() = command?.isActive == true || navigation?.isActive == true
 
     enum class LoopMode { OFF, ALL, ONE }
+
+    private class QueueEntry(val event: TimelineEvent, val tracks: List<Track>)
 
     data class Track(val id: String, val eventId: String, val roomId: String, val content: MessageAudioContent, val sender: String, val galleryIndex: Int? = null)
     data class State(
@@ -135,11 +145,17 @@ class AudioPlaybackController @Inject constructor(
     }
 
     fun playOrPause(roomId: String, id: String, content: MessageAudioContent, eventId: String = id, galleryIndex: Int? = null) {
+        if (content.isUnuploadedAudio()) return
         navigation?.cancel()
         command?.cancel()
         command = scope.launch {
             if (isCurrentTrack(id, eventId, galleryIndex) && activeRoom == roomId) {
-                if (state.value?.loading == true) stop() else toggle()
+                val current = state.value
+                when {
+                    current?.loading == true -> stop()
+                    current?.error == true -> select(current.track.copy(content = content))
+                    else -> toggle()
+                }
                 return@launch
             }
             session = sessionHolder.getOrInitializeSession() ?: return@launch
@@ -156,16 +172,16 @@ class AudioPlaybackController @Inject constructor(
         queueEvents.clear()
         queue = emptyList()
         activeRoom = track.roomId
-        timeline = session?.getRoom(track.roomId)?.timelineService()?.createTimeline(track.eventId.takeIf { it.startsWith("$") },
+        // The server has never seen a local echo id, so a timeline anchored on one never finds its target.
+        val anchor = track.eventId.takeIf { it.startsWith("$") && !LocalEcho.isLocalEchoId(it) }
+        timeline = session?.getRoom(track.roomId)?.timelineService()?.createTimeline(anchor,
                         TimelineSettings(100, false, session?.getRoom(track.roomId)?.timelineService()?.getTimelineEvent(track.eventId)?.root?.getRootThreadEventId()))?.also { next ->
             next.addListener(object : Timeline.Listener {
                 override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
                     scope.launch {
-                        if (timeline !== next) return@launch
-                        snapshot.forEach { queueEvents[it.timelineStableId()] = it }
-                        rebuildQueue()
+                        if (!mergeQueue(next, snapshot)) return@launch
                         val current = state.value?.track ?: return@launch
-                        if (queueEvents.values.any { it.eventId == current.eventId && it.root.isRedacted() }) stop()
+                        if (queueEvents.values.any { it.event.eventId == current.eventId && it.event.root.isRedacted() }) stop()
                     }
                 }
                 override fun onStateUpdated(direction: Timeline.Direction, state: Timeline.PaginationState) {
@@ -177,20 +193,36 @@ class AudioPlaybackController @Inject constructor(
         }
     }
 
+    // Snapshots can hold a whole stored range, and parsing each event's content on the main thread stalls the UI.
+    private suspend fun mergeQueue(source: Timeline, snapshot: List<TimelineEvent>): Boolean = queueMerge.withLock {
+        if (timeline !== source) return false
+        val known = HashMap(queueEvents)
+        val entries = withContext(Dispatchers.Default) {
+            snapshot.map { event ->
+                val key = event.timelineStableId()
+                key to (known[key]?.takeIf { it.event === event } ?: QueueEntry(event, tracksOf(event)))
+            }
+        }
+        if (timeline !== source) return false
+        entries.forEach { (key, entry) -> queueEvents[key] = entry }
+        rebuildQueue()
+        true
+    }
+
+    private fun tracksOf(event: TimelineEvent): List<Track> = when (val content = event.getLastMessageContent()) {
+        is MessageAudioContent -> if (content.isUnuploadedAudio()) emptyList()
+        else listOf(Track(event.timelineStableId(), event.eventId, event.roomId, content, event.senderInfo.displayName.orEmpty()))
+        is MessageGalleryContent -> content.galleryItems().mapIndexedNotNull { index, item ->
+            (item as? MessageAudioContent)?.let { Track(galleryPageId(event.timelineStableId(), index), event.eventId,
+                    event.roomId, it, event.senderInfo.displayName.orEmpty(), index) }
+        }
+        else -> emptyList()
+    }
+
     private fun rebuildQueue() {
-        queue = queueEvents.values.sortedWith(compareBy<TimelineEvent> { it.root.originServerTs ?: 0 }.thenBy { it.seq })
-                .filter { !it.root.isRedacted() }
-                .flatMap { event ->
-                    val content = event.getLastMessageContent()
-                    when (content) {
-                        is MessageAudioContent -> listOf(Track(event.timelineStableId(), event.eventId, event.roomId, content, event.senderInfo.displayName.orEmpty()))
-                        is MessageGalleryContent -> content.galleryItems().mapIndexedNotNull { index, item ->
-                            (item as? MessageAudioContent)?.let { Track(galleryPageId(event.timelineStableId(), index), event.eventId,
-                                    event.roomId, it, event.senderInfo.displayName.orEmpty(), index) }
-                        }
-                        else -> emptyList()
-                    }
-                }
+        queue = queueEvents.values.sortedWith(compareBy<QueueEntry> { it.event.root.originServerTs ?: 0 }.thenBy { it.event.seq })
+                .filter { !it.event.root.isRedacted() }
+                .flatMap { it.tracks }
         updateQueueControls()
     }
 
@@ -202,7 +234,7 @@ class AudioPlaybackController @Inject constructor(
         val current = state.value ?: return
         val queued = queue.firstOrNull { sameTrack(it, current.track) }
         mutableState.value = current.copy(
-                track = current.track.copy(eventId = queued?.eventId ?: current.track.eventId),
+                track = current.track.copy(eventId = queued?.eventId ?: current.track.eventId, content = queued?.content ?: current.track.content),
                 playlist = queue.filter { (it.content.voiceMessageIndicator != null) == (current.track.content.voiceMessageIndicator != null) },
                 canLoadMore = canLoad(Timeline.Direction.BACKWARDS) || canLoad(Timeline.Direction.FORWARDS),
                 hasPrevious = current.loopMode == LoopMode.ALL || neighbor(current.track.id, false) != null || canLoad(Timeline.Direction.BACKWARDS),
@@ -240,10 +272,7 @@ class AudioPlaybackController @Inject constructor(
             try {
                 for (direction in listOf(Timeline.Direction.BACKWARDS, Timeline.Direction.FORWARDS)) {
                     if (!canLoad(direction)) continue
-                    val snapshot = activeTimeline.awaitPaginate(direction, 100)
-                    if (timeline !== activeTimeline) return@launch
-                    snapshot.forEach { queueEvents[it.timelineStableId()] = it }
-                    rebuildQueue()
+                    if (!mergeQueue(activeTimeline, activeTimeline.awaitPaginate(direction, 100))) return@launch
                 }
             } catch (failure: CancellationException) {
                 throw failure
@@ -261,7 +290,8 @@ class AudioPlaybackController @Inject constructor(
         navigation?.cancel()
         navigation = scope.launch {
             val current = state.value ?: return@launch
-            pause()
+            // A track that just ended is back at 0 and already idle, which shows its length; a pause would show 0:00.
+            pause(publish = current.position > 0)
             try {
                 val direction = if (next) Timeline.Direction.FORWARDS else Timeline.Direction.BACKWARDS
                 var target = neighbor(current.track.id, next)
@@ -269,9 +299,7 @@ class AudioPlaybackController @Inject constructor(
                     val activeTimeline = timeline ?: break
                     val knownEvents = queueEvents.size
                     val snapshot = activeTimeline.awaitPaginate(direction, 100)
-                    if (timeline !== activeTimeline || state.value?.track?.id != current.track.id) return@launch
-                    snapshot.forEach { queueEvents[it.timelineStableId()] = it }
-                    rebuildQueue()
+                    if (!mergeQueue(activeTimeline, snapshot) || state.value?.track?.id != current.track.id) return@launch
                     target = neighbor(current.track.id, next)
                     if (activeTimeline.getPaginationState(direction).inError || queueEvents.size == knownEvents) break
                 }
@@ -532,14 +560,16 @@ class AudioPlaybackController @Inject constructor(
         if (pendingAutoplay) resume()
     }
 
-    fun pause() {
+    fun pause() = pause(publish = true)
+
+    private fun pause(publish: Boolean) {
         pendingAutoplay = false
         // A track still downloading or preparing would otherwise start once it is ready.
         autoplayBlocked = true
         player?.pause()
         handler.removeCallbacks(tick)
         mutableState.value = state.value?.copy(playing = false)
-        publish()
+        if (publish) publish()
     }
 
     fun seek(position: Int) {

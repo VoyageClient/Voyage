@@ -87,8 +87,10 @@ import im.vector.app.features.home.room.detail.composer.sed.SedParseResult
 import im.vector.app.features.home.room.detail.composer.sed.SedTimeoutException
 import im.vector.app.features.home.room.detail.composer.sed.highlightDiff
 import im.vector.app.features.home.room.detail.composer.sed.parseSed
+import im.vector.app.features.home.room.detail.composer.voice.VoiceDraftCaption
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
+import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.expandPillSpans
@@ -173,6 +175,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
+    @Inject lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
     @Inject lateinit var homeserverInfoCollector: HomeserverInfoCollector
     @Inject lateinit var mxcMediaOpener: MxcMediaOpener
 
@@ -233,6 +236,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
         setupBottomSheet()
         setupComposer()
+        setupVoiceRecorder()
         setupEmojiButton()
         setupStickerPicker()
 
@@ -361,6 +365,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         super.onResume()
 
         emojiKeyboardController?.onResume()
+        audioMessagePlaybackTracker.track(AudioMessagePlaybackTracker.RECORDING_ID, views.composerLayout.voiceRecorderView)
         restoreComposerFocusIfLost()
         // Focus restoration by the window itself lands after onResume, so re-check once it has settled.
         (composer as? View)?.post { if (view != null) restoreComposerFocusIfLost() }
@@ -381,6 +386,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         super.onPause()
 
         emojiKeyboardController?.onPause()
+        audioMessagePlaybackTracker.untrack(AudioMessagePlaybackTracker.RECORDING_ID, views.composerLayout.voiceRecorderView)
+        audioMessagePlaybackTracker.pauseAllPlaybacks()
         if (dismissViewLoadingOnPause) {
             dismissViewLoadingOnPause = false
             dismissLoadingDialog()
@@ -407,7 +414,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         emojiKeyboardController = null
         autoCompleters.values.forEach(AutoCompleter::clear)
         autoCompleters.clear()
-        messageComposerViewModel.endAllVoiceActions()
+        // A recording saved as the room's voice draft must outlive the room screen, or reopening it finds no file.
+        val keepsVoiceDraft = withState(messageComposerViewModel) { it.isVoiceRecording || it.sendMode is SendMode.Voice }
+        messageComposerViewModel.endAllVoiceActions(deleteRecord = !keepsVoiceDraft)
 
         super.onDestroyView()
     }
@@ -423,8 +432,44 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     isPgp = pgpKeyStore.isEnabled && !summary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(summary.roomId),
             )
         }
+        renderVoiceRecorder(messageComposerState)
         renderSendButtonVisibility(messageComposerState)
     }
+
+    private fun renderVoiceRecorder(state: MessageComposerViewState) {
+        views.composerLayout.voiceRecorderView.render(state.voiceRecordingUiState)
+        views.composerLayout.renderVoiceMode(state.isComposerVisible && state.isVoiceRecording)
+    }
+
+    private fun setupVoiceRecorder() {
+        views.composerLayout.voiceRecorderView.callback = object : VoiceMessageRecorderView.Callback {
+            override fun onVoicePlaybackButtonClicked() {
+                messageComposerViewModel.handle(MessageComposerAction.PlayOrPauseRecordingPlayback)
+            }
+
+            override fun onDeleteVoiceMessage() {
+                messageComposerViewModel.handle(MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = rootThreadEventId()))
+                messageComposerViewModel.handle(MessageComposerAction.OnVoiceRecordingUiStateChanged(VoiceMessageRecorderView.RecordingUiState.Idle))
+            }
+
+            override fun onRecordingWaveformClicked() = pauseVoiceRecording()
+
+            override fun onVoiceWaveformTouchedUp(percentage: Float, duration: Int) {
+                messageComposerViewModel.handle(MessageComposerAction.VoiceWaveformTouchedUp(AudioMessagePlaybackTracker.RECORDING_ID, duration, percentage))
+            }
+
+            override fun onVoiceWaveformMoved(percentage: Float, duration: Int) {
+                messageComposerViewModel.handle(MessageComposerAction.VoiceWaveformTouchedUp(AudioMessagePlaybackTracker.RECORDING_ID, duration, percentage))
+            }
+        }
+    }
+
+    private fun pauseVoiceRecording() {
+        messageComposerViewModel.handle(MessageComposerAction.PauseRecordingVoiceMessage)
+        messageComposerViewModel.handle(MessageComposerAction.OnVoiceRecordingUiStateChanged(VoiceMessageRecorderView.RecordingUiState.Draft))
+    }
+
+    private fun rootThreadEventId(): String? = withState(messageComposerViewModel) { it.rootThreadEventId }
 
     private fun renderSendButtonVisibility(state: MessageComposerViewState) {
         renderMicrophoneVisibility(state)
@@ -853,6 +898,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun renderVoiceMessageMode(content: String) {
+        VoiceDraftCaption.read(content)?.let { composer.setTextIfDifferent(it) }
         ContentAttachmentData.fromJsonString(content)?.let { audioAttachmentData ->
             messageComposerViewModel.handle(MessageComposerAction.InitializeVoiceRecorder(audioAttachmentData))
         }
