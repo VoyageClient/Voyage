@@ -321,7 +321,7 @@ class RoomProfileFragment :
             views.matrixProfileLoadingView.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
         }
         bannerUiHelper?.update(hasBanner)
-        bannerRenderer.render(state.bannerUrl, headerViews.roomProfileBannerView, crossfade = false)
+        bannerRenderer.render(state.bannerUrl, headerViews.roomProfileBannerView)
 
         state.roomSummary()?.let {
             if (it.membership.isLeft() && !it.isRemovedFromRoom) {

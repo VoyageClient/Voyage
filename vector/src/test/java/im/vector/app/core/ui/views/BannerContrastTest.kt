@@ -16,6 +16,7 @@ import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.TransitionDrawable
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
@@ -281,6 +282,25 @@ class BannerContrastTest {
         screen.root.viewTreeObserver.dispatchOnPreDraw()
         assertTrue(revealed)
         assertEquals(originalColor, iconColor(screen.toolbar.navigationIcon!!))
+        screen.helper.restore()
+    }
+
+    @Test
+    fun `a crossfading banner is sampled only once it settles`() {
+        val screen = profile()
+        val insets = WindowInsetsControllerCompat(screen.activity.window, screen.activity.window.decorView)
+        val originalColor = iconColor(screen.toolbar.navigationIcon!!)
+        // An unstarted crossfade draws only its first layer, which here is bright.
+        screen.banner.setImageDrawable(TransitionDrawable(arrayOf(ColorDrawable(Color.WHITE), ColorDrawable(Color.BLACK))))
+        layout(screen.root)
+        screen.helper.revealAfterLayout {}
+        screen.root.viewTreeObserver.dispatchOnPreDraw()
+        assertEquals(originalColor, iconColor(screen.toolbar.navigationIcon!!))
+        assertFalse(insets.isAppearanceLightStatusBars)
+        screen.banner.setImageDrawable(ColorDrawable(Color.WHITE))
+        layout(screen.root)
+        screen.root.viewTreeObserver.dispatchOnPreDraw()
+        assertTrue(insets.isAppearanceLightStatusBars)
         screen.helper.restore()
     }
 

@@ -26,6 +26,7 @@ import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.os.Build
 import android.os.SystemClock
 import android.view.Menu
@@ -300,6 +301,8 @@ class ProfileBannerUiHelper(
             applyGlyphs(animate = profileRevealed)
             return
         }
+        // Mid-crossfade from BannerRenderer: mostly placeholder still, so wait for the settled image.
+        if (drawable is TransitionDrawable) return
         val imageChanged = drawable !== sampledBanner
         if (imageChanged) {
             dirty = true

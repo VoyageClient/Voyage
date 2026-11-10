@@ -471,7 +471,7 @@ class RoomMemberProfileFragment :
                 headerViews.memberProfileBannerOverlap.isVisible = hasBanner
                 // Adjust window insets at reveal so the cover's back button keeps its position.
                 if (!coverActive) bannerUiHelper?.update(hasBanner)
-                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView, crossfade = false)
+                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView)
                 bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
 
                 if (state.isRoomEncrypted && state.userCryptoInfoLoaded) {

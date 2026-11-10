@@ -7,15 +7,19 @@
 
 package im.vector.app.features.home
 
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.UiThread
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.request.transition.TransitionFactory
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.glide.GlideApp
@@ -58,7 +62,7 @@ class BannerRenderer @Inject constructor(
     private val placeholders = WeakHashMap<ImageView, MediaPlaceholderDrawable>()
 
     @UiThread
-    fun render(mxcUrl: String?, imageView: ImageView, crossfade: Boolean = true) {
+    fun render(mxcUrl: String?, imageView: ImageView) {
         val resolved = mxcUrl
                 ?.takeIf { it.isNotEmpty() }
                 ?.let { activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(it) }
@@ -76,7 +80,7 @@ class BannerRenderer @Inject constructor(
                         // (GIF/WebP) loads outright; the view's own centerCrop scales those instead.
                         .optionalTransform(CenterCrop())
                         .placeholder(placeholderFor(imageView))
-                        .transition(if (crossfade) DrawableTransitionOptions.with(FADE_FACTORY) else DrawableTransitionOptions().dontTransition())
+                        .transition(DrawableTransitionOptions.with(SettlingCrossFadeFactory))
                         .into(imageView)
             }
             else -> {
@@ -87,17 +91,17 @@ class BannerRenderer @Inject constructor(
                         .disallowHardwareConfig()
                         .centerCrop()
                         .placeholder(placeholderFor(imageView))
-                        .transition(if (crossfade) BitmapTransitionOptions.withCrossFade(FADE_FACTORY) else BitmapTransitionOptions().dontTransition())
+                        .transition(BitmapTransitionOptions.withWrapped(SettlingCrossFadeFactory))
                         .into(imageView)
             }
         }
     }
 
     @UiThread
-    fun renderProfileMedia(media: ProfileMedia?, imageView: ImageView, crossfade: Boolean = true) {
+    fun renderProfileMedia(media: ProfileMedia?, imageView: ImageView) {
         val encryptedFile = media?.encryptedFile
         if (encryptedFile == null) {
-            render(media?.url, imageView, crossfade)
+            render(media?.url, imageView)
             return
         }
         val size = imageView.resources.displayMetrics.let { im.vector.app.core.ui.model.Size(it.widthPixels, it.heightPixels) }
@@ -116,7 +120,7 @@ class BannerRenderer @Inject constructor(
                 .optionalTransform(CenterCrop())
                 .disallowHardwareConfig()
                 .placeholder(placeholderFor(imageView))
-                .transition(if (crossfade) DrawableTransitionOptions.with(FADE_FACTORY) else DrawableTransitionOptions().dontTransition())
+                .transition(DrawableTransitionOptions.with(SettlingCrossFadeFactory))
                 .into(imageView)
     }
 
@@ -180,5 +184,20 @@ class BannerRenderer @Inject constructor(
         private val FADE_FACTORY = DrawableCrossFadeFactory.Builder(CROSSFADE_MS)
                 .setCrossFadeEnabled(true)
                 .build()
+    }
+
+    // Glide leaves its TransitionDrawable on the view for good; ProfileBannerUiHelper needs the bare image
+    // back to sample it cheaply and stop polling the placeholder layer.
+    internal object SettlingCrossFadeFactory : TransitionFactory<Drawable> {
+        override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> {
+            val crossFade = FADE_FACTORY.build(dataSource, isFirstResource)
+            if (dataSource == DataSource.MEMORY_CACHE) return crossFade
+            return Transition { current, adapter ->
+                if (!crossFade.transition(current, adapter)) return@Transition false
+                val fading = adapter.currentDrawable
+                adapter.view.postDelayed({ if (adapter.currentDrawable === fading) adapter.setDrawable(current) }, CROSSFADE_MS.toLong())
+                true
+            }
+        }
     }
 }
