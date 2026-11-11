@@ -614,7 +614,7 @@ class TimelineFragment :
                 is RoomDetailViewEvents.OpenStickerPicker -> openStickerPicker(it)
                 is RoomDetailViewEvents.DisplayEnableIntegrationsWarning -> displayDisabledIntegrationDialog()
                 is RoomDetailViewEvents.OpenIntegrationManager -> openIntegrationManager()
-                is RoomDetailViewEvents.OpenFile -> startOpenFileIntent(it)
+                is RoomDetailViewEvents.OpenFile -> openAfterKeyboardDismissal { startOpenFileIntent(it) }
                 RoomDetailViewEvents.OpenActiveWidgetBottomSheet -> onViewWidgetsClicked()
                 is RoomDetailViewEvents.ShowInfoOkDialog -> showDialogWithMessage(it.message)
                 is RoomDetailViewEvents.ShowWaitingView -> vectorBaseActivity.showWaitingView(it.text)
