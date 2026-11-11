@@ -440,7 +440,7 @@ class RoomMemberProfileController @Inject constructor(
                     action = { callback?.onMentionClicked() }
             )
         }
-        if (state.actionPermissions.canInvite && (membership == Membership.LEAVE || membership == Membership.KNOCK)) {
+        if (state.actionPermissions.canInvite && (membership == Membership.NONE || membership == Membership.LEAVE || membership == Membership.KNOCK)) {
             buildProfileAction(
                     id = "invite",
                     title = stringProvider.getString(CommonStrings.room_participants_action_invite),

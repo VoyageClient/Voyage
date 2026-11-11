@@ -188,15 +188,15 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             val roomMember = withContext(Dispatchers.Default) {
                 room?.membershipService()?.getRoomMember(initialState.userId)
             }
-            // If not, we look for profile info on the server
-            if (room == null || roomMember == null) {
+            if (room == null) {
                 fetchProfileInfo()
             } else {
-                // otherwise we just start listening to db
+                // Non-members (e.g. via /whois) still get the room actions, such as invite and ban
                 setState { copy(showAsMember = true) }
                 observeRoomMemberSummary(room)
                 observeRoomSummaryAndPowerLevels(room)
                 fetchGlobalProfile()
+                if (roomMember == null) resolveNonMember(room)
             }
         }
 
@@ -958,12 +958,24 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                                 } ?: userMatrixItem.takeIf { it is Loading } ?: Success(member.toMatrixItem()),
                                 asyncMembership = Success(member.membership)
                         )
-                        // No summary (e.g. membership event redacted): keep the mxid fallback rather than
-                        // regressing to Loading, which would leave the profile stuck.
-                        it is Success -> copy(userMatrixItem = Success(MatrixItem.UserItem(initialState.userId)))
+                        // No summary (non-member or redacted membership): never regress to Loading, it would stick
+                        it is Success -> copy(
+                                userMatrixItem = userMatrixItem.takeIf { item -> item is Success }
+                                        ?: Success(MatrixItem.UserItem(initialState.userId))
+                        )
                         else -> this
                     }
                 }
+    }
+
+    // Lazy-loaded member lists miss most members, so wait for the full list before concluding NONE
+    private fun resolveNonMember(room: Room) {
+        viewModelScope.launch {
+            tryOrNull { room.membershipService().loadRoomMembersIfNeeded() }
+            if (!room.membershipService().areAllMembersLoaded()) return@launch
+            if (withContext(Dispatchers.Default) { room.membershipService().getRoomMember(initialState.userId) } != null) return@launch
+            setState { if (asyncMembership() == null) copy(asyncMembership = Success(Membership.NONE)) else this }
+        }
     }
 
     private fun handleRetryFetchProfileInfo() {
