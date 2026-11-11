@@ -23,6 +23,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PILL_PLACEHOLDER
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.PillItemResolver
 import im.vector.app.features.html.overlapsExplicitLink
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.settings.VectorPreferences
@@ -49,6 +50,7 @@ class EventTextRenderer @AssistedInject constructor(
         private val sessionHolder: ActiveSessionHolder,
         private val permalinkEventResolver: PermalinkEventResolver,
         private val vectorPreferences: VectorPreferences,
+        private val pillItemResolver: PillItemResolver,
 ) {
 
     @AssistedFactory
@@ -194,8 +196,17 @@ class EventTextRenderer @AssistedInject constructor(
         return e
     }
 
+    // A user nothing local has a name or avatar for would otherwise stay a bare id.
     private fun createPillImageSpan(matrixItem: MatrixItem) =
-            PillImageSpan(GlideApp.with(context), avatarRenderer, context, matrixItem)
+            PillImageSpan(
+                    GlideApp.with(context),
+                    avatarRenderer,
+                    context,
+                    matrixItem,
+                    itemResolver = pillItemResolver.takeIf {
+                        matrixItem is MatrixItem.UserItem && matrixItem.displayName.isNullOrBlank() && matrixItem.avatarUrl.isNullOrBlank()
+                    },
+            )
 
     private fun addPillSpan(
             renderedText: Spannable,

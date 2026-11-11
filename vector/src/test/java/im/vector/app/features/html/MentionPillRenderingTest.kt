@@ -14,19 +14,34 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.translation.MessageTranslationStore
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.user.model.User
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -74,6 +89,7 @@ class MentionPillRenderingTest {
             noCodePalette(),
     )
     private val avatarRenderer = mockk<AvatarRenderer>(relaxed = true)
+    private val resolver = mockk<PillItemResolver>(relaxed = true)
 
     @Test
     fun `given an anchor mention, when rendering in a biography, then it is a pill`() {
@@ -178,12 +194,69 @@ class MentionPillRenderingTest {
                 listOf("Alice Now" to "mxc://example.org/now")
     }
 
+    @Test
+    fun `given a mention nothing local knows, when rendering in a room, then only that pill is looked up`() {
+        val nobody = "@nobody:example.org"
+        val html = """<a href="https://matrix.to/#/$knownUser">Alice</a> """ +
+                """<a href="https://matrix.to/#/$strangerUser">$strangerUser</a> https://matrix.to/#/$nobody"""
+        val rendered = render(html, roomId)
+        val textView = TextView(context).apply { text = rendered }
+        rendered.getSpans(0, rendered.length, PillImageSpan::class.java).forEach { it.bind(textView) }
+
+        verify { resolver.resolve(match { it.id == strangerUser }, any()) }
+        verify { resolver.resolve(match { it.id == nobody }, any()) }
+        verify(exactly = 0) { resolver.resolve(match { it.id == knownUser }, any()) }
+    }
+
+    @Test
+    fun `given a mention nothing local knows, when previewing it in the room list, then the pill is looked up`() {
+        val preferences = mockk<VectorPreferences>(relaxed = true)
+        val formatter = DisplayableEventFormatter(
+                stringProvider = mockk(relaxed = true),
+                colorProvider = ColorProvider(context),
+                drawableProvider = mockk(relaxed = true),
+                noticeEventFormatter = mockk(relaxed = true),
+                decryptionFailureFormatter = mockk(relaxed = true),
+                reactionFormatter = mockk(relaxed = true),
+                htmlRenderer = { renderer },
+                pgpDecryptor = mockk<PgpDecryptor>(relaxed = true).also { every { it.peekDecryptedBody(any()) } returns null },
+                vectorPreferences = preferences,
+                matrixItemColorProvider = mockk<MatrixItemColorProvider>(relaxed = true).also { every { it.changes } returns MutableStateFlow(0L) },
+                messageTranslationStore = mockk<MessageTranslationStore>(relaxed = true).also { every { it.get(any<TimelineEvent>()) } returns null },
+                pillsPostProcessorFactory = mockk<PillsPostProcessor.Factory>().also {
+                    every { it.create(any()) } answers { PillsPostProcessor(firstArg(), context, avatarRenderer, sessionHolder, resolver, preferences) }
+                },
+                textRendererFactory = mockk<EventTextRenderer.Factory>().also {
+                    every { it.create(any()) } answers {
+                        EventTextRenderer(firstArg(), context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences, resolver)
+                    }
+                },
+                forwardedMessages = ForwardedMessagePresenter(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true)),
+                codeBlockHighlighter = mockk(relaxed = true),
+        )
+        val content = MessageTextContent(
+                msgType = MessageType.MSGTYPE_TEXT,
+                body = strangerUser,
+                format = MessageFormat.FORMAT_MATRIX_HTML,
+                formattedBody = """<a href="https://matrix.to/#/$strangerUser">$strangerUser</a>""",
+        )
+        val event = Event(type = EventType.MESSAGE, eventId = "\$event", roomId = roomId, content = content.toContent())
+        val timelineEvent = TimelineEvent(root = event, localId = 1L, eventId = "\$event", senderInfo = SenderInfo(knownUser, "Alice", true, null))
+
+        TextView(context).apply {
+            text = formatter.format(timelineEvent, isDm = false, appendAuthor = true)
+            bindPillImageSpans()
+        }
+
+        verify { resolver.resolve(match { it.id == strangerUser }, any()) }
+    }
+
     private fun renderAsBio(html: String): Spanned = render(html, null)
 
     private fun render(html: String, roomId: String?, mentionedAt: Long? = null, showLatestProfile: Boolean = false): Spanned {
         val preferences = mockk<VectorPreferences>(relaxed = true).also { every { it.showLiveSenderInfo() } returns showLatestProfile }
-        val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences)
-        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences)
+        val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, resolver, preferences)
+        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences, resolver)
         val rendered = renderer.render(html, pills.forEvent(mentionedAt)) as Spanned
         val textView = TextView(context)
         renderer.setTextWithPlugins(textView, textRenderer.render(rendered).linkify(null))

@@ -73,7 +73,7 @@ class PillImageSpan(
         // permalink: the composer passes the un-overridden name, since a local display-name override
         // means nothing to the rest of the room.
         override val bodyText: String? = null,
-        // Only set where the pill has no room to draw the name and avatar from (see [PillItemResolver]).
+        // Only set where nothing local has the name and avatar (see [PillItemResolver]).
         private val itemResolver: PillItemResolver? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
 

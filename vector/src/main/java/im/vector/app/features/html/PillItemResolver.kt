@@ -21,9 +21,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fills in a pill the local data can't: a mention outside any room — a biography, a profile note —
- * points at people and rooms we may share nothing with, so the name and avatar have to come from the
- * server. Results are kept for the session (misses included) so the same mention costs one request.
+ * Fills in a pill the local data can't: a mention of someone outside the room, or one outside any room
+ * (a biography, a profile note), so the name and avatar have to come from the server. Results are kept
+ * for the session (misses included) so the same mention costs one request.
  */
 @Singleton
 class PillItemResolver @Inject constructor(

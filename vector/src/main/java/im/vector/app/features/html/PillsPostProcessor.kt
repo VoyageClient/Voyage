@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.MatrixItem
-import org.matrix.android.sdk.api.util.toMatrixItem
 
 class PillsPostProcessor @AssistedInject constructor(
         @Assisted private val roomId: String?,
@@ -127,15 +126,17 @@ class PillsPostProcessor @AssistedInject constructor(
         }
     }
 
-    // Outside a room (a biography, a profile note) nothing local backs the mention, so let the pill
-    // look the user or room up. In a room the member event and the room summary are the authority.
-    private fun createPillImageSpan(matrixItem: MatrixItem) =
+    private class PillTarget(val matrixItem: MatrixItem, val isLocallyKnown: Boolean)
+
+    // In a room the member event and the room summary are the authority; only what nothing local backs
+    // is looked up on the server.
+    private fun createPillImageSpan(target: PillTarget) =
             PillImageSpan(
                     GlideApp.with(context),
                     avatarRenderer,
                     context,
-                    matrixItem,
-                    itemResolver = itemResolver.takeIf { roomId == null },
+                    target.matrixItem,
+                    itemResolver = itemResolver.takeIf { roomId == null || !target.isLocallyKnown },
             )
 
     private fun LinkSpan.createPillSpan(linkText: String, originServerTs: Long?): PillImageSpan? {
@@ -145,18 +146,18 @@ class PillsPostProcessor @AssistedInject constructor(
             // What the mention was written as. A pill falls back to it rather than to a raw id when we
             // don't know the user or room ourselves; a link whose text is just its target says nothing.
             val label = linkText.trim().takeUnless { it.isBlank() || it == url }
-            val matrixItem = when (val permalinkData = PermalinkParser.parse(url)) {
-                is PermalinkData.UserLink -> permalinkData.toMatrixItem(label, originServerTs)
-                is PermalinkData.RoomLink -> permalinkData.toMatrixItem(label)
+            val target = when (val permalinkData = PermalinkParser.parse(url)) {
+                is PermalinkData.UserLink -> permalinkData.toPillTarget(label, originServerTs)
+                is PermalinkData.RoomLink -> permalinkData.toPillTarget(label)
                 else -> null
             } ?: return null
-            return createPillImageSpan(matrixItem)
+            return createPillImageSpan(target)
         } else {
             return null
         }
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(label: String?, originServerTs: Long?): MatrixItem? {
+    private fun PermalinkData.UserLink.toPillTarget(label: String?, originServerTs: Long?): PillTarget? {
         val session = sessionHolder.getSafeActiveSession() ?: return null
         val memberThen = if (roomId != null && originServerTs != null) {
             synchronized(membersAt) {
@@ -168,26 +169,33 @@ class PillsPostProcessor @AssistedInject constructor(
         val member = memberThen ?: roomId?.let { session.roomService().getRoomMember(userId, it) }
         val known = synchronized(knownSenders) { knownSenders[userId] }
         if (member != null || known != null) {
-            return MatrixItem.UserItem(
-                    userId,
-                    member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName?.takeUnless { it.isBlank() } ?: label,
-                    member?.avatarUrl?.takeUnless { it.isBlank() } ?: known?.avatarUrl,
+            return PillTarget(
+                    MatrixItem.UserItem(
+                            userId,
+                            member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName?.takeUnless { it.isBlank() } ?: label,
+                            member?.avatarUrl?.takeUnless { it.isBlank() } ?: known?.avatarUrl,
+                    ),
+                    isLocallyKnown = true,
             )
         }
         // A mention we know nothing about still pills, under the name it was written as — but a link
         // whose text is just its target isn't a mention, and stays a link.
-        val user = session.getUser(userId) ?: return label?.let { MatrixItem.UserItem(userId, it) }
-        return MatrixItem.UserItem(userId, user.displayName?.takeUnless { it.isBlank() } ?: label, user.avatarUrl)
+        val user = session.getUser(userId) ?: return label?.let { PillTarget(MatrixItem.UserItem(userId, it), isLocallyKnown = false) }
+        return PillTarget(
+                MatrixItem.UserItem(userId, user.displayName?.takeUnless { it.isBlank() } ?: label, user.avatarUrl),
+                isLocallyKnown = !user.displayName.isNullOrBlank() || !user.avatarUrl.isNullOrBlank(),
+        )
     }
 
-    private fun PermalinkData.RoomLink.toMatrixItem(label: String?): MatrixItem? =
+    private fun PermalinkData.RoomLink.toPillTarget(label: String?): PillTarget? =
             if (eventId == null) {
                 val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
                 val name = room?.displayName?.takeUnless { it.isBlank() } ?: label
-                when {
+                val item = when {
                     isRoomAlias -> MatrixItem.RoomAliasItem(roomIdOrAlias, name, room?.avatarUrl)
                     else -> MatrixItem.RoomItem(roomIdOrAlias, name, room?.avatarUrl)
                 }
+                PillTarget(item, isLocallyKnown = room != null)
             } else {
                 // Exclude event link (used in reply events, we do not want to pill the "in reply to")
                 null
