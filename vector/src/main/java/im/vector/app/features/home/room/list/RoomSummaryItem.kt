@@ -175,7 +175,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         if (lastEventRedacted) holder.subtitleView.setRedactedPreviewStyle()
         holder.subtitleView.bindEmoteImageSpans()
         limitPreviewPillWidths(holder.subtitleView)
-        if (loadMentionAvatars) holder.subtitleView.bindPillImageSpans()
+        holder.subtitleView.bindPillImageSpans(loadAvatars = loadMentionAvatars)
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.
         holder.subtitleView.applySpoilerRenderLayer()
         holder.lastEventTimeView.text = lastEventTime

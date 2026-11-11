@@ -112,7 +112,8 @@ class PillImageSpan(
     // blink the pill back through a placeholder for no gain.
     private var hasCachedAvatar = false
 
-    private var itemResolutionRequested = false
+    private var nameResolutionRequested = false
+    private var avatarResolutionRequested = false
 
     // The unwrapped drawable the chip icon is built from, so the animation can be driven through the
     // paths that know how to rewind it. Declared above [pillDrawable], whose initialiser sets it.
@@ -126,15 +127,20 @@ class PillImageSpan(
     private var tv: WeakReference<TextView>? = null
     private val spoilerTextPaint = TextPaint()
 
+    /** With [loadAvatar] false the pill can still learn its name, but never fetches an avatar. */
     @UiThread
-    fun bind(textView: TextView) {
+    fun bind(textView: TextView, loadAvatar: Boolean = true) {
         tv = WeakReference(textView)
+        if (!loadAvatar) {
+            resolveItemIfNeeded(withAvatar = false)
+            return
+        }
         // The chip is drawn by hand from [draw], so nothing owns it; taking its callback is what lets an
         // animated avatar's frames reach the TextView.
         pillDrawable.callback = chipCallback
         // Picks the animation back up when a recycled row rebinds a pill that was parked below.
         if (avatarRenderer.animatesAvatars()) rawIcon?.restartAnimation()
-        resolveItemIfNeeded()
+        resolveItemIfNeeded(withAvatar = true)
         if (useGenericIcon || hasCachedAvatar) return
         avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true)
     }
@@ -146,15 +152,22 @@ class PillImageSpan(
         return true
     }
 
-    private fun resolveItemIfNeeded() {
+    private fun resolveItemIfNeeded(withAvatar: Boolean) {
         val resolver = itemResolver ?: return
-        if (itemResolutionRequested || !matrixItem.avatarUrl.isNullOrEmpty()) return
-        itemResolutionRequested = true
-        resolver.resolve(matrixItem) { applyResolvedItem(it) }
+        if (avatarResolutionRequested || (nameResolutionRequested && !withAvatar) || !matrixItem.avatarUrl.isNullOrEmpty()) return
+        nameResolutionRequested = true
+        avatarResolutionRequested = withAvatar
+        resolver.resolve(matrixItem) { resolved ->
+            if (withAvatar) {
+                applyResolvedItem(resolved, loadAvatar = true)
+            } else {
+                resolved.updateAvatar(matrixItem.avatarUrl).takeIf { it != matrixItem }?.let { applyResolvedItem(it, loadAvatar = false) }
+            }
+        }
     }
 
     // Redraw the pill now the server has told us what it points at.
-    private fun applyResolvedItem(item: MatrixItem) {
+    private fun applyResolvedItem(item: MatrixItem, loadAvatar: Boolean) {
         matrixItem = item
         displayName = item.getBestName().neutralizeDirectionOverrides()
         fullEmojiLabel = null
@@ -169,9 +182,9 @@ class PillImageSpan(
         pillDrawable = createChipDrawable()
         naturalWidth = pillDrawable.bounds.width()
         fittedCap = -1
-        pillDrawable.callback = chipCallback
+        if (loadAvatar) pillDrawable.callback = chipCallback
         val textView = tv?.get() ?: return
-        if (!useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
+        if (loadAvatar && !useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
         textView.repaintSpan(this)
     }
 
@@ -613,9 +626,9 @@ fun CharSequence.pillsToCopyText(): CharSequence {
  * Loads the avatars for any mention pills in this TextView's text (e.g. a room-list preview), so they show
  * the real avatar instead of the bare placeholder icon. Mirrors [bindEmoteImageSpans]; call once per bind.
  */
-fun TextView.bindPillImageSpans() {
+fun TextView.bindPillImageSpans(loadAvatars: Boolean = true) {
     val spanned = text as? Spanned ?: return
-    spanned.getSpans(0, spanned.length, PillImageSpan::class.java).forEach { it.bind(this) }
+    spanned.getSpans(0, spanned.length, PillImageSpan::class.java).forEach { it.bind(this, loadAvatars) }
 }
 
 /**

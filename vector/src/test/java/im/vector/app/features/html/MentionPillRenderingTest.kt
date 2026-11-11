@@ -8,9 +8,12 @@
 package im.vector.app.features.html
 
 import android.graphics.Paint
+import android.graphics.drawable.Drawable
 import android.text.Spanned
 import android.widget.TextView
+import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
@@ -43,6 +46,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.user.model.User
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -206,6 +210,22 @@ class MentionPillRenderingTest {
         verify { resolver.resolve(match { it.id == strangerUser }, any()) }
         verify { resolver.resolve(match { it.id == nobody }, any()) }
         verify(exactly = 0) { resolver.resolve(match { it.id == knownUser }, any()) }
+    }
+
+    @Test
+    fun `given avatars are hidden, when a pill is looked up, then it takes the name but not the avatar`() {
+        every { resolver.resolve(any(), any()) } answers {
+            secondArg<(MatrixItem) -> Unit>()(MatrixItem.UserItem(strangerUser, "Stranger", "mxc://example.org/avatar"))
+        }
+        val rendered = render("""<a href="https://matrix.to/#/$strangerUser">$strangerUser</a>""", roomId)
+
+        TextView(context).apply {
+            text = rendered
+            bindPillImageSpans(loadAvatars = false)
+        }
+
+        rendered.pills().map { it.getBestName() to it.avatarUrl } shouldBeEqualTo listOf("Stranger" to null)
+        verify(exactly = 0) { avatarRenderer.render(any<GlideRequests>(), any<MatrixItem>(), any<Target<Drawable>>(), any()) }
     }
 
     @Test
