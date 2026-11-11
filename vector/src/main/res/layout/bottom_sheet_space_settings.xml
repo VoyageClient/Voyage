@@ -76,7 +76,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:actionTitle="@string/invite_people_menu"
-        app:leftIcon="@drawable/ic_invite_people"
+        app:leftIcon="@drawable/ic_invite"
         app:tint="?vctr_content_secondary"
         app:titleTextColor="?vctr_content_primary" />
 

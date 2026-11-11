@@ -12268,17 +12268,6 @@
 
     <issue
         id="VectorRaster"
-        message="This tag is not supported in images generated from this vector icon for API &lt; 24; check generated icon to make sure it looks acceptable"
-        errorLine1="    &lt;clip-path"
-        errorLine2="    ^">
-        <location
-            file="src/main/res/drawable/ic_fab_add_members.xml"
-            line="11"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="VectorRaster"
         message="This attribute is not supported in images generated from this vector icon for API &lt; 21; check generated icon to make sure it looks acceptable"
         errorLine1="    android:autoMirrored=&quot;true&quot;>"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~">

@@ -445,7 +445,7 @@ class RoomMemberProfileController @Inject constructor(
                     id = "invite",
                     title = stringProvider.getString(CommonStrings.room_participants_action_invite),
                     editable = false,
-                    icon = R.drawable.ic_invite_people,
+                    icon = R.drawable.ic_invite,
                     action = { callback?.onInviteClicked() }
             )
         }
@@ -540,7 +540,8 @@ class RoomMemberProfileController @Inject constructor(
             }
         }
         if (canBan) {
-            val banActionTitle = if (membership == Membership.BAN) {
+            val isBanned = membership == Membership.BAN
+            val banActionTitle = if (isBanned) {
                 stringProvider.getString(CommonStrings.room_participants_action_unban)
             } else {
                 stringProvider.getString(CommonStrings.room_participants_action_ban)
@@ -548,13 +549,13 @@ class RoomMemberProfileController @Inject constructor(
             buildProfileAction(
                     id = "ban",
                     editable = false,
-                    icon = R.drawable.ic_room_profile_ban,
+                    icon = if (isBanned) R.drawable.ic_room_profile_unban else R.drawable.ic_room_profile_ban,
                     destructive = true,
                     title = banActionTitle,
-                    subtitle = state.pendingUnban?.takeIf { membership == Membership.BAN }?.let {
+                    subtitle = state.pendingUnban?.takeIf { isBanned }?.let {
                         stringProvider.getString(CommonStrings.room_participants_banned_until, dateFormatter.format(ScheduleTimePicker.forDisplay(it.sendTs), DateFormatKind.DEFAULT_DATE_AND_TIME))
                     },
-                    action = { callback?.onBanClicked(state.isSpace, membership == Membership.BAN) }
+                    action = { callback?.onBanClicked(state.isSpace, isBanned) }
             )
         }
     }
