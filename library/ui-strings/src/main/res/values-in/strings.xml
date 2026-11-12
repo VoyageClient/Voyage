@@ -3641,4 +3641,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="attachment_compress">Kompres</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Terapkan ke semua</string>
+    <string name="sed_error_step_no_match">%1$s tidak cocok setelah substitusi sebelumnya diterapkan.</string>
 </resources>

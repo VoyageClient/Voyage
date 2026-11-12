@@ -3714,4 +3714,5 @@
     <string name="attachment_compress">Compresser</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Appliquer à tous</string>
+    <string name="sed_error_step_no_match">%1$s ne correspond plus une fois les substitutions précédentes appliquées.</string>
 </resources>

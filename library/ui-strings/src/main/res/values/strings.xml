@@ -4204,6 +4204,7 @@
     <string name="sed_error_invalid">Invalid sed expression: %1$s</string>
     <string name="sed_error_no_match">No loaded message matches that pattern.</string>
     <string name="sed_error_reply_no_match">The message you\'re replying to doesn\'t match that pattern.</string>
+    <string name="sed_error_step_no_match">%1$s doesn\'t match once the substitutions before it are applied.</string>
     <string name="sed_error_timeout">That pattern took too long to match.</string>
     <string name="sed_error_target_gone">That message is no longer available.</string>
     <string name="labs_enable_sliding_sync_title">Use next-generation sync</string>

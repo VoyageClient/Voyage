@@ -3672,4 +3672,5 @@
     <string name="attachment_compress">Sıkıştır</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Tümüne uygula</string>
+    <string name="sed_error_step_no_match">Önceki değiştirmeler uygulandıktan sonra %1$s eşleşmiyor.</string>
 </resources>

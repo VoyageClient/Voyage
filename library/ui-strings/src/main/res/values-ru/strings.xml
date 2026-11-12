@@ -3856,4 +3856,5 @@
     <string name="attachment_compress">Сжать</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Применить ко всем</string>
+    <string name="sed_error_step_no_match">%1$s не соответствует тексту после применения предыдущих замен.</string>
 </resources>

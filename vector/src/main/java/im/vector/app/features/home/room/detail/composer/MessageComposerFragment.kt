@@ -83,9 +83,10 @@ import im.vector.app.features.home.room.detail.TimelineFragment
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
 import im.vector.app.features.home.room.detail.composer.sed.SED_MATCH_TIMEOUT_MS
+import im.vector.app.features.home.room.detail.composer.sed.SedExpression
 import im.vector.app.features.home.room.detail.composer.sed.SedParseResult
+import im.vector.app.features.home.room.detail.composer.sed.SedScriptResult
 import im.vector.app.features.home.room.detail.composer.sed.SedTimeoutException
-import im.vector.app.features.home.room.detail.composer.sed.highlightDiff
 import im.vector.app.features.home.room.detail.composer.sed.parseSed
 import im.vector.app.features.home.room.detail.composer.voice.VoiceDraftCaption
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
@@ -732,13 +733,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(roomId)) return SedOutcome.NOT_SED
         val sendMode = withState(messageComposerViewModel) { it.sendMode }
         if (sendMode !is SendMode.Regular && sendMode !is SendMode.Reply) return SedOutcome.NOT_SED
-        val expression = when (val parsed = parseSed(text)) {
+        val script = when (val parsed = parseSed(text)) {
             SedParseResult.NotSed -> return SedOutcome.NOT_SED
             is SedParseResult.Invalid -> {
                 displayCommandError(getString(CommonStrings.sed_error_invalid, parsed.reason))
                 return SedOutcome.FAILED
             }
-            is SedParseResult.Parsed -> parsed.expression
+            is SedParseResult.Parsed -> parsed.script
         }
 
         // Replying aims the substitution at that message alone — never fall back to another one. The
@@ -749,25 +750,34 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val candidates = replyTarget?.let { listOf(it) }
                 ?: timelineViewModel.timeline?.getSnapshot()?.take(SED_SCAN_LIMIT).orEmpty()
         var target: TimelineEvent? = null
-        var oldBody = ""
-        var newBody = ""
+        var applied: SedScriptResult.Applied? = null
+        // A later step that failed where the first one matched, so the error can name it.
+        var failedStep: SedExpression? = null
         try {
             // One budget for the whole scan, not per candidate.
             val deadline = System.currentTimeMillis() + SED_MATCH_TIMEOUT_MS
             for (event in candidates) {
                 val body = event.sedSourceBody() ?: continue
-                val substituted = expression.apply(body, deadline) ?: continue
-                target = event
-                oldBody = body
-                newBody = substituted
-                break
+                when (val result = script.apply(body, deadline)) {
+                    is SedScriptResult.Applied -> {
+                        target = event
+                        applied = result
+                        break
+                    }
+                    is SedScriptResult.NoMatch -> if (failedStep == null && result.step !== script.steps.first()) failedStep = result.step
+                }
             }
         } catch (failure: SedTimeoutException) {
             displayCommandError(getString(CommonStrings.sed_error_timeout))
             return SedOutcome.FAILED
         }
-        if (target == null) {
-            displayCommandError(getString(if (replyTarget != null) CommonStrings.sed_error_reply_no_match else CommonStrings.sed_error_no_match))
+        if (target == null || applied == null) {
+            val error = when {
+                failedStep != null -> getString(CommonStrings.sed_error_step_no_match, failedStep.source)
+                replyTarget != null -> getString(CommonStrings.sed_error_reply_no_match)
+                else -> getString(CommonStrings.sed_error_no_match)
+            }
+            displayCommandError(error)
             return SedOutcome.FAILED
         }
 
@@ -777,8 +787,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         messageComposerViewModel.handle(
                 MessageComposerAction.SendSedReplacement(
                         targetEventId = target.eventId,
-                        newBody = prefix + newBody,
-                        formattedBody = if (!isOwnMessage && expression.highlight) highlightDiff(prefix + oldBody, prefix + newBody) else null,
+                        newBody = prefix + applied.text,
+                        formattedBody = if (!isOwnMessage && script.highlight) applied.highlightedHtml(prefix) else null,
                 )
         )
         return SedOutcome.SENT

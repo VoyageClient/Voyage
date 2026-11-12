@@ -3608,4 +3608,5 @@
     <string name="attachment_compress">کمپریس</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">سب پر لاگو کریں</string>
+    <string name="sed_error_step_no_match">پچھلی تبدیلیاں لاگو ہونے کے بعد %1$s مطابقت نہیں رکھتا۔</string>
 </resources>

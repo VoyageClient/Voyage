@@ -3643,4 +3643,5 @@
     <string name="attachment_compress">壓縮</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">套用至全部</string>
+    <string name="sed_error_step_no_match">套用前面的替換後，%1$s 不再符合。</string>
 </resources>

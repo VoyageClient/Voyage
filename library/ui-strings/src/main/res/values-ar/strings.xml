@@ -3899,4 +3899,5 @@
     <string name="attachment_compress">ضغط</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">تطبيق على الكل</string>
+    <string name="sed_error_step_no_match">لا يتطابق %1$s بعد تطبيق الاستبدالات التي تسبقه.</string>
 </resources>

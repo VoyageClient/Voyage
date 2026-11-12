@@ -3668,4 +3668,5 @@
     <string name="attachment_compress">সংকুচিত</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">সবগুলোতে প্রয়োগ করুন</string>
+    <string name="sed_error_step_no_match">আগের প্রতিস্থাপনগুলো প্রয়োগ করার পরে %1$s মেলে না।</string>
 </resources>

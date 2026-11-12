@@ -3596,4 +3596,5 @@
     <string name="attachment_compress">कंप्रेस करें</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">सभी पर लागू करें</string>
+    <string name="sed_error_step_no_match">पिछले प्रतिस्थापन लागू होने के बाद %1$s मेल नहीं खाता।</string>
 </resources>

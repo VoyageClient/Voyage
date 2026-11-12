@@ -3639,4 +3639,5 @@
     <string name="attachment_compress">圧縮</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">すべてに適用</string>
+    <string name="sed_error_step_no_match">前の置換を適用すると、%1$s は一致しません。</string>
 </resources>

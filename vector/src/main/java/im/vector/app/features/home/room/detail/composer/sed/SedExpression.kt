@@ -15,45 +15,217 @@ const val SED_MATCH_TIMEOUT_MS = 500L
 sealed interface SedParseResult {
     object NotSed : SedParseResult
     data class Invalid(val reason: String) : SedParseResult
-    data class Parsed(val expression: SedExpression) : SedParseResult
+    data class Parsed(val script: SedScript) : SedParseResult
+}
+
+sealed interface SedScriptResult {
+    /** [changed] flags each char of [text] that a substitution wrote. */
+    class Applied(val text: String, private val changed: BooleanArray) : SedScriptResult {
+        /** [text] after [prefix], with each changed run wrapped in `<u>`, escaped for HTML. */
+        fun highlightedHtml(prefix: String = ""): String {
+            val out = StringBuilder(escapeHtml(prefix))
+            var pos = 0
+            var start = 0
+            while (start < text.length) {
+                if (!changed[start]) {
+                    start++
+                    continue
+                }
+                var end = start
+                while (true) {
+                    while (end < text.length && changed[end]) end++
+                    var next = end
+                    while (next < text.length && !changed[next] && text[next].isWhitespace()) next++
+                    if (next > end && next < text.length && changed[next]) end = next else break
+                }
+                out.append(escapeHtml(text.substring(pos, start)))
+                        .append("<u>").append(escapeHtml(text.substring(start, end))).append("</u>")
+                pos = end
+                start = end
+            }
+            return out.append(escapeHtml(text.substring(pos))).toString()
+        }
+    }
+
+    class NoMatch(val step: SedExpression) : SedScriptResult
+}
+
+/** Chained expressions run in order on one message, and every one of them must match. */
+class SedScript(val steps: List<SedExpression>) {
+    val highlight: Boolean get() = steps.all { it.highlight }
+
+    fun apply(body: String, deadline: Long = System.currentTimeMillis() + SED_MATCH_TIMEOUT_MS): SedScriptResult {
+        var text = body
+        var changed = BooleanArray(body.length)
+        for (step in steps) {
+            val result = step.apply(text, changed, deadline) ?: return SedScriptResult.NoMatch(step)
+            text = result.text
+            changed = result.changed
+        }
+        return SedScriptResult.Applied(text, changed)
+    }
 }
 
 class SedExpression(
+        val source: String,
         private val find: Pattern,
         private val replacement: String,
         private val global: Boolean,
         val highlight: Boolean,
 ) {
-    /** Returns the substituted text, or null when the pattern does not match [body]. */
-    fun apply(body: String, deadline: Long = System.currentTimeMillis() + SED_MATCH_TIMEOUT_MS): String? {
+    class Result(val text: String, val changed: BooleanArray)
+
+    private class Edit(val inStart: Int, val inEnd: Int, val outStart: Int, val outEnd: Int)
+
+    /** Returns the substituted text with [changed] carried over and this step's replacements flagged, or null without a match. */
+    fun apply(body: String, changed: BooleanArray, deadline: Long): Result? {
         val matcher = find.matcher(DeadlinedCharSequence(body, deadline))
         if (!matcher.find()) return null
         val out = StringBuffer()
+        val edits = ArrayList<Edit>()
+        var appendPos = 0
         do {
+            val outStart = out.length + matcher.start() - appendPos
             matcher.appendReplacement(out, replacement)
+            edits.add(Edit(matcher.start(), matcher.end(), outStart, out.length))
+            appendPos = matcher.end()
         } while (global && matcher.find())
         matcher.appendTail(out)
-        return out.toString()
+        val text = out.toString()
+
+        val outChanged = BooleanArray(text.length)
+        val deletions = ArrayList<Int>()
+        var inPos = 0
+        var outPos = 0
+        for (edit in edits) {
+            System.arraycopy(changed, inPos, outChanged, outPos, edit.inStart - inPos)
+            markEdit(body, text, changed, outChanged, edit)?.let { deletions.add(it) }
+            inPos = edit.inEnd
+            outPos = edit.outEnd
+        }
+        System.arraycopy(changed, inPos, outChanged, outPos, body.length - inPos)
+        for (position in deletions) {
+            // A deletion leaves nothing new to mark, so mark the word it happened in.
+            var start = position
+            var end = position
+            while (start > 0 && !text[start - 1].isWhitespace()) start--
+            while (end < text.length && !text[end].isWhitespace()) end++
+            outChanged.fill(true, start, end)
+        }
+        return Result(text, outChanged)
+    }
+
+    /**
+     * Flags the replacement as one span, narrowed by what it shares with the matched text at either end.
+     * Returns the output position of a pure deletion, which has no chars of its own to flag.
+     */
+    private fun markEdit(body: String, text: String, changed: BooleanArray, outChanged: BooleanArray, edit: Edit): Int? {
+        val matchedLength = edit.inEnd - edit.inStart
+        val replacedLength = edit.outEnd - edit.outStart
+        var prefix = 0
+        val maxPrefix = minOf(matchedLength, replacedLength)
+        while (prefix < maxPrefix && body[edit.inStart + prefix] == text[edit.outStart + prefix]) prefix++
+        var suffix = 0
+        val maxSuffix = maxPrefix - prefix
+        while (suffix < maxSuffix && body[edit.inEnd - 1 - suffix] == text[edit.outEnd - 1 - suffix]) suffix++
+        System.arraycopy(changed, edit.inStart, outChanged, edit.outStart, prefix)
+        System.arraycopy(changed, edit.inEnd - suffix, outChanged, edit.outEnd - suffix, suffix)
+
+        var start = edit.outStart + prefix
+        var end = edit.outEnd - suffix
+        if (start == end) return if (matchedLength != replacedLength) start else null
+        var trimmedStart = start
+        var trimmedEnd = end
+        while (trimmedStart < trimmedEnd && text[trimmedStart].isWhitespace()) trimmedStart++
+        while (trimmedEnd > trimmedStart && text[trimmedEnd - 1].isWhitespace()) trimmedEnd--
+        if (trimmedStart < trimmedEnd) {
+            start = trimmedStart
+            end = trimmedEnd
+        }
+        outChanged.fill(true, start, end)
+        return null
     }
 }
 
+/**
+ * Expressions chain with `;` after a closing delimiter, or one per line. Lines only chain when every
+ * one of them is an expression, so a pattern with a literal line break still parses as one.
+ */
 fun parseSed(text: CharSequence): SedParseResult {
     val raw = text.toString().trim()
-    if (raw.length < 4 || raw[0] != 's') return SedParseResult.NotSed
-    val separator = raw[1]
-    if (separator != '/' && separator != '#') return SedParseResult.NotSed
+    val lines = raw.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    if (lines.size > 1) {
+        val perLine = lines.map { parseChain(it) }
+        if (perLine.none { it === SedParseResult.NotSed }) {
+            perLine.firstOrNull { it is SedParseResult.Invalid }?.let { return it }
+            return SedParseResult.Parsed(SedScript(perLine.flatMap { (it as SedParseResult.Parsed).script.steps }))
+        }
+    }
+    return parseChain(raw)
+}
 
-    val pattern = readUntilSeparator(raw, 2, separator) ?: return SedParseResult.NotSed
-    if (pattern.value.isEmpty()) return SedParseResult.Invalid("empty search pattern")
+private fun parseChain(raw: String): SedParseResult {
+    val steps = ArrayList<SedExpression>()
+    var pos = 0
+    while (true) {
+        when (val step = parseStep(raw, pos)) {
+            is StepResult.Failed -> return if (steps.isEmpty() || step.result is SedParseResult.Invalid) {
+                step.result
+            } else {
+                SedParseResult.Invalid("expected a complete expression after ';'")
+            }
+            is StepResult.Ok -> {
+                steps.add(step.expression)
+                pos = step.end
+            }
+        }
+        if (pos >= raw.length) break
+        pos++
+        while (pos < raw.length && raw[pos].isWhitespace()) pos++
+        if (pos >= raw.length) break
+    }
+    return SedParseResult.Parsed(SedScript(steps))
+}
+
+private sealed interface StepResult {
+    class Failed(val result: SedParseResult) : StepResult
+
+    /** [end] is the index of the `;` that ends this step, or the length of the text. */
+    class Ok(val expression: SedExpression, val end: Int) : StepResult
+}
+
+private fun parseStep(raw: String, start: Int): StepResult {
+    val notSed = StepResult.Failed(SedParseResult.NotSed)
+    fun invalid(reason: String) = StepResult.Failed(SedParseResult.Invalid(reason))
+
+    if (raw.length - start < 4 || raw[start] != 's') return notSed
+    val separator = raw[start + 1]
+    if (separator != '/' && separator != '#') return notSed
+
+    val pattern = readUntilSeparator(raw, start + 2, separator) ?: return notSed
+    if (pattern.value.isEmpty()) return invalid("empty search pattern")
     // The trailing delimiter is optional; without it everything left is the replacement and there are no flags.
     val replacement = readUntilSeparator(raw, pattern.end, separator)
     val rawReplacement = replacement?.value ?: raw.substring(pattern.end)
-    val rawFlags = replacement?.let { raw.substring(it.end) }.orEmpty()
 
     var flags = Pattern.UNICODE_CASE
     var global = false
     var highlight = true
-    for (flag in rawFlags) {
+    var end = raw.length
+    var i = replacement?.end ?: raw.length
+    while (i < raw.length) {
+        val flag = raw[i]
+        if (flag == ';') {
+            end = i
+            break
+        }
+        if (flag.isWhitespace()) {
+            var next = i
+            while (next < raw.length && raw[next].isWhitespace()) next++
+            if (next < raw.length && raw[next] != ';') return invalid("unknown flag '$flag'")
+            i = next
+            continue
+        }
         when (flag) {
             // Android's regex rejects UNICODE_CHARACTER_CLASS, so \w and friends are ASCII-only
             // regardless — which is what this flag asks for.
@@ -63,49 +235,30 @@ fun parseSed(text: CharSequence): SedParseResult {
             's' -> flags = flags or Pattern.DOTALL
             'g' -> global = true
             'u' -> highlight = false
-            else -> return SedParseResult.Invalid("unknown flag '$flag'")
+            else -> return invalid("unknown flag '$flag'")
         }
+        i++
     }
 
     val compiled = try {
         Pattern.compile(pattern.value, flags)
     } catch (failure: PatternSyntaxException) {
-        return SedParseResult.Invalid(failure.description ?: failure.message.orEmpty())
+        return invalid(failure.description ?: failure.message.orEmpty())
     }
     val highestGroup = highestGroupReference(rawReplacement)
     if (highestGroup > compiled.matcher("").groupCount()) {
-        return SedParseResult.Invalid("no group \\$highestGroup in the search pattern")
+        return invalid("no group \\$highestGroup in the search pattern")
     }
-    return SedParseResult.Parsed(
+    return StepResult.Ok(
             SedExpression(
+                    source = raw.substring(start, end).trim(),
                     find = compiled,
                     replacement = toJavaReplacement(rawReplacement),
                     global = global,
                     highlight = highlight,
-            )
+            ),
+            end,
     )
-}
-
-/** Wraps the changed span of [new] in `<u>`, escaping both sides for HTML. */
-fun highlightDiff(old: String, new: String): String {
-    var prefix = 0
-    val maxPrefix = minOf(old.length, new.length)
-    while (prefix < maxPrefix && old[prefix] == new[prefix]) prefix++
-    var suffix = 0
-    val maxSuffix = maxPrefix - prefix
-    while (suffix < maxSuffix && old[old.length - 1 - suffix] == new[new.length - 1 - suffix]) suffix++
-
-    var start = prefix
-    var end = new.length - suffix
-    if (start == end && old != new) {
-        // A deletion leaves nothing new to mark, so mark the word it happened in.
-        while (start > 0 && !new[start - 1].isWhitespace()) start--
-        while (end < new.length && !new[end].isWhitespace()) end++
-    }
-    if (start == end) return escapeHtml(new)
-    return escapeHtml(new.substring(0, start)) +
-            "<u>" + escapeHtml(new.substring(start, end)) + "</u>" +
-            escapeHtml(new.substring(end))
 }
 
 private class Segment(val value: String, val end: Int)
