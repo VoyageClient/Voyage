@@ -8,6 +8,7 @@
 package im.vector.app.core.glide
 
 import android.content.Context
+import android.os.SystemClock
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
@@ -20,6 +21,7 @@ import com.bumptech.glide.util.ByteBufferUtil
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaDebug
 import im.vector.app.features.session.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +31,7 @@ import org.matrix.android.sdk.api.debug.DebugLog
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 // Delivers ByteBuffer, not InputStream: Glide caps InputStream rewinds at 5MB, and its orientation
 // probe consumes the whole source — any image over 5MB would fail every decode path with
@@ -73,7 +76,11 @@ class ImageContentRendererDataFetcher(
 
     private val delivered = AtomicBoolean(false)
 
+    private val id = nextFetcherId.incrementAndGet()
+    private var startedAt = 0L
+
     override fun cleanup() {
+        DebugLog.i { "MEDIADBG fetcher #$id cleanup delivered=${delivered.get()} url=${data.url}" }
         cancel()
     }
 
@@ -83,11 +90,14 @@ class ImageContentRendererDataFetcher(
     }
 
     override fun cancel() {
+        DebugLog.i { "MEDIADBG fetcher #$id cancel (no-op) after ${SystemClock.uptimeMillis() - startedAt}ms delivered=${delivered.get()} url=${data.url}" }
     }
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in ByteBuffer>) {
+        startedAt = SystemClock.uptimeMillis()
         val isLocal = localFilesHelper.isLocalFile(data.url)
-        DebugLog.i { "MEDIADBG fetcher start url=${data.url} local=$isLocal event=${data.eventId} thread=${Thread.currentThread().name}" }
+        DebugLog.i { "MEDIADBG fetcher #$id start url=${data.url} local=$isLocal event=${data.eventId} " +
+                        "encrypted=${data.elementToDecrypt != null} size=${width}x$height thread=${Thread.currentThread().name}" }
         if (isLocal) {
             val buffer = try {
                 localFilesHelper.openInputStream(data.url)?.use { ByteBuffer.wrap(it.readBytes()) }
@@ -129,11 +139,16 @@ class ImageContentRendererDataFetcher(
                     )
                 }
             }
-            DebugLog.i { "MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}" }
+            DebugLog.i { "MEDIADBG fetcher #$id download settled ${SystemClock.uptimeMillis() - startedAt}ms url=${data.url} ok=${result.isSuccess} " +
+                            "file=${result.getOrNull()?.let { "${it.path}(${it.length()}b)" }} err=${result.exceptionOrNull()?.let(MediaDebug::failure)}" }
             // Mapped, not read: decodes touch only what they sample.
             val buffered = result.mapCatching { ByteBufferUtil.fromFile(it) }
+            buffered.exceptionOrNull()?.takeIf { result.isSuccess }?.let { DebugLog.w(it) { "MEDIADBG fetcher #$id mapping file FAILED url=${data.url}" } }
             withContext(Dispatchers.Main) {
-                if (delivered.getAndSet(true)) return@withContext
+                if (delivered.getAndSet(true)) {
+                    DebugLog.w { "MEDIADBG fetcher #$id result dropped, already delivered url=${data.url}" }
+                    return@withContext
+                }
                 buffered.fold(
                         { callback.onDataReady(it) },
                         // Failure is a Throwable, not an Exception, so it never survives the cast —
@@ -141,7 +156,7 @@ class ImageContentRendererDataFetcher(
                         { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage, it)) }
                 )
             }
-            DebugLog.i { "MEDIADBG fetcher callback delivered url=${data.url}" }
+            DebugLog.i { "MEDIADBG fetcher #$id callback delivered ok=${buffered.isSuccess} url=${data.url}" }
         }
         // A cancelled scope silently swallows the launch, leaving Glide on the placeholder forever.
         job.invokeOnCompletion { cause ->
@@ -174,3 +189,4 @@ class ImageContentRendererDataFetcher(
 }
 
 private const val RENDER_TIMEOUT_MS = 25_000L
+private val nextFetcherId = AtomicLong()

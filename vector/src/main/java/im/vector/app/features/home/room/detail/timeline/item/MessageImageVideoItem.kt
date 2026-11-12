@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrap
 import im.vector.app.features.media.ImageAlphaProbe
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.MediaDebug
 import im.vector.app.features.media.cappedMediaCornerRadius
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -172,6 +173,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         // Same condition bindPlayButton uses: where that badge lands, the failure glyph must not.
         val showsPlayButton = playable && !(isImageMessage && attributes.autoplayAnimatedImages)
         val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.stableId)
+        DebugLog.i { "MEDIADBG item bind event=${mediaData.eventId} stable=${mediaData.stableId} view=${MediaDebug.id(holder.imageView)} " +
+                        "mode=$mode hidden=$hidden sendState=${attributes.informationData.sendState} url=${mediaData.url}" }
         if (hidden) {
             imageContentRenderer.renderHidden(mediaData, mode, holder.imageView, hiddenMediaSolidColor)
         } else {
@@ -274,6 +277,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     }
 
     override fun unbind(holder: Holder) {
+        DebugLog.i { "MEDIADBG item unbind event=${mediaData.eventId} view=${MediaDebug.id(holder.imageView)} " +
+                        "drawable=${MediaDebug.drawable(holder.imageView.drawable)}" }
         previewUrlViewUpdater.unbind()
         holder.resetViewerHandover()
         holder.showDuration(false)

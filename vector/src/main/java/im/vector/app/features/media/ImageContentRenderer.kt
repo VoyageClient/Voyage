@@ -205,6 +205,11 @@ class ImageContentRenderer @Inject constructor(
         val mode = previewMode(isSticker = false, mimeType = data.mimeType)
         // Same keep-the-drawn-picture rule as render(data, mode, …).
         val last = imageView.lastRender()
+        DebugLog.i { "MEDIADBG grid render decide event=${data.eventId} view=${viewId(imageView)} mode=$mode retryTap=$fromRetryTap " +
+                        "caller=${MediaDebug.callers(3)} last=${last?.let { "(event=${it.data.eventId} completed=${it.completed} " +
+                                "stale=${it.isStale} sameData=${it.data.rendersSameAs(data)})" }} " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)} " +
+                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url}" }
         val keepsRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
                 (last.data.rendersSameAs(data) || (last.data.isLocalContent && !data.isLocalContent))
         if (keepsRender) {
@@ -261,17 +266,24 @@ class ImageContentRenderer @Inject constructor(
     ) : RequestListener<Drawable> {
 
         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-            if (imageView.lastRender()?.matches(data, mode) != true) {
+            val wanted = imageView.lastRender()?.matches(data, mode) == true
+            // The top-level message is usually just "Failed to load resource"; the root causes
+            // name the actual HTTP status or decoder that refused it.
+            DebugLog.w { "MEDIADBG load failed event=${data.eventId} view=${viewId(imageView)} mode=$mode mime=${data.mimeType} " +
+                            "fallback=$isFallback wanted=$wanted url=${data.url} model=${MediaDebug.model(model)} first=$isFirstResource " +
+                            "target=${MediaDebug.target(target)} request=${MediaDebug.request(imageView)} " +
+                            "uploading=${data.isUploading()} causes=${MediaDebug.failure(e)}" }
+            if (!wanted) {
                 PendingRenders.finish(pending, "superseded, failure ignored: ${e?.message}")
                 return true
             }
             // A thumbnail the server could not make is not the end: the original is fetched next, and
             // its own listener has the final word.
-            if (!isFallback && target.request is ErrorRequestCoordinator) return true
-            // The top-level message is usually just "Failed to load resource"; the root causes
-            // name the actual HTTP status or decoder that refused it.
-            DebugLog.w { "MEDIADBG load failed event=${data.eventId} mode=$mode mime=${data.mimeType} url=${data.url} " +
-                            "causes=${e?.rootCauses?.map { it.javaClass.simpleName + ":" + it.message }}" }
+            if (!isFallback && target.request is ErrorRequestCoordinator) {
+                DebugLog.i { "MEDIADBG thumbnail failed, waiting on the full-size fallback event=${data.eventId} view=${viewId(imageView)}" }
+                return true
+            }
+            e?.let { DebugLog.w(it) { "MEDIADBG load failure tree event=${data.eventId}" } }
             settle("failed: ${e?.message}")
             if (data.isUploading()) {
                 renderStillUploading(imageView, data, e, showGlyph, square)
@@ -290,6 +302,10 @@ class ImageContentRenderer @Inject constructor(
                 isFirstResource: Boolean
         ): Boolean {
             val current = imageView.lastRender()?.takeIf { it.matches(data, mode) }
+            DebugLog.i { "MEDIADBG load ready event=${data.eventId} view=${viewId(imageView)} mode=$mode fallback=$isFallback " +
+                            "model=${MediaDebug.model(model)} source=$dataSource first=$isFirstResource " +
+                            "wanted=${current != null} resource=${MediaDebug.drawable(resource)} " +
+                            "target=${MediaDebug.target(target)} request=${MediaDebug.request(imageView)}" }
             if (current == null) {
                 PendingRenders.finish(pending, "superseded, ready from $dataSource")
                 return true
@@ -350,7 +366,10 @@ class ImageContentRenderer @Inject constructor(
     private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
 
     private fun ImageView.startRender() {
-        (getTag(R.id.image_renderer_failure_apply) as? Runnable)?.let(::removeCallbacks)
+        (getTag(R.id.image_renderer_failure_apply) as? Runnable)?.let {
+            DebugLog.i { "MEDIADBG startRender cancels a pending failure verdict view=${viewId(this)} caller=${MediaDebug.callers(3)}" }
+            removeCallbacks(it)
+        }
         setTag(R.id.image_renderer_failure_apply, null)
         setTag(R.id.image_renderer_failed_data, null)
         setTag(R.id.image_renderer_render_token, Any())
@@ -431,6 +450,11 @@ class ImageContentRenderer @Inject constructor(
         // is on screen (we just uploaded it) — reloading would only flash the blurhash and restart
         // animations. Keep the completed local render.
         val last = imageView.lastRender()
+        DebugLog.i { "MEDIADBG render decide event=${data.eventId} view=${viewId(imageView)} mode=$mode retryTap=$fromRetryTap " +
+                        "caller=${MediaDebug.callers(3)} last=${last?.let { "(event=${it.data.eventId} stable=${it.stableId} mode=${it.mode} " +
+                                "completed=${it.completed} stale=${it.isStale} sameData=${it.data.rendersSameAs(data)})" }} " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)} " +
+                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url}" }
         // A rebind that asks for exactly what is already drawn starts a fresh Glide request all the
         // same, and its placeholder step wipes the finished image for the frames that takes.
         val keepsLocalRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
@@ -607,6 +631,8 @@ class ImageContentRenderer @Inject constructor(
         // Left on the view rather than cleared: Glide refuses a clear from inside the listener this runs
         // in, and a retry that is equivalent to it restarts this very request.
         val renderToken = imageView.getTag(R.id.image_renderer_render_token)
+        DebugLog.w { "MEDIADBG renderFailed event=${data.eventId} view=${viewId(imageView)} pin=$pinSize " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)}" }
         PendingRenders.cancelOn(imageView)
         imageView.setTag(R.id.image_renderer_last_render, null)
         imageView.scaleType = ImageView.ScaleType.FIT_XY
@@ -632,6 +658,11 @@ class ImageContentRenderer @Inject constructor(
                 DebugLog.i { "MEDIADBG failure verdict superseded before it was drawn: event=${data.eventId} url=${data.url}" }
                 return@Runnable
             }
+            val shown = imageView.drawable
+            DebugLog.w { "MEDIADBG failure verdict applied event=${data.eventId} view=${viewId(imageView)} heldMs=$hold " +
+                            "replaces=${MediaDebug.drawable(shown)}" +
+                            (if (shown != null && shown !is MediaPlaceholderDrawable) " — OVERWRITES A DRAWN PICTURE" else "") +
+                            " request=${MediaDebug.request(imageView)} url=${data.url}" }
             if (imageView.drawable !== placeholder) imageView.setImageDrawable(placeholder)
             placeholder.setFailed(true)
             imageView.setTag(R.id.image_renderer_failed_data, data)
@@ -640,6 +671,7 @@ class ImageContentRenderer @Inject constructor(
             imageView.setTag(R.id.image_renderer_retrying, null)
         }
         imageView.setTag(R.id.image_renderer_failure_apply, apply)
+        DebugLog.i { "MEDIADBG failure verdict ${if (hold != null) "held ${hold}ms" else "immediate"} sinceTap=$sinceTap event=${data.eventId} view=${viewId(imageView)}" }
         if (hold != null) imageView.postDelayed(apply, hold) else apply.run()
     }
 
@@ -669,19 +701,32 @@ class ImageContentRenderer @Inject constructor(
     /** A view keeps its own verdict: another thumbnail may succeed without repainting this one. */
     fun isFailed(imageView: ImageView, data: Data): Boolean {
         // A successful render in this view overrides failures recorded for the URL by other views.
-        imageView.lastRender()?.takeIf { it.completed && it.data.url == data.url }?.let { return false }
-        return imageView.getTag(R.id.image_renderer_failed_data) == data ||
-                ((imageView.getTag(R.id.image_renderer_placeholder) as? ViewPlaceholder)
-                        ?.takeIf { it.data == data }
-                        ?.drawable
-                        ?.isFailed() == true) ||
-                isFailed(data)
+        imageView.lastRender()?.takeIf { it.completed && it.data.url == data.url }?.let {
+            DebugLog.i { "MEDIADBG tap isFailed=false (completed render in view) event=${data.eventId} view=${viewId(imageView)}" }
+            return false
+        }
+        val taggedFailed = imageView.getTag(R.id.image_renderer_failed_data) == data
+        val placeholderFailed = (imageView.getTag(R.id.image_renderer_placeholder) as? ViewPlaceholder)
+                ?.takeIf { it.data == data }
+                ?.drawable
+                ?.isFailed() == true
+        val trackerFailed = isFailed(data)
+        DebugLog.i { "MEDIADBG tap isFailed=${taggedFailed || placeholderFailed || trackerFailed} event=${data.eventId} " +
+                        "view=${viewId(imageView)} tagged=$taggedFailed placeholder=$placeholderFailed tracker=$trackerFailed " +
+                        "last=${imageView.lastRender()?.let { "(completed=${it.completed} sameUrl=${it.data.url == data.url})" }} " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)} url=${data.url}" }
+        return taggedFailed || placeholderFailed || trackerFailed
     }
 
     /** Expire stale retry flags so a lost callback cannot permanently block opening the image. */
     fun isRetrying(imageView: ImageView): Boolean {
-        val startedAt = imageView.getTag(R.id.image_renderer_retrying) as? Long ?: return false
-        if (SystemClock.uptimeMillis() - startedAt < RETRY_IN_FLIGHT_MAX_MS) return true
+        val startedAt = imageView.getTag(R.id.image_renderer_retrying) as? Long
+        DebugLog.i { "MEDIADBG tap on media view=${viewId(imageView)} retryStartedAgo=${startedAt?.let { SystemClock.uptimeMillis() - it }}" }
+        startedAt ?: return false
+        if (SystemClock.uptimeMillis() - startedAt < RETRY_IN_FLIGHT_MAX_MS) {
+            DebugLog.i { "MEDIADBG tap swallowed, retry already in flight view=${viewId(imageView)}" }
+            return true
+        }
         imageView.setTag(R.id.image_renderer_retrying, null)
         return false
     }
@@ -693,6 +738,8 @@ class ImageContentRenderer @Inject constructor(
      */
     private fun showLoadingNow(imageView: ImageView, data: Data, showGlyph: Boolean, square: Boolean = false): Drawable {
         val placeholder = placeholderFor(imageView, data, showGlyph, square)
+        DebugLog.i { "MEDIADBG showLoadingNow event=${data.eventId} view=${viewId(imageView)} " +
+                        "replaces=${MediaDebug.drawable(imageView.drawable)} with=${MediaDebug.drawable(placeholder)}" }
         placeholder.setFailed(false)
         if (imageView.drawable !== placeholder) imageView.setImageDrawable(placeholder)
         return placeholder
@@ -704,7 +751,10 @@ class ImageContentRenderer @Inject constructor(
      */
     fun retry(imageView: ImageView) {
         @Suppress("UNCHECKED_CAST")
-        val rerender = imageView.getTag(R.id.image_renderer_retry) as? (() -> Unit) ?: return
+        val rerender = imageView.getTag(R.id.image_renderer_retry) as? (() -> Unit)
+        DebugLog.i { "MEDIADBG retry tapped view=${viewId(imageView)} hasRerender=${rerender != null} " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)}" }
+        rerender ?: return
         rerender()
     }
 
@@ -721,6 +771,7 @@ class ImageContentRenderer @Inject constructor(
 
     @VisibleForTesting(otherwise = PRIVATE)
     internal fun GlideRequest<Drawable>.intoView(imageView: ImageView, animate: Boolean, freshKey: String? = null) {
+        val previous = imageView.getTag(com.bumptech.glide.R.id.glide_custom_view_target_tag)
         // A still use stops the drawable it is handed, and Glide's memory cache hands every view the
         // same instance — so without a key of its own, opening the uploads grid or binding a reply
         // preview freezes the very drawable the timeline is animating, until some later rebind happens
@@ -734,6 +785,12 @@ class ImageContentRenderer @Inject constructor(
         } else {
             keyed.into(AnimatedContentImageViewTarget(imageView, animate = false))
         }
+        DebugLog.i {
+            val now = imageView.getTag(com.bumptech.glide.R.id.glide_custom_view_target_tag)
+            val verdict = if (previous != null && now === previous) "KEPT PREVIOUS REQUEST (Glide folded the new one into it)" else "new request"
+            "MEDIADBG into view=${viewId(imageView)} animate=$animate signature=${keyed.signature} " +
+                    "previous=${MediaDebug.id(previous)} now=${MediaDebug.request(imageView)} -> $verdict"
+        }
     }
 
     /**
@@ -742,6 +799,7 @@ class ImageContentRenderer @Inject constructor(
      * placeholder, so nothing is fetched until the user reveals it.
      */
     fun renderHidden(data: Data, mode: Mode, imageView: ImageView, forceSolidColor: Boolean) {
+        DebugLog.i { "MEDIADBG renderHidden event=${data.eventId} view=${viewId(imageView)} url=${data.url}" }
         imageView.startRender()
         val size = processSize(data, mode)
         imageView.updateLayoutParams {
@@ -801,6 +859,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     fun clear(imageView: ImageView) {
+        DebugLog.i { "MEDIADBG clear view=${viewId(imageView)} caller=${MediaDebug.callers(2)} " +
+                        "last=${imageView.lastRender()?.let { "(event=${it.data.eventId} completed=${it.completed})" }} " +
+                        "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)}" }
         PendingRenders.cancelOn(imageView)
         imageView.setTag(R.id.image_renderer_last_render, null)
         // It can be called after recycler view is destroyed, just silently catch
@@ -935,11 +996,16 @@ class ImageContentRenderer @Inject constructor(
             fallbackListener: RequestListener<Drawable>? = null,
     ): GlideRequest<Drawable> {
         data.preservedFile?.let { file ->
+            DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode preservedFile=${MediaDebug.model(file)}" }
             return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
         }
         val localCopy = lazy { localCopyOf(data) }
         val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
         val isLocalVideoUri = isLocalUri && data.mimeType?.startsWith("video/") == true
+        if (isLocalVideoUri || data.elementToDecrypt != null || isLocalUri) {
+            DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode size=${size.width}x${size.height} " +
+                            "via=${if (isLocalVideoUri) "localVideoUri" else if (isLocalUri) "localUri" else "encryptedDataLoader"} url=${data.url}" }
+        }
         val request = if (isLocalVideoUri) {
             // Local-echo video — load the uri directly so Glide can use a
             // ParcelFileDescriptor and run VideoBitmapDecoder to extract a frame as the thumbnail.
@@ -975,18 +1041,43 @@ class ImageContentRenderer @Inject constructor(
             // Fallback to base url
                     ?: data.url.takeIf { it.isLocalMediaUri() }
 
+            DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode size=${size.width}x${size.height} " +
+                            "model=${MediaDebug.model(resolvedUrl)} localCopy=${localCopy.value?.let(MediaDebug::model)} " +
+                            "fallback=${if (mode == Mode.THUMBNAIL) MediaDebug.model(resolveUrl(data, localCopy)) else "none"} url=${data.url}" }
             glideRequests
                     .load(resolvedUrl)
                     .apply {
                         if (mode == Mode.THUMBNAIL) {
+                            val fallbackModel = resolveUrl(data, localCopy)
                             error(
-                                    glideRequests.load(resolveUrl(data, localCopy)).withWaitingState(placeholder)
+                                    glideRequests.load(fallbackModel).withWaitingState(placeholder)
                                             .let { if (fallbackListener != null) it.addListener(fallbackListener) else it }
+                                            .let { if (DebugLog.enabled) it.addListener(fallbackLogger(data, fallbackModel)) else it }
                             )
                         }
                     }
         }
         return request.withWaitingState(placeholder)
+    }
+
+    private fun fallbackLogger(data: Data, fallbackModel: Any?) = object : RequestListener<Drawable> {
+        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+            DebugLog.w { "MEDIADBG thumbnail fallback FAILED event=${data.eventId} model=${MediaDebug.model(fallbackModel)} " +
+                            "target=${MediaDebug.target(target)} causes=${MediaDebug.failure(e)}" }
+            return false
+        }
+
+        override fun onResourceReady(
+                resource: Drawable,
+                model: Any,
+                target: Target<Drawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean
+        ): Boolean {
+            DebugLog.w { "MEDIADBG thumbnail fallback READY event=${data.eventId} model=${MediaDebug.model(fallbackModel)} " +
+                            "source=$dataSource resource=${MediaDebug.drawable(resource)} target=${MediaDebug.target(target)}" }
+            return false
+        }
     }
 
     private data class ViewPlaceholder(

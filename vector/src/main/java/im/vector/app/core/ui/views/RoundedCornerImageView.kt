@@ -18,6 +18,9 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.appcompat.widget.AppCompatImageView
+import im.vector.app.R
+import im.vector.app.features.media.MediaDebug
+import org.matrix.android.sdk.api.debug.DebugLog
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -154,6 +157,10 @@ class RoundedCornerImageView @JvmOverloads constructor(
     }
 
     override fun setImageDrawable(drawable: Drawable?) {
+        if (DebugLog.enabled && getTag(R.id.image_renderer_render_token) != null) {
+            DebugLog.i { "MEDIADBG view ${MediaDebug.id(this)} drawable ${MediaDebug.drawable(getDrawable())} -> " +
+                            "${MediaDebug.drawable(drawable)} by ${MediaDebug.callers(6)}" }
+        }
         super.setImageDrawable(drawable)
         if (initialised) applyShape()
     }

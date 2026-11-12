@@ -187,7 +187,13 @@ internal class DefaultFileService @Inject constructor(
     ): File {
         url ?: throw IllegalArgumentException("url is null")
 
-        DebugLog.i { "MEDIADBG download request url=$url" }
+        DebugLog.i {
+            val caller = Throwable().stackTrace
+                    .filter { !it.className.startsWith("org.matrix.android.sdk.internal.session.DefaultFileService") && !it.className.startsWith("kotlin") }
+                    .take(4)
+                    .joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}:${it.lineNumber}" }
+            "MEDIADBG download request url=$url caller=$caller"
+        }
 
         val deferred: CompletableDeferred<File>
         val isOwner: Boolean
@@ -289,9 +295,12 @@ internal class DefaultFileService @Inject constructor(
                         }
                     }
 
+                    val httpStartedAt = System.currentTimeMillis()
+                    DebugLog.i { "MEDIADBG download http start url=$url method=${request.method()} resolved=${request.url()}" }
                     val response = try {
                         okHttpClient.newCall(request).execute()
                     } catch (failure: Throwable) {
+                        DebugLog.w(failure) { "MEDIADBG download http threw after ${System.currentTimeMillis() - httpStartedAt}ms url=$url" }
                         throw if (failure is IOException) {
                             Failure.NetworkConnection(failure)
                         } else {
@@ -299,6 +308,8 @@ internal class DefaultFileService @Inject constructor(
                         }
                     }
 
+                    DebugLog.i { "MEDIADBG download http ${response.code()} after ${System.currentTimeMillis() - httpStartedAt}ms " +
+                                    "length=${response.body()?.contentLength()} type=${response.header("Content-Type")} url=$url" }
                     if (!response.isSuccessful) {
                         // Deliberately not OtherServerError: that is formatted for homeserver API
                         // calls, so a media 404 would surface to the user as "homeserver not found"
@@ -322,7 +333,7 @@ internal class DefaultFileService @Inject constructor(
                         runCatching { File(cachedFiles.file.parentFile, SERVER_FILENAME_SIDECAR).writeText(name) }
                     }
                 } else {
-                    Timber.v("## FileService: cache hit for $url")
+                    DebugLog.i { "MEDIADBG download cache hit url=$url file=${cachedFiles.file.length()}b" }
                 }
                 cachedFiles
             }
@@ -348,11 +359,12 @@ internal class DefaultFileService @Inject constructor(
                             }
                         }
                         atomicFileCreator.commit()
+                        DebugLog.i { "MEDIADBG download decrypted ok=$decryptSuccess url=$url" }
                         if (!decryptSuccess) {
                             throw IllegalStateException("Decryption error")
                         }
                     } else {
-                        Timber.v("## FileService: cache hit for decrypted file")
+                        DebugLog.i { "MEDIADBG download decrypted cache hit url=$url file=${cachedFiles.decryptedFile.length()}b" }
                     }
                 }
                 cachedFiles.decryptedFile

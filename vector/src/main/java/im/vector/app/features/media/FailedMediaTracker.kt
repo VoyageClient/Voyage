@@ -7,6 +7,7 @@
 
 package im.vector.app.features.media
 
+import org.matrix.android.sdk.api.debug.DebugLog
 import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,11 +35,13 @@ class FailedMediaTracker @Inject constructor() {
      */
     fun onLoadSucceeded(url: String?) {
         url ?: return
-        failed.remove(url)
+        val wasFailed = failed.remove(url)
+        DebugLog.i { "MEDIADBG tracker success url=$url wasFailed=$wasFailed tracked=${failed.size}" }
     }
 
     fun onLoadFailed(url: String?) {
         url ?: return
+        DebugLog.w { "MEDIADBG tracker failure url=$url alreadyFailed=${failed.contains(url)} tracked=${failed.size}" }
         synchronized(failed) {
             if (failed.size >= MAX_ENTRIES) {
                 failed.iterator().takeIf { it.hasNext() }?.let {
