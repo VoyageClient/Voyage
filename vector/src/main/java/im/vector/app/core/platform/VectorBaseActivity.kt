@@ -14,6 +14,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
@@ -947,6 +948,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     private companion object {
         const val STATUS_STRIP = 1
         const val NAVIGATION_STRIP = 2
+        const val SCRIM = 3
     }
 
     /**
@@ -971,11 +973,13 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         updateSystemBarStrips()
     }
 
-    /** Window background, then the status-bar strip, then the navigation-bar strip; built on first use. */
+    /** Window background, the status-bar strip, the navigation-bar strip, then the overlay scrim; built on first use. */
     private fun systemBarStrips(): LayerDrawable {
         systemBarStripLayers?.let { return it }
         val base = rootView.background ?: ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground))
-        val layers = LayerDrawable(arrayOf(base, ColorDrawable(Color.TRANSPARENT), ColorDrawable(Color.TRANSPARENT)))
+        val layers = LayerDrawable(
+                arrayOf(base, ColorDrawable(Color.TRANSPARENT), ColorDrawable(Color.TRANSPARENT), SystemBarScrimDrawable())
+        )
         systemBarStripLayers = layers
         logSystemBars { "strips installed on ${SystemBarDebug.view(rootView)} base=${SystemBarDebug.drawable(base)}" }
         rootView.backgroundCompat = layers
@@ -1011,24 +1015,29 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
      */
     private fun installStatusBarStrip() {
         if (drawUnderSystemBars) return
-        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> statusBarStripSearched = false }
+        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            statusBarStripSearched = false
+            waitingOverlays = null
+        }
         rootView.viewTreeObserver.addOnPreDrawListener {
             val color = topToolbarColor()
+            val overlay = shownWaitingOverlay()
             // The layers replace the root's background, which on a screen without a toolbar (the splash)
             // is what lets the window background, logo and all, show through; leave those alone.
-            if (color == null && systemBarStripLayers == null) return@addOnPreDrawListener true
-            val strip = systemBarStrips().getDrawable(STATUS_STRIP) as ColorDrawable
+            if (color == null && overlay == null && systemBarStripLayers == null) return@addOnPreDrawListener true
+            val layers = systemBarStrips()
+            val strip = layers.getDrawable(STATUS_STRIP) as ColorDrawable
             val target = color ?: Color.TRANSPARENT
             if (strip.color != target) {
                 strip.color = target
                 updateSystemBarStrips()
             }
+            updateSystemBarScrim(layers.getDrawable(SCRIM) as SystemBarScrimDrawable, overlay)
             logSystemBarsOnChange("frame") {
-                val layers = systemBarStripLayers
                 "root=${SystemBarDebug.view(rootView)} padTop=${rootView.paddingTop} sysTop=$systemBarsTopInset drawUnder=$drawUnderStatusBar " +
                         "toolbarColor=${SystemBarDebug.color(color)} source=${SystemBarDebug.view(statusBarStripSource)} " +
-                        "bgIsLayers=${layers != null && rootView.background === layers} layers=${layers?.bounds?.toShortString()} " +
-                        "statusStrip=${SystemBarDebug.drawable(layers?.getDrawable(STATUS_STRIP))} " +
+                        "bgIsLayers=${rootView.background === layers} layers=${layers.bounds.toShortString()} " +
+                        "statusStrip=${SystemBarDebug.drawable(layers.getDrawable(STATUS_STRIP))} " +
                         SystemBarDebug.windowBars(window)
             }
             true
@@ -1058,6 +1067,46 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         }
         val source = statusBarStripSource?.takeIf { it.isShown } ?: return null
         return TopBarColor.resolve(source, rootView, windowBackgroundColor)
+    }
+
+    // Searched once per layout; hidden ones included, so a cover appearing needs no new search
+    private var waitingOverlays: List<View>? = null
+
+    private val waitingOverlayColor by lazy { ThemeUtils.getColor(this, im.vector.lib.ui.styles.R.attr.vctr_waiting_background_color) }
+
+    private val scrimLocation = IntArray(2)
+    private val scrimRootLocation = IntArray(2)
+    private val scrimOverlayRect = Rect()
+    private val scrimContentRect = Rect()
+    private val scrimRegion = Rect()
+
+    private fun shownWaitingOverlay(): View? {
+        val overlays = waitingOverlays ?: SystemBarScrim.findOverlays(rootView, waitingOverlayColor).also { waitingOverlays = it }
+        return overlays.firstOrNull { it.isShown && it.width > 0 && it.height > 0 }
+    }
+
+    private fun updateSystemBarScrim(scrim: SystemBarScrimDrawable, overlay: View?) {
+        val width = rootView.width
+        val height = rootView.height
+        scrimContentRect.set(rootView.paddingLeft, rootView.paddingTop, width - rootView.paddingRight, height - rootView.paddingBottom)
+        scrimRegion.setEmpty()
+        var color = Color.TRANSPARENT
+        if (overlay != null) {
+            overlay.getLocationInWindow(scrimLocation)
+            rootView.getLocationInWindow(scrimRootLocation)
+            val left = scrimLocation[0] - scrimRootLocation[0]
+            val top = scrimLocation[1] - scrimRootLocation[1]
+            scrimOverlayRect.set(left, top, left + overlay.width, top + overlay.height)
+            if (SystemBarScrim.region(scrimOverlayRect, scrimContentRect, width, height, scrimRegion)) color = SystemBarScrim.color(overlay)
+        }
+        if (scrim.color == color && scrim.region == scrimRegion && scrim.content == scrimContentRect) return
+        scrim.region.set(scrimRegion)
+        scrim.content.set(scrimContentRect)
+        scrim.color = color
+        logSystemBarsOnChange("scrim") {
+            "overlay=${SystemBarDebug.view(overlay)} color=${SystemBarDebug.color(color)} region=${scrimRegion.toShortString()} content=${scrimContentRect.toShortString()}"
+        }
+        rootView.invalidate()
     }
 
     private val postResumeScheduledActions = mutableListOf<() -> Unit>()
