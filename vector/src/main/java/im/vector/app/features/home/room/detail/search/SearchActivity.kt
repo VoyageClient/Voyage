@@ -31,7 +31,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.utils.KeyboardStateUtils
 import im.vector.app.databinding.ActivitySearchBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.getParcelableCompat
@@ -107,7 +107,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
             addFragment(views.searchFragmentContainer, SearchFragment::class.java, fragmentArgs, FRAGMENT_TAG)
         }
         setupSuggestions(fragmentArgs.roomId)
-        views.searchView.setupLiveEmojiInput()
+        views.searchView.setupUserTextInput()
         views.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 renderSuggestions(null)

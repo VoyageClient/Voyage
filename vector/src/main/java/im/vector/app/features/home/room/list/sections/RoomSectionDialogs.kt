@@ -14,6 +14,7 @@ import android.widget.EditText
 import androidx.annotation.StringRes
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.R
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 
 object RoomSectionDialogs {
@@ -26,6 +27,7 @@ object RoomSectionDialogs {
             editText.setText(it)
             editText.setSelection(it.length)
         }
+        editText.setupUserTextInput()
         val dialog = MaterialAlertDialogBuilder(context)
                 .setTitle(titleRes)
                 .setView(view)

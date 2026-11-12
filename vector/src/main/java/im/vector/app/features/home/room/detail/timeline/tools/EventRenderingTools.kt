@@ -21,6 +21,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyViewHolder
 import im.vector.app.EmojiSpanify
+import im.vector.app.R
 import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
@@ -37,6 +38,7 @@ import im.vector.app.features.html.SpoilerSpan
 import im.vector.app.features.permalink.isMatrixUri
 import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.lib.core.utils.text.neutralizeDirectionOverridesInput
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -134,27 +136,32 @@ fun CharSequence.prepareForDisplay(): CharSequence {
     return messageEmojiSpanify?.spanify(neutralized) ?: neutralized
 }
 
-/** Add a watcher so emoji typed/pasted into this input field render like elsewhere (Twemoji / emoji2); the
- *  spans sit over the original codepoints so the entered/saved text is unchanged. Call once per view. */
-fun android.widget.EditText.setupLiveEmojiInput() {
-    addTextChangedListener(object : im.vector.app.core.platform.SimpleTextWatcher() {
-        override fun afterTextChanged(s: android.text.Editable) {
-            messageEmojiSpanify?.applyLive(s)
+/** Render emoji and neutralize direction overrides in an input field, display-side only so the entered text
+ *  is unchanged. Idempotent; call it after setting the input type or single-line mode. */
+fun android.widget.EditText.setupUserTextInput() {
+    neutralizeDirectionOverridesInput()
+    if (getTag(R.id.user_text_input_watcher) == null) {
+        val watcher = object : im.vector.app.core.platform.SimpleTextWatcher() {
+            override fun afterTextChanged(s: android.text.Editable) {
+                messageEmojiSpanify?.applyLive(s)
+            }
         }
-    })
+        setTag(R.id.user_text_input_watcher, watcher)
+        addTextChangedListener(watcher)
+    }
+    text?.let { messageEmojiSpanify?.applyLive(it) }
 }
 
 /** Same, for a [SearchView]'s inner query EditText (filter/search boxes). */
-fun androidx.appcompat.widget.SearchView.setupLiveEmojiInput() {
-    (findViewById(androidx.appcompat.R.id.search_src_text) as? android.widget.EditText)?.setupLiveEmojiInput()
+fun androidx.appcompat.widget.SearchView.setupUserTextInput() {
+    (findViewById(androidx.appcompat.R.id.search_src_text) as? android.widget.EditText)?.setupUserTextInput()
 }
 
-/** Same, for an [EditTextPreference]'s dialog EditText (rendered each time the dialog opens), plus rendering
- *  the current value the framework sets before this callback runs. */
-fun androidx.preference.EditTextPreference.setupLiveEmojiInput() {
+/** Same, for an [EditTextPreference]'s dialog EditText, which is rebuilt each time the dialog opens. */
+fun androidx.preference.EditTextPreference.setupUserTextInput(onBind: (android.widget.EditText) -> Unit = {}) {
     setOnBindEditTextListener { editText ->
-        editText.setupLiveEmojiInput()
-        messageEmojiSpanify?.applyLive(editText.text)
+        onBind(editText)
+        editText.setupUserTextInput()
     }
 }
 

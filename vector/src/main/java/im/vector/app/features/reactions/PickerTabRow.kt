@@ -27,6 +27,7 @@ import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.databinding.ViewPickerTabRowBinding
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.neutralizeDirectionOverridesInput
 import im.vector.lib.strings.CommonStrings
 
 /**
@@ -74,6 +75,7 @@ class PickerTabRow @JvmOverloads constructor(
         views.pickerFreeform.setOnClickListener { setMode(Mode.FREEFORM) }
         views.pickerCancel.setOnClickListener { setMode(Mode.TABS) }
         views.pickerClear.setOnClickListener { views.pickerInput.setText("") }
+        views.pickerInput.neutralizeDirectionOverridesInput()
         views.pickerInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit

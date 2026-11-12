@@ -41,7 +41,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.search.SearchFilterSuggestions
 import im.vector.app.features.home.room.detail.search.SearchSuggestion
 import im.vector.app.features.home.room.detail.search.SearchSuggestionAdapter
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
@@ -114,7 +114,7 @@ class MentionsFragment :
         (searchItem.actionView as? SearchView)?.let { searchView ->
             searchView.alignWithToolbarTitle()
             searchView.queryHint = getString(CommonStrings.mentions_search_hint)
-            searchView.setupLiveEmojiInput()
+            searchView.setupUserTextInput()
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     renderSuggestions(null)

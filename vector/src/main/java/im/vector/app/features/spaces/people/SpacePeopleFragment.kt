@@ -25,6 +25,7 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentRecyclerviewWithSearchBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.roomprofile.members.RoomMemberListAction
 import im.vector.app.features.roomprofile.members.RoomMemberListViewModel
 import im.vector.lib.strings.CommonPlurals
@@ -107,6 +108,7 @@ class SpacePeopleFragment :
 
     private fun setupSearchView() {
         views.memberNameFilter.queryHint = getString(CommonStrings.search_members_hint)
+        views.memberNameFilter.setupUserTextInput()
         views.memberNameFilter.queryTextChanges()
                 .debounce(100)
                 .onEach {

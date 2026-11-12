@@ -33,6 +33,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.openExternalLinkWithConfirmation
 import im.vector.app.databinding.FragmentSpaceDirectoryBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.spaces.manage.ManageType
 import im.vector.app.features.spaces.manage.SpaceAddRoomSpaceChooserBottomSheet
@@ -174,6 +175,7 @@ class SpaceDirectoryFragment :
             menu.findItem(R.id.spaceSearch)?.let { searchItem ->
                 val searchView = searchItem.actionView as SearchView
                 searchView.alignWithToolbarTitle()
+                searchView.setupUserTextInput()
                 searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
                         return true

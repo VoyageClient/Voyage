@@ -35,6 +35,7 @@ import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
@@ -102,6 +103,7 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
         (menu.findItem(R.id.roomAclSearchAction)?.actionView as? SearchView)?.apply {
             alignWithToolbarTitle()
             queryHint = getString(CommonStrings.room_acl_search_hint)
+            setupUserTextInput()
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?) = false
                 override fun onQueryTextChange(query: String?) = true.also { viewModel.handle(RoomAclAction.Search(query.orEmpty())) }

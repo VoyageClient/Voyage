@@ -17,6 +17,7 @@ import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.features.form.formAdvancedToggleItem
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 
 interface AdvancedRoomOptionsListener {
@@ -130,6 +131,7 @@ fun Fragment.showInitialStateDialog(options: AdvancedRoomOptions, onEdited: (Str
     views.editText.isVerticalScrollBarEnabled = true
     views.editText.hint = getString(CommonStrings.create_room_initial_state_hint)
     views.editText.setText(options.initialStateJson)
+    views.editText.setupUserTextInput()
     MaterialAlertDialogBuilder(requireContext())
             .setTitle(CommonStrings.create_room_initial_state_title)
             .setView(layout)

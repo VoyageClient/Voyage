@@ -60,9 +60,8 @@ import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.discovery.DiscoverySettingsFragment
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.redaction.preservation.PreservedMediaStore
@@ -374,10 +373,8 @@ class VectorSettingsGeneralFragment :
         }
 
         // Display name
-        mDisplayNamePreference.setOnBindEditTextListener { editText ->
+        mDisplayNamePreference.setupUserTextInput { editText ->
             editText.hint = session.myUserId
-            editText.setupLiveEmojiInput()
-            messageEmojiSpanify?.applyLive(editText.text)
         }
         mDisplayNamePreference.let {
             it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
@@ -933,8 +930,7 @@ class VectorSettingsGeneralFragment :
             hint = getString(CommonStrings.settings_pronouns_custom_hint)
             setText(existing)
             setSingleLine()
-            setupLiveEmojiInput()
-            messageEmojiSpanify?.applyLive(text)
+            setupUserTextInput()
         }
         val inset = (24 * resources.displayMetrics.density).toInt()
         val container = FrameLayout(requireContext()).apply {
@@ -962,8 +958,7 @@ class VectorSettingsGeneralFragment :
             hint = getString(CommonStrings.settings_status_text_hint)
             setText(existing?.display())
             setSingleLine()
-            setupLiveEmojiInput()
-            messageEmojiSpanify?.applyLive(text)
+            setupUserTextInput()
         }
         val inset = (24 * resources.displayMetrics.density).toInt()
         val container = FrameLayout(requireContext()).apply {
@@ -1022,11 +1017,10 @@ class VectorSettingsGeneralFragment :
         val editText = EditText(requireContext()).apply {
             hint = getString(CommonStrings.settings_biography_hint)
             setText(existing?.body)
-            setupLiveEmojiInput()
-            messageEmojiSpanify?.applyLive(text)
             // A bio is free-form prose, so let it wrap and grow like a message rather than a single line.
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             maxLines = 8
+            setupUserTextInput()
         }
         val inset = (24 * resources.displayMetrics.density).toInt()
         val container = FrameLayout(requireContext()).apply {

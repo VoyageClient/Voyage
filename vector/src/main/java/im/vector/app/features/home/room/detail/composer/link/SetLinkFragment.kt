@@ -22,6 +22,7 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.platform.VectorBaseDialogFragment
 import im.vector.app.databinding.FragmentSetLinkBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -59,6 +60,8 @@ class SetLinkFragment :
         super.onViewCreated(view, savedInstanceState)
 
         views.link.setText(args.initialLink)
+        views.link.setupUserTextInput()
+        views.text.setupUserTextInput()
         views.link.textChanges()
                 .onEach {
                     viewModel.handle(SetLinkAction.LinkChanged(it.toString()))

@@ -54,6 +54,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentImagePackEditBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.imagepack.ImagePackImageViewer
 import im.vector.app.features.imagepack.telegram.TelegramMarker
 import im.vector.app.features.notifications.NotificationUtils
@@ -175,6 +176,7 @@ class ImagePackEditFragment :
             views.imagePackNameTil.isHintAnimationEnabled = false
             views.imagePackNameInput.setText(packName)
             views.imagePackNameTil.isHintAnimationEnabled = true
+            views.imagePackNameInput.setupUserTextInput()
             views.imagePackNameInput.doAfterTextChanged {
                 packName = it?.toString()?.takeIf { s -> s.isNotBlank() }
                 requireActivity().invalidateOptionsMenu()

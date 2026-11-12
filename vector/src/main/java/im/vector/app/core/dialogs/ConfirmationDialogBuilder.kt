@@ -21,6 +21,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.R
 import im.vector.app.databinding.DialogConfirmationWithReasonBinding
 import im.vector.app.features.delayedevents.ScheduleTimePicker
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 
 private const val DURATION_REASON_GAP_DP = 12
@@ -138,6 +139,7 @@ object ConfirmationDialogBuilder {
         if (askForReason && reasonHintRes != 0) {
             views.dialogReasonInput.setHint(reasonHintRes)
         }
+        views.dialogReasonInput.setupUserTextInput()
 
         MaterialAlertDialogBuilder(activity)
                 .setTitle(title)

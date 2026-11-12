@@ -29,6 +29,7 @@ import im.vector.app.core.extensions.padActionsFromScreenEdge
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentGenericRecyclerBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import javax.inject.Inject
@@ -83,6 +84,7 @@ class AccountDataFragment :
         (searchItem.actionView as? SearchView)?.let { searchView ->
             searchView.alignWithToolbarTitle()
             searchView.queryHint = getString(CommonStrings.dev_tools_search_hint)
+            searchView.setupUserTextInput()
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?) = true
 

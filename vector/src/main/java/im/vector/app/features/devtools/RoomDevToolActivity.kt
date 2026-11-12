@@ -32,6 +32,7 @@ import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.createJSonViewerStyleProvider
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.lib.strings.CommonStrings
@@ -242,6 +243,7 @@ class RoomDevToolActivity :
         val searchItem = menu.findItem(R.id.menuItemSearch) ?: return
         searchMenuItem = searchItem
         (searchItem.actionView as? SearchView)?.alignWithToolbarTitle()
+        (searchItem.actionView as? SearchView)?.setupUserTextInput()
         (searchItem.actionView as? SearchView)?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = true
 

@@ -26,6 +26,7 @@ import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
@@ -93,6 +94,7 @@ class RoomBannedMemberListFragment :
     private fun setupSearchView() {
         views.searchViewAppBarLayout.isVisible = true
         views.searchView.queryHint = getString(CommonStrings.search_banned_user_hint)
+        views.searchView.setupUserTextInput()
         views.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 return true

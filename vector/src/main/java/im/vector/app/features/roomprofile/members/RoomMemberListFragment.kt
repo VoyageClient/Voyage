@@ -27,6 +27,7 @@ import im.vector.app.core.ui.views.renderRoomShieldBadge
 import im.vector.app.databinding.FragmentRoomMemberListBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -94,6 +95,7 @@ class RoomMemberListFragment :
 
     private fun setupSearchView() {
         views.roomSettingGeneric.searchView.queryHint = getString(CommonStrings.search_members_hint)
+        views.roomSettingGeneric.searchView.setupUserTextInput()
         views.roomSettingGeneric.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 return true

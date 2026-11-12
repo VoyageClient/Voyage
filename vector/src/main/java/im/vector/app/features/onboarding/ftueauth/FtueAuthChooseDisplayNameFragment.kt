@@ -17,7 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.hasContent
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.databinding.FragmentFtueDisplayNameBinding
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingViewEvents
 import im.vector.app.features.onboarding.OnboardingViewState
@@ -42,7 +42,7 @@ class FtueAuthChooseDisplayNameFragment :
                 views.displayNameSubmit.isEnabled = newContent.isNotEmpty()
             }
         })
-        views.displayNameInput.editText?.setupLiveEmojiInput()
+        views.displayNameInput.editText?.setupUserTextInput()
         views.displayNameInput.editText?.setOnEditorActionListener { _, actionId, _ ->
             when (actionId) {
                 EditorInfo.IME_ACTION_DONE -> {

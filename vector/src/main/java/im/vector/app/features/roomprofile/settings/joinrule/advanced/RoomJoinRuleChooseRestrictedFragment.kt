@@ -21,6 +21,7 @@ import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentSpaceRestrictedSelectBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -46,6 +47,7 @@ class RoomJoinRuleChooseRestrictedFragment :
         super.onViewCreated(view, savedInstanceState)
         controller.listener = this
         views.recyclerView.configureWith(controller)
+        views.roomsFilter.setupUserTextInput()
         views.roomsFilter.queryTextChanges()
                 .debounce(500)
                 .onEach {

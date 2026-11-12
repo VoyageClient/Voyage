@@ -28,8 +28,7 @@ import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorPreferenceCategoryWithAction
 import im.vector.app.core.ui.colorpicker.ProfileColorPreferenceBinder
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
@@ -407,11 +406,9 @@ class RoomPersonalizationSettingsFragment :
             if (!isAdded) return@launch
             accountColor = session.profileService().getCachedColorPreference(session.myUserId)
             refreshProfileColor()
-            displayNamePreference.setOnBindEditTextListener { editText ->
+            displayNamePreference.setupUserTextInput { editText ->
                 // An empty field means no display name at all in this room, i.e. the Matrix ID is shown.
                 editText.hint = session.myUserId
-                editText.setupLiveEmojiInput()
-                messageEmojiSpanify?.applyLive(editText.text)
             }
             refreshProfileResetState()
         }
@@ -464,6 +461,7 @@ class RoomPersonalizationSettingsFragment :
             false
         }
 
+        roomNamePreference.setupUserTextInput()
         roomNamePreference.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             setRoomNameOverride((newValue as? String)?.trim())
             false

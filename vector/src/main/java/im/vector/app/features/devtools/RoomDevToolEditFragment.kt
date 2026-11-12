@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentDevtoolsEditorBinding
-import im.vector.lib.core.utils.text.DirectionOverridesTransformation
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import reactivecircus.flowbinding.android.widget.textChanges
@@ -35,7 +35,7 @@ class RoomDevToolEditFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        views.editText.transformationMethod = DirectionOverridesTransformation
+        views.editText.setupUserTextInput()
         withState(sharedViewModel) {
             views.editText.setText(it.editedContent ?: "{}")
         }

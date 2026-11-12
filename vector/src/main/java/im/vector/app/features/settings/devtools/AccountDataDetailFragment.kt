@@ -38,7 +38,7 @@ import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.FragmentAccountDataDetailBinding
 import im.vector.app.features.crypto.quads.AdkFlows
 import im.vector.app.features.crypto.quads.SharedSecureStorageActivity
-import im.vector.lib.core.utils.text.DirectionOverridesTransformation
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
@@ -100,7 +100,7 @@ class AccountDataDetailFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        views.editText.transformationMethod = DirectionOverridesTransformation
+        views.editText.setupUserTextInput()
         editing = savedInstanceState?.getBoolean(KEY_EDITING) ?: false
         showRaw = savedInstanceState?.getBoolean(KEY_SHOW_RAW) ?: false
         // Fragment instance survives back-stack view recreation; reset so invalidate() rebuilds the viewer.
@@ -158,6 +158,7 @@ class AccountDataDetailFragment :
         (searchItem.actionView as? SearchView)?.let { searchView ->
             searchView.alignWithToolbarTitle()
             searchView.queryHint = getString(CommonStrings.dev_tools_search_hint_json)
+            searchView.setupUserTextInput()
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?) = true
 

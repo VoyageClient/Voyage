@@ -78,6 +78,7 @@ import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.roommemberprofile.devices.DeviceListBottomSheet
 import im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsActivity
@@ -956,6 +957,7 @@ class RoomMemberProfileFragment :
         val effectiveName = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName()
         dialogViews.editText.setText(effectiveName)
         dialogViews.editText.hint = state.userId
+        dialogViews.editText.setupUserTextInput()
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setTitle(CommonStrings.settings_display_name)

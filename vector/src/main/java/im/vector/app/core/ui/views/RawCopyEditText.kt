@@ -11,6 +11,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatEditText
 import com.google.android.material.textfield.TextInputEditText
+import im.vector.lib.core.utils.text.CopiesRawText
 import im.vector.lib.core.utils.text.copyRawSelection
 
 // TextView's copy/cut operate on the transformed text; route them through the raw Editable so
@@ -19,7 +20,7 @@ import im.vector.lib.core.utils.text.copyRawSelection
 class RawCopyEditText @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null
-) : AppCompatEditText(context, attrs) {
+) : AppCompatEditText(context, attrs), CopiesRawText {
 
     override fun onTextContextMenuItem(id: Int) = copyRawSelection(id) || super.onTextContextMenuItem(id)
 }
@@ -27,7 +28,7 @@ class RawCopyEditText @JvmOverloads constructor(
 class RawCopyTextInputEditText @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null
-) : TextInputEditText(context, attrs) {
+) : TextInputEditText(context, attrs), CopiesRawText {
 
     override fun onTextContextMenuItem(id: Int) = copyRawSelection(id) || super.onTextContextMenuItem(id)
 }

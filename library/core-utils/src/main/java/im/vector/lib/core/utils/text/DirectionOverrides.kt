@@ -14,6 +14,11 @@ import android.text.Selection
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.ReplacementTransformationMethod
+import android.text.method.SingleLineTransformationMethod
+import android.text.method.TransformationMethod
+import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 
 // U+202A..U+202E (LRE, RLE, PDF, LRO, RLO): a hostile RLO/LRO in a name or message renders the rest
@@ -57,6 +62,58 @@ object DirectionOverridesTransformation : ReplacementTransformationMethod() {
     override fun getReplacement() = REPLACEMENT
 }
 
+/** [DirectionOverridesTransformation] for single-line fields. It takes the place of
+ *  SingleLineTransformationMethod, so it also keeps that one's substitutions (a pasted newline stays a space). */
+object SingleLineDirectionOverridesTransformation : ReplacementTransformationMethod() {
+    private val ORIGINAL = charArrayOf('\n', '\r', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E')
+    private val REPLACEMENT = charArrayOf(' ', '\uFEFF') + CharArray(5) { UNSUPPORTED_GLYPH }
+
+    override fun getOriginal() = ORIGINAL
+
+    override fun getReplacement() = REPLACEMENT
+}
+
+/** Implemented by EditTexts that already route copy/cut through [copyRawSelection] themselves. */
+interface CopiesRawText
+
+/** Draw direction overrides in this field as tofu while its Editable keeps them. Idempotent; call it again
+ *  after changing the input type or single-line mode, which reset the transformation. A password mask (or
+ *  any other custom transformation) is left alone. */
+fun EditText.neutralizeDirectionOverridesInput() {
+    when (transformationMethod) {
+        null -> transformationMethod = DirectionOverridesTransformation
+        is SingleLineTransformationMethod -> transformationMethod = SingleLineDirectionOverridesTransformation
+    }
+    if (this !is CopiesRawText && customSelectionActionModeCallback !is RawCopyActionModeCallback) {
+        customSelectionActionModeCallback = RawCopyActionModeCallback(this, customSelectionActionModeCallback)
+    }
+}
+
+// For EditTexts that can't override onTextContextMenuItem (SearchView's, dialogs built in code). Hardware
+// keyboard copy/cut shortcuts bypass the action mode; those still need a CopiesRawText subclass.
+private class RawCopyActionModeCallback(
+        private val editText: EditText,
+        private val delegate: ActionMode.Callback?,
+) : ActionMode.Callback {
+    override fun onCreateActionMode(mode: ActionMode, menu: Menu) = delegate?.onCreateActionMode(mode, menu) ?: true
+
+    override fun onPrepareActionMode(mode: ActionMode, menu: Menu) = delegate?.onPrepareActionMode(mode, menu) ?: true
+
+    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+        if (delegate?.onActionItemClicked(mode, item) == true) return true
+        if (!editText.copyRawSelection(item.itemId)) return false
+        mode.finish()
+        return true
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode) {
+        delegate?.onDestroyActionMode(mode)
+    }
+}
+
+private fun TransformationMethod?.neutralizesDirectionOverrides() =
+        this === DirectionOverridesTransformation || this === SingleLineDirectionOverridesTransformation
+
 /** TextView's built-in copy/cut put the TRANSFORMED text on the clipboard, which would leak the
  *  substitute glyph instead of the real characters. EditTexts using [DirectionOverridesTransformation]
  *  call this from onTextContextMenuItem so the clipboard receives the raw Editable slice.
@@ -70,7 +127,7 @@ fun EditText.copyRawSelection(menuId: Int, expandSpans: (CharSequence) -> CharSe
     if (min >= max) return false
     val selection = editable.subSequence(min, max)
     val expanded = expandSpans(selection)
-    if (transformationMethod !is DirectionOverridesTransformation && expanded === selection) return false
+    if (!transformationMethod.neutralizesDirectionOverrides() && expanded === selection) return false
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     // toString(): a Spanned here is coerced back to HTML by the receiving app, exporting styling the
     // composer never showed — including paragraph indents that shift the pasted line.

@@ -22,7 +22,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <im.vector.app.core.ui.views.RawCopyTextInputEditText
             android:id="@+id/formTextInputTextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

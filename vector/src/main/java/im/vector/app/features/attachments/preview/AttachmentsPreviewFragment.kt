@@ -92,6 +92,7 @@ import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
+import im.vector.lib.core.utils.text.neutralizeDirectionOverridesInput
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -196,6 +197,7 @@ class AttachmentsPreviewFragment :
         viewModel.handle(AttachmentsPreviewAction.SetSharesOneCaption(
                 vectorPreferences.sendMediaGalleries() && fragmentArgs.attachments.size >= 2
         ))
+        views.attachmentPreviewerCaption.neutralizeDirectionOverridesInput()
         views.attachmentPreviewerCaption.doAfterTextChanged { text ->
             if (text != null) {
                 text.removeParagraphLayoutSpans()

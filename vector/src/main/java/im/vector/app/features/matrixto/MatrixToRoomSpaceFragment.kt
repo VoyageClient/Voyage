@@ -29,6 +29,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -53,6 +54,7 @@ class MatrixToRoomSpaceFragment :
         super.onViewCreated(view, savedInstanceState)
         views.matrixToCardMainButton.commonClicked = { mainButtonClicked() }
         views.matrixToCardSecondaryButton.commonClicked = { secondaryButtonClicked() }
+        views.matrixToCardKnockMessage.setupUserTextInput()
     }
 
     override fun invalidate() = withState(sharedViewModel) { state ->

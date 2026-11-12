@@ -21,6 +21,7 @@ import com.google.android.material.textfield.TextInputLayout
 import im.vector.app.R
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 
 class KeywordPreference : VectorPreference {
@@ -78,6 +79,7 @@ class KeywordPreference : VectorPreference {
         val chipTextInputLayout = holder.findViewById(R.id.chipTextInputLayout) as? TextInputLayout ?: return
 
         chipEditText.text = null
+        chipEditText.setupUserTextInput()
         chipGroup.removeAllViews()
 
         keywords.forEach {

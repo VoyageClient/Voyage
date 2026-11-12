@@ -33,6 +33,7 @@ import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.showIdentityServerConsentDialog
 import im.vector.app.databinding.FragmentUserListBinding
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.settings.VectorSettingsActivity
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -139,6 +140,7 @@ class UserListFragment :
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         views.userListSearch.setupAsSearch()
+        views.userListSearch.setupUserTextInput()
         views.userListSearch.requestFocus()
     }
 

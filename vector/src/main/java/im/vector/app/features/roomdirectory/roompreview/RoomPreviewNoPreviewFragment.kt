@@ -36,6 +36,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomdirectory.JoinState
 import im.vector.app.features.settings.VectorPreferences
@@ -75,6 +76,7 @@ class RoomPreviewNoPreviewFragment :
         setupToolbar(views.roomPreviewNoPreviewToolbar)
                 .allowBack()
 
+        views.roomPreviewNoPreviewKnockMessage.setupUserTextInput()
         views.roomPreviewNoPreviewJoin.commonClicked = { roomPreviewViewModel.handle(RoomPreviewAction.Join) }
         views.roomPreviewNoPreviewRequestToJoin.commonClicked = {
             val reason = views.roomPreviewNoPreviewKnockMessage.text.toString().trim().takeIf { it.isNotEmpty() }

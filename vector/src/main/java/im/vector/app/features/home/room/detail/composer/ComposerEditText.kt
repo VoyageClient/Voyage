@@ -29,6 +29,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.composer.images.UriContentListener
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.pillsToCopyText
+import im.vector.lib.core.utils.text.CopiesRawText
 import im.vector.lib.core.utils.text.copyRawSelection
 import timber.log.Timber
 import im.vector.app.core.extensions.setTextIfDifferent as setTextIfDifferentBase
@@ -37,7 +38,7 @@ class ComposerEditText @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = android.R.attr.editTextStyle
-) : AppCompatEditText(context, attrs, defStyleAttr) {
+) : AppCompatEditText(context, attrs, defStyleAttr), CopiesRawText {
 
     interface Callback {
         fun onRichContentSelected(contentUri: Uri): Boolean

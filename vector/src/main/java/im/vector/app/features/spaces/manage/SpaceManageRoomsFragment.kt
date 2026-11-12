@@ -29,6 +29,7 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentSpaceAddRoomsBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.debounce
@@ -74,6 +75,7 @@ class SpaceManageRoomsFragment :
         views.roomList.configureWith(epoxyController, hasFixedSize = true)
         epoxyVisibilityTracker.attach(views.roomList)
 
+        views.publicRoomsFilter.setupUserTextInput()
         views.publicRoomsFilter.queryTextChanges()
                 .debounce(200)
                 .onEach {

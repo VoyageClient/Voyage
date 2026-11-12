@@ -10,7 +10,6 @@ package im.vector.app.features.form
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
-import android.text.method.SingleLineTransformationMethod
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
@@ -25,8 +24,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
 import im.vector.app.core.epoxy.setValueOnce
 import im.vector.app.core.platform.SimpleTextWatcher
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.lib.core.utils.text.DirectionOverridesTransformation
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 
 @EpoxyModelClass
 abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.layout.item_form_text_input) {
@@ -81,9 +79,6 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
 
     private val onTextChangeListener = object : SimpleTextWatcher() {
         override fun afterTextChanged(s: Editable) {
-            // Render emoji typed/pasted after the initial value; spans sit over the codepoints, so the
-            // string passed to the callback (and saved) is unchanged. setSpan doesn't retrigger watchers.
-            messageEmojiSpanify?.applyLive(s)
             onTextChange?.invoke(s.toString())
         }
     }
@@ -100,25 +95,17 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
         holder.textInputLayout.prefixText = prefixText
         holder.textInputLayout.suffixText = suffixText
 
-        // Emoji spans only, NOT prepareForDisplay: this text round-trips into the saved value, so no
-        // character may be replaced. The spans sit over the original codepoints, leaving edits intact.
-        val displayValue = value?.let { messageEmojiSpanify?.spanify(it) ?: it }
         if (forceUpdateValue) {
-            holder.textInputEditText.setText(displayValue)
+            holder.textInputEditText.setText(value)
         } else {
-            holder.setValueOnce(holder.textInputEditText, displayValue)
+            holder.setValueOnce(holder.textInputEditText, value)
         }
 
         holder.textInputEditText.isEnabled = enabled
 
         configureInputType(holder)
         configureImeOptions(holder)
-
-        // Draw direction-override chars as tofu without touching the editable value; never clobber a
-        // password transformation (installed by password input types).
-        if (holder.textInputEditText.transformationMethod.let { it == null || it is SingleLineTransformationMethod }) {
-            holder.textInputEditText.transformationMethod = DirectionOverridesTransformation
-        }
+        holder.textInputEditText.setupUserTextInput()
 
         holder.textInputEditText.addTextChangedListenerOnce(onTextChangeListener)
         holder.textInputEditText.setOnEditorActionListener(editorActionListener)

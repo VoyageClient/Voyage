@@ -28,7 +28,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.hasClickableSpanAt
 import im.vector.app.core.platform.SimpleTextWatcher
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
 
@@ -98,7 +98,7 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
         super.bind(holder)
         if (!holder.listenersWired) {
             holder.listenersWired = true
-            holder.edit.setupLiveEmojiInput()
+            holder.edit.setupUserTextInput()
             holder.edit.addTextChangedListener(object : SimpleTextWatcher() {
                 override fun afterTextChanged(s: Editable) {
                     holder.draftListener?.invoke(s.toString())

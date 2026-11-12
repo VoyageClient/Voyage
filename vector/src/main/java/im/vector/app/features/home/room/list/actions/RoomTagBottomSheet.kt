@@ -25,6 +25,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetGenericListBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.spaces.tags.normaliseUserTag
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
@@ -96,6 +97,7 @@ class RoomTagBottomSheet :
         val view = layoutInflater.inflate(R.layout.dialog_base_edit_text, null)
         val editText = view.findViewById<EditText>(R.id.editText)
         editText.setHint(CommonStrings.room_tag_new_hint)
+        editText.setupUserTextInput()
         MaterialAlertDialogBuilder(requireContext())
                 .setTitle(CommonStrings.room_tag_create_new)
                 .setView(view)

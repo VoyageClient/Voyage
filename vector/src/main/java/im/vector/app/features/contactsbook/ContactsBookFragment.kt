@@ -22,6 +22,7 @@ import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.showIdentityServerConsentDialog
 import im.vector.app.databinding.FragmentContactsBookBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.userdirectory.PendingSelection
 import im.vector.app.features.userdirectory.UserListAction
 import im.vector.app.features.userdirectory.UserListSharedAction
@@ -93,6 +94,7 @@ class ContactsBookFragment :
     }
 
     private fun setupFilterView() {
+        views.phoneBookFilter.setupUserTextInput()
         views.phoneBookFilter
                 .textChanges()
                 .skipInitialValue()

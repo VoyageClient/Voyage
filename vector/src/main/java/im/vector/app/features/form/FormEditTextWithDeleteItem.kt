@@ -9,6 +9,7 @@ package im.vector.app.features.form
 
 import android.text.Editable
 import android.text.InputFilter
+import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageButton
 import com.airbnb.epoxy.EpoxyAttribute
@@ -24,6 +25,7 @@ import im.vector.app.core.epoxy.addTextChangedListenerOnce
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 
 @EpoxyModelClass
 abstract class FormEditTextWithDeleteItem : VectorEpoxyModel<FormEditTextWithDeleteItem.Holder>(R.layout.item_form_text_input_with_delete) {
@@ -72,13 +74,18 @@ abstract class FormEditTextWithDeleteItem : VectorEpoxyModel<FormEditTextWithDel
         holder.textInputEditText.setTextIfDifferent(value)
 
         holder.textInputEditText.isEnabled = enabled
-        holder.textInputEditText.isSingleLine = singleLine
+        // Not setSingleLine(): it resets the transformation even when unchanged, moving the cursor on every rebind.
+        val inputType = if (singleLine) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        if (holder.textInputEditText.inputType != inputType) {
+            holder.textInputEditText.inputType = inputType
+        }
 
         holder.textInputEditText.imeOptions =
                 imeOptions ?: when (singleLine) {
                     true -> EditorInfo.IME_ACTION_NEXT
                     false -> EditorInfo.IME_ACTION_NONE
                 }
+        holder.textInputEditText.setupUserTextInput()
 
         holder.textInputEditText.addTextChangedListenerOnce(onTextChangeListener)
 

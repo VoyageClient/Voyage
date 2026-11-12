@@ -31,7 +31,7 @@ import im.vector.app.databinding.FragmentIncomingShareBinding
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -140,7 +140,7 @@ class IncomingShareFragment :
             cannotManageShare(CommonStrings.error_handling_incoming_share)
         }
 
-        views.incomingShareSearchView.setupLiveEmojiInput()
+        views.incomingShareSearchView.setupUserTextInput()
         views.incomingShareSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 return true

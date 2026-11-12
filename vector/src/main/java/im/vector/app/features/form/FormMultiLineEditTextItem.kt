@@ -9,7 +9,6 @@ package im.vector.app.features.form
 
 import android.graphics.Typeface
 import android.text.Editable
-import android.text.method.SingleLineTransformationMethod
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.textfield.TextInputEditText
@@ -21,7 +20,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
 import im.vector.app.core.epoxy.setValueOnce
 import im.vector.app.core.platform.SimpleTextWatcher
-import im.vector.lib.core.utils.text.DirectionOverridesTransformation
+import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 
 @EpoxyModelClass
 abstract class FormMultiLineEditTextItem : VectorEpoxyModel<FormMultiLineEditTextItem.Holder>(R.layout.item_form_multiline_text_input) {
@@ -65,11 +64,9 @@ abstract class FormMultiLineEditTextItem : VectorEpoxyModel<FormMultiLineEditTex
         holder.textInputEditText.typeface = typeFace
         holder.textInputEditText.textSize = textSizeSp?.toFloat() ?: 14f
         holder.textInputEditText.minLines = minLines
-        if (holder.textInputEditText.transformationMethod.let { it == null || it is SingleLineTransformationMethod }) {
-            holder.textInputEditText.transformationMethod = DirectionOverridesTransformation
-        }
 
         holder.setValueOnce(holder.textInputEditText, value)
+        holder.textInputEditText.setupUserTextInput()
 
         holder.textInputEditText.isEnabled = enabled
 
