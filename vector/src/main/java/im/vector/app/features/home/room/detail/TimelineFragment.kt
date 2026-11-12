@@ -90,6 +90,7 @@ import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.ButtonStateView
+import im.vector.app.core.platform.SystemBarDebug
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
@@ -252,6 +253,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.billcarsonfr.jsonviewer.JSonViewerValueKind
 import org.billcarsonfr.jsonviewer.JSonViewerValueListener
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -1409,6 +1411,10 @@ class TimelineFragment :
 
     private fun restoreToolbarBackground() {
         val color = MaterialColors.getColor(views.roomToolbar, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+        DebugLog.i {
+            "SYSBARDBG room toolbar resume: toolbar=${SystemBarDebug.view(views.roomToolbar)} appBar=${SystemBarDebug.view(views.appBarLayout)} " +
+                    "host=${SystemBarDebug.view(views.root)} restoring=${SystemBarDebug.color(color)}"
+        }
         // Keep the toolbar fill independent of Material's stateful surface drawable.
         views.appBarLayout.backgroundCompat = color.toDrawable()
         views.roomToolbar.backgroundCompat = color.toDrawable()

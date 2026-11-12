@@ -76,6 +76,7 @@ import im.vector.app.core.extensions.observeEvent
 import im.vector.app.core.extensions.observeNotNull
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.restart
+import im.vector.app.core.extensions.setLayerInsetNow
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.resources.BuildMeta
@@ -111,6 +112,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.GlobalError
@@ -853,7 +855,11 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         // Mid-rotation the system already reports the next orientation's insets while the view still
         // has this one's size; hold the current padding until the view is laid out at the new width.
         if (rotationPendingWidth >= 0) {
-            if (v.width == rotationPendingWidth) return heldInsets
+            if (v.width == rotationPendingWidth) {
+                logSystemBarsOnChange("insets") { "held for rotation at width=${v.width} pad=${v.paddingTop}/${v.paddingBottom} ${SystemBarDebug.insets(insets)}" }
+                return heldInsets
+            }
+            logSystemBars { "rotation hold released at width=${v.width} (was $rotationPendingWidth)" }
             rotationPendingWidth = -1
         }
         val holdForSystemWindow = !hasWindowFocus() && shouldHoldImeSpaceOnFocusLoss
@@ -864,7 +870,10 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         // The same mismatch can land before onConfigurationChanged, as a keyboard taller than most of the
         // window. A small multi-window pane can legitimately be mostly covered, so it is exempt.
         val inMultiWindow = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
-        if (!inMultiWindow && v.height > 0 && systemBars.bottom > v.height * 3 / 4) return heldInsets
+        if (!inMultiWindow && v.height > 0 && systemBars.bottom > v.height * 3 / 4) {
+            logSystemBarsOnChange("insets") { "held: bottom ${systemBars.bottom} over 3/4 of height ${v.height} ${SystemBarDebug.insets(insets)}" }
+            return heldInsets
+        }
         val navBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
         // The measured height is from one orientation, and only applies while the system agrees a keyboard is up.
         val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && reserveImeSpace &&
@@ -891,6 +900,11 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         if (bottom > navBottom) lastImePaddingWidth = v.width
         systemBarsTopInset = systemBars.top
         navigationBarBottomInset = navBottom
+        logSystemBarsOnChange("insets") {
+            "applied size=${v.width}x${v.height} top=${if (drawUnderSystemBars || drawUnderStatusBar) 0 else systemBars.top} bottom=$bottom " +
+                    "desiredBottom=$desiredBottom drawUnderSystemBars=$drawUnderSystemBars drawUnderStatus=$drawUnderStatusBar " +
+                    "reserveIme=$reserveImeSpace holdIme=$holdImeSpace imeAnimating=$isImeAnimating ${SystemBarDebug.insets(insets)}"
+        }
         return if (drawUnderSystemBars) {
             v.updatePadding(0, 0, 0, 0)
             insets
@@ -916,6 +930,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     fun setDrawUnderStatusBar(enabled: Boolean) {
         if (drawUnderStatusBar == enabled) return
         drawUnderStatusBar = enabled
+        logSystemBars { "drawUnderStatusBar=$enabled" }
         ViewCompat.requestApplyInsets(rootView)
     }
 
@@ -952,6 +967,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
      */
     fun tintNavigationBarStrip(@ColorInt color: Int) {
         (systemBarStrips().getDrawable(NAVIGATION_STRIP) as ColorDrawable).color = color
+        logSystemBarsOnChange("navTint") { SystemBarDebug.color(color) }
         updateSystemBarStrips()
     }
 
@@ -961,6 +977,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         val base = rootView.background ?: ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground))
         val layers = LayerDrawable(arrayOf(base, ColorDrawable(Color.TRANSPARENT), ColorDrawable(Color.TRANSPARENT)))
         systemBarStripLayers = layers
+        logSystemBars { "strips installed on ${SystemBarDebug.view(rootView)} base=${SystemBarDebug.drawable(base)}" }
         rootView.backgroundCompat = layers
         rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateSystemBarStrips() }
         return layers
@@ -970,8 +987,13 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         val layers = systemBarStripLayers ?: return
         val height = rootView.height
         val strip = navigationBarBottomInset.coerceIn(0, height)
-        layers.setLayerInset(NAVIGATION_STRIP, rootView.paddingLeft, height - strip, rootView.paddingRight, 0)
-        layers.setLayerInset(STATUS_STRIP, rootView.paddingLeft, 0, rootView.paddingRight, (height - rootView.paddingTop).coerceAtLeast(0))
+        val width = rootView.width
+        layers.setLayerInsetNow(NAVIGATION_STRIP, rootView.paddingLeft, height - strip, rootView.paddingRight, 0, width, height)
+        layers.setLayerInsetNow(STATUS_STRIP, rootView.paddingLeft, 0, rootView.paddingRight, (height - rootView.paddingTop).coerceAtLeast(0), width, height)
+        logSystemBarsOnChange("strips") {
+            "size=${width}x$height padTop=${rootView.paddingTop} navInset=$navigationBarBottomInset " +
+                    "status=${SystemBarDebug.drawable(layers.getDrawable(STATUS_STRIP))} nav=${SystemBarDebug.drawable(layers.getDrawable(NAVIGATION_STRIP))}"
+        }
         rootView.invalidate()
     }
 
@@ -1001,8 +1023,30 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 strip.color = target
                 updateSystemBarStrips()
             }
+            logSystemBarsOnChange("frame") {
+                val layers = systemBarStripLayers
+                "root=${SystemBarDebug.view(rootView)} padTop=${rootView.paddingTop} sysTop=$systemBarsTopInset drawUnder=$drawUnderStatusBar " +
+                        "toolbarColor=${SystemBarDebug.color(color)} source=${SystemBarDebug.view(statusBarStripSource)} " +
+                        "bgIsLayers=${layers != null && rootView.background === layers} layers=${layers?.bounds?.toShortString()} " +
+                        "statusStrip=${SystemBarDebug.drawable(layers?.getDrawable(STATUS_STRIP))} " +
+                        SystemBarDebug.windowBars(window)
+            }
             true
         }
+    }
+
+    private val lastSystemBarLogs = HashMap<String, String>()
+
+    /** Logs under SYSBARDBG only when [state] differs from the last one logged for [key], so per-frame callers stay quiet. */
+    private inline fun logSystemBarsOnChange(key: String, state: () -> String) {
+        if (!DebugLog.enabled) return
+        val text = state()
+        if (lastSystemBarLogs.put(key, text) == text) return
+        DebugLog.i { "SYSBARDBG ${javaClass.simpleName}@${SystemBarDebug.id(this)} $key: $text" }
+    }
+
+    private inline fun logSystemBars(message: () -> String) {
+        DebugLog.i { "SYSBARDBG ${javaClass.simpleName}@${SystemBarDebug.id(this)} ${message()}" }
     }
 
     @ColorInt
@@ -1062,6 +1106,10 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         super.onConfigurationChanged(newConfig)
         if (newConfig.screenWidthDp == configScreenWidthDp) return
         configScreenWidthDp = newConfig.screenWidthDp
+        logSystemBars {
+            "configuration width=${newConfig.screenWidthDp}dp, holding insets from width=${rootView.width} " +
+                    "pad=${rootView.paddingLeft},${rootView.paddingTop},${rootView.paddingRight},${rootView.paddingBottom}"
+        }
         // The window is resized in place (configChanges), and the first layout at the new size would
         // otherwise keep the old orientation's padding: the keyboard's leaves a sliver of room, and a
         // landscape cutout's narrows the portrait timeline, which resizes all its media twice.
