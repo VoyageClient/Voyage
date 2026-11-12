@@ -60,7 +60,10 @@ class MediaPlaceholderDrawable(
     private val icon: Drawable? = AppCompatResources.getDrawable(context, R.drawable.ic_media_failed)
             ?.mutate()
             ?.let { DrawableCompat.wrap(it) }
-            ?.also { DrawableCompat.setTint(it, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)) }
+            ?.also {
+                val tint = if (blurHash != null) Color.WHITE else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                DrawableCompat.setTint(it, tint)
+            }
 
     private val density = context.resources.displayMetrics.density
 

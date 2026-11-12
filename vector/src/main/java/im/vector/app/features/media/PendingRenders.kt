@@ -55,6 +55,12 @@ object PendingRenders {
         imageView.setTag(R.id.image_renderer_pending_render, null)
     }
 
+    fun finishOn(imageView: ImageView, outcome: String) {
+        (imageView.getTag(R.id.image_renderer_pending_render) as? Token)
+                ?.takeIf { !it.done }
+                ?.let { finish(it, outcome) }
+    }
+
     fun finish(token: Token, outcome: String) {
         token.done = true
         synchronized(pending) { pending.remove(token.id) }

@@ -62,11 +62,21 @@ class PendingRenderKeepTest {
         keeps(pending()) shouldBeEqualTo true
     }
 
+    /** A homeserver fetching remote media over federation first can take several seconds. */
+    @Test
+    fun `a slow render is left to finish`() {
+        val last = pending()
+
+        ShadowSystemClock.advanceBy(Duration.ofMillis(5_000))
+
+        keeps(last) shouldBeEqualTo true
+    }
+
     @Test
     fun `a render that has had time to wedge is restarted`() {
         val last = pending()
 
-        ShadowSystemClock.advanceBy(Duration.ofMillis(2_000))
+        ShadowSystemClock.advanceBy(Duration.ofMillis(16_000))
 
         keeps(last) shouldBeEqualTo false
     }

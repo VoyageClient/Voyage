@@ -26,6 +26,7 @@ import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.ErrorRequestCoordinator
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.target.Target
@@ -218,11 +219,11 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
-        val thisRender = last?.takeIf { !fromRetryTap && it.stableId == data.stableId && it.data.rendersSameAs(data) && it.mode == mode }
+        val thisRender = last?.takeIf { !fromRetryTap && it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
-        val restartsPendingRender = thisRender === last && !thisRender.completed && thisRender.isStale
+        val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
-        val renderToken = imageView.startRender()
+        imageView.startRender()
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
         imageView.setTag(R.id.image_renderer_retry) { render(data, imageView, width, height, fromRetryTap = true) }
         // Stamped like the main render, so a tap while a retry is in flight is swallowed rather
@@ -231,59 +232,106 @@ class ImageContentRenderer @Inject constructor(
         if (fromRetryTap) showLoadingNow(imageView, data, showGlyph = true, square = true)
         val pending = PendingRenders.startOn(imageView, data, mode)
         val placeholder = placeholderFor(imageView, data, showGlyph = true, square = true).also { it.setFailed(retryingFailed) }
-        createGlideRequest(data, mode, imageView, Size(width, height), placeholder)
-                .withFreshKey(fromRetryTap || restartsPendingRender)
-                .addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-                        if (!imageView.isCurrentRender(renderToken)) {
-                            PendingRenders.finish(pending, "superseded, failure ignored: ${e?.message}")
-                            return true
-                        }
-                        PendingRenders.finish(pending, "failed: ${e?.message}")
-                        if (data.isUploading()) {
-                            renderStillUploading(imageView, data, e, showGlyph = true, square = true)
-                            return true
-                        }
-                        failedMediaTracker.onLoadFailed(data.url)
-                        renderFailed(imageView, data, renderToken, pinSize = null, square = true)
-                        return true
-                    }
-
-                    override fun onResourceReady(
-                            resource: Drawable,
-                            model: Any,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                    ): Boolean {
-                        if (!imageView.isCurrentRender(renderToken)) {
-                            PendingRenders.finish(pending, "superseded, ready from $dataSource DROPPED")
-                            imageView.setTag(R.id.image_renderer_retrying, null)
-                            return true
-                        }
-                        PendingRenders.finish(pending, "ready from $dataSource")
-                        failedMediaTracker.onLoadSucceeded(data.url)
-                        thisRender.completed = true
-                        return false
-                    }
-                })
+        fun listener(isFallback: Boolean) = RenderListener(
+                imageView, data, mode, pending, isFallback,
+                showGlyph = true, square = true, pinSize = null, sizesToPicture = false,
+        )
+        createGlideRequest(data, mode, imageView, Size(width, height), placeholder, fallbackListener = listener(isFallback = true))
+                .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
                 // Animated media plays here too: a grid of stills gives no hint which of them move.
-                .intoView(imageView, animate = true)
+                .intoView(imageView, animate = true, freshKey = freshKeyIf(restartsWedgedRender))
+    }
+
+    /**
+     * Glide folds a request equivalent to the one already on the view into that one, keeping its
+     * listener and dropping the new one — so a result is wanted whenever the view still shows the
+     * same picture, whichever render() call started the load.
+     */
+    private inner class RenderListener(
+            private val imageView: ImageView,
+            private val data: Data,
+            private val mode: Mode,
+            private val pending: PendingRenders.Token,
+            private val isFallback: Boolean,
+            private val showGlyph: Boolean,
+            private val square: Boolean,
+            private val pinSize: Size?,
+            private val sizesToPicture: Boolean,
+    ) : RequestListener<Drawable> {
+
+        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+            if (imageView.lastRender()?.matches(data, mode) != true) {
+                PendingRenders.finish(pending, "superseded, failure ignored: ${e?.message}")
+                return true
+            }
+            // A thumbnail the server could not make is not the end: the original is fetched next, and
+            // its own listener has the final word.
+            if (!isFallback && target.request is ErrorRequestCoordinator) return true
+            // The top-level message is usually just "Failed to load resource"; the root causes
+            // name the actual HTTP status or decoder that refused it.
+            DebugLog.w { "MEDIADBG load failed event=${data.eventId} mode=$mode mime=${data.mimeType} url=${data.url} " +
+                            "causes=${e?.rootCauses?.map { it.javaClass.simpleName + ":" + it.message }}" }
+            settle("failed: ${e?.message}")
+            if (data.isUploading()) {
+                renderStillUploading(imageView, data, e, showGlyph, square)
+                return true
+            }
+            failedMediaTracker.onLoadFailed(data.url)
+            renderFailed(imageView, data, pinSize, showGlyph, square)
+            return true
+        }
+
+        override fun onResourceReady(
+                resource: Drawable,
+                model: Any,
+                target: Target<Drawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean
+        ): Boolean {
+            val current = imageView.lastRender()?.takeIf { it.matches(data, mode) }
+            if (current == null) {
+                PendingRenders.finish(pending, "superseded, ready from $dataSource")
+                return true
+            }
+            settle("ready from $dataSource")
+            imageView.setTag(R.id.image_renderer_retrying, null)
+            failedMediaTracker.onLoadSucceeded(data.url)
+            current.completed = true
+            // Real bounds at last — drop the holding square for the picture's own shape.
+            if (sizesToPicture && !data.hasKnownDimensions()) {
+                imageView.sizeToPicture(data, mode, resource)
+            }
+            return false
+        }
+
+        // The render that is waiting may be a later one than the render that started this load.
+        private fun settle(outcome: String) {
+            if (!pending.done) PendingRenders.finish(pending, outcome)
+            PendingRenders.finishOn(imageView, outcome)
+        }
     }
 
     // Tagged on the view so a rebind can tell "same message, new event id" (the local-echo → remote
     // swap) apart from a recycle onto a different message.
     /**
-     * Whether a rebind should leave the request already in flight alone. Starting another supersedes it,
-     * which throws away the result it is about to deliver, and Glide need not call back twice for a
-     * request identical to one it is already serving — that left the placeholder up for good. A render
-     * old enough to be wedged is restarted instead (see [LastRender.isStale]).
+     * Whether a rebind should leave the request already in flight alone. Starting another would only
+     * have Glide fold it back into the one it is already serving. A render old enough to be wedged is
+     * restarted instead (see [LastRender.isStale]).
      */
     @VisibleForTesting(otherwise = PRIVATE)
     internal fun keepsPendingRender(last: LastRender?, data: Data, mode: Mode, fromRetryTap: Boolean): Boolean =
-            last != null && !last.completed && !fromRetryTap && !last.isStale &&
-                    last.stableId == data.stableId && last.mode == mode && last.data.rendersSameAs(data)
+            last != null && !last.completed && !fromRetryTap && !last.isStale && last.matches(data, mode)
+
+    /**
+     * A render that has gone this long without an answer is treated as wedged, and its replacement
+     * carries a fresh key so Glide starts a new request rather than folding it into the stuck one.
+     * Anything sooner would throw away a download that is still progressing.
+     */
+    private fun restartsWedgedRender(last: LastRender?, data: Data, mode: Mode): Boolean =
+            last != null && !last.completed && last.isStale && last.matches(data, mode)
+
+    private fun freshKeyIf(needed: Boolean): String? = if (needed) "retry-${SystemClock.uptimeMillis()}" else null
 
     internal data class LastRender(
             val stableId: String,
@@ -293,25 +341,22 @@ class ImageContentRenderer @Inject constructor(
             val startedAt: Long = SystemClock.uptimeMillis(),
     ) {
 
-        /**
-         * Whether restarting this render has to bypass the caches. A rebind that restarts a request
-         * still in flight can be left with no callback at all, so it is forced through — but the
-         * fresh key that forces it also defeats the disk cache, and a sending message rebinds several
-         * times a second. Only a render that has had time to wedge is worth re-fetching for.
-         */
         val isStale: Boolean get() = SystemClock.uptimeMillis() - startedAt > PENDING_RENDER_STALE_MS
     }
 
+    private fun LastRender.matches(data: Data, mode: Mode): Boolean =
+            stableId == data.stableId && this.mode == mode && this.data.rendersSameAs(data)
+
     private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
 
-    private fun ImageView.startRender(): Any {
+    private fun ImageView.startRender() {
         (getTag(R.id.image_renderer_failure_apply) as? Runnable)?.let(::removeCallbacks)
         setTag(R.id.image_renderer_failure_apply, null)
         setTag(R.id.image_renderer_failed_data, null)
-        return Any().also { setTag(R.id.image_renderer_render_token, it) }
+        setTag(R.id.image_renderer_render_token, Any())
     }
 
-    private fun ImageView.isCurrentRender(token: Any): Boolean = getTag(R.id.image_renderer_render_token) === token
+    private fun ImageView.isCurrentRender(token: Any?): Boolean = getTag(R.id.image_renderer_render_token) === token
 
     private fun viewId(imageView: ImageView) = Integer.toHexString(System.identityHashCode(imageView))
 
@@ -434,11 +479,11 @@ class ImageContentRenderer @Inject constructor(
 
         // An identical rebind may reuse the still-current Glide request (no new onResourceReady),
         // so keep the existing record and its completed flag.
-        val thisRender = last?.takeIf { it.stableId == data.stableId && it.data.rendersSameAs(data) && it.mode == mode }
+        val thisRender = last?.takeIf { it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
-        val restartsPendingRender = thisRender === last && !thisRender.completed && thisRender.isStale
+        val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
-        val renderToken = imageView.startRender()
+        imageView.startRender()
         val animate = animates(mode)
         // Retrying: keep the glyph up for the duration rather than dropping to the blank loading
         // fill, which reads as the failure state vanishing every time the row rebinds.
@@ -454,57 +499,18 @@ class ImageContentRenderer @Inject constructor(
         DebugLog.i { "MEDIADBG render start event=${data.eventId} view=${viewId(imageView)} stable=${data.stableId} mode=$mode " +
                         "mime=${data.mimeType} dims=${data.width}x${data.height} known=${data.hasKnownDimensions()} " +
                         "blurhash=${data.blurHash != null} animate=${animates(mode)} " +
-                        "retryTap=$fromRetryTap restartsPending=$restartsPendingRender freshKey=${fromRetryTap || restartsPendingRender} " +
+                        "retryTap=$fromRetryTap restartsWedged=$restartsWedgedRender " +
                         "knownFailed=$retryingFailed drawable=${imageView.drawable?.javaClass?.simpleName} url=${data.url}" }
         val pending = PendingRenders.startOn(imageView, data, mode)
         // Built once per view so a rebind is the request Glide is already serving, and handed to the
         // request itself so the thumbnail fallback keeps it up rather than blanking the view.
         val placeholder = pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
-        createGlideRequest(data, mode, imageView, size, placeholder)
-                .withFreshKey(fromRetryTap || restartsPendingRender)
-                .addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-                        if (!imageView.isCurrentRender(renderToken)) {
-                            PendingRenders.finish(pending, "superseded, failure ignored: ${e?.message}")
-                            imageView.setTag(R.id.image_renderer_retrying, null)
-                            return true
-                        }
-                        // The top-level message is usually just "Failed to load resource"; the root causes
-                        // name the actual HTTP status or decoder that refused it.
-                        DebugLog.w { "MEDIADBG load failed event=${data.eventId} mode=$mode mime=${data.mimeType} url=${data.url} " +
-                                        "causes=${e?.rootCauses?.map { it.javaClass.simpleName + ":" + it.message }}" }
-                        PendingRenders.finish(pending, "failed: ${e?.message}")
-                        if (data.isUploading()) {
-                            renderStillUploading(imageView, data, e, showFailureGlyph)
-                            return true
-                        }
-                        failedMediaTracker.onLoadFailed(data.url)
-                        renderFailed(imageView, data, renderToken, pinSize = failedPinSize(data, size), showGlyph = showFailureGlyph)
-                        return true
-                    }
-
-                    override fun onResourceReady(
-                            resource: Drawable,
-                            model: Any,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                    ): Boolean {
-                        if (!imageView.isCurrentRender(renderToken)) {
-                            PendingRenders.finish(pending, "superseded, ready from $dataSource")
-                            return true
-                        }
-                        PendingRenders.finish(pending, "ready from $dataSource")
-                        imageView.setTag(R.id.image_renderer_retrying, null)
-                        failedMediaTracker.onLoadSucceeded(data.url)
-                        thisRender.completed = true
-                        // Real bounds at last — drop the holding square for the picture's own shape.
-                        if (!data.hasKnownDimensions()) {
-                            imageView.sizeToPicture(data, mode, resource)
-                        }
-                        return false
-                    }
-                })
+        fun listener(isFallback: Boolean) = RenderListener(
+                imageView, data, mode, pending, isFallback,
+                showGlyph = showFailureGlyph, square = false, pinSize = failedPinSize(data, size), sizesToPicture = true,
+        )
+        createGlideRequest(data, mode, imageView, size, placeholder, fallbackListener = listener(isFallback = true))
+                .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
                 .let {
                     when {
@@ -516,7 +522,7 @@ class ImageContentRenderer @Inject constructor(
                     }
                 }
                 .withDisplayOptions(data, mode, animate, cornerTransformation, size)
-                .intoView(imageView, animate)
+                .intoView(imageView, animate, freshKey = freshKeyIf(restartsWedgedRender))
     }
 
     /**
@@ -587,9 +593,6 @@ class ImageContentRenderer @Inject constructor(
                 }
     }
 
-    private fun <T> GlideRequest<T>.withFreshKey(needsFreshKey: Boolean): GlideRequest<T> =
-            if (needsFreshKey) signature(ObjectKey("retry-${SystemClock.uptimeMillis()}")) else this
-
     // processSize falls back to the max box when dimensions are missing, which for a failure would
     // leave a tall empty rectangle; the holding square the load already used is the honest shape.
     private fun failedPinSize(data: Data, size: Size): Size =
@@ -600,14 +603,12 @@ class ImageContentRenderer @Inject constructor(
      * collapse: the placeholder has no intrinsic size, and an unknown-dimension image leaves the
      * view on WRAP_CONTENT. Null where the parent already sizes the view, as in the uploads grid.
      */
-    private fun renderFailed(imageView: ImageView, data: Data, renderToken: Any, pinSize: Size?, showGlyph: Boolean = true, square: Boolean = false) {
-        if (!imageView.isCurrentRender(renderToken)) {
-            DebugLog.i { "MEDIADBG renderFailed superseded, not drawn: event=${data.eventId} url=${data.url}" }
-            return
-        }
+    private fun renderFailed(imageView: ImageView, data: Data, pinSize: Size?, showGlyph: Boolean, square: Boolean) {
+        // Left on the view rather than cleared: Glide refuses a clear from inside the listener this runs
+        // in, and a retry that is equivalent to it restarts this very request.
+        val renderToken = imageView.getTag(R.id.image_renderer_render_token)
         PendingRenders.cancelOn(imageView)
         imageView.setTag(R.id.image_renderer_last_render, null)
-        tryOrNull { GlideApp.with(imageView).clear(imageView) }
         imageView.scaleType = ImageView.ScaleType.FIT_XY
         if (pinSize != null) {
             imageView.adjustViewBounds = false
@@ -719,18 +720,19 @@ class ImageContentRenderer @Inject constructor(
     }
 
     @VisibleForTesting(otherwise = PRIVATE)
-    internal fun GlideRequest<Drawable>.intoView(imageView: ImageView, animate: Boolean) {
+    internal fun GlideRequest<Drawable>.intoView(imageView: ImageView, animate: Boolean, freshKey: String? = null) {
+        // A still use stops the drawable it is handed, and Glide's memory cache hands every view the
+        // same instance — so without a key of its own, opening the uploads grid or binding a reply
+        // preview freezes the very drawable the timeline is animating, until some later rebind happens
+        // to restart it. Both keys go into one signature: a second signature() call replaces the first.
+        val signature = listOfNotNull(STILL_FRAME_SIGNATURE.takeIf { !animate }, freshKey).joinToString("|")
+        val keyed = if (signature.isEmpty()) this else signature(ObjectKey(signature))
         if (animate) {
             // A bare ImageView target is the only one Glide derives a scale-type transformation for,
             // so the rewind rides along as a listener rather than as a target of our own.
-            addListener(RestartAnimationListener).into(imageView)
+            keyed.addListener(RestartAnimationListener).into(imageView)
         } else {
-            // A still use stops the drawable it is handed, and Glide's memory cache hands every view
-            // the same instance — so without a key of its own, opening the uploads grid or binding a
-            // reply preview freezes the very drawable the timeline is animating, until some later
-            // rebind happens to restart it.
-            signature(ObjectKey(STILL_FRAME_SIGNATURE))
-                    .into(AnimatedContentImageViewTarget(imageView, animate = false))
+            keyed.into(AnimatedContentImageViewTarget(imageView, animate = false))
         }
     }
 
@@ -769,9 +771,9 @@ class ImageContentRenderer @Inject constructor(
         const val CROSSFADE_MS = 220
         private const val MIN_RETRY_FEEDBACK_MS = 550L
 
-        // How long a render may be in flight before a rebind that restarts it re-fetches rather than
-        // reusing the caches.
-        private const val PENDING_RENDER_STALE_MS = 1_500L
+        // How long a render may go unanswered before a rebind treats it as wedged. A full-size picture
+        // from a homeserver that first has to fetch it over federation routinely takes several seconds.
+        private const val PENDING_RENDER_STALE_MS = 15_000L
 
         // How long a tap-triggered retry is treated as in flight. Past this the flag is stale, and a
         // stale flag must not keep a visible picture untappable.
@@ -912,16 +914,25 @@ class ImageContentRenderer @Inject constructor(
                 .into(imageView)
     }
 
-    private fun createGlideRequest(data: Data, mode: Mode, imageView: ImageView, size: Size, placeholder: Drawable? = null): GlideRequest<Drawable> {
-        return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder)
+    private fun createGlideRequest(
+            data: Data,
+            mode: Mode,
+            imageView: ImageView,
+            size: Size,
+            placeholder: Drawable? = null,
+            fallbackListener: RequestListener<Drawable>? = null,
+    ): GlideRequest<Drawable> {
+        return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder, fallbackListener)
     }
 
+    /** @param fallbackListener told the outcome of the full-size load a failed THUMBNAIL falls back to. */
     fun createGlideRequest(
             data: Data,
             mode: Mode,
             glideRequests: GlideRequests,
             size: Size = processSize(data, mode),
             placeholder: Drawable? = null,
+            fallbackListener: RequestListener<Drawable>? = null,
     ): GlideRequest<Drawable> {
         data.preservedFile?.let { file ->
             return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -970,6 +981,7 @@ class ImageContentRenderer @Inject constructor(
                         if (mode == Mode.THUMBNAIL) {
                             error(
                                     glideRequests.load(resolveUrl(data, localCopy)).withWaitingState(placeholder)
+                                            .let { if (fallbackListener != null) it.addListener(fallbackListener) else it }
                             )
                         }
                     }
