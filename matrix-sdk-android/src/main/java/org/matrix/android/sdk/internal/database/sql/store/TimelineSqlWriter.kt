@@ -114,9 +114,9 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
             it != senderRoomMemberContent && it?.displayName == senderRoomMemberContent.displayName
         }
         return if (isLastForward) {
-            val isLiveUnique = stores.roomMember.getByRoom(roomId)
-                    .filter { it.displayName == senderRoomMemberContent.displayName }
-                    .none { !roomMemberContentsByUser.containsKey(it.userId) }
+            val displayName = senderRoomMemberContent.displayName ?: return isHistoricalUnique
+            val isLiveUnique = stores.roomMember.getUserIdsByRoomAndDisplayName(roomId, displayName)
+                    .none { !roomMemberContentsByUser.containsKey(it) }
             isHistoricalUnique && isLiveUnique
         } else {
             isHistoricalUnique

@@ -29,6 +29,9 @@ internal class RoomMemberSqlStore(private val database: SessionSqlDatabase) {
     fun getUserIdsByRoomAndMembership(roomId: String, membership: Membership): List<String> =
             queries.selectUserIdsByRoomAndMembership(roomId, membership.name).executeAsList()
 
+    fun getUserIdsByRoomAndDisplayName(roomId: String, displayName: String): List<String> =
+            queries.selectUserIdsByRoomAndDisplayName(roomId, displayName).executeAsList()
+
     fun getByRoomAndUser(roomId: String, userId: String): RoomMemberSummaryEntity? =
             queries.selectByRoomAndUser(roomId, userId).executeAsOneOrNull()?.toEntity()
 
