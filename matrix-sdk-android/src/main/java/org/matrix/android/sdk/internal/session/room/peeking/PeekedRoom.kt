@@ -138,6 +138,9 @@ internal class PeekedRoom(
         override fun getTimelineEventFlow(eventId: String): Flow<Optional<TimelineEvent>> =
                 dataSource.timelineFlow.map { list -> list.firstOrNull { it.eventId == eventId }.toOptional() }
 
+        override fun getTimelineEventsFlow(eventIds: List<String>): Flow<List<TimelineEvent>> =
+                dataSource.timelineFlow.map { list -> list.filter { it.eventId in eventIds } }
+
         override fun getAttachmentMessages(): List<TimelineEvent> = emptyList()
 
         override fun getTimelineEventsRelatedTo(relationType: String, eventId: String): List<TimelineEvent> = emptyList()

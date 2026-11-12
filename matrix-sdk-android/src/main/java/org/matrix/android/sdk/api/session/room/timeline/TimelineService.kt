@@ -60,6 +60,13 @@ interface TimelineService {
     fun getTimelineEventFlow(eventId: String): Flow<Optional<TimelineEvent>>
 
     /**
+     * Creates a Flow of the stored TimelineEvents among [eventIds], in no particular order, re-read when the
+     * timeline table changes or an event of this room is decrypted. Events not stored locally are omitted.
+     * Reads run on the collector's dispatcher, so collect it off the main thread.
+     */
+    fun getTimelineEventsFlow(eventIds: List<String>): Flow<List<TimelineEvent>>
+
+    /**
      * Returns a snapshot list of TimelineEvent with EventType.MESSAGE and MessageType.MSGTYPE_IMAGE or MessageType.MSGTYPE_VIDEO.
      */
     fun getAttachmentMessages(): List<TimelineEvent>

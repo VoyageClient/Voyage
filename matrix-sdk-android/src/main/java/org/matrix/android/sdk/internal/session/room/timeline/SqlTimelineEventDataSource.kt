@@ -12,7 +12,11 @@ import app.cash.sqldelight.coroutines.mapToList
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
@@ -39,6 +43,7 @@ internal class SqlTimelineEventDataSource @Inject constructor(
         private val stores: SessionStores,
         private val timelineEventMapper: TimelineEventMapper,
         private val localEchoRepository: Lazy<LocalEchoRepository>,
+        private val decryptionSignal: TimelineDecryptionSignal,
 ) {
     fun getTimelineEvent(roomId: String, eventId: String): TimelineEvent? =
             stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.let { timelineEventMapper.map(it) }
@@ -60,6 +65,18 @@ internal class SqlTimelineEventDataSource @Inject constructor(
                     .asFlow()
                     .mapToList(dispatcher)
                     .map { getTimelineEvent(roomId, eventId).toOptional() }
+
+    // SQLDelight notifies per table, so every room's writes wake this: re-read on the collector's thread,
+    // not by queueing the query on the single write dispatcher.
+    fun getTimelineEventsFlow(roomId: String, eventIds: List<String>): Flow<List<TimelineEvent>> =
+            merge(
+                    database.timelineEventQueries.selectByRoomAndEventIds(roomId, eventIds).asFlow().map { },
+                    // Decryption writes the event table, which the query above doesn't watch.
+                    decryptionSignal.rooms.filter { it == roomId }.map { },
+            )
+                    .conflate()
+                    .map { stores.timelineEvent.getByRoomAndEventIds(roomId, eventIds).map { timelineEventMapper.map(it) } }
+                    .distinctUntilChanged()
 
     fun getAttachmentMessages(roomId: String): List<TimelineEvent> =
             stores.timelineEvent.getAttachmentsByRoom(roomId)

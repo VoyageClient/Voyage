@@ -164,6 +164,9 @@ ORDER BY event.origin_server_ts;
 selectByRoomAndEventId:
 SELECT * FROM timeline_event WHERE room_id = ? AND event_id = ? LIMIT 1;
 
+selectByRoomAndEventIds:
+SELECT * FROM timeline_event WHERE room_id = ? AND event_id IN ?;
+
 -- Unsent messages, oldest first. Ordered by insertion: they have no timestamp from the server yet.
 selectSendingByRoom:
 SELECT * FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL ORDER BY id;

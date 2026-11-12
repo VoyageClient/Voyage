@@ -119,6 +119,10 @@ internal class DefaultTimelineService @AssistedInject constructor(
         return timelineEventDataSource.getTimelineEventFlow(roomId, eventId)
     }
 
+    override fun getTimelineEventsFlow(eventIds: List<String>): Flow<List<TimelineEvent>> {
+        return timelineEventDataSource.getTimelineEventsFlow(roomId, eventIds)
+    }
+
     override fun getAttachmentMessages(): List<TimelineEvent> {
         return timelineEventDataSource.getAttachmentMessages(roomId)
     }

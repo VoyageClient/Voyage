@@ -80,6 +80,12 @@ interface EventService {
     fun requestDecryption(event: Event)
 
     /**
+     * [requestDecryption], but attempted now on the caller's coroutine rather than queued behind the
+     * room list's background decryption. Use it for events on screen. A failure is queued for retry.
+     */
+    suspend fun decryptEventNow(event: Event)
+
+    /**
      * Emits whenever an event in [roomId] is decrypted and persisted, by any decryptor. Screens
      * showing individual events outside a Timeline must re-read them on this signal, since
      * decryption rewrites the event row without touching what timeline-event flows observe.

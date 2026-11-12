@@ -75,6 +75,10 @@ internal class DefaultEventService @Inject constructor(
         roomSummaryEventDecryptor.requestDecryption(event)
     }
 
+    override suspend fun decryptEventNow(event: Event) {
+        roomSummaryEventDecryptor.decryptNow(event)
+    }
+
     override fun decryptionUpdates(roomId: String): Flow<Unit> {
         return decryptionSignal.rooms.filter { it == roomId }.map { }
     }

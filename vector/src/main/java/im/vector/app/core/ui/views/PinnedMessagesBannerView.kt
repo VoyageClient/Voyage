@@ -20,6 +20,11 @@ import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewPinnedMessagesBannerBinding
+import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
+import im.vector.app.features.html.applyEmoteLineSpacing
+import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
+import im.vector.app.features.html.limitPillWidthsToView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
@@ -40,6 +45,7 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
     private val dimensionConverter = DimensionConverter(resources)
     private var eventIds: List<String> = emptyList()
     private var previewProvider: (String) -> Preview = { Preview("", isRedacted = false) }
+    private var loadMentionAvatars: Boolean = true
     private var currentIndex: Int = 0
 
     init {
@@ -56,10 +62,11 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
      * @param eventIds pinned event ids, in server (oldest first) order
      * @param previewProvider one-line preview for a given event id
      */
-    fun render(eventIds: List<String>, previewProvider: (String) -> Preview) {
+    fun render(eventIds: List<String>, loadMentionAvatars: Boolean, previewProvider: (String) -> Preview) {
         val pinsChanged = eventIds != this.eventIds
         this.eventIds = eventIds
         this.previewProvider = previewProvider
+        this.loadMentionAvatars = loadMentionAvatars
         if (eventIds.isEmpty()) {
             isVisible = false
             return
@@ -115,6 +122,8 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
             views.pinnedMessagesPreview.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
             views.pinnedMessagesPreview.clearDrawables()
         }
+        views.pinnedMessagesPreview.applyEmoteLineSpacing(views.pinnedMessagesPreview.text)
+        bindPreviewSpans()
         views.pinnedMessagesLabel.text = if (eventIds.size > 1) {
             resources.getString(CommonStrings.pinned_messages_title) + " · ${currentIndex + 1}/${eventIds.size}"
         } else {
@@ -122,6 +131,19 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
         }
         views.pinnedMessagesViewAll.isVisible = eventIds.size > 1
         renderIndicators()
+    }
+
+    /**
+     * Re-attach the preview's pills and emotes to this view. The formatter's preview cache shares span
+     * instances, and each span repaints only the last view that bound it (e.g. the pinned messages list).
+     */
+    fun bindPreviewSpans() {
+        if (!isVisible) return
+        val preview = views.pinnedMessagesPreview
+        preview.bindEmoteImageSpans()
+        preview.limitPillWidthsToView()
+        preview.bindPillImageSpans(loadAvatars = loadMentionAvatars)
+        preview.applySpoilerRenderLayer()
     }
 
     private fun onBannerClicked() {

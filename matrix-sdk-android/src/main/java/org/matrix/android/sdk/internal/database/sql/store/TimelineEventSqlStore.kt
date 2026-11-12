@@ -47,6 +47,11 @@ internal class TimelineEventSqlStore(
     fun getByRoomAndEventId(roomId: String, eventId: String): TimelineEventEntity? =
             queries.selectByRoomAndEventId(roomId, eventId).executeAsOneOrNull()?.toEntity()
 
+    fun getByRoomAndEventIds(roomId: String, eventIds: Collection<String>): List<TimelineEventEntity> =
+            eventIds.flatMapInChunks { queries.selectByRoomAndEventIds(roomId, it).executeAsList() }
+                    .toEntities()
+                    .distinctBy { it.eventId }
+
     /** [getByRoomAndEventId] for the open timeline's single-event refresh, withholding bulky content so one
      *  event cannot map two different ways and churn the snapshot mapper's memo. */
     fun getByRoomAndEventIdForTimeline(roomId: String, eventId: String): TimelineEventEntity? =

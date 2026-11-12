@@ -204,6 +204,7 @@ import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
+import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.permalink.NavigationInterceptor
@@ -1016,9 +1017,11 @@ class TimelineFragment :
             views.pinnedMessagesBanner.isVisible = false
             return
         }
-        val isDirect = state.asyncRoomSummary()?.isDirect ?: false
+        val roomSummary = state.asyncRoomSummary()
+        val isDirect = roomSummary?.isDirect ?: false
         views.pinnedMessagesBanner.render(
                 eventIds = pinnedEvents.map { it.eventId },
+                loadMentionAvatars = !shouldHideAvatars(roomSummary, vectorPreferences),
         ) { eventId ->
             pinnedEvents.firstOrNull { it.eventId == eventId }
                     ?.let {
@@ -1407,6 +1410,7 @@ class TimelineFragment :
         roomDetailPendingActionStore.data = null
         refreshOnMediaVisibilityChange()
         refreshOnTimelineVisibilityChange()
+        views.pinnedMessagesBanner.bindPreviewSpans()
     }
 
     private fun restoreToolbarBackground() {

@@ -13,13 +13,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -52,12 +52,12 @@ class GetPinnedEventsUseCaseTest {
     private val timelineService = mockk<TimelineService>()
     private val eventService = mockk<EventService>(relaxed = true)
     private val profiles = mockk<SenderProfileResolver>()
+    private val batch = mockk<SenderProfileResolver.Batch>()
     private val state = MutableStateFlow<Optional<Event>>(null.toOptional())
     private val cached = mutableMapOf<String, TimelineEvent>()
-    private val rows = mutableMapOf<String, MutableStateFlow<Optional<TimelineEvent>>>()
-    private val decryption = MutableSharedFlow<Unit>()
 
-    private fun row(id: String) = rows.getOrPut(id) { MutableStateFlow(cached[id].toOptional()) }
+    // Stands in for a timeline_event write or decryption signal waking the SDK's batch flow.
+    private val storeVersion = MutableStateFlow(0)
 
     private fun pin(vararg ids: String) {
         state.value = Event(
@@ -84,7 +84,7 @@ class GetPinnedEventsUseCaseTest {
 
     private fun cache(event: TimelineEvent) {
         cached[event.eventId] = event
-        row(event.eventId).value = event.toOptional()
+        storeVersion.value++
     }
 
     private fun TestScope.observe(): MutableList<List<TimelineEvent>> {
@@ -96,10 +96,12 @@ class GetPinnedEventsUseCaseTest {
         every { session.eventService() } returns eventService
         every { stateService.getStateEvent(any(), any()) } answers { state.value.getOrNull() }
         every { stateService.getStateEventFlow(any(), any()) } returns state
-        every { timelineService.getTimelineEvent(any()) } answers { cached[firstArg()] }
-        every { timelineService.getTimelineEventFlow(any()) } answers { row(firstArg()) }
-        every { eventService.decryptionUpdates(roomId) } returns decryption
-        every { profiles.resolve(any(), any(), any()) } answers { secondArg() }
+        every { timelineService.getTimelineEventsFlow(any()) } answers {
+            val ids = firstArg<List<String>>()
+            storeVersion.map { ids.mapNotNull { cached[it] } }.distinctUntilChanged()
+        }
+        every { profiles.newSession() } returns batch
+        every { batch.resolve(any(), any(), any()) } answers { secondArg() }
         val results = mutableListOf<List<TimelineEvent>>()
         backgroundScope.launch { GetPinnedEventsUseCase(session, profiles).execute(room).collect { results.add(it) } }
         return results
@@ -132,6 +134,19 @@ class GetPinnedEventsUseCaseTest {
         runCurrent()
 
         assertEquals(listOf("fast"), results.last().map { it.eventId })
+    }
+
+    @Test
+    fun `the last pinned messages are fetched first`() = runTest {
+        pin(*(1..6).map { "pin$it" }.toTypedArray())
+        coEvery { eventService.ensureEventCached(roomId, any(), true) } coAnswers { awaitCancellation() }
+
+        observe()
+        runCurrent()
+
+        (3..6).forEach { coVerify(exactly = 1) { eventService.ensureEventCached(roomId, "pin$it", true) } }
+        coVerify(exactly = 0) { eventService.ensureEventCached(roomId, "pin1", true) }
+        coVerify(exactly = 0) { eventService.ensureEventCached(roomId, "pin2", true) }
     }
 
     @Test
@@ -180,7 +195,7 @@ class GetPinnedEventsUseCaseTest {
     }
 
     @Test
-    fun `decryption is observed during fetching without refetching missing pins`() = runTest {
+    fun `an encrypted pin is decrypted directly once and its result shown without refetching`() = runTest {
         pin("encrypted", "missing")
         cache(event("encrypted", encrypted = true))
         val fetch = CompletableDeferred<Event?>()
@@ -189,22 +204,23 @@ class GetPinnedEventsUseCaseTest {
         runCurrent()
         assertEquals(EventType.ENCRYPTED, results.last().single().root.getClearType())
 
-        cached["encrypted"] = event("encrypted", encrypted = true).also {
-            it.root.mxDecryptionResult = OlmDecryptionResult(
-                    payload = mapOf("type" to EventType.MESSAGE, "content" to mapOf("body" to "decrypted")),
-            )
-        }
-        decryption.emit(Unit)
+        cache(
+                event("encrypted", encrypted = true).also {
+                    it.root.mxDecryptionResult = OlmDecryptionResult(
+                            payload = mapOf("type" to EventType.MESSAGE, "content" to mapOf("body" to "decrypted")),
+                    )
+                }
+        )
         runCurrent()
         assertEquals("decrypted", results.last().single().root.getClearContent()?.get("body"))
         assertFalse(fetch.isCompleted)
 
         fetch.complete(null)
         runCurrent()
-        decryption.emit(Unit)
+        storeVersion.value++
         runCurrent()
         coVerify(exactly = 1) { eventService.ensureEventCached(roomId, "missing", true) }
-        verify(exactly = 1) { eventService.requestDecryption(any()) }
+        coVerify(exactly = 1) { eventService.decryptEventNow(any()) }
     }
 
     @Test
@@ -240,7 +256,7 @@ class GetPinnedEventsUseCaseTest {
         runCurrent()
 
         cached.remove("cached")
-        row("cached").value = null.toOptional()
+        storeVersion.value++
         runCurrent()
 
         assertEquals(listOf("cached"), results.last().map { it.eventId })

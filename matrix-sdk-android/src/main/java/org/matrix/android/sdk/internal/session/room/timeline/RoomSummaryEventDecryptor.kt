@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -115,11 +116,31 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
     }
 
     private suspend fun handleDecryptEvent(event: Event) {
-        if (event.getClearType() != EventType.ENCRYPTED) return
-        val algorithm = event.content?.get("algorithm") as? String
-        if (algorithm != MXCRYPTO_ALGORITHM_MEGOLM) return
+        val failure = decryptAndPersist(event) ?: return
+        if (failure.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||
+                failure.errorType == MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX) {
+            (event.content?.get("session_id") as? String)?.let { sessionId ->
+                unknownSessionsFailure.getOrPut(sessionId) { mutableSetOf() }
+                        .add(event)
+            }
+        }
+    }
 
-        try {
+    /**
+     * Decrypts [event] on the caller's coroutine instead of queueing it behind every room's preview. A
+     * failure goes through the queue, which tracks it and retries once its key arrives.
+     */
+    suspend fun decryptNow(event: Event) {
+        if (decryptAndPersist(event) != null) requestDecryption(event)
+    }
+
+    /** Returns the crypto failure, or null when decrypted or there was nothing to decrypt. */
+    private suspend fun decryptAndPersist(event: Event): MXCryptoError.Base? {
+        if (event.getClearType() != EventType.ENCRYPTED) return null
+        val algorithm = event.content?.get("algorithm") as? String
+        if (algorithm != MXCRYPTO_ALGORITHM_MEGOLM) return null
+
+        return try {
             val result = cryptoService.get().decryptEvent(event, "")
             val clearPrevContent = cryptoService.get().decryptStatePrevContent(event, event.roomId.orEmpty(), "")
             // now let's persist the result in database
@@ -143,26 +164,20 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
             // The write above lands in the event table, which an open timeline's row flow doesn't
             // observe — signal it so the newly-decrypted preview event stops showing as encrypted.
             event.roomId?.let { decryptionSignal.onDecrypted(it) }
+            null
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: Throwable) {
             Timber.v(failure, "Failed to decrypt event ${event.eventId}")
-            // We don't need to get more details, just mark this session in failures
-            if (failure is MXCryptoError.Base) {
-                database.awaitDbTransaction(dispatcher) {
-                    stores.event.applyDecryptionError(
-                            event.eventId.orEmpty(),
-                            failure.errorType.name,
-                            failure.technicalMessage.takeIf { it.isNotEmpty() } ?: failure.detailedErrorDescription,
-                    )
-                }
-
-                if (failure.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||
-                        failure.errorType == MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX) {
-                    (event.content.get("session_id") as? String)?.let { sessionId ->
-                        unknownSessionsFailure.getOrPut(sessionId) { mutableSetOf() }
-                                .add(event)
-                    }
-                }
+            if (failure !is MXCryptoError.Base) return null
+            database.awaitDbTransaction(dispatcher) {
+                stores.event.applyDecryptionError(
+                        event.eventId.orEmpty(),
+                        failure.errorType.name,
+                        failure.technicalMessage.takeIf { it.isNotEmpty() } ?: failure.detailedErrorDescription,
+                )
             }
+            failure
         }
     }
 

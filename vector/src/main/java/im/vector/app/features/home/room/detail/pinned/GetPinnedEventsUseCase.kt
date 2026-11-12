@@ -13,14 +13,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -29,7 +26,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.flow.flow
@@ -64,48 +60,55 @@ class GetPinnedEventsUseCase @Inject constructor(
     }
 
     private fun observePinnedEvents(room: Room, ids: List<String>): Flow<List<TimelineEvent>> = channelFlow {
-        val fetchSlots = Semaphore(4)
-        ids.forEach { eventId ->
-            launch {
-                fetchSlots.withPermit {
-                    if (room.getTimelineEvent(eventId) == null) {
-                        try {
-                            session.eventService().ensureEventCached(room.roomId, eventId, requireTimelineEvent = true)
-                        } catch (failure: CancellationException) {
-                            throw failure
-                        } catch (failure: Exception) {
-                            Timber.w(failure, "Failed to load pinned event %s in %s", eventId, room.roomId)
-                        }
-                    }
+        // Timeline chunks can be evicted while the message remains pinned, so keep the last copy seen.
+        val loaded = HashMap<String, TimelineEvent>()
+        val decryptRequested = HashSet<String>()
+        var fetchStarted = false
+        // Sync may still supply a pin whose fetch failed, so the cache stays observed throughout.
+        room.timelineService().getTimelineEventsFlow(ids).collect { stored ->
+            stored.forEach { loaded[it.eventId] = it }
+            if (!fetchStarted) {
+                fetchStarted = true
+                val fetchSlots = Semaphore(4)
+                // Last pinned first: usually the newest message, which the banner opens on.
+                ids.filterNot { it in loaded }.asReversed().forEach { eventId ->
+                    launch { fetchSlots.withPermit { fetch(room, eventId) } }
                 }
             }
-        }
-
-        // Observe the cache independently: a slow fetch must not hold back other pins, and sync may
-        // supply a missing event after its fetch failed.
-        combine(ids.map { observePinnedEvent(room, it) }) { events ->
-            events.filterNotNull().sortedBy { it.root.originServerTs ?: 0 }
-        }
-                .distinctUntilChanged()
-                .collect { send(it) }
-    }.flowOn(room.coroutineDispatchers.io)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observePinnedEvent(room: Room, eventId: String): Flow<TimelineEvent?> {
-        return merge(
-                room.flow().liveTimelineEvent(eventId).map { it.getOrNull() },
-                session.eventService().decryptionUpdates(room.roomId).map { room.getTimelineEvent(eventId) },
-        )
-                // Timeline chunks can be evicted while the message remains pinned.
-                .runningReduce { previous, current -> current ?: previous }
-                .distinctUntilChanged()
-                .map { event ->
-                    event?.takeUnless { it.root.isRedacted() }?.let {
-                        if (it.root.getClearType() == EventType.ENCRYPTED) {
-                            session.eventService().requestDecryption(it.root)
-                        }
-                        it.copy(senderInfo = senderProfileResolver.resolve(room.roomId, it.senderInfo, false))
-                    }
+            stored.forEach { event ->
+                if (event.root.getClearType() == EventType.ENCRYPTED && decryptRequested.add(event.eventId)) {
+                    launch { decrypt(event) }
                 }
+            }
+            val profiles = senderProfileResolver.newSession()
+            send(
+                    ids.mapNotNull { loaded[it] }
+                            .filterNot { it.root.isRedacted() }
+                            .sortedBy { it.root.originServerTs ?: 0 }
+                            .map { it.copy(senderInfo = profiles.resolve(room.roomId, it.senderInfo, false)) }
+            )
+        }
+    }
+            .distinctUntilChanged()
+            .flowOn(room.coroutineDispatchers.io)
+
+    private suspend fun fetch(room: Room, eventId: String) {
+        try {
+            session.eventService().ensureEventCached(room.roomId, eventId, requireTimelineEvent = true)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            Timber.w(failure, "Failed to load pinned event %s in %s", eventId, room.roomId)
+        }
+    }
+
+    private suspend fun decrypt(event: TimelineEvent) {
+        try {
+            session.eventService().decryptEventNow(event.root)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            Timber.w(failure, "Failed to decrypt pinned event %s", event.eventId)
+        }
     }
 }

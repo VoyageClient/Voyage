@@ -33,6 +33,7 @@ import android.text.style.TextAppearanceSpan
 import android.widget.TextView
 import androidx.annotation.UiThread
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.view.doOnLayout
 import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -629,6 +630,19 @@ fun CharSequence.pillsToCopyText(): CharSequence {
 fun TextView.bindPillImageSpans(loadAvatars: Boolean = true) {
     val spanned = text as? Spanned ?: return
     spanned.getSpans(0, spanned.length, PillImageSpan::class.java).forEach { it.bind(this, loadAvatars) }
+}
+
+/** Caps each pill in a one-line preview at the view's width: Android drops an oversized replacement span to "…" before the chip can shorten its label. */
+fun TextView.limitPillWidthsToView() {
+    if (width == 0) {
+        doOnLayout { limitPillWidthsToView() }
+        return
+    }
+    val spanned = text as? Spanned ?: return
+    val maxWidth = width - paddingLeft - paddingRight
+    if (spanned.getSpans(0, spanned.length, PillImageSpan::class.java).map { it.limitWidthTo(maxWidth) }.any { it }) {
+        requestLayout()
+    }
 }
 
 /**
