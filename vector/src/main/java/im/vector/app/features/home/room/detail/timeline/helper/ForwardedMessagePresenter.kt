@@ -77,9 +77,12 @@ class ForwardedMessagePresenter @Inject constructor(
             val name = session?.forwardedSenderDisplayName(sender, info.roomId, event.roomId)
             Origin(name ?: sender, MatrixItem.UserItem(sender, name))
         }
+        val summary = info?.roomId?.let { session?.getRoomSummary(it) }
         return Description(
                 origin = origin,
-                roomName = info?.roomId?.let { session?.getRoomSummary(it)?.displayName },
+                roomName = summary?.displayName?.takeIf { summary.membership.isActive() }
+                        ?: info?.roomName?.takeIf { it.isNotBlank() }
+                        ?: summary?.displayName,
                 formattedDate = info?.originServerTs?.let { dateFormatter.format(it, DateFormatKind.DEFAULT_DATE_AND_TIME) },
         )
     }
@@ -159,7 +162,7 @@ class ForwardedMessagePresenter @Inject constructor(
 
     private fun footer(description: Description): CharSequence {
         val text = SpannableStringBuilder(
-                listOfNotNull(description.roomName ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
+                listOfNotNull(description.roomName?.prepareForDisplay() ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
                         .joinToString(stringProvider.getString(CommonStrings.forwarded_footer_separator))
         )
         text.setSpan(ForegroundColorSpan(secondaryColor()), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

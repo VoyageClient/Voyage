@@ -78,6 +78,44 @@ class ForwardedInfoTest {
     }
 
     @Test
+    fun `the source room's name and avatar are carried`() {
+        val payload = event().toForwardPayload(sourceRoom = ForwardSourceRoom(name = "Announcements", avatarUrl = "mxc://example.org/abc"))
+
+        assertEquals("Announcements", payload.forwarded()["room_name"])
+        assertEquals("mxc://example.org/abc", payload.forwarded()["room_avatar_url"])
+        assertEquals("Announcements", payload.getForwardedInfo()?.roomName)
+        assertEquals("mxc://example.org/abc", payload.getForwardedInfo()?.roomAvatarUrl)
+    }
+
+    @Test
+    fun `a blank source room name or avatar is left out`() {
+        val payload = event().toForwardPayload(sourceRoom = ForwardSourceRoom(name = " ", avatarUrl = ""))
+
+        assertEquals(origin + ("content" to mapOf("msgtype" to "m.text", "body" to "hello")), payload.forwarded())
+    }
+
+    @Test
+    fun `without a source link the source room is left out`() {
+        val payload = event().toForwardPayload(includeSourceLink = false, sourceRoom = ForwardSourceRoom(name = "DM", avatarUrl = "mxc://example.org/abc"))
+
+        assertFalse(payload.forwarded().containsKey("room_name"))
+        assertFalse(payload.forwarded().containsKey("room_avatar_url"))
+    }
+
+    @Test
+    fun `forwarding a forward keeps its source room rather than ours`() {
+        val original = mapOf(
+                "room_id" to "!origin:example.org",
+                "room_name" to "Origin",
+                "content" to mapOf("msgtype" to "m.text", "body" to "original")
+        )
+        val payload = event(content = mapOf("msgtype" to "m.text", "body" to "fallback", ForwardedInfo.STABLE_KEY to original))
+                .toForwardPayload(sourceRoom = ForwardSourceRoom(name = "Middle", avatarUrl = "mxc://example.org/middle"))
+
+        assertEquals(original, payload.forwarded())
+    }
+
+    @Test
     fun `a local echo has no event id to point at`() {
         val payload = event(eventId = LocalEcho.createLocalEchoId()).toForwardPayload()
 

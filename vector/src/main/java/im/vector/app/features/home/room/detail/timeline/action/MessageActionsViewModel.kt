@@ -39,7 +39,7 @@ import im.vector.app.features.redaction.preservation.RedactedContentRevealManage
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
-import im.vector.app.features.share.isDirectRoom
+import im.vector.app.features.share.forwardOrigin
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -84,7 +84,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.forwardOrigin
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
@@ -657,7 +656,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         // The caption belongs to the whole gallery, but a tile is where most long presses land.
         addTranslateAction(timelineEvent.eventId, timelineEvent, messageContent)
         val itemContent = item.toAttachmentContentDict() ?: return
-        val origin = timelineEvent.root.forwardOrigin(includeSourceLink = !session.isDirectRoom(timelineEvent.roomId))
+        val origin = session.forwardOrigin(timelineEvent.root)
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, messageForwardPayload(itemContent, origin)))
     }
 

@@ -16,7 +16,7 @@ import im.vector.app.features.pgp.PgpResult
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.share.isDirectRoom
+import im.vector.app.features.share.forwardPayload
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -27,7 +27,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
-import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -83,7 +82,7 @@ class MessageActionEligibility @Inject constructor(
             checkIfCanRedactEventUseCase.execute(event, actionPermissions)
 
     fun forwardPayload(event: TimelineEvent): Map<String, Any?> =
-            event.root.toForwardPayload(event.getLastEditNewContent(), includeSourceLink = !session.isDirectRoom(event.roomId))
+            session.forwardPayload(event.root, event.getLastEditNewContent())
 
     // Decrypted plaintext for a PGP-over-plaintext message, for the long-press preview; null when
     // not a PGP message, PGP disabled, or it can't be decrypted (then the raw body is shown).

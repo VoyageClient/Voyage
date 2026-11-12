@@ -21,6 +21,8 @@ import org.matrix.android.sdk.api.util.ContentUtils
 data class ForwardedInfo(
         @Json(name = "event_id") val eventId: String? = null,
         @Json(name = "room_id") val roomId: String? = null,
+        @Json(name = "room_name") val roomName: String? = null,
+        @Json(name = "room_avatar_url") val roomAvatarUrl: String? = null,
         @Json(name = "sender") val sender: String? = null,
         @Json(name = "origin_server_ts") val originServerTs: Long? = null,
         @Json(name = "content") val content: Content? = null,
@@ -32,7 +34,7 @@ data class ForwardedInfo(
 
         val KEYS = listOf(STABLE_KEY, UNSTABLE_KEY, LEGACY_KEY)
 
-        internal val ORIGIN_FIELDS = listOf("event_id", "room_id", "sender", "origin_server_ts")
+        internal val ORIGIN_FIELDS = listOf("event_id", "room_id", "room_name", "room_avatar_url", "sender", "origin_server_ts")
     }
 }
 
@@ -68,14 +70,17 @@ private val OWN_RELATION_KEYS = listOf("m.relates_to", "m.mentions", "m.new_cont
 
 /**
  * What the room picker needs to forward this event, with [editedContent] standing in for an edited message.
- * [includeSourceLink] controls room and event IDs for a new forward; existing forwards keep their origin.
+ * [includeSourceLink] controls the room and event fields of a new forward; existing forwards keep their origin.
  */
-fun Event.toForwardPayload(editedContent: Content? = null, includeSourceLink: Boolean = true): Content {
+fun Event.toForwardPayload(
+        editedContent: Content? = null,
+        includeSourceLink: Boolean = true,
+        sourceRoom: ForwardSourceRoom? = null,
+): Content {
     val eventType = getClearType()
     require(eventType == EventType.MESSAGE || eventType == EventType.STICKER)
     val clear = getClearContent().orEmpty()
     val existing = clear.rawForwarded()
-    val origin = forwardOrigin(includeSourceLink)
     if (existing != null) {
         // A forward of a forward points at the original message, not at the copy in between.
         val forwarded = if ((existing["content"] as? Map<*, *>)?.isValidForwardedContent(eventType) == true) {
@@ -85,17 +90,21 @@ fun Event.toForwardPayload(editedContent: Content? = null, includeSourceLink: Bo
         }
         return mapOf(ForwardedInfo.STABLE_KEY to forwarded)
     }
-    return messageForwardPayload((editedContent ?: clear).toForwardedContent(), origin)
+    return messageForwardPayload((editedContent ?: clear).toForwardedContent(), forwardOrigin(includeSourceLink, sourceRoom))
 }
+
+data class ForwardSourceRoom(val name: String?, val avatarUrl: String?)
 
 /** A forward payload for [content] that is already the message to forward, such as one item of a gallery. */
 fun messageForwardPayload(content: Content, origin: Map<String, Any>): Content =
         mapOf(ForwardedInfo.STABLE_KEY to (origin + ("content" to content)))
 
-/** Event, room and sender ids of this event, for an `m.forwarded` object; a local echo has no event id yet. */
-fun Event.forwardOrigin(includeSourceLink: Boolean = true): Map<String, Any> = listOfNotNull(
+/** Where this event was sent and by whom, for an `m.forwarded` object; a local echo has no event id yet. */
+fun Event.forwardOrigin(includeSourceLink: Boolean = true, sourceRoom: ForwardSourceRoom? = null): Map<String, Any> = listOfNotNull(
         eventId?.takeIf { includeSourceLink && !LocalEcho.isLocalEchoId(it) }?.let { "event_id" to it },
         roomId?.takeIf { includeSourceLink }?.let { "room_id" to it },
+        sourceRoom?.name?.takeIf { includeSourceLink && it.isNotBlank() }?.let { "room_name" to it },
+        sourceRoom?.avatarUrl?.takeIf { includeSourceLink && it.isNotBlank() }?.let { "room_avatar_url" to it },
         senderId?.let { "sender" to it },
         originServerTs?.let { "origin_server_ts" to it },
 ).toMap()

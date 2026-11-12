@@ -50,7 +50,11 @@ class ForwardContentBuilderTest {
                 "format" to "org.matrix.custom.html",
                 "formatted_body" to "<p>Meeting starts at noon.</p>"
         )
-        val forwarded = origin("\$original:example.org") + ("content" to content)
+        val forwarded = origin("\$original:example.org") + mapOf(
+                "room_name" to "Meeting Announcements",
+                "room_avatar_url" to "mxc://example.org/abc123",
+                "content" to content,
+        )
 
         val expected = mapOf(
                 "msgtype" to "m.text",
@@ -163,7 +167,7 @@ class ForwardContentBuilderTest {
     @Test
     fun `a silent forward says nothing about the origin`() {
         val content = mapOf("msgtype" to "m.text", "body" to "hi")
-        val result = build(origin("\$original:example.org") + ("content" to content), silent = true)
+        val result = build(origin("\$original:example.org") + mapOf("room_name" to "Source", "content" to content), silent = true)
 
         assertEquals(mapOf("content" to content), result[ForwardedInfo.STABLE_KEY])
         assertEquals("Forwarded message\nhi", result["body"])

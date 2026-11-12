@@ -224,7 +224,7 @@ import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.ForwardItem
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
-import im.vector.app.features.share.isDirectRoom
+import im.vector.app.features.share.forwardPayload
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.widgets.WidgetActivity
@@ -276,7 +276,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVerification
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
-import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -2951,7 +2950,7 @@ class TimelineFragment :
                 EventSharedAction.Forward(
                         eventId,
                         it.root.getClearType(),
-                        it.root.toForwardPayload(it.getLastEditNewContent(), includeSourceLink = !session.isDirectRoom(it.roomId)),
+                        session.forwardPayload(it.root, it.getLastEditNewContent()),
                 )
             }
             PendingEventAction.SHARE -> messageContent?.let { EventSharedAction.Share(eventId, it) }

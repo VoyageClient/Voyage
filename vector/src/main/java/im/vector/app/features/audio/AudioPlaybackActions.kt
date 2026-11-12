@@ -32,7 +32,7 @@ import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
-import im.vector.app.features.share.isDirectRoom
+import im.vector.app.features.share.forwardPayload
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
@@ -46,7 +46,6 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.message.ForwardedInfo
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
@@ -77,8 +76,7 @@ class AudioPlaybackActions @Inject constructor(
                             originServerTs = cached?.originServerTs,
                             content = track.content.toContent(),
                     )
-                    val payload = event.copyAll(roomId = event.roomId ?: track.roomId)
-                            .toForwardPayload(track.content.toContent(), includeSourceLink = !session.isDirectRoom(track.roomId))
+                    val payload = session.forwardPayload(event.copyAll(roomId = event.roomId ?: track.roomId), track.content.toContent())
                     val audioPayload = if (track.galleryIndex != null) {
                         val forwarded = requireNotNull(payload[ForwardedInfo.STABLE_KEY] as? Map<*, *>)
                         mapOf(ForwardedInfo.STABLE_KEY to (forwarded + ("content" to track.content.toContent())))
