@@ -30,6 +30,9 @@ SELECT * FROM room_member_summary WHERE room_id = ? AND membership_str IN ?;
 selectByRoomAndUser:
 SELECT * FROM room_member_summary WHERE room_id = ? AND user_id = ?;
 
+selectUserIdsByRoomAndMembership:
+SELECT user_id FROM room_member_summary WHERE room_id = ? AND membership_str = ?;
+
 upsert:
 INSERT OR REPLACE INTO room_member_summary(
     primary_key, user_id, room_id, display_name, avatar_url, reason, is_direct, membership_str, user_presence_user_id,

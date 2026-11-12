@@ -119,7 +119,11 @@ internal class DefaultSendService @AssistedInject constructor(
     override suspend fun sendEventNow(eventType: String, content: Content, txnId: String): String {
         val event = localEchoEventFactory.createEvent(roomId, eventType, content)
                 .copy(eventId = txnId, unsignedData = UnsignedData(age = null, transactionId = txnId))
-        return sendEventTask.execute(SendEventTask.Params(event, cryptoStore.roomWasOnceEncrypted(roomId)))
+        val remoteId = sendEventTask.execute(SendEventTask.Params(event, cryptoStore.roomWasOnceEncrypted(roomId)))
+        // Shown once the server has it, not when sync returns a run of these several at a time. The send task
+        // has already mapped the remote id, so an echo whose remote copy has synced is skipped, not duplicated.
+        localEchoRepository.createLocalEcho(event, SendState.SENT)
+        return remoteId
     }
 
     override fun prefetchLinkPreviews(text: CharSequence) {

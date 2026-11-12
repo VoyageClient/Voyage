@@ -29,11 +29,11 @@ import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.ForwardBarSpan
+import im.vector.app.features.share.forwardOriginRoom
 import im.vector.app.features.share.forwardedSenderDisplayName
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -77,12 +77,12 @@ class ForwardedMessagePresenter @Inject constructor(
             val name = session?.forwardedSenderDisplayName(sender, info.roomId, event.roomId)
             Origin(name ?: sender, MatrixItem.UserItem(sender, name))
         }
-        val summary = info?.roomId?.let { session?.getRoomSummary(it) }
+        val room = info?.roomId?.let { session?.forwardOriginRoom(it) }
         return Description(
                 origin = origin,
-                roomName = summary?.displayName?.takeIf { summary.membership.isActive() }
+                roomName = room?.displayName?.takeIf { room.isActive }
                         ?: info?.roomName?.takeIf { it.isNotBlank() }
-                        ?: summary?.displayName,
+                        ?: room?.displayName,
                 formattedDate = info?.originServerTs?.let { dateFormatter.format(it, DateFormatKind.DEFAULT_DATE_AND_TIME) },
         )
     }

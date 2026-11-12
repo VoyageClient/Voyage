@@ -16,10 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.permalinks
 
+import android.os.SystemClock
+import android.util.LruCache
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
+import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomGetter
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
@@ -27,11 +31,20 @@ import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Provider
 
+// Session-scoped so the per-room server counts are shared by every caller.
+@SessionScope
 internal class ViaParameterFinder @Inject constructor(
         @UserId private val userId: String,
         private val roomGetterProvider: Provider<RoomGetter>,
-        private val stateEventDataSource: StateEventDataSource
+        private val stateEventDataSource: StateEventDataSource,
+        private val stores: SessionStores,
 ) {
+
+    private class ServerCounts(val byServer: Map<String, Int>, val computedAt: Long)
+
+    // A timeline of forwards asks once per message, and a large room has tens of thousands of members to
+    // count. Via servers are only join hints, so a few minutes' staleness costs nothing.
+    private val serverCounts = LruCache<String, ServerCounts>(SERVER_COUNTS_CACHE_SIZE)
 
     fun computeViaParams(roomId: String, max: Int): List<String> {
         return computeViaParams(userId, roomId, max)
@@ -52,10 +65,7 @@ internal class ViaParameterFinder @Inject constructor(
 
     fun computeViaParams(userId: String, roomId: String, max: Int): List<String> {
         val userHomeserver = userId.getServerName()
-        return getUserIdsOfJoinedMembers(roomId)
-                .map { it.getServerName() }
-                .groupBy { it }
-                .mapValues { it.value.size }
+        return joinedServerCounts(roomId)
                 .toMutableMap()
                 // Ensure the user homeserver will be included
                 .apply { this[userHomeserver] = Int.MAX_VALUE }
@@ -63,16 +73,15 @@ internal class ViaParameterFinder @Inject constructor(
                 .take(max)
     }
 
-    /**
-     * Get a set of userIds of joined members of a room.
-     */
-    private fun getUserIdsOfJoinedMembers(roomId: String): Set<String> {
-        return roomGetterProvider.get().getRoom(roomId)
-                ?.membershipService()
-                ?.getRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.JOIN) })
-                ?.map { it.userId }
-                .orEmpty()
-                .toSet()
+    private fun joinedServerCounts(roomId: String): Map<String, Int> {
+        val now = SystemClock.elapsedRealtime()
+        serverCounts.get(roomId)?.takeIf { now - it.computedAt < SERVER_COUNTS_TTL_MS }?.let { return it.byServer }
+        // Split directly rather than through getServerName(), which validates every id against a regex in debug builds.
+        val counts = stores.roomMember.getUserIdsByRoomAndMembership(roomId, Membership.JOIN)
+                .groupingBy { it.substringAfter(':') }
+                .eachCount()
+        serverCounts.put(roomId, ServerCounts(counts, now))
+        return counts
     }
 
     // not used much for now but as per MSC1772
@@ -99,5 +108,10 @@ internal class ViaParameterFinder @Inject constructor(
     fun userCanInvite(userId: String, roomId: String): Boolean {
         val roomPowerLevels = stateEventDataSource.getRoomPowerLevels(roomId)
         return roomPowerLevels.isUserAbleToInvite(userId)
+    }
+
+    private companion object {
+        const val SERVER_COUNTS_CACHE_SIZE = 64
+        const val SERVER_COUNTS_TTL_MS = 5 * 60_000L
     }
 }

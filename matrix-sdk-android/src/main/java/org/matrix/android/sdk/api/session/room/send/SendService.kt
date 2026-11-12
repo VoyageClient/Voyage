@@ -42,8 +42,9 @@ interface SendService {
     fun sendEvent(eventType: String, content: Content?, verbatim: Boolean = false): Cancelable
 
     /**
-     * Send an event straight to the server, without a local echo or the send queue, and wait for it.
-     * For callers that pace and order a long run of sends themselves.
+     * Send an event straight to the server, bypassing the send queue, and wait for it. For callers that
+     * pace and order a long run of sends themselves. The event appears in the room, already sent, once the
+     * server has accepted it.
      * @param txnId the transaction id, which makes retrying after a failure or a restart safe: reuse the
      * same one and the server keeps a single event. Must be a [org.matrix.android.sdk.api.session.events.model.LocalEcho] id.
      * @return the id of the sent event

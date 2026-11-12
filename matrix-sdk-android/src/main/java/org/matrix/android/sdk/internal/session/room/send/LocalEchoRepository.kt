@@ -134,7 +134,7 @@ internal class LocalEchoRepository @Inject constructor(
     fun resolveRemoteId(eventId: String): String? =
             if (LocalEcho.isLocalEchoId(eventId)) remoteIdsByLocalEcho[eventId] else eventId
 
-    fun createLocalEcho(event: Event) {
+    fun createLocalEcho(event: Event, sendState: SendState = SendState.UNSENT) {
         val roomId = event.roomId ?: throw IllegalStateException("You should have set a roomId for your event")
         val senderId = event.senderId ?: throw IllegalStateException("You should have set a senderId for your event")
         val eventId = event.eventId ?: throw IllegalStateException("You should have set an eventId for your event")
@@ -144,7 +144,7 @@ internal class LocalEchoRepository @Inject constructor(
         val announced = CompletableDeferred<Pair<EventEntity, TimelineEventEntity>>()
         echoAnnouncements.trySend {
             try {
-                val eventEntity = event.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
+                val eventEntity = event.toEntity(roomId, sendState, clock.epochMillis())
                 val roomMemberHelper = SqlRoomMemberHelper(stores, roomId)
                 val myUser = roomMemberHelper.getLastRoomMember(senderId)
                 val localId = UUID.randomUUID().mostSignificantBits
