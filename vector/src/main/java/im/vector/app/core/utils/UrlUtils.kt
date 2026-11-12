@@ -27,6 +27,18 @@ fun String.isExpectedMscLink(title: String): Boolean {
     return this == "${VectorAutoLinkPatterns.MSC_PULL_URL}$proposal"
 }
 
+private val GITHUB_REF = Regex("[A-Za-z0-9-]+/[A-Za-z0-9._-]+(?:#\\d+)?")
+
+fun String.isExpectedGitHubLink(title: String): Boolean {
+    if (!GITHUB_REF.matches(title)) return false
+    val url = try {
+        URL(this)
+    } catch (t: Throwable) {
+        return false
+    }
+    return url.protocol in setOf("http", "https") && url.host.equals("github.com", ignoreCase = true) && url.userInfo == null
+}
+
 /**
  * Ensure string starts with "http". If it is not the case, "https://" is added, only if the String is not empty
  */

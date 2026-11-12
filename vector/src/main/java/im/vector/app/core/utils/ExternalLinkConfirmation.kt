@@ -35,7 +35,7 @@ fun openExternalLinkWithConfirmation(context: Context, url: String, label: Strin
         label.isValidUrl() && url.isValidUrl() && URL(label).host != URL(url).host -> {
             showMismatchDialog(activity, seenUrl = label, actualUrl = url, continueTo = url)
         }
-        !label.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(label) &&
+        !label.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(label) && !url.isExpectedGitHubLink(label) &&
                 url != "http://$label" && url != "https://$label" -> {
             showDestinationDialog(activity, url)
         }

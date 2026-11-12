@@ -34,6 +34,22 @@ class UrlUtilsTest {
     }
 
     @Test
+    fun `GitHub shorthand labels are expected for any github_com destination`() {
+        val repoUrl = "https://github.com/matrix-org/matrix-spec-proposals"
+        "$repoUrl/pull/1234".isExpectedGitHubLink("matrix-org/matrix-spec-proposals#1234") shouldBeEqualTo true
+        repoUrl.isExpectedGitHubLink("matrix-org/matrix-spec-proposals") shouldBeEqualTo true
+        "https://github.com/matrix-org/other/issues/1".isExpectedGitHubLink("matrix-org/matrix-spec-proposals#1234") shouldBeEqualTo true
+        repoUrl.isExpectedGitHubLink("see matrix-org/matrix-spec-proposals") shouldBeEqualTo false
+        repoUrl.isExpectedGitHubLink("click here") shouldBeEqualTo false
+        listOf(
+                "https://github.com.evil.org/matrix-org/matrix-spec-proposals",
+                "https://github.com@evil.org/matrix-org/matrix-spec-proposals",
+                "https://evil.org/github.com/matrix-org/matrix-spec-proposals",
+                "ftp://github.com/matrix-org/matrix-spec-proposals",
+        ).forEach { it.isExpectedGitHubLink("matrix-org/matrix-spec-proposals") shouldBeEqualTo false }
+    }
+
+    @Test
     fun `given a web url, when checking it is tappable, then it is`() {
         "https://matrix.to/#/@alice:example.org".isTappableLink() shouldBeEqualTo true
         "https://example.org".isTappableLink() shouldBeEqualTo true
