@@ -398,7 +398,7 @@ class MergedHeaderItemFactory @Inject constructor(
         )
         return MergedSimilarEventsItem_()
                 .id(run.epoxyId)
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(partialState.isDirectRoom()))
                 .highlighted(isCollapsed && highlighted)
                 .attributes(attributes)
                 .also {
@@ -440,7 +440,7 @@ class MergedHeaderItemFactory @Inject constructor(
         )
         return MergedRoomCreationItem_()
                 .id(run.epoxyId)
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(partialState.isDirectRoom()))
                 .highlighted(isCollapsed && highlighted)
                 .attributes(attributes)
                 .also {

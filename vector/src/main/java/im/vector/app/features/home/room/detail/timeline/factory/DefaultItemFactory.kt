@@ -47,7 +47,7 @@ class DefaultItemFactory @Inject constructor(
                 reactionsSummaryEvents = reactionsSummaryEvents,
         )
         return DefaultItem_()
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
                 .highlighted(highlight)
                 .attributes(attributes)
     }

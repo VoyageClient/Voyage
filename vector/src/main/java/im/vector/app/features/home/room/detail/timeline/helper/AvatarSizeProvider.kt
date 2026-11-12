@@ -8,13 +8,17 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.style.TimelineLayoutSettings
 import im.vector.app.features.home.room.detail.timeline.style.TimelineLayoutSettingsProvider
+import im.vector.app.features.themes.BubbleThemeUtils
 import javax.inject.Inject
 
 class AvatarSizeProvider @Inject constructor(
         private val dimensionConverter: DimensionConverter,
-        private val layoutSettingsProvider: TimelineLayoutSettingsProvider
+        private val layoutSettingsProvider: TimelineLayoutSettingsProvider,
+        private val bubbleThemeUtils: BubbleThemeUtils,
 ) {
 
     private val avatarStyle by lazy {
@@ -27,6 +31,21 @@ class AvatarSizeProvider @Inject constructor(
 
     val leftGuideline: Int by lazy {
         dimensionConverter.dpToPx(avatarStyle.avatarSizeDP + avatarStyle.marginDP)
+    }
+
+    // Two-sided bubbles in a DM hide both avatars, so non-message rows align with the bubbles instead.
+    fun nonMessageGuideline(isDirect: Boolean): Int {
+        val bubblesWithoutAvatars = isDirect && bubbleThemeUtils.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_BOTH
+        return if (bubblesWithoutAvatars) {
+            dimensionConverter.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_size)
+        } else {
+            leftGuideline
+        }
+    }
+
+    // An E2E shield sits in the guideline's gutter and needs its full width.
+    fun nonMessageGuideline(informationData: MessageInformationData): Int {
+        return if (informationData.e2eDecoration == E2EDecoration.NONE) nonMessageGuideline(informationData.isDirect) else leftGuideline
     }
 
     val avatarSize: Int by lazy {

@@ -100,7 +100,7 @@ class VerificationItemFactory @Inject constructor(
                                         )
                                 )
                                 .highlighted(params.isHighlighted)
-                                .leftGuideline(avatarSizeProvider.leftGuideline)
+                                .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
                     }
                     else -> return ignoredConclusion(params)
                 }
@@ -134,7 +134,7 @@ class VerificationItemFactory @Inject constructor(
                                 )
                         )
                         .highlighted(params.isHighlighted)
-                        .leftGuideline(avatarSizeProvider.leftGuideline)
+                        .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
             }
         }
         return null

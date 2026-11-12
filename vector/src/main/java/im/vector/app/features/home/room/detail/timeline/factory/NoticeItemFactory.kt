@@ -45,7 +45,7 @@ class NoticeItemFactory @Inject constructor(
         )
         return NoticeItem_()
                 .singleLine(event.root.getClearType() == EventType.STATE_ROOM_TOPIC)
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
                 .highlighted(params.isHighlighted)
                 .attributes(attributes)
     }

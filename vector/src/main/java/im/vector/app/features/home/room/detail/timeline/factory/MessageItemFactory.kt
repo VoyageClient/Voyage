@@ -574,7 +574,7 @@ class MessageItemFactory @Inject constructor(
                 .clock(clock)
                 .callback(callback)
                 .highlighted(highlight)
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
     }
 
     private fun buildFileMessageItem(

@@ -101,6 +101,6 @@ class EncryptionItemFactory @Inject constructor(
                         )
                 )
                 .highlighted(params.isHighlighted)
-                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .leftGuideline(avatarSizeProvider.nonMessageGuideline(informationData))
     }
 }
