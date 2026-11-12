@@ -601,7 +601,8 @@ class TimelineViewModel @AssistedInject constructor(
                                 .joinToString("\n")
                                 .takeIf { it.isNotEmpty() }
                     }
-                    setState { copy(failedSendingText = text) }
+                    val fromTimeline = !initialState.isThreadTimeline() && timeline?.isLive == true
+                    setState { copy(failedSendingText = text, failedSendingFromTimeline = fromTimeline) }
                 }
                 .launchIn(viewModelScope)
     }

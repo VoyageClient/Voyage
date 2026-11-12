@@ -1430,10 +1430,10 @@ internal class SqlTimeline(
         }
     }
 
-    override fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState) {
+    override fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState, sendStateDetails: String?) {
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
-            if (!uiEchoManager.onSendStateUpdated(eventId, sendState)) return@launch
+            if (!uiEchoManager.onSendStateUpdated(eventId, sendState, sendStateDetails)) return@launch
             uiEchoRevision.incrementAndGet()
             val current = builtEvents
             val idx = current.indexOfFirst { it.eventId == eventId }

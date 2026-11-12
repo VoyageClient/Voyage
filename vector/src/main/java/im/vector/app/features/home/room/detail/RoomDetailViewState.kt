@@ -74,6 +74,8 @@ data class RoomDetailViewState(
         val hasFailedSending: Boolean = false,
         /** Warning shown above the composer, one line per distinct failure reason. Null when no reason is known. */
         val failedSendingText: String? = null,
+        /** The timeline holds every unsent echo, so [failedSendingText] is current and ahead of [hasFailedSending]. */
+        val failedSendingFromTimeline: Boolean = false,
         val switchToParentSpace: Boolean = false,
         val rootThreadEventId: String? = null,
         val threadNotificationBadgeState: ThreadNotificationBadgeState = ThreadNotificationBadgeState(),

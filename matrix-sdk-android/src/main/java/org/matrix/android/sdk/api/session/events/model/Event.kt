@@ -176,6 +176,7 @@ data class Event(
             mCryptoError: MXCryptoError.ErrorType? = this.mCryptoError,
             mCryptoErrorReason: String? = this.mCryptoErrorReason,
             sendState: SendState = this.sendState,
+            sendStateDetails: String? = this.sendStateDetails,
             ageLocalTs: Long? = this.ageLocalTs,
             threadDetails: ThreadDetails? = this.threadDetails,
     ): Event {
@@ -196,6 +197,7 @@ data class Event(
             it.mCryptoErrorReason = mCryptoErrorReason
             it.decryptedPrevContent = decryptedPrevContent
             it.sendState = sendState
+            it.sendStateDetails = sendStateDetails
             it.ageLocalTs = ageLocalTs
             it.threadDetails = threadDetails
             it.verificationStateIsDirty = verificationStateIsDirty

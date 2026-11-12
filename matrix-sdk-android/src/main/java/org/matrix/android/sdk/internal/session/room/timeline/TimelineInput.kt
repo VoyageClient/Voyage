@@ -30,8 +30,8 @@ internal class TimelineInput @Inject constructor() {
         listeners.toSet().forEach { it.onLocalEchoCreated(roomId, timelineEvent) }
     }
 
-    fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState) {
-        listeners.toSet().forEach { it.onLocalEchoUpdated(roomId, eventId, sendState) }
+    fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState, sendStateDetails: String?) {
+        listeners.toSet().forEach { it.onLocalEchoUpdated(roomId, eventId, sendState, sendStateDetails) }
     }
 
     fun onLocalEchoReplaced(roomId: String, localEchoId: String, remoteEventId: String) {
@@ -48,7 +48,7 @@ internal class TimelineInput @Inject constructor() {
 
     internal interface Listener {
         fun onLocalEchoCreated(roomId: String, timelineEvent: TimelineEvent) = Unit
-        fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState) = Unit
+        fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState, sendStateDetails: String?) = Unit
         fun onLocalEchoReplaced(roomId: String, localEchoId: String, remoteEventId: String) = Unit
         fun onLocalEchoDeleted(roomId: String, eventId: String) = Unit
         fun onNewTimelineEvents(roomId: String, eventIds: List<String>) = Unit

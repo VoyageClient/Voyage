@@ -1789,7 +1789,8 @@ class TimelineFragment :
         renderPinnedMessagesBanner(mainState)
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.bulkActionProgress)
-        if (mainState.hasFailedSending) {
+        val showFailedSending = if (mainState.failedSendingFromTimeline) mainState.failedSendingText != null else mainState.hasFailedSending
+        if (showFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.apply {
                 render(mainState.failedSendingText)
                 isVisible = true

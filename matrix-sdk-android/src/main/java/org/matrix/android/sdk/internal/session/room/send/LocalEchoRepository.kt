@@ -195,7 +195,7 @@ internal class LocalEchoRepository @Inject constructor(
 
     fun updateSendState(eventId: String, roomId: String?, sendState: SendState, sendStateDetails: String? = null) {
         Timber.v("## SendEvent: [${clock.epochMillis()}] Update local state of $eventId to ${sendState.name}")
-        timelineInput.onLocalEchoUpdated(roomId = roomId ?: "", eventId = eventId, sendState = sendState)
+        timelineInput.onLocalEchoUpdated(roomId = roomId ?: "", eventId = eventId, sendState = sendState, sendStateDetails = sendStateDetails)
         sendOutcomeTracker.onSendStateChanged(eventId, sendState)
         enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {

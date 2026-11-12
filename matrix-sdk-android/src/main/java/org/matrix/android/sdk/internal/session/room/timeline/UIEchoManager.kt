@@ -48,7 +48,10 @@ internal class UIEchoManager(
     /**
      * Due to lag of DB updates, we keep some UI echo of some properties to update timeline faster.
      */
-    private val inMemorySendingStates = Collections.synchronizedMap<String, SendState>(HashMap())
+    private val inMemorySendingStates = Collections.synchronizedMap<String, UiSendState>(HashMap())
+
+    // The details travel with the state, or a failure shows without its reason until the DB write lands.
+    private data class UiSendState(val sendState: SendState, val details: String?)
 
     private val inMemoryReactions = Collections.synchronizedMap<String, MutableList<ReactionUiEchoData>>(HashMap())
 
@@ -82,10 +85,9 @@ internal class UIEchoManager(
         }
     }
 
-    fun onSendStateUpdated(eventId: String, sendState: SendState): Boolean {
-        val existingState = inMemorySendingStates[eventId]
-        inMemorySendingStates[eventId] = sendState
-        return existingState != sendState
+    fun onSendStateUpdated(eventId: String, sendState: SendState, details: String?): Boolean {
+        val updated = UiSendState(sendState, details)
+        return inMemorySendingStates.put(eventId, updated) != updated
     }
 
     fun onLocalEchoCreated(timelineEvent: TimelineEvent): Boolean {
@@ -174,13 +176,10 @@ internal class UIEchoManager(
 
     fun updateSentStateWithUiEcho(timelineEvent: TimelineEvent): TimelineEvent {
         if (timelineEvent.root.sendState.isSent()) return timelineEvent
-        val inMemoryState = inMemorySendingStates[timelineEvent.eventId] ?: return timelineEvent
-        if (timelineEvent.root.sendState == inMemoryState) return timelineEvent
-        // Timber.v("## ${clock.epochMillis()} Send event refresh echo with live state $inMemoryState from state ${element.root.sendState}")
-        return timelineEvent.copy(
-                root = timelineEvent.root.copyAll()
-                        .also { it.sendState = inMemoryState }
-        )
+        val inMemory = inMemorySendingStates[timelineEvent.eventId] ?: return timelineEvent
+        val root = timelineEvent.root
+        if (root.sendState == inMemory.sendState && root.sendStateDetails == inMemory.details) return timelineEvent
+        return timelineEvent.copy(root = root.copyAll(sendState = inMemory.sendState, sendStateDetails = inMemory.details))
     }
 
     /**
