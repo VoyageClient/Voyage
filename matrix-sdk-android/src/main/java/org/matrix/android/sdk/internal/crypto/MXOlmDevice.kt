@@ -52,6 +52,7 @@ import org.matrix.olm.OlmOutboundGroupSession
 import org.matrix.olm.OlmSession
 import org.matrix.olm.OlmUtility
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 private val loggerTag = LoggerTag("MXOlmDevice", LoggerTag.CRYPTO)
@@ -94,7 +95,8 @@ internal class MXOlmDevice @Inject constructor(
     // The outbound group session.
     // Caches active outbound session to avoid to sync with DB before read
     // The key is the session id, the value the <roomID,outbound group session>.
-    private val outboundGroupSessionCache: MutableMap<String, GroupSessionCacheItem> = HashMap()
+    // Written off the crypto thread too: encryptors restore into it from whichever thread builds them.
+    private val outboundGroupSessionCache: MutableMap<String, GroupSessionCacheItem> = ConcurrentHashMap()
 
     // Store a set of decrypted message indexes for each group session.
     // This partially mitigates a replay attack where a MITM resends a group
