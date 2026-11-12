@@ -316,7 +316,7 @@ class ImageContentRenderer @Inject constructor(
     private fun viewId(imageView: ImageView) = Integer.toHexString(System.identityHashCode(imageView))
 
     /** Release the holding square an unknown-dimension load was pinned to, so the view takes the picture's shape. */
-    private fun ImageView.sizeToPicture(data: Data, mode: Mode, resource: Drawable?): Size? {
+    private fun ImageView.sizeToPicture(data: Data, mode: Mode, resource: Drawable?) {
         val intrinsic = resource?.let { Size(it.intrinsicWidth, it.intrinsicHeight) }
                 ?.takeIf { it.width > 0 && it.height > 0 }
         if (intrinsic == null) {
@@ -325,13 +325,13 @@ class ImageContentRenderer @Inject constructor(
                 width = ViewGroup.LayoutParams.WRAP_CONTENT
                 height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
-            return null
+            return
         }
         data.sizeMemoKey()?.let { measuredMediaSizes.put(it, intrinsic) }
         // Box the measured aspect ratio exactly as a declared one, or an event carrying no w/h is
         // drawn at its pixel size inside a far larger box. Measured pixels are not the dp a sticker declares.
         val sized = boxedSize(intrinsic.width, intrinsic.height, sizingMode(data, mode), data.maxWidth, data.maxHeight, declaredInDp = false)
-                ?: return null
+                ?: return
         adjustViewBounds = false
         updateLayoutParams {
             width = sized.width
@@ -341,7 +341,6 @@ class ImageContentRenderer @Inject constructor(
                         "-> ${sized.width}x${sized.height} max=${data.maxWidth}x${data.maxHeight} " +
                         "resource=${resource.javaClass.simpleName}@${System.identityHashCode(resource)} " +
                         "bounds=${resource.bounds} callback=${resource.callback?.javaClass?.simpleName} view=${System.identityHashCode(this)}" }
-        return sized
     }
 
     private val Data.isLocalContent get() = allowNonMxcUrls && url.isLocalMediaUri()
@@ -381,9 +380,6 @@ class ImageContentRenderer @Inject constructor(
             fromRetryTap: Boolean = false,
             // Anything drawing a play badge over the thumbnail has no room for a second symbol.
             showFailureGlyph: Boolean = true,
-            // The box the picture ends up in. Called again when an unknown-dimension load lands and
-            // the view grows out of its holding square, for callers laying out alongside the media.
-            onSized: ((Size) -> Unit)? = null,
     ) {
         val size = processSize(data, mode)
         // Local-echo → remote swap of a fully-rendered message: the media is byte-identical to what
@@ -414,7 +410,6 @@ class ImageContentRenderer @Inject constructor(
                 width = size.width
                 height = size.height
             }
-            onSized?.invoke(size)
         } else {
             // Unknown dimensions (e.g. a sticker whose info has no w/h): the picture's own aspect
             // ratio is only known once it is decoded, so the view is sized in onResourceReady.
@@ -433,7 +428,6 @@ class ImageContentRenderer @Inject constructor(
                 width = holding.width
                 height = holding.height
             }
-            onSized?.invoke(holding)
         }
         // a11y
         imageView.contentDescription = data.filename
@@ -450,7 +444,7 @@ class ImageContentRenderer @Inject constructor(
         // fill, which reads as the failure state vanishing every time the row rebinds.
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
         imageView.setTag(R.id.image_renderer_retry) {
-            render(data, mode, imageView, cornerTransformation, crossFade, fromRetryTap = true, showFailureGlyph = showFailureGlyph, onSized = onSized)
+            render(data, mode, imageView, cornerTransformation, crossFade, fromRetryTap = true, showFailureGlyph = showFailureGlyph)
         }
         // Stamped rather than flagged: renderFailed holds the loading state visible for a moment from
         // this instant. Assigned unconditionally so a request whose callbacks never fire cannot leave
@@ -506,7 +500,7 @@ class ImageContentRenderer @Inject constructor(
                         thisRender.completed = true
                         // Real bounds at last — drop the holding square for the picture's own shape.
                         if (!data.hasKnownDimensions()) {
-                            imageView.sizeToPicture(data, mode, resource)?.let { onSized?.invoke(it) }
+                            imageView.sizeToPicture(data, mode, resource)
                         }
                         return false
                     }

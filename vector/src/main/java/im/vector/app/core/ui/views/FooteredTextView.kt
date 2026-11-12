@@ -18,7 +18,6 @@ import android.util.AttributeSet
 import android.view.ActionMode
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
@@ -83,11 +82,9 @@ class FooteredTextView @JvmOverloads constructor(
         }
 
         if (footerState.footerWidth == 0 && footerState.footerHeight == 0) {
-            // Non-bubble (no footer to overlay): never shrink to content (that's only for a bubble hugging
-            // its content for the timestamp overlay). A match_parent body or a block-code message fills
-            // the row; otherwise keep the (leading-margin-corrected) measure from above.
-            val wantsFullWidth = layoutParams?.width == ViewGroup.LayoutParams.MATCH_PARENT ||
-                    (footerState.fullWidthBlockCode && hasBlockCodeSpan())
+            // No footer to make room for: keep the (leading-margin-corrected) measure from above, except
+            // that a block-code message outside bubbles fills the row.
+            val wantsFullWidth = footerState.fullWidthBlockCode && hasBlockCodeSpan()
             if (wantsFullWidth && mode != View.MeasureSpec.UNSPECIFIED && size > 0 && measuredWidth < size) {
                 super.onMeasure(View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY), heightMeasureSpec)
             }

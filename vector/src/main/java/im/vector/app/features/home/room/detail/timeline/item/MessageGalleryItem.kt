@@ -116,9 +116,6 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
             holder.progressLayout.isVisible = false
         }
 
-        // A caption longer than the grid would widen the bubble past it, leaving a gap beside the tiles.
-        holder.captionView.maxWidth = maxWidth.takeIf { it > 0 } ?: Int.MAX_VALUE
-
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,

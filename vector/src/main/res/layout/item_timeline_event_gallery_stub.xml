@@ -35,7 +35,7 @@
         android:id="@+id/messageCaptionView"
         style="@style/Widget.Vector.TextView.Body"
         android:textSize="15.5sp"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textAlignment="viewStart"
