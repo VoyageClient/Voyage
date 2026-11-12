@@ -16,7 +16,6 @@ import androidx.core.view.isVisible
 import dagger.hilt.android.scopes.ActivityScoped
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.lib.strings.CommonStrings
@@ -28,7 +27,6 @@ import javax.inject.Inject
 class ContentUploadStateTrackerBinder @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val messageColorProvider: MessageColorProvider,
-        private val errorFormatter: ErrorFormatter
 ) {
 
     private val updateListeners = mutableMapOf<String, ContentUploadStateTracker.UpdateListener>()
@@ -43,7 +41,7 @@ class ContentUploadStateTrackerBinder @Inject constructor(
             // A rebind replaces the map entry, so without untracking here the old listener leaks in
             // the tracker forever and keeps painting states onto whatever view got recycled under it.
             updateListeners[eventId]?.also { uploadStateTracker.untrack(eventId, it) }
-            val updateListener = ContentMediaProgressUpdater(progressLayout, isLocalFile, messageColorProvider, errorFormatter)
+            val updateListener = ContentMediaProgressUpdater(progressLayout, isLocalFile, messageColorProvider)
             updateListeners[eventId] = updateListener
             uploadStateTracker.track(eventId, updateListener)
         }
@@ -69,7 +67,6 @@ private class ContentMediaProgressUpdater(
         private val progressLayout: ViewGroup,
         private val isLocalFile: Boolean,
         private val messageColorProvider: MessageColorProvider,
-        private val errorFormatter: ErrorFormatter
 ) : ContentUploadStateTracker.UpdateListener {
 
     private val progressBar: ProgressBar = progressLayout.findViewById(R.id.mediaProgressBar)
@@ -83,7 +80,7 @@ private class ContentMediaProgressUpdater(
             is ContentUploadStateTracker.State.Encrypting -> handleEncrypting(state)
             is ContentUploadStateTracker.State.Uploading -> handleProgress(state)
             is ContentUploadStateTracker.State.UploadingGalleryItem -> handleGalleryProgress(state)
-            is ContentUploadStateTracker.State.Failure -> handleFailure(/*state*/)
+            is ContentUploadStateTracker.State.Failure -> handleFailure()
             is ContentUploadStateTracker.State.Success -> handleSuccess()
             is ContentUploadStateTracker.State.CompressingImage -> handleCompressingImage()
             is ContentUploadStateTracker.State.CompressingVideo -> handleCompressingVideo(state)
@@ -216,14 +213,9 @@ private class ContentMediaProgressUpdater(
         progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
-    private fun handleFailure(/*state: ContentUploadStateTracker.State.Failure*/) {
-        progressLayout.visibility = View.VISIBLE
-        progressBar.isVisible = false
-        // Do not show the message it's too technical for users, and unfortunate when upload is cancelled
-        // in the middle by turning airplane mode for example
-        progressTextView.isVisible = false
-//        progressTextView?.text = errorFormatter.toHumanReadable(state.throwable)
-//        progressTextView?.setTextColor(messageColorProvider.getMessageTextColor(SendState.UNDELIVERED))
+    // The message's own send state reports the failure; the raw error is too technical to show here.
+    private fun handleFailure() {
+        progressLayout.visibility = View.GONE
     }
 
     private fun handleSuccess() {

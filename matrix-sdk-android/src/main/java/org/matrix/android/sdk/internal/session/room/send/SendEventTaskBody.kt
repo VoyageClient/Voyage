@@ -37,6 +37,12 @@ internal class SendEventTaskBody @Inject constructor(
                     .also { Timber.e("Work cancelled due to bad input data") }
         }
 
+        if (event.sendState == SendState.UNDELIVERED) {
+            // Its media was refused after the dispatcher queued it, so it now points at local files.
+            Timber.w("## SendEvent: Skip failed echo ${params.eventId}")
+            return BackgroundTaskOutcome.Success
+        }
+
         if (cancelSendTracker.isCancelRequestedFor(params.eventId, roomId)) {
             return BackgroundTaskOutcome.Success
                     .also {

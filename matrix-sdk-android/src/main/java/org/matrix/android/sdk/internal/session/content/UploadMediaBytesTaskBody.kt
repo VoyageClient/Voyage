@@ -39,6 +39,7 @@ internal class UploadMediaBytesTaskBody @Inject constructor(
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
         private val localEchoRepository: LocalEchoRepository,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
+        private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
 ) : BackgroundTaskBody<UploadMediaBytesWorkerParams> {
 
     override suspend fun execute(params: UploadMediaBytesWorkerParams, context: BackgroundTaskContext): BackgroundTaskOutcome {
@@ -54,8 +55,7 @@ internal class UploadMediaBytesTaskBody @Inject constructor(
         }
         if (context.isStopped) {
             if (context.attemptCount < MAX_ATTEMPTS) return BackgroundTaskOutcome.Retry
-            onUploadSettled(params, clearFile, encryptedFile)
-            notifyFailure(params, IllegalStateException("Media byte upload kept being stopped"))
+            giveUp(params, clearFile, encryptedFile, IllegalStateException("Media byte upload kept being stopped"))
             return BackgroundTaskOutcome.Success
         }
 
@@ -96,14 +96,23 @@ internal class UploadMediaBytesTaskBody @Inject constructor(
                 Timber.w(failure, "## Media byte upload failed, will retry (attempt ${context.attemptCount})")
                 BackgroundTaskOutcome.Retry
             } else {
-                // Giving up on the server copy, but the sender's own timeline should still have the
-                // media, so cache it before dropping the temporary files.
                 Timber.e(failure, "## Media byte upload permanently failed for ${params.contentUri}")
-                onUploadSettled(params, clearFile, encryptedFile)
-                notifyFailure(params, failure)
+                giveUp(params, clearFile, encryptedFile, failure)
                 BackgroundTaskOutcome.Success
             }
         }
+    }
+
+    private suspend fun giveUp(params: UploadMediaBytesWorkerParams, clearFile: File, encryptedFile: File?, failure: Throwable) {
+        if (failedMediaUploadRecovery.onBytesRefused(params, clearFile, failure)) {
+            params.localEchoIds.forEach { contentUploadStateTracker.setFailure(it.eventId, failure) }
+            discard(params, clearFile, encryptedFile)
+            return
+        }
+        // Without the bytes the message can't be resent, but the sender's own timeline should still
+        // show the media, so cache it before dropping the temporary files.
+        onUploadSettled(params, clearFile, encryptedFile)
+        notifyFailure(params, failure)
     }
 
     private fun notifyProgress(params: UploadMediaBytesWorkerParams, eventId: String, current: Long, total: Long) {

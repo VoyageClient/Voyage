@@ -28,6 +28,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.session.events.model.getMsgType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -36,6 +37,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.PollType
@@ -60,6 +62,8 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
+import org.matrix.android.sdk.internal.session.content.DefaultContentUploadStateTracker
+import org.matrix.android.sdk.internal.session.content.FailedMediaUploadRecovery
 import org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry
 import org.matrix.android.sdk.internal.session.content.UploadContentWorkerParams
 import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
@@ -97,6 +101,8 @@ internal class DefaultSendService @AssistedInject constructor(
         private val linkPreviewPrefetcher: LinkPreviewPrefetcher,
         private val mediaSendOrder: MediaSendOrder,
         private val sendEventTask: SendEventTask,
+        private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
+        private val contentUploadStateTracker: DefaultContentUploadStateTracker,
 ) : SendService {
 
     @AssistedFactory
@@ -203,89 +209,114 @@ internal class DefaultSendService @AssistedInject constructor(
     }
 
     override fun resendMediaMessage(localEcho: TimelineEvent): Cancelable {
-        if (localEcho.root.sendState.hasFailed()) {
-            val clearContent = localEcho.root.getClearContent()
-            (clearContent?.toModel<MessageContent>() as? MessageGalleryContent)?.let { gallery ->
-                // Re-running the upload chain against an existing gallery echo is not supported; only
-                // a gallery whose uploads all landed (the event send itself failed) can be resent.
-                return if (gallery.galleryItems().let { items -> items.isNotEmpty() && items.all { it.getFileUrl()?.isMxcUrl() == true } }) {
-                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                    sendEvent(localEcho.root)
-                } else {
-                    NoOpCancellable
-                }
-            }
-            val messageContent = clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return NoOpCancellable
-
-            val url = messageContent.getFileUrl() ?: return NoOpCancellable
-            if (url.isMxcUrl()) {
-                // We need to resend only the message as the attachment is ok
-                localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                return sendEvent(localEcho.root)
-            }
-
-            // we need to resend the media
-            return when (messageContent) {
-                is MessageImageContent -> {
-                    // The image has not yet been sent
-                    val info = messageContent.info!!
-                    val attachmentData = ContentAttachmentData(
-                            size = info.size,
-                            mimeType = messageContent.mimeType,
-                            width = info.width.toLong(),
-                            height = info.height.toLong(),
-                            name = messageContent.body,
-                            queryUri = messageContent.url.orEmpty(),
-                            type = ContentAttachmentData.Type.IMAGE
-                    )
-                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                    internalSendMedia(listOf(localEcho.root), attachmentData, true)
-                }
-                is MessageVideoContent -> {
-                    val attachmentData = ContentAttachmentData(
-                            size = messageContent.videoInfo?.size ?: 0L,
-                            mimeType = messageContent.mimeType,
-                            width = messageContent.videoInfo?.width?.toLong(),
-                            height = messageContent.videoInfo?.height?.toLong(),
-                            duration = messageContent.videoInfo?.duration?.toLong(),
-                            name = messageContent.body,
-                            queryUri = messageContent.url.orEmpty(),
-                            type = ContentAttachmentData.Type.VIDEO
-                    )
-                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                    internalSendMedia(listOf(localEcho.root), attachmentData, true)
-                }
-                is MessageFileContent -> {
-                    val attachmentData = ContentAttachmentData(
-                            size = messageContent.info!!.size,
-                            mimeType = messageContent.mimeType,
-                            name = messageContent.getFileName(),
-                            queryUri = messageContent.url.orEmpty(),
-                            type = ContentAttachmentData.Type.FILE
-                    )
-                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                    internalSendMedia(listOf(localEcho.root), attachmentData, true)
-                }
-                is MessageAudioContent -> {
-                    val attachmentData = ContentAttachmentData(
-                            size = messageContent.audioInfo?.size ?: 0,
-                            duration = messageContent.audioInfo?.duration?.toLong() ?: 0L,
-                            mimeType = messageContent.mimeType,
-                            name = messageContent.body,
-                            queryUri = messageContent.url.orEmpty(),
-                            type = ContentAttachmentData.Type.AUDIO,
-                            waveform = messageContent.audioWaveformInfo?.waveform?.filterNotNull()
-                    )
-                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
-                    internalSendMedia(listOf(localEcho.root), attachmentData, true)
-                }
-                else -> NoOpCancellable
-            }
+        if (!localEcho.root.sendState.hasFailed()) return NoOpCancellable
+        val clearContent = localEcho.root.getClearContent()
+        (clearContent?.toModel<MessageContent>() as? MessageGalleryContent)?.let { gallery ->
+            return resendGallery(localEcho.root, gallery)
         }
-        return NoOpCancellable
+        val messageContent = clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return NoOpCancellable
+
+        val url = messageContent.getFileUrl() ?: return NoOpCancellable
+        if (url.isMxcUrl()) {
+            // We need to resend only the message as the attachment is ok
+            localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
+            return sendEvent(localEcho.root)
+        }
+
+        // we need to resend the media
+        val attachmentData = messageContent.toResendAttachment() ?: return NoOpCancellable
+        localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
+        return internalSendMedia(listOf(localEcho.root), attachmentData, compressBeforeSending = !failedMediaUploadRecovery.isPreserved(url))
+    }
+
+    /** Uploads again only the items that never reached the server, into the same gallery echo. */
+    private fun resendGallery(echo: Event, gallery: MessageGalleryContent): Cancelable {
+        val items = gallery.galleryItems()
+        if (items.isEmpty()) return NoOpCancellable
+        val eventId = echo.eventId ?: return NoOpCancellable
+        val uploads = items.withIndex()
+                .filter { it.value.getFileUrl()?.isMxcUrl() != true }
+                .map { (index, item) -> index to (item.toResendAttachment() ?: return NoOpCancellable) }
+        localEchoRepository.updateSendState(eventId, roomId, SendState.UNSENT)
+        if (uploads.isEmpty()) return sendEvent(echo)
+
+        val localEchoIds = listOf(LocalEchoIdentifiers(roomId, eventId))
+        val isRoomEncrypted = cryptoStore.roomWasOnceEncrypted(roomId)
+        val uploading = uploads.toMap()
+        val itemSizes = items.indices.map { uploading[it]?.size ?: 0L }
+        // The progress overlay comes down once every item has settled, and the kept ones already have.
+        items.indices.filterNot { it in uploading }.forEach { contentUploadStateTracker.setGalleryItemSettled(eventId, it, itemSizes) }
+        val sendAfterEventIds = mediaSendOrder.enqueue(localEchoIds)
+        val tasks = uploads.map { (index, attachment) ->
+            backgroundTask(
+                    type = BackgroundTaskType.UPLOAD_CONTENT,
+                    params = UploadContentWorkerParams(
+                            sessionId = sessionId,
+                            localEchoIds = localEchoIds,
+                            attachment = attachment,
+                            isEncrypted = isRoomEncrypted,
+                            compressBeforeSending = !failedMediaUploadRecovery.isPreserved(attachment.queryUri),
+                            galleryItemIndex = index,
+                            galleryItemSizes = itemSizes,
+                            sendAfterEventIds = sendAfterEventIds,
+                    ),
+                    matrixConstraints = true,
+                    isolateInput = true,
+                    extraTags = listOf(uploadWorkTag(eventId)),
+            )
+        }
+        return backgroundTaskScheduler.enqueueUniqueParallelChain(
+                buildWorkName(uploadWorkName(listOf(echo))),
+                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                tasks,
+                createMultipleEventDispatcherWork(isRoomEncrypted),
+        )
+    }
+
+    private fun MessageWithAttachmentContent.toResendAttachment(): ContentAttachmentData? = when (this) {
+        is MessageImageContent -> {
+            val info = info!!
+            ContentAttachmentData(
+                    size = info.size,
+                    mimeType = mimeType,
+                    width = info.width.toLong(),
+                    height = info.height.toLong(),
+                    name = body,
+                    queryUri = url.orEmpty(),
+                    type = ContentAttachmentData.Type.IMAGE
+            )
+        }
+        is MessageVideoContent -> ContentAttachmentData(
+                size = videoInfo?.size ?: 0L,
+                mimeType = mimeType,
+                width = videoInfo?.width?.toLong(),
+                height = videoInfo?.height?.toLong(),
+                duration = videoInfo?.duration?.toLong(),
+                name = body,
+                queryUri = url.orEmpty(),
+                type = ContentAttachmentData.Type.VIDEO
+        )
+        is MessageFileContent -> ContentAttachmentData(
+                size = info!!.size,
+                mimeType = mimeType,
+                name = getFileName(),
+                queryUri = url.orEmpty(),
+                type = ContentAttachmentData.Type.FILE
+        )
+        is MessageAudioContent -> ContentAttachmentData(
+                size = audioInfo?.size ?: 0,
+                duration = audioInfo?.duration?.toLong() ?: 0L,
+                mimeType = mimeType,
+                name = body,
+                queryUri = url.orEmpty(),
+                type = ContentAttachmentData.Type.AUDIO,
+                waveform = audioWaveformInfo?.waveform?.filterNotNull()
+        )
+        else -> null
     }
 
     override fun deleteFailedEcho(localEcho: TimelineEvent) {
+        failedMediaUploadRecovery.discardPreservedIn(localEcho.root.getClearContent())
         taskExecutor.executorScope.launch {
             localEchoRepository.deleteFailedEcho(roomId, localEcho)
         }
@@ -303,6 +334,7 @@ internal class DefaultSendService @AssistedInject constructor(
         // release the bytes it was holding.
         pendingMediaUploadRegistry.discardForEvent(eventId)
         taskExecutor.executorScope.launch {
+            failedMediaUploadRecovery.discardPreservedIn(localEchoRepository.getUpToDateEcho(eventId)?.getClearContent())
             localEchoRepository.deleteFailedEcho(roomId, eventId)
         }
     }
@@ -317,7 +349,7 @@ internal class DefaultSendService @AssistedInject constructor(
                         .sortedBy { it.root.originServerTs ?: 0L }
                 for (event in eventsToResend) {
                     val isTextMessage = event.root.isTextMessage()
-                    if (!isTextMessage && !event.root.isAttachmentMessage()) continue
+                    if (!isTextMessage && !event.root.isAttachmentMessage() && !MessageType.isGalleryMsgType(event.root.getMsgType())) continue
                     sendOutcomeTracker.track(event.eventId)
                     val posted = if (isTextMessage) resendTextMessage(event) else resendMediaMessage(event)
                     if (posted === NoOpCancellable) {

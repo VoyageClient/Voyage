@@ -96,6 +96,7 @@ internal class UploadContentTaskBody @Inject constructor(
         private val clock: Clock,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
+        private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
 ) : BackgroundTaskBody<UploadContentWorkerParams> {
 
     override suspend fun execute(params: Params, context: BackgroundTaskContext): BackgroundTaskOutcome {
@@ -646,6 +647,7 @@ internal class UploadContentTaskBody @Inject constructor(
         return BackgroundTaskOutcome.SuccessWith(sendParams).also {
             Timber.v("## handleSuccess $attachmentUrl, work is stopped ${context.isStopped}")
             media.releaseSource(params.attachment)
+            failedMediaUploadRecovery.discardPreserved(params.attachment.queryUri)
         }
     }
 

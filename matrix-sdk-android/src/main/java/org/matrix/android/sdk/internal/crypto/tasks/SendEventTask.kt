@@ -22,6 +22,7 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.network.parsing.coerceWholeNumbersToLong
+import org.matrix.android.sdk.internal.session.content.FailedMediaUploadRecovery
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomFromLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
@@ -43,7 +44,8 @@ internal class DefaultSendEventTask @Inject constructor(
         private val loadRoomMembersTask: LoadRoomMembersTask,
         private val createRoomFromLocalRoomTask: CreateRoomFromLocalRoomTask,
         private val roomAPI: RoomAPI,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
 ) : SendEventTask {
 
     override suspend fun execute(params: SendEventTask.Params): String {
@@ -79,6 +81,7 @@ internal class DefaultSendEventTask @Inject constructor(
             Timber.d("Event sent to ${event.roomId} with event id ${response.eventId}")
             localEchoRepository.updateSendState(localId, params.event.roomId, SendState.SENT)
             localEchoRepository.onEventSent(event.roomId ?: "", localId, response.eventId)
+            failedMediaUploadRecovery.onEventSent(localId, response.eventId)
             return response.eventId.also {
                 Timber.d("Event: $it just sent in ${params.event.roomId}")
             }

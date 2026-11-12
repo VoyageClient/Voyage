@@ -34,6 +34,8 @@ class PollVoteWithdrawalTest {
             linkPreviewPrefetcher = mockk(relaxed = true),
             mediaSendOrder = mockk(relaxed = true),
             sendEventTask = mockk(relaxed = true),
+            failedMediaUploadRecovery = mockk(relaxed = true),
+            contentUploadStateTracker = mockk(relaxed = true),
     )
 
     @Test
