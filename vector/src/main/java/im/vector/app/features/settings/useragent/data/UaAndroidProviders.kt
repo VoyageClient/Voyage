@@ -29,15 +29,15 @@ class DeviceModelProvider(
     override suspend fun fetch(http: UaHttp): List<UaOption> {
         val text = String(http.getBytes(url), Charsets.UTF_16)
         val byBrand = HashMap<Int, LinkedHashMap<String, String>>() // rank -> (model -> marketing name)
-        text.lineSequence().drop(1).forEach { line ->
+        forEachLineAfterHeader(text) { line ->
             // Cheap prefilter on the leading branding field (no commas) before the full CSV parse.
             val brand = line.substringBefore(',').trim('"').trim().lowercase(Locale.US)
             val rank = BRAND_ORDER.indexOf(brand)
-            if (rank < 0) return@forEach
+            if (rank < 0) return@forEachLineAfterHeader
             val cells = parseCsvLine(line)
-            if (cells.size < 4) return@forEach
+            if (cells.size < 4) return@forEachLineAfterHeader
             val model = cells[3].trim()
-            if (model.isEmpty()) return@forEach
+            if (model.isEmpty()) return@forEachLineAfterHeader
             byBrand.getOrPut(rank) { LinkedHashMap() }.getOrPut(model) { cells[1].trim() }
         }
         return byBrand.entries.sortedBy { it.key }.flatMap { (rank, models) ->
@@ -45,6 +45,16 @@ class DeviceModelProvider(
             models.entries.sortedBy { it.key }.take(perBrandCap).map { (model, marketing) ->
                 UaOption("$display $model", if (marketing.isNotEmpty()) "$marketing ($model)" else model, null)
             }
+        }
+    }
+
+    // Not lineSequence(): it tries three delimiters at every char, which took ~14s on this file in a debug build.
+    private inline fun forEachLineAfterHeader(text: String, action: (String) -> Unit) {
+        var start = text.indexOf('\n') + 1
+        while (start in 1 until text.length) {
+            val newline = text.indexOf('\n', start).let { if (it < 0) text.length else it }
+            action(text.substring(start, newline).removeSuffix("\r"))
+            start = newline + 1
         }
     }
 
@@ -99,7 +109,7 @@ fun parseBuildIdTable(html: String): List<BuildIdRow> {
     while (i >= 0) {
         val end = html.indexOf("</tr>", i)
         if (end < 0) break
-        val cells = extractCells(html, i, end)
+        val cells = extractCells(html.substring(i, end))
         i = html.indexOf("<tr", end)
         if (cells.size < 3) continue
         val buildId = cells[0]
@@ -111,20 +121,16 @@ fun parseBuildIdTable(html: String): List<BuildIdRow> {
     return rows
 }
 
-/** Pulls the text of each <td>/<th> cell in html[from,to) with plain indexOf scanning (no regex backtracking). */
-private fun extractCells(html: String, from: Int, to: Int): List<String> {
+/** Pulls the text of each <td>/<th> cell. Takes one row, not the page: a miss would otherwise scan to the page end. */
+private fun extractCells(row: String): List<String> {
     val cells = ArrayList<String>(4)
-    var i = from
-    while (i < to) {
-        val td = html.indexOf("<td", i)
-        val th = html.indexOf("<th", i)
-        val open = listOf(td, th).filter { it in 0 until to }.minOrNull() ?: break
-        val gt = html.indexOf('>', open)
-        if (gt < 0 || gt >= to) break
-        val closeTd = html.indexOf("</td>", gt)
-        val closeTh = html.indexOf("</th>", gt)
-        val close = listOf(closeTd, closeTh).filter { it in 0..to }.minOrNull() ?: break
-        cells.add(stripHtml(html, gt + 1, close))
+    var i = 0
+    while (i < row.length) {
+        val open = listOf(row.indexOf("<td", i), row.indexOf("<th", i)).filter { it >= 0 }.minOrNull() ?: break
+        val gt = row.indexOf('>', open)
+        if (gt < 0) break
+        val close = listOf(row.indexOf("</td>", gt), row.indexOf("</th>", gt)).filter { it >= 0 }.minOrNull() ?: break
+        cells.add(stripHtml(row, gt + 1, close))
         i = close + 5
     }
     return cells

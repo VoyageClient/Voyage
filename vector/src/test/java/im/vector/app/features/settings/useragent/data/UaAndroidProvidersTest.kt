@@ -46,6 +46,17 @@ class UaAndroidProvidersTest {
     }
 
     @Test
+    fun `device provider handles CRLF lines and a last line without a newline`() {
+        val csv = "Retail Branding,Marketing Name,Device,Model\r\n" +
+                "\"Google\",\"Pixel 9\",\"tokay\",\"Pixel 9\"\r\n" +
+                "\"Samsung\",\"Galaxy S24\",\"e1q\",\"SM-S921B\""
+        coEvery { http.getBytes(any()) } returns csv.toByteArray(Charsets.UTF_16)
+        val options = runBlocking { DeviceModelProvider("device", "url", perBrandCap = 50).fetch(http) }
+        options.map { it.value } shouldBeEqualTo listOf("Samsung SM-S921B", "Google Pixel 9")
+        options.first { it.value == "Google Pixel 9" }.label shouldBeEqualTo "Pixel 9 (Pixel 9)"
+    }
+
+    @Test
     fun `sha extraction pulls the 9-char hash from a release body`() {
         val json = """[{"body":"https://github.com/matrix-org/matrix-rust-sdk/tree/0d225a0edf4c995bdbf3d8969e750abc"},{"body":"no link"}]"""
         coEvery { http.get(any()) } returns json

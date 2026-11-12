@@ -137,6 +137,7 @@ class UaDataRepository @Inject constructor(
      */
     suspend fun refresh(providerId: String): List<UaOption> = withContext(Dispatchers.IO) {
         val provider = providers[providerId] ?: return@withContext emptyList()
+        ensureCacheDir()
         try {
             val options = provider.fetch(http)
             Timber.i("UA refresh %s -> %d options", providerId, options.size)
@@ -170,6 +171,7 @@ class UaDataRepository @Inject constructor(
             buildIdOptions(cachedBuildIdRows(), device, androidMajor)
 
     suspend fun refreshBuildIds(device: String, androidMajor: Int): List<UaOption> = withContext(Dispatchers.IO) {
+        ensureCacheDir()
         // The AOSP table changes ~monthly and source.android.com is slow/flaky with no 304 support, so
         // don't re-fetch it if we grabbed it recently — that avoids hanging the download on that server.
         val cacheFile = fileFor(BUILD_ID_CACHE)
@@ -207,6 +209,7 @@ class UaDataRepository @Inject constructor(
     }
 
     suspend fun refreshElectron(): List<ElectronRelease> = withContext(Dispatchers.IO) {
+        ensureCacheDir()
         try {
             val releases = parseElectronReleases(http.get(URL_ELECTRON))
             if (releases.isNotEmpty()) {
@@ -244,7 +247,21 @@ class UaDataRepository @Inject constructor(
             fileFor(key).takeIf { it.exists() && it.length() > 0 }?.let { runCatching { it.readText() }.getOrNull() }
 
     private fun writeCache(key: String, json: String) {
+        ensureCacheDir()
         runCatching { fileFor(key).writeText(json) }.onFailure { Timber.w(it, "UA cache write failed: $key") }
+    }
+
+    // "Clear cache" deletes this dir under a live process; drop the memory copies too, or refreshes 304 against nothing.
+    private fun ensureCacheDir() {
+        if (cacheDir.isDirectory) return
+        synchronized(cacheDir) {
+            if (cacheDir.isDirectory) return
+            optionsMem.clear()
+            buildIdRowsMem = null
+            electronMem = null
+            validators.reset()
+            cacheDir.mkdirs()
+        }
     }
 
     /** URL → validators, backed by a single JSON file in the same cache dir (cleared by "Clear cache"). */
@@ -276,6 +293,12 @@ class UaDataRepository @Inject constructor(
         override fun invalidate(url: String) {
             ensureLoaded()
             if (map.remove(url) != null) persist()
+        }
+
+        // Unsynchronized: called under the cacheDir lock, while persist() takes this lock and then that one.
+        fun reset() {
+            map.clear()
+            loaded = true
         }
 
         private fun persist() = synchronized(this) { writeCache(VALIDATORS_CACHE, validatorsAdapter.toJson(map)) }

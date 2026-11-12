@@ -8,11 +8,14 @@
 package im.vector.app.features.settings.useragent.data
 
 import android.content.Context
+import android.os.SystemClock
 import im.vector.app.features.settings.useragent.UaSpoofClient
 import im.vector.app.features.settings.useragent.providerIdFor
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
@@ -70,6 +73,29 @@ class UaDataRepositoryTest {
                 """{"33.2.1":"130.0.6723.137"}"""
         val releases = runBlocking { repo.refreshElectron() }
         releases shouldBeEqualTo listOf(ElectronRelease("33.2.1", "130.0.6723.137"))
+    }
+
+    @Test
+    fun `refreshBuildIds still caches after the cache dir is wiped under a live repository`() {
+        val dir = kotlin.io.path.createTempDirectory("uatest").toFile()
+        val repo = UaDataRepository(mockk<Context>().also { every { it.cacheDir } returns dir })
+        repo.http = mockk()
+        coEvery { repo.http.get(any(), any(), any()) } returns
+                "<table><tr><td>AP4A.250105.002</td><td>android-15.0.0_r10</td><td>Android 15</td><td>Pixel 9</td></tr></table>"
+        mockkStatic(SystemClock::class)
+        every { SystemClock.elapsedRealtime() } returns 0L
+        try {
+            runBlocking { repo.refreshBuildIds("Pixel 9", 15) }
+            repo.hasBuildIdsCache() shouldBeEqualTo true
+
+            dir.deleteRecursively()
+            repo.hasBuildIdsCache() shouldBeEqualTo false
+
+            runBlocking { repo.refreshBuildIds("Pixel 9", 15) }.map { it.value } shouldBeEqualTo listOf("AP4A.250105.002")
+            repo.hasBuildIdsCache() shouldBeEqualTo true
+        } finally {
+            unmockkStatic(SystemClock::class)
+        }
     }
 
     @Test
