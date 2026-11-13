@@ -8,6 +8,7 @@
 package im.vector.app.features.settings.useragent.data
 
 import android.content.Context
+import androidx.core.content.ContextCompat
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
@@ -42,9 +43,10 @@ object UaProviderIds {
 
 /**
  * Fetches and caches the selectable option lists for spoofing fields. Each source is fetched once and
- * stored as a JSON file under the app cache dir; the populate path reuses that file forever, and only
- * the Update button ([refresh]) re-fetches. Storing under cacheDir means the general "Clear cache"
- * wipes it too. Build ids keep the full AOSP table cached once and filter it per device + version.
+ * stored as a JSON file; the populate path reuses that file forever, and only the Update button
+ * ([refresh]) re-fetches. It lives outside cacheDir so sign-out and low-storage trimming leave it alone;
+ * the general "Clear cache" wipes it via [clear]. Build ids keep the full AOSP table cached once and
+ * filter it per device + version.
  */
 @Singleton
 class UaDataRepository @Inject constructor(
@@ -52,7 +54,10 @@ class UaDataRepository @Inject constructor(
 ) {
 
     // Versioned dir: bumping it invalidates caches written by an older provider set.
-    private val cacheDir = File(context.cacheDir, "useragent-v3").apply { mkdirs() }
+    val cacheDir = File(ContextCompat.getNoBackupFilesDir(context), CACHE_DIR_NAME).apply {
+        if (!exists()) File(context.cacheDir, CACHE_DIR_NAME).renameTo(this)
+        mkdirs()
+    }
 
     private val moshi = Moshi.Builder().build()
     private val optionsAdapter = moshi.adapter<List<UaOption>>(Types.newParameterizedType(List::class.java, UaOption::class.java))
@@ -251,7 +256,13 @@ class UaDataRepository @Inject constructor(
         runCatching { fileFor(key).writeText(json) }.onFailure { Timber.w(it, "UA cache write failed: $key") }
     }
 
-    // "Clear cache" deletes this dir under a live process; drop the memory copies too, or refreshes 304 against nothing.
+    /** Settings' "Clear cache": the next visit to the spoofing screen downloads everything again. */
+    fun clear() = synchronized(cacheDir) {
+        cacheDir.deleteRecursively()
+        ensureCacheDir()
+    }
+
+    // Dropping the memory copies with the files matters: otherwise refreshes 304 against nothing.
     private fun ensureCacheDir() {
         if (cacheDir.isDirectory) return
         synchronized(cacheDir) {
@@ -305,6 +316,7 @@ class UaDataRepository @Inject constructor(
     }
 
     companion object {
+        private const val CACHE_DIR_NAME = "useragent-v3"
         private const val BUILD_ID_CACHE = "buildid_table"
         private const val ELECTRON_CACHE = "electron"
         private const val VALIDATORS_CACHE = "http_validators"

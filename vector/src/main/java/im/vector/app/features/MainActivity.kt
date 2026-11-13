@@ -49,6 +49,7 @@ import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.VectorSessionStore
+import im.vector.app.features.settings.useragent.data.UaDataRepository
 import im.vector.app.features.signout.hard.SignedOutActivity
 import im.vector.app.features.start.StartAppAction
 import im.vector.app.features.start.StartAppAndroidService
@@ -76,6 +77,7 @@ import javax.inject.Inject
 data class MainActivityArgs(
         val clearCache: Boolean = false,
         val initSyncActiveAccount: Boolean = false,
+        val initSyncAllAccounts: Boolean = false,
         val clearCredentials: Boolean = false,
         val ignoreLogoutServerError: Boolean = false,
         val keepServerSession: Boolean = false,
@@ -178,6 +180,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var signedOutNoticeStore: SignedOutNoticeStore
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var vpnGate: VpnGate
+    @Inject lateinit var uaDataRepository: UaDataRepository
 
     private var startAppRequested = false
 
@@ -281,7 +284,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 clearNotifications()
             }
             // Handle some wanted cleanup
-            if (args.clearCache || args.clearCredentials || args.initSyncActiveAccount) {
+            if (args.clearCache || args.clearCredentials || args.initSyncActiveAccount || args.initSyncAllAccounts) {
                 doCleanUp()
             } else {
                 startSyncing()
@@ -349,6 +352,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         return MainActivityArgs(
                 clearCache = argsFromIntent?.clearCache ?: false,
                 initSyncActiveAccount = argsFromIntent?.initSyncActiveAccount ?: false,
+                initSyncAllAccounts = argsFromIntent?.initSyncAllAccounts ?: false,
                 clearCredentials = argsFromIntent?.clearCredentials ?: false,
                 ignoreLogoutServerError = argsFromIntent?.ignoreLogoutServerError ?: false,
                 keepServerSession = argsFromIntent?.keepServerSession ?: false,
@@ -394,6 +398,18 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                     withContext(Dispatchers.IO) {
                         MediaCache.editedMediaDirectory(this@MainActivity).deleteRecursively()
                         java.io.File(filesDir, "send_cache").deleteRecursively()
+                        uaDataRepository.clear()
+                    }
+                    session.startSyncing(applicationContext)
+                    startNextActivityAndFinish()
+                }
+            }
+            args.initSyncAllAccounts -> {
+                lifecycleScope.launch {
+                    authenticationService.getAllSessionParams().forEach { params ->
+                        val accountSession = authenticationService.getOrCreateSession(params)
+                        accountSession.clearCache()
+                        withContext(Dispatchers.IO) { accountSession.fileService().clearCache() }
                     }
                     session.startSyncing(applicationContext)
                     startNextActivityAndFinish()

@@ -107,7 +107,7 @@ class VectorSettingsLabsFragment :
         vectorPreferences.setShouldMigrateThreads(!vectorPreferences.areThreadMessagesEnabled())
         lightweightSettingsStorage.setThreadMessagesEnabled(vectorPreferences.areThreadMessagesEnabled())
         displayLoadingView()
-        MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = true))
+        MainActivity.restartApp(requireActivity(), MainActivityArgs(initSyncAllAccounts = true))
     }
 
     /**

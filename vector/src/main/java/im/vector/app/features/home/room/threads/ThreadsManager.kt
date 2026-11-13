@@ -36,7 +36,7 @@ class ThreadsManager @Inject constructor(
     fun enableThreadsAndRestart(activity: Activity) {
         vectorPreferences.setThreadMessagesEnabled()
         lightweightSettingsStorage.setThreadMessagesEnabled(vectorPreferences.areThreadMessagesEnabled())
-        MainActivity.restartApp(activity, MainActivityArgs(clearCache = true))
+        MainActivity.restartApp(activity, MainActivityArgs(initSyncAllAccounts = true))
     }
 
     /**

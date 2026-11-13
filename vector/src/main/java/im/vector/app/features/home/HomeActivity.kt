@@ -317,12 +317,12 @@ class HomeActivity :
     }
 
     /**
-     * Clear cache and restart to invoke an initial sync for threads migration.
+     * Restart with an initial sync of every account for threads migration.
      */
     private fun handleThreadsMigration() {
         Timber.i("----> Threads Migration detected, clearing cache and sync...")
         vectorPreferences.setShouldMigrateThreads(shouldMigrate = false)
-        MainActivity.restartApp(this, MainActivityArgs(clearCache = true))
+        MainActivity.restartApp(this, MainActivityArgs(initSyncAllAccounts = true))
     }
 
     private fun handleNotifyUserForThreadsMigration() {

@@ -8,6 +8,7 @@
 package im.vector.app.features.settings.useragent.data
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.SystemClock
 import im.vector.app.features.settings.useragent.UaSpoofClient
 import im.vector.app.features.settings.useragent.providerIdFor
@@ -19,16 +20,40 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import java.io.File
 
 class UaDataRepositoryTest {
 
-    private fun context(): Context =
-            mockk<Context>().also { every { it.cacheDir } returns kotlin.io.path.createTempDirectory("uatest").toFile() }
+    // JVM tests take ContextCompat.getNoBackupFilesDir's pre-21 branch: dataDir/no_backup.
+    private fun context(root: File = kotlin.io.path.createTempDirectory("uatest").toFile()): Context =
+            mockk<Context>().also {
+                every { it.cacheDir } returns File(root, "cache")
+                every { it.applicationInfo } returns mockk<ApplicationInfo>().apply { dataDir = root.path }
+            }
 
     private fun repository(): UaDataRepository {
         val repo = UaDataRepository(context())
         repo.http = mockk()
         return repo
+    }
+
+    @Test
+    fun `data cached under cacheDir by older versions is moved, not re-downloaded`() {
+        val root = kotlin.io.path.createTempDirectory("uatest").toFile()
+        File(root, "cache/useragent-v3").apply { mkdirs() }.resolve("${UaProviderIds.GO_VERSION}.json").writeText("[]")
+        val repo = UaDataRepository(context(root))
+        repo.hasCache(UaProviderIds.GO_VERSION) shouldBeEqualTo true
+        File(root, "cache/useragent-v3").exists() shouldBeEqualTo false
+    }
+
+    @Test
+    fun `clear drops cached files and keeps the repository writable`() {
+        val root = kotlin.io.path.createTempDirectory("uatest").toFile()
+        File(root, "cache/useragent-v3").apply { mkdirs() }.resolve("${UaProviderIds.GO_VERSION}.json").writeText("[]")
+        val repo = UaDataRepository(context(root))
+        repo.clear()
+        repo.hasCache(UaProviderIds.GO_VERSION) shouldBeEqualTo false
+        repo.cacheDir.isDirectory shouldBeEqualTo true
     }
 
     @Test
@@ -76,10 +101,8 @@ class UaDataRepositoryTest {
     }
 
     @Test
-    fun `refreshBuildIds still caches after the cache dir is wiped under a live repository`() {
-        val dir = kotlin.io.path.createTempDirectory("uatest").toFile()
-        val repo = UaDataRepository(mockk<Context>().also { every { it.cacheDir } returns dir })
-        repo.http = mockk()
+    fun `refreshBuildIds still caches after clear under a live repository`() {
+        val repo = repository()
         coEvery { repo.http.get(any(), any(), any()) } returns
                 "<table><tr><td>AP4A.250105.002</td><td>android-15.0.0_r10</td><td>Android 15</td><td>Pixel 9</td></tr></table>"
         mockkStatic(SystemClock::class)
@@ -88,7 +111,7 @@ class UaDataRepositoryTest {
             runBlocking { repo.refreshBuildIds("Pixel 9", 15) }
             repo.hasBuildIdsCache() shouldBeEqualTo true
 
-            dir.deleteRecursively()
+            repo.clear()
             repo.hasBuildIdsCache() shouldBeEqualTo false
 
             runBlocking { repo.refreshBuildIds("Pixel 9", 15) }.map { it.value } shouldBeEqualTo listOf("AP4A.250105.002")

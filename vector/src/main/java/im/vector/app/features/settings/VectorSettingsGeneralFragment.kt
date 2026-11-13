@@ -68,6 +68,7 @@ import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
+import im.vector.app.features.settings.useragent.data.UaDataRepository
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -113,6 +114,7 @@ class VectorSettingsGeneralFragment :
     @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
     @Inject lateinit var emoteShortcodeProcessor: EmoteShortcodeProcessor
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
+    @Inject lateinit var uaDataRepository: UaDataRepository
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -593,6 +595,7 @@ class VectorSettingsGeneralFragment :
             getSizeOfFiles(context.cacheDir) +
                     getSizeOfFiles(MediaCache.editedMediaDirectory(context)) +
                     getSizeOfFiles(File(context.filesDir, "send_cache")) +
+                    getSizeOfFiles(uaDataRepository.cacheDir) +
                     sessionIds.sumOf { sessionId ->
                         val directory = File(context.filesDir, sessionId)
                         listOf("event_index.db", "event_index.db-wal", "event_index.db-shm", "event_index.db-journal")
