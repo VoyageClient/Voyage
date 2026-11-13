@@ -19,6 +19,13 @@ import im.vector.app.features.login.SignMode
 import im.vector.app.features.mdm.NoOpMdmService
 import im.vector.app.features.onboarding.RegistrationStateFixture.aRegistrationState
 import im.vector.app.features.onboarding.StartAuthenticationFlowUseCase.StartAuthenticationResult
+import im.vector.app.features.onboarding.gateway.GatewayError
+import im.vector.app.features.onboarding.gateway.GatewayErrorCode
+import im.vector.app.features.onboarding.gateway.GatewayOperation
+import im.vector.app.features.onboarding.gateway.GatewayResult
+import im.vector.app.features.onboarding.gateway.GatewayService
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayClient
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayException
 import im.vector.app.test.TestBuildVersionSdkIntProvider
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeAuthenticationService
@@ -41,6 +48,8 @@ import im.vector.app.test.fixtures.a401ServerError
 import im.vector.app.test.fixtures.aHomeServerCapabilities
 import im.vector.app.test.fixtures.anUnrecognisedCertificateError
 import im.vector.app.test.test
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
@@ -86,6 +95,32 @@ private const val A_SSO_URL = "https://a-sso.url"
 private const val A_REDIRECT_URI = "https://a-redirect.uri"
 private const val A_DEVICE_ID = "a-device-id"
 private val SSO_REGISTRATION_DESCRIPTION = AuthenticationDescription.Register(AuthenticationDescription.AuthenticationType.SSO)
+private const val A_GATEWAY_HOMESERVER = "edited-homeserver.org"
+private const val A_GATEWAY_OPERATION_ID = "reg_example"
+private val A_GATEWAY_SERVICE = GatewayService(
+        id = "a-service",
+        name = "A service",
+        homeservers = listOf(A_GATEWAY_HOMESERVER),
+        usernameCheck = "unsupported",
+        requiresEmail = false,
+        readiness = GatewayService.READY,
+        readinessReason = null,
+)
+private val A_GATEWAY_REGISTRATION_STATE = GatewayRegistrationState(
+        serviceId = A_GATEWAY_SERVICE.id,
+        serviceName = A_GATEWAY_SERVICE.name,
+        homeserver = A_GATEWAY_HOMESERVER,
+        supportsUsernameCheck = false,
+)
+
+private fun aGatewayOperation(status: String, accountCreated: Boolean? = false, result: GatewayResult? = null) = GatewayOperation(
+        id = A_GATEWAY_OPERATION_ID,
+        status = status,
+        stage = null,
+        accountCreated = accountCreated,
+        result = result,
+        error = null,
+)
 
 class OnboardingViewModelTest {
 
@@ -106,6 +141,9 @@ class OnboardingViewModelTest {
     private val fakeHomeServerHistoryService = FakeHomeServerHistoryService()
     private val fakeLoginWizard = FakeLoginWizard()
     private val fakeConfigureAndStartSessionUseCase = mockk<ConfigureAndStartSessionUseCase>()
+    private val fakeRegistrationGatewayClient = mockk<RegistrationGatewayClient> {
+        coEvery { findService(any()) } returns null
+    }
 
     private var initialState = OnboardingViewState()
     private lateinit var viewModel: OnboardingViewModel
@@ -707,6 +745,145 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun `given the gateway lists the homeserver, when starting registration, then selects the gateway and opens the register screen`() = runTest {
+        viewModelWith(initialState.copy(selectedHomeserver = SELECTED_HOMESERVER_STATE))
+        coEvery { fakeRegistrationGatewayClient.findService(any()) } returns (A_GATEWAY_SERVICE to A_GATEWAY_HOMESERVER)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.PostRegisterAction(RegisterAction.StartRegistration))
+
+        test
+                .assertStatesChanges(
+                        initialState,
+                        { copy(isLoading = true) },
+                        { copy(gatewayRegistration = A_GATEWAY_REGISTRATION_STATE) },
+                        { copy(isLoading = false) },
+                )
+                .assertEvents(OnboardingViewEvents.DisplayStartRegistration)
+                .finish()
+        coVerify(exactly = 0) { fakeRegistrationActionHandler.instance.processAction(any(), any()) }
+    }
+
+    @Test
+    fun `given the gateway refuses the token, when starting registration, then emits the error instead of the homeserver's sign-up`() = runTest {
+        viewModelWith(initialState.copy(selectedHomeserver = SELECTED_HOMESERVER_STATE))
+        val unauthorized = RegistrationGatewayException(GatewayError(GatewayErrorCode.UNAUTHORIZED, "", retryable = false), httpStatus = 401)
+        coEvery { fakeRegistrationGatewayClient.findService(any()) } throws unauthorized
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.PostRegisterAction(RegisterAction.StartRegistration))
+
+        test
+                .assertStatesChanges(
+                        initialState,
+                        { copy(isLoading = true) },
+                        { copy(isLoading = false) },
+                )
+                .assertEvents(OnboardingViewEvents.Failure(unauthorized))
+                .finish()
+    }
+
+    @Test
+    fun `given the gateway is unreachable, when starting registration, then falls back to the homeserver's sign-up`() = runTest {
+        viewModelWith(initialState.copy(selectedHomeserver = SELECTED_HOMESERVER_STATE))
+        coEvery { fakeRegistrationGatewayClient.findService(any()) } throws java.net.ConnectException("refused")
+        givenRegistrationResultFor(RegisterAction.StartRegistration, RegistrationActionHandler.Result.StartRegistration)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.PostRegisterAction(RegisterAction.StartRegistration))
+
+        test
+                .assertStatesChanges(
+                        initialState,
+                        { copy(isLoading = true) },
+                        { copy(isLoading = false) },
+                )
+                .assertEvents(OnboardingViewEvents.DisplayStartRegistration)
+                .finish()
+    }
+
+    @Test
+    fun `given a gateway registration, when registering, then creates the account through the gateway and signs in with the password`() = runTest {
+        viewModelWith(initialState.copy(gatewayRegistration = A_GATEWAY_REGISTRATION_STATE))
+        coEvery { fakeRegistrationGatewayClient.service(A_GATEWAY_SERVICE.id) } returns A_GATEWAY_SERVICE
+        coEvery { fakeRegistrationGatewayClient.startRegistration(A_GATEWAY_HOMESERVER, A_USERNAME, A_PASSWORD) } returns
+                aGatewayOperation(GatewayOperation.STATUS_QUEUED)
+        coEvery { fakeRegistrationGatewayClient.awaitOperation(A_GATEWAY_OPERATION_ID, any()) } returns
+                aGatewayOperation(GatewayOperation.STATUS_SUCCEEDED, accountCreated = true, result = GatewayResult(null, "login_required", null))
+        fakeAuthenticationService.givenLoginWizard(fakeLoginWizard)
+        fakeLoginWizard.givenLoginSuccess(A_USERNAME, A_PASSWORD, A_DEVICE_NAME, fakeSession)
+        givenSuccessfullyCreatesAccount(A_HOMESERVER_CAPABILITIES)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.AuthenticateAction.Register(A_USERNAME, A_PASSWORD, A_DEVICE_NAME))
+
+        test
+                .assertStatesChanges(
+                        initialState,
+                        { copy(selectedAuthenticationState = SelectedAuthenticationState(AuthenticationDescription.Register(AuthenticationDescription.AuthenticationType.Password))) },
+                        { copy(isLoading = true, gatewayRegistering = true) },
+                        { copy(gatewayRegistering = false) },
+                        { copy(isLoading = false, personalizationState = A_HOMESERVER_CAPABILITIES.toPersonalisationState("@fake:server.fake")) },
+                )
+                .assertEvents(OnboardingViewEvents.OnAccountCreated)
+                .finish()
+    }
+
+    @Test
+    fun `given a gateway registration, when the outcome is unknown, then emits an error that may have created the account`() = runTest {
+        viewModelWith(initialState.copy(gatewayRegistration = A_GATEWAY_REGISTRATION_STATE))
+        coEvery { fakeRegistrationGatewayClient.service(A_GATEWAY_SERVICE.id) } returns A_GATEWAY_SERVICE
+        coEvery { fakeRegistrationGatewayClient.startRegistration(any(), any(), any()) } returns aGatewayOperation(GatewayOperation.STATUS_RUNNING)
+        coEvery { fakeRegistrationGatewayClient.awaitOperation(A_GATEWAY_OPERATION_ID, any()) } returns
+                aGatewayOperation(GatewayOperation.STATUS_INDETERMINATE, accountCreated = null)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.AuthenticateAction.Register(A_USERNAME, A_PASSWORD, A_DEVICE_NAME))
+
+        test.viewEvents.assertLatestValue { event ->
+            val failure = (event as? OnboardingViewEvents.Failure)?.throwable as? RegistrationGatewayException
+            failure != null && failure.error.code == GatewayErrorCode.OUTCOME_UNKNOWN && failure.mayHaveCreatedAccount
+        }
+        test.states.assertLatestValue { !it.isLoading && !it.gatewayRegistering }
+        test.finish()
+    }
+
+    @Test
+    fun `given a gateway registration, when submitting loses the connection, then emits an error that may have created the account`() = runTest {
+        viewModelWith(initialState.copy(gatewayRegistration = A_GATEWAY_REGISTRATION_STATE))
+        coEvery { fakeRegistrationGatewayClient.service(A_GATEWAY_SERVICE.id) } returns A_GATEWAY_SERVICE
+        coEvery { fakeRegistrationGatewayClient.startRegistration(any(), any(), any()) } throws java.net.SocketTimeoutException("timeout")
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.AuthenticateAction.Register(A_USERNAME, A_PASSWORD, A_DEVICE_NAME))
+
+        test.viewEvents.assertLatestValue { event ->
+            val failure = (event as? OnboardingViewEvents.Failure)?.throwable as? RegistrationGatewayException
+            failure != null && failure.error.code == GatewayErrorCode.TRANSPORT_FAILED && failure.mayHaveCreatedAccount
+        }
+        test.finish()
+    }
+
+    @Test
+    fun `given a gateway registration, when the gateway asks for email verification, then emits an unsupported error`() = runTest {
+        viewModelWith(initialState.copy(gatewayRegistration = A_GATEWAY_REGISTRATION_STATE))
+        coEvery { fakeRegistrationGatewayClient.service(A_GATEWAY_SERVICE.id) } returns A_GATEWAY_SERVICE
+        coEvery { fakeRegistrationGatewayClient.startRegistration(any(), any(), any()) } returns aGatewayOperation(GatewayOperation.STATUS_RUNNING)
+        coEvery { fakeRegistrationGatewayClient.awaitOperation(A_GATEWAY_OPERATION_ID, any()) } returns
+                aGatewayOperation(GatewayOperation.STATUS_REQUIRES_ACTION, accountCreated = false)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.AuthenticateAction.Register(A_USERNAME, A_PASSWORD, A_DEVICE_NAME))
+
+        test.viewEvents.assertLatestValue { event ->
+            val failure = (event as? OnboardingViewEvents.Failure)?.throwable as? RegistrationGatewayException
+            failure != null && failure.error.code == GatewayErrorCode.UNSUPPORTED_ACTION && !failure.mayHaveCreatedAccount
+        }
+        test.states.assertLatestValue { !it.isLoading && !it.gatewayRegistering }
+        test.finish()
+    }
+
+    @Test
     fun `given changing profile avatar is supported, when updating display name, then updates upstream user display name and moves to choose profile avatar`() {
         runTest {
             viewModelWith(initialState.copy(personalizationState = PersonalizationState(supportsChangingProfilePicture = true)))
@@ -1110,6 +1287,7 @@ class OnboardingViewModelTest {
                 TestBuildVersionSdkIntProvider().also { it.value = Build.VERSION_CODES.O },
                 fakeConfigureAndStartSessionUseCase,
                 io.mockk.mockk(relaxed = true),
+                fakeRegistrationGatewayClient,
                 NoOpMdmService()
         ).also {
             viewModel = it

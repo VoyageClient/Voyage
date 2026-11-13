@@ -4395,4 +4395,61 @@
     <string name="audio_player_parameters">Speed and pitch</string>
     <string name="audio_player_parameters_legacy">On this Android version, speed and pitch controls are available for Opus voice messages and PCM WAV files. Other audio plays at its original speed and pitch.</string>
     <string name="attachment_viewer_picture_in_picture">Picture-in-picture</string>
+    <!-- Registration gateway -->
+    <string name="settings_signup_category">Sign-up</string>
+    <string name="settings_registration_gateway_title">Registration gateway</string>
+    <string name="settings_registration_gateway_summary">Create accounts through a registration gateway on the homeservers it supports</string>
+    <string name="settings_registration_gateway_url_title">Gateway URL</string>
+    <string name="settings_registration_gateway_token_title">Gateway token</string>
+    <string name="settings_registration_gateway_token_message">Only needed if the gateway\'s operator gave you one. It is not a Matrix access token.</string>
+    <string name="settings_registration_gateway_not_set">Not set</string>
+    <string name="settings_registration_gateway_check_title">Check gateway</string>
+    <string name="settings_registration_gateway_check_summary">List the homeservers this gateway can create accounts on</string>
+    <string name="settings_registration_gateway_checking">Contacting the gateway…</string>
+    <string name="settings_registration_gateway_no_services">This gateway doesn\'t offer any homeservers.</string>
+    <string name="settings_registration_gateway_service_ready">Ready</string>
+    <string name="settings_registration_gateway_service_degraded">Ready, but may fail</string>
+    <string name="settings_registration_gateway_service_preparing">Getting ready</string>
+    <string name="settings_registration_gateway_service_unavailable">Unavailable</string>
+    <string name="settings_registration_gateway_service_needs_email">Needs an email address, which isn\'t supported</string>
+    <!-- %1$s is a registration gateway service name, e.g. "Example" -->
+    <string name="ftue_auth_gateway_notice">This account will be created through the %1$s registration gateway.</string>
+    <string name="ftue_auth_gateway_progress">Creating your account through %1$s…</string>
+    <!-- %1$s is a registration gateway service name, %2$s the gateway's description of its current step, e.g. "solving captcha" -->
+    <string name="ftue_auth_gateway_progress_stage">Creating your account through %1$s (%2$s)…</string>
+    <string name="ftue_auth_gateway_username_invalid">This username isn\'t allowed on this server</string>
+    <string name="ftue_auth_gateway_account_may_exist">The account may have been created anyway. Try signing in with this username and password before signing up again.</string>
+    <!-- %1$s is the reason signing in failed -->
+    <string name="ftue_auth_gateway_login_failed">Your account was created, but signing in failed (%1$s). Sign in with your new username and password.</string>
+    <string name="gateway_error_not_configured">Enter a gateway URL first.</string>
+    <string name="gateway_error_token_missing">This gateway needs a token. Enter it in the registration gateway settings.</string>
+    <string name="gateway_error_invalid_url">The gateway URL isn\'t valid.</string>
+    <string name="gateway_error_not_a_gateway">Nothing at this URL answered like a registration gateway. Check the gateway URL.</string>
+    <string name="gateway_error_unknown_host">Couldn\'t find the gateway. Check the gateway URL.</string>
+    <string name="gateway_error_connect">Couldn\'t connect to the gateway. Check that it\'s running and reachable from this device.</string>
+    <string name="gateway_error_ssl">Couldn\'t set up a secure connection to the gateway.</string>
+    <string name="gateway_error_timeout">The gateway took too long to respond.</string>
+    <string name="gateway_error_network">Couldn\'t reach the gateway. Check your connection.</string>
+    <string name="gateway_error_unauthorized">The gateway didn\'t accept the token. Check the gateway token.</string>
+    <string name="gateway_error_unsupported_homeserver">The gateway no longer supports this homeserver.</string>
+    <string name="gateway_error_not_found">The gateway no longer knows about this sign-up. It may have expired or the gateway may have restarted.</string>
+    <string name="gateway_error_email_unsupported">This server needs an email address to sign up through the gateway, which isn\'t supported.</string>
+    <string name="gateway_error_invalid_field">One of the details you entered isn\'t accepted by this server.</string>
+    <string name="gateway_error_not_ready">The gateway can\'t create accounts on this server right now. Try again later.</string>
+    <!-- %1$s is the reason the gateway gave, e.g. "Not set up yet" -->
+    <string name="gateway_error_not_ready_reason">The gateway can\'t create accounts on this server right now: %1$s</string>
+    <string name="gateway_error_captcha_unsolved">The gateway couldn\'t get past the server\'s captcha. Try again later.</string>
+    <string name="gateway_error_busy">The gateway is busy with other sign-ups. Try again in a moment.</string>
+    <string name="gateway_error_cooldown">The gateway is pausing between sign-ups on this server. Try again later.</string>
+    <string name="gateway_error_upstream">The gateway couldn\'t reach the homeserver. Try again later.</string>
+    <string name="gateway_error_rejected">The homeserver refused to create the account.</string>
+    <string name="gateway_error_interrupted">The gateway restarted before it finished creating the account.</string>
+    <string name="gateway_error_closed">The gateway is shutting down. Try again later.</string>
+    <string name="gateway_error_outcome_unknown">The gateway couldn\'t tell whether the account was created.</string>
+    <string name="gateway_error_internal">The gateway ran into an internal error.</string>
+    <string name="gateway_error_bad_request">The gateway didn\'t accept the request.</string>
+    <!-- %1$d is an HTTP status code -->
+    <string name="gateway_error_http">The gateway answered with an unexpected error (HTTP %1$d).</string>
+    <!-- %1$s is a gateway error code, shown only when the gateway gives no description -->
+    <string name="gateway_error_unknown">The gateway reported an error (%1$s).</string>
 </resources>

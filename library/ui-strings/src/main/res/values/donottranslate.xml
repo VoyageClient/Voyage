@@ -131,4 +131,5 @@
     <string name="code_palette_dracula" translatable="false">Dracula</string>
     <string name="code_palette_xterm" translatable="false">xterm</string>
     <string name="code_palette_telegram" translatable="false">Telegram</string>
+    <string name="settings_registration_gateway_url_hint" translatable="false">https://example.com:8443</string>
 </resources>

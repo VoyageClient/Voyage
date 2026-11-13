@@ -37,6 +37,13 @@ import im.vector.app.features.mdm.MdmData
 import im.vector.app.features.mdm.MdmService
 import im.vector.app.features.onboarding.OnboardingAction.AuthenticateAction
 import im.vector.app.features.onboarding.StartAuthenticationFlowUseCase.StartAuthenticationResult
+import im.vector.app.features.onboarding.gateway.GatewayError
+import im.vector.app.features.onboarding.gateway.GatewayErrorCode
+import im.vector.app.features.onboarding.gateway.GatewayOperation
+import im.vector.app.features.onboarding.gateway.GatewayUsernameAvailability
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayClient
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayException
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayWire
 import im.vector.app.features.settings.useragent.UserAgentSettings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.firstOrNull
@@ -83,6 +90,7 @@ class OnboardingViewModel @AssistedInject constructor(
         private val sdkIntProvider: BuildVersionSdkIntProvider,
         private val configureAndStartSessionUseCase: ConfigureAndStartSessionUseCase,
         private val userAgentSettings: UserAgentSettings,
+        private val registrationGatewayClient: RegistrationGatewayClient,
         mdmService: MdmService,
 ) : VectorViewModel<OnboardingViewState, OnboardingAction, OnboardingViewEvents>(initialState) {
 
@@ -118,7 +126,16 @@ class OnboardingViewModel @AssistedInject constructor(
 
     // True when login and password has been sent with success to the homeserver
     val isRegistrationStarted: Boolean
-        get() = authenticationService.isRegistrationStarted()
+        get() = authenticationService.isRegistrationStarted() || gatewayAttempt != null
+
+    private class GatewayAttempt(
+            val username: String,
+            val password: String,
+            val initialDeviceName: String,
+    )
+
+    // Kept out of the persisted state: it holds the password needed to sign in once the gateway is done.
+    private var gatewayAttempt: GatewayAttempt? = null
 
     private val loginWizard: LoginWizard
         get() = authenticationService.getLoginWizard()
@@ -186,6 +203,11 @@ class OnboardingViewModel @AssistedInject constructor(
     }
 
     private suspend fun checkUserNameAvailability(userName: String) {
+        val gateway = awaitState().gatewayRegistration
+        if (gateway != null) {
+            checkGatewayUserNameAvailability(gateway, userName)
+            return
+        }
         runCatching { registrationWizard.registrationAvailable(userName) }.fold(
                 onSuccess = { result ->
                     when (result) {
@@ -318,9 +340,30 @@ class OnboardingViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun internalRegisterAction(action: RegisterAction, overrideNextStage: (() -> Unit)? = null) {
+    private suspend fun internalRegisterAction(
+            action: RegisterAction,
+            homeserver: SelectedHomeserverState? = null,
+            overrideNextStage: (() -> Unit)? = null,
+    ) {
+        if (action == RegisterAction.StartRegistration) {
+            val gateway = try {
+                findGatewayRegistration(homeserver ?: awaitState().selectedHomeserver)
+            } catch (failure: RegistrationGatewayException) {
+                _viewEvents.post(OnboardingViewEvents.Failure(failure))
+                return
+            }
+            if (gateway != null) {
+                setState { copy(gatewayRegistration = gateway) }
+                overrideNextStage?.invoke() ?: _viewEvents.post(OnboardingViewEvents.DisplayStartRegistration)
+                return
+            }
+        }
         runCatching { registrationActionHandler.processAction(awaitState().selectedHomeserver, action) }.fold(
                 onSuccess = {
+                    // A failed server edit keeps the previous server, so it keeps that server's gateway too.
+                    if (action == RegisterAction.StartRegistration && it !is RegistrationActionHandler.Result.Error) {
+                        setState { copy(gatewayRegistration = null) }
+                    }
                     when (it) {
                         RegistrationActionHandler.Result.Ignored -> {
                             // do nothing
@@ -362,14 +405,158 @@ class OnboardingViewModel @AssistedInject constructor(
             copy(selectedAuthenticationState = SelectedAuthenticationState(authDescription))
         }
         reAuthHelper.data = password
-        handleRegisterAction(
-                RegisterAction.CreateAccount(
-                        userName,
-                        password,
-                        initialDeviceName
+        withState { state ->
+            when (val gateway = state.gatewayRegistration) {
+                null -> handleRegisterAction(
+                        RegisterAction.CreateAccount(
+                                userName,
+                                password,
+                                initialDeviceName
+                        )
                 )
-        )
+                else -> registerThroughGateway(gateway, userName, password, initialDeviceName)
+            }
+        }
     }
+
+    /**
+     * Throws when the gateway refuses the token: falling back to the homeserver's own sign-up would hide
+     * the misconfiguration. Any other discovery failure falls back, so an unreachable gateway can't block sign-up.
+     */
+    private suspend fun findGatewayRegistration(homeserver: SelectedHomeserverState): GatewayRegistrationState? {
+        val candidates = RegistrationGatewayWire.serverNameCandidates(homeserver.userFacingUrl, homeserver.upstreamUrl)
+        val match = try {
+            registrationGatewayClient.findService(candidates)
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            if (failure is RegistrationGatewayException && failure.error.code == GatewayErrorCode.UNAUTHORIZED) throw failure
+            Timber.w(failure, "Registration gateway discovery failed, using the homeserver's own sign-up")
+            null
+        }
+        return match?.let { (service, listedName) ->
+            GatewayRegistrationState(
+                    serviceId = service.id,
+                    serviceName = service.name,
+                    homeserver = listedName,
+                    supportsUsernameCheck = service.supportsUsernameCheck,
+            )
+        }
+    }
+
+    private suspend fun checkGatewayUserNameAvailability(gateway: GatewayRegistrationState, userName: String) {
+        if (!gateway.supportsUsernameCheck) return
+        val availability = try {
+            registrationGatewayClient.checkUsername(gateway.homeserver, userName)
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            Timber.w(failure, "Registration gateway username check failed")
+            null
+        }
+        when (availability) {
+            GatewayUsernameAvailability.AVAILABLE -> setState {
+                copy(registrationState = RegistrationState(isUserNameAvailable = true, selectedMatrixId = "@$userName:${gateway.homeserver}"))
+            }
+            GatewayUsernameAvailability.TAKEN -> _viewEvents.post(OnboardingViewEvents.Failure(gatewayError(GatewayErrorCode.USERNAME_TAKEN)))
+            GatewayUsernameAvailability.INVALID -> _viewEvents.post(OnboardingViewEvents.Failure(gatewayError(GatewayErrorCode.INVALID_USERNAME)))
+            GatewayUsernameAvailability.UNKNOWN, null -> Unit
+        }
+    }
+
+    private fun registerThroughGateway(
+            gateway: GatewayRegistrationState,
+            userName: String,
+            password: String,
+            initialDeviceName: String,
+    ) {
+        gatewayAttempt = null
+        setState { copy(isLoading = true, gatewayRegistering = true, gatewayStage = null) }
+        currentJob = viewModelScope.launch {
+            try {
+                // Readiness can change after discovery, and only ready services should be sent registrations.
+                val service = registrationGatewayClient.service(gateway.serviceId)
+                        ?: throw gatewayError(GatewayErrorCode.UNSUPPORTED_HOMESERVER)
+                if (!service.isReady) {
+                    throw RegistrationGatewayException(GatewayError(GatewayErrorCode.SERVICE_NOT_READY, service.readinessReason.orEmpty(), retryable = true))
+                }
+                // Set before submitting: the request may reach the gateway even if its response doesn't come back.
+                gatewayAttempt = GatewayAttempt(userName, password, initialDeviceName)
+                followGatewayOperation(registrationGatewayClient.startRegistration(gateway.homeserver, userName, password))
+            } catch (failure: Throwable) {
+                onGatewayFailure(failure)
+            }
+        }
+    }
+
+    private suspend fun followGatewayOperation(initial: GatewayOperation) {
+        val operation = when {
+            initial.isPending -> registrationGatewayClient.awaitOperation(initial.id) { progress ->
+                setState { copy(gatewayStage = progress.stage) }
+            }
+            else -> initial
+        }
+        when (operation.status) {
+            GatewayOperation.STATUS_SUCCEEDED -> completeGatewayRegistration(operation)
+            // The only action in protocol v1 is email verification, which isn't supported.
+            GatewayOperation.STATUS_REQUIRES_ACTION -> throw RegistrationGatewayException(
+                    GatewayError(GatewayErrorCode.UNSUPPORTED_ACTION, "", retryable = false),
+                    accountCreated = operation.accountCreated,
+            )
+            GatewayOperation.STATUS_INDETERMINATE -> throw RegistrationGatewayException(
+                    operation.error ?: GatewayError(GatewayErrorCode.OUTCOME_UNKNOWN, "", retryable = false),
+                    accountCreated = null,
+            )
+            // Unknown statuses are unsupported, never success.
+            else -> throw RegistrationGatewayException(
+                    operation.error ?: GatewayError(operation.status.uppercase(), "", retryable = false),
+                    accountCreated = operation.accountCreated,
+            )
+        }
+    }
+
+    private suspend fun completeGatewayRegistration(operation: GatewayOperation) {
+        val attempt = gatewayAttempt ?: return
+        val result = operation.result
+        val accessToken = result?.accessToken?.takeIf { result.authenticationStatus == GatewayOperation.AUTH_AUTHENTICATED }
+        val session = try {
+            accessToken?.let { sessionFromGatewayToken(it) }
+                    ?: loginWizard.login(result?.userId ?: attempt.username, attempt.password, attempt.initialDeviceName)
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            throw RegistrationGatewayException(
+                    GatewayError(GatewayErrorCode.LOGIN_FAILED, "", retryable = false),
+                    accountCreated = true,
+                    cause = failure,
+            )
+        }
+        gatewayAttempt = null
+        setState { copy(gatewayRegistering = false, gatewayStage = null) }
+        onSessionCreated(session, authenticationDescription = AuthenticationDescription.Register(AuthenticationDescription.AuthenticationType.Password))
+    }
+
+    /** Null when the gateway's session can't be used, so the caller signs in with the password instead. */
+    private suspend fun sessionFromGatewayToken(accessToken: String): Session? = try {
+        homeServerConnectionConfigFactory.create(awaitState().selectedHomeserver.upstreamUrl)
+                ?.let { authenticationService.loginUsingAccessToken(it, accessToken) }
+    } catch (failure: Throwable) {
+        if (failure is CancellationException) throw failure
+        Timber.w(failure, "Registration gateway session unusable, signing in instead")
+        null
+    }
+
+    private fun onGatewayFailure(failure: Throwable) {
+        if (failure is CancellationException) throw failure
+        // A submitted registration that lost the gateway must not read as "not created".
+        val gatewayFailure = failure as? RegistrationGatewayException ?: RegistrationGatewayException(
+                GatewayError(GatewayErrorCode.TRANSPORT_FAILED, "", retryable = true),
+                accountCreated = if (gatewayAttempt != null) null else false,
+                cause = failure,
+        )
+        gatewayAttempt = null
+        setState { copy(isLoading = false, gatewayRegistering = false, gatewayStage = null) }
+        _viewEvents.post(OnboardingViewEvents.Failure(gatewayFailure))
+    }
+
+    private fun gatewayError(code: String) = RegistrationGatewayException(GatewayError(code, "", retryable = false))
 
     private fun handleResetAction(action: OnboardingAction.ResetAction) {
         // Cancel any request
@@ -387,6 +574,7 @@ class OnboardingViewModel @AssistedInject constructor(
                         copy(
                                 isLoading = false,
                                 selectedHomeserver = SelectedHomeserverState(),
+                                gatewayRegistration = null,
                         )
                     }
                 }
@@ -403,6 +591,7 @@ class OnboardingViewModel @AssistedInject constructor(
                 }
             }
             OnboardingAction.ResetAuthenticationAttempt -> {
+                gatewayAttempt = null
                 viewModelScope.launch {
                     authenticationService.cancelPendingLoginOrRegistration()
                     setState {
@@ -807,7 +996,7 @@ class OnboardingViewModel @AssistedInject constructor(
     private suspend fun onHomeServerEdited(config: HomeServerConnectionConfig, serverTypeOverride: ServerType?, authResult: StartAuthenticationResult) {
         when (awaitState().onboardingFlow) {
             OnboardingFlow.SignUp -> {
-                internalRegisterAction(RegisterAction.StartRegistration) {
+                internalRegisterAction(RegisterAction.StartRegistration, homeserver = authResult.selectedHomeserver) {
                     updateServerSelection(config, serverTypeOverride, authResult)
                     _viewEvents.post(OnboardingViewEvents.OnHomeserverEdited)
                 }

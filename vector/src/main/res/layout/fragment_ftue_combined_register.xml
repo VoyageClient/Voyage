@@ -208,10 +208,24 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/ftue_auth_create_account_password_entry_footer"
-            app:layout_constraintBottom_toTopOf="@id/actionSpacing"
+            app:layout_constraintBottom_toTopOf="@id/createAccountGatewayNotice"
             app:layout_constraintEnd_toEndOf="@id/createAccountGutterEnd"
             app:layout_constraintStart_toStartOf="@id/createAccountGutterStart"
             app:layout_constraintTop_toBottomOf="@id/createAccountPasswordInput" />
+
+        <TextView
+            android:id="@+id/createAccountGatewayNotice"
+            style="@style/Widget.Vector.TextView.Micro"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/actionSpacing"
+            app:layout_constraintEnd_toEndOf="@id/createAccountGutterEnd"
+            app:layout_constraintStart_toStartOf="@id/createAccountGutterStart"
+            app:layout_constraintTop_toBottomOf="@id/createAccountPasswordEntryFooter"
+            tools:text="This account will be created through the Example registration gateway."
+            tools:visibility="visible" />
 
         <Space
             android:id="@+id/actionSpacing"
@@ -219,7 +233,7 @@
             android:layout_height="0dp"
             app:layout_constraintBottom_toTopOf="@id/createAccountSubmit"
             app:layout_constraintHeight_percent="0.02"
-            app:layout_constraintTop_toBottomOf="@id/createAccountPasswordEntryFooter" />
+            app:layout_constraintTop_toBottomOf="@id/createAccountGatewayNotice" />
 
         <Button
             android:id="@+id/createAccountSubmit"

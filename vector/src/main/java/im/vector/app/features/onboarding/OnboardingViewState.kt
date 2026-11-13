@@ -50,6 +50,12 @@ data class OnboardingViewState(
 
         @PersistState
         val personalizationState: PersonalizationState = PersonalizationState(),
+
+        /** Set while the selected homeserver signs up through the configured registration gateway. */
+        @PersistState
+        val gatewayRegistration: GatewayRegistrationState? = null,
+        val gatewayRegistering: Boolean = false,
+        val gatewayStage: String? = null,
 ) : MavericksState
 
 enum class OnboardingFlow {
@@ -91,6 +97,15 @@ data class ResetState(
 @Parcelize
 data class SelectedAuthenticationState(
         val description: AuthenticationDescription? = null,
+) : Parcelable
+
+@Parcelize
+data class GatewayRegistrationState(
+        val serviceId: String,
+        val serviceName: String,
+        /** The server name as the gateway lists it. */
+        val homeserver: String,
+        val supportsUsernameCheck: Boolean,
 ) : Parcelable
 
 @Parcelize

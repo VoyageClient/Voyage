@@ -24,9 +24,12 @@ import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingViewEvents
 import im.vector.app.features.onboarding.OnboardingViewModel
 import im.vector.app.features.onboarding.OnboardingViewState
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayErrorFormatter
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayException
 import im.vector.app.features.settings.applySelectedAppLogo
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
+import javax.inject.Inject
 
 /**
  * Parent Fragment for all the login/registration screens.
@@ -34,6 +37,8 @@ import kotlinx.coroutines.CancellationException
 abstract class AbstractFtueAuthFragment<VB : ViewBinding> : VectorBaseFragment<VB>(), OnBackPressed {
 
     protected val viewModel: OnboardingViewModel by activityViewModel()
+
+    @Inject lateinit var gatewayErrorFormatter: RegistrationGatewayErrorFormatter
 
     private var isResetPasswordStarted = false
 
@@ -111,7 +116,14 @@ abstract class AbstractFtueAuthFragment<VB : ViewBinding> : VectorBaseFragment<V
     }
 
     open fun onError(throwable: Throwable) {
-        super.showFailure(throwable)
+        when (throwable) {
+            is RegistrationGatewayException -> MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.dialog_title_error)
+                    .setMessage(gatewayErrorFormatter.format(throwable))
+                    .setPositiveButton(CommonStrings.ok, null)
+                    .show()
+            else -> super.showFailure(throwable)
+        }
     }
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {

@@ -41,6 +41,8 @@ import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingAction.AuthenticateAction
 import im.vector.app.features.onboarding.OnboardingViewEvents
 import im.vector.app.features.onboarding.OnboardingViewState
+import im.vector.app.features.onboarding.gateway.GatewayErrorCode
+import im.vector.app.features.onboarding.gateway.RegistrationGatewayException
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -147,6 +149,10 @@ class FtueAuthCombinedRegisterFragment :
     }
 
     override fun onError(throwable: Throwable) {
+        if (throwable is RegistrationGatewayException) {
+            onGatewayError(throwable)
+            return
+        }
         // Trick to display the error without text.
         views.createAccountInput.error = " "
         when {
@@ -178,14 +184,37 @@ class FtueAuthCombinedRegisterFragment :
         }
     }
 
+    private fun onGatewayError(error: RegistrationGatewayException) {
+        when (error.error.code) {
+            GatewayErrorCode.USERNAME_TAKEN -> views.createAccountInput.error = getString(CommonStrings.login_signup_error_user_in_use)
+            GatewayErrorCode.INVALID_USERNAME -> views.createAccountInput.error = getString(CommonStrings.ftue_auth_gateway_username_invalid)
+            else -> {
+                val message = gatewayErrorFormatter.format(error)
+                val mayExist = error.mayHaveCreatedAccount && error.error.code != GatewayErrorCode.LOGIN_FAILED
+                MaterialAlertDialogBuilder(requireActivity())
+                        .setTitle(CommonStrings.dialog_title_error)
+                        .setMessage(if (mayExist) message + "\n\n" + getString(CommonStrings.ftue_auth_gateway_account_may_exist) else message)
+                        .setPositiveButton(CommonStrings.ok, null)
+                        .show()
+            }
+        }
+    }
+
     override fun updateWithState(state: OnboardingViewState) {
         setupUi(state)
         setupAutoFill()
     }
 
+    private fun renderGateway(state: OnboardingViewState) {
+        val gateway = state.gatewayRegistration
+        views.createAccountGatewayNotice.isVisible = gateway != null
+        views.createAccountGatewayNotice.text = gateway?.let { getString(CommonStrings.ftue_auth_gateway_notice, it.serviceName) }
+    }
+
     private fun setupUi(state: OnboardingViewState) {
         val serverName = state.selectedHomeserver.userFacingUrl.toReducedUrl()
         views.selectedServerName.text = serverName
+        renderGateway(state)
 
         if (state.isLoading) {
             // Ensure password is hidden

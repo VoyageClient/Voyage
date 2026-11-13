@@ -117,6 +117,15 @@ class FtueAuthVariant(
     private fun updateWithState(viewState: OnboardingViewState) {
         isForceLoginFallbackEnabled = viewState.isForceLoginFallbackEnabled
         views.loginLoading.isVisible = viewState.isLoading
+        val gateway = viewState.gatewayRegistration
+        val showGatewayProgress = viewState.isLoading && viewState.gatewayRegistering && gateway != null
+        views.loginProgressText.isVisible = showGatewayProgress
+        if (showGatewayProgress && gateway != null) {
+            views.loginProgressText.text = when (val stage = viewState.gatewayStage?.replace('_', ' ')) {
+                null -> activity.getString(CommonStrings.ftue_auth_gateway_progress, gateway.serviceName)
+                else -> activity.getString(CommonStrings.ftue_auth_gateway_progress_stage, gateway.serviceName, stage)
+            }
+        }
     }
 
     override fun setIsLoading(isLoading: Boolean) = Unit

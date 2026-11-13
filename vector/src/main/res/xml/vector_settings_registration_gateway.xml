@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_registration_gateway_title">
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_REGISTRATION_GATEWAY_URL"
+            android:title="@string/settings_registration_gateway_url_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:dialogMessage="@string/settings_registration_gateway_token_message"
+            android:key="SETTINGS_REGISTRATION_GATEWAY_TOKEN"
+            android:title="@string/settings_registration_gateway_token_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_REGISTRATION_GATEWAY_CHECK"
+            android:persistent="false"
+            android:summary="@string/settings_registration_gateway_check_summary"
+            android:title="@string/settings_registration_gateway_check_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

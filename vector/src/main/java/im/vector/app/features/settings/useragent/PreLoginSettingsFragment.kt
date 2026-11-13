@@ -11,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.addFragmentToBackstack
 import im.vector.app.features.settings.backup.DatabaseRestoreSettingsFragment
+import im.vector.app.features.settings.gateway.VectorSettingsRegistrationGatewayFragment
 import im.vector.lib.strings.CommonStrings
 
 @AndroidEntryPoint
@@ -22,6 +23,9 @@ class PreLoginSettingsFragment : DatabaseRestoreSettingsFragment() {
     override fun bindPref() {
         onClick("SETTINGS_PRELOGIN_USER_AGENT") {
             addFragmentToBackstack(R.id.container, VectorSettingsUserAgentFragment::class.java)
+        }
+        onClick("SETTINGS_PRELOGIN_REGISTRATION_GATEWAY") {
+            addFragmentToBackstack(R.id.container, VectorSettingsRegistrationGatewayFragment::class.java)
         }
         bindDatabaseImport()
     }

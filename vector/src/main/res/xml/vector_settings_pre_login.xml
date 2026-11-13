@@ -8,6 +8,12 @@
         android:title="@string/settings_user_agent_title" />
 
     <im.vector.app.core.preference.VectorPreference
+        android:key="SETTINGS_PRELOGIN_REGISTRATION_GATEWAY"
+        android:persistent="false"
+        android:summary="@string/settings_registration_gateway_summary"
+        android:title="@string/settings_registration_gateway_title" />
+
+    <im.vector.app.core.preference.VectorPreference
         android:key="SETTINGS_BACKUP_DATABASE_IMPORT_KEY"
         android:persistent="false"
         android:summary="@string/settings_backup_database_import_summary"
