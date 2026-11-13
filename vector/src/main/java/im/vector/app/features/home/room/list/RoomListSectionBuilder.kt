@@ -11,7 +11,6 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.liveData
 import androidx.paging.PagedList
 import com.airbnb.mvrx.Async
 import im.vector.app.SpaceStateHandler
@@ -30,15 +29,18 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
@@ -346,28 +348,37 @@ class RoomListSectionBuilder(
     }
 
     private fun addSuggestedRoomsSection(sections: MutableList<RoomsSection>) {
-        val suggestedRoomsFlow = // MutableLiveData<List<SpaceChildInfo>>()
-                spaceStateHandler.getSelectedSpaceFlow()
-                        .distinctUntilChanged()
-                        .flatMapLatest { selectedSpaceOption ->
-                            val selectedSpace = selectedSpaceOption.orNull()
-                            if (selectedSpace == null) {
-                                flowOf(emptyList())
-                            } else {
-                                liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-                                    val spaceSum = tryOrNull {
-                                        session.spaceService()
-                                                .querySpaceChildren(selectedSpace.roomId, suggestedOnly = true, null, null)
-                                    }
-                                    val value = spaceSum?.children.orEmpty().distinctBy { it.childRoomId }
-                                    // i need to check if it's already joined.
-                                    val filtered = value.filter {
+        val suggestedRoomsFlow = spaceStateHandler.getSelectedSpaceFlow()
+                .distinctUntilChanged()
+                .flatMapLatest { selectedSpaceOption ->
+                    val selectedSpace = selectedSpaceOption.orNull()
+                    if (selectedSpace == null) {
+                        flowOf(emptyList())
+                    } else {
+                        flow {
+                            val spaceSum = tryOrNull {
+                                session.spaceService()
+                                        .querySpaceChildren(selectedSpace.roomId, suggestedOnly = true, null, null)
+                            }
+                            emit(spaceSum?.children.orEmpty().distinctBy { it.childRoomId })
+                        }
+                    }
+                }
+                .flatMapLatest { suggestions ->
+                    if (suggestions.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        session.roomService().getRoomSummaryUpdateFlow()
+                                .map {
+                                    suggestions.filter {
                                         session.getRoomSummary(it.childRoomId)?.membership?.isActive() != true
                                     }
-                                    emit(filtered)
-                                }.asFlow()
-                            }
-                        }
+                                }
+                                .distinctUntilChanged()
+                    }
+                }
+                .flowOn(Dispatchers.IO)
+                .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
 
         val liveSuggestedRooms = MutableLiveData<SuggestedRoomInfo>()
         combine(
