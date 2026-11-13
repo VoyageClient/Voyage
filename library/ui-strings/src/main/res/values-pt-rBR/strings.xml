@@ -1068,14 +1068,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Este não é um identificador de usuário válido. Formato esperado: \'@usuarix:servidorcasa.org\'</string>
     <string name="autodiscover_well_known_error">Incapaz de encontrar um servidorcasa válido. Por favor cheque seu identificador</string>
     <string name="seen_by">Vista por</string>
-    <string name="signed_out_title">Você está com signout feito</string>
-    <string name="signed_out_notice">Isso pode acontecer devido a várias razões:
-\n
-\n• Você mudou sua senha numa outra sessão.
-\n
-\n• Você deletou esta sessão de uma outra sessão.
-\n
-\n• O administrador de seu servidor invalidou seu acesso por razões de segurança.</string>
     <string name="signed_out_submit">Fazer signin de novo</string>
     <string name="soft_logout_title">Você deslogou</string>
     <string name="soft_logout_signin_title">Entrar</string>
@@ -3715,4 +3707,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Aplicar a todos</string>
     <string name="sed_error_step_no_match">%1$s não corresponde depois que as substituições anteriores são aplicadas.</string>
+    <string name="signed_out_title">Você foi desconectado</string>
+    <string name="signed_out_notice">Isso pode acontecer quando:\n\n• Sua senha foi alterada em outro dispositivo.\n\n• Este dispositivo foi removido da sua conta em outro dispositivo.\n\n• O administrador do seu servidor desativou sua conta.</string>
+    <string name="signed_out_continue_with_account">Continuar com outra conta</string>
 </resources>

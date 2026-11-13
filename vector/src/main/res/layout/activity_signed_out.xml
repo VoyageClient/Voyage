@@ -10,7 +10,9 @@
         style="@style/LoginFormScrollView"
         tools:ignore="MissingConstraints">
 
-        <LinearLayout style="@style/LoginFormContainer">
+        <LinearLayout
+            style="@style/LoginFormContainer"
+            android:clipToPadding="false">
 
             <ImageView
                 style="@style/LoginLogo"
@@ -23,14 +25,54 @@
                 android:text="@string/signed_out_title"
                 android:textColor="?vctr_content_primary" />
 
+            <include
+                android:id="@+id/signedOutAccount"
+                layout="@layout/item_account_switcher"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-16dp"
+                android:layout_marginStart="-16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginRight="-16dp"
+                android:layout_marginEnd="-16dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <TextView
+                android:id="@+id/signedOutNotice"
                 style="@style/Widget.Vector.TextView.Body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/layout_vertical_margin"
                 android:gravity="start"
-                android:text="@string/signed_out_notice"
+                tools:text="@string/signed_out_notice"
                 android:textColor="?vctr_content_secondary" />
+
+            <TextView
+                android:id="@+id/signedOutOtherAccountsTitle"
+                style="@style/Widget.Vector.TextView.Subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/signed_out_continue_with_account"
+                android:textColor="?vctr_content_primary"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/signedOutAccountList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-36dp"
+                android:layout_marginStart="-36dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="-36dp"
+                android:layout_marginEnd="-36dp"
+                android:overScrollMode="never"
+                android:visibility="gone"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_account_switcher"
+                tools:visibility="visible" />
 
             <Button
                 android:id="@+id/signedOutSubmit"
@@ -39,11 +81,12 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginTop="22dp"
-                android:text="@string/signed_out_submit" />
+                android:text="@string/signed_out_submit"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
 </FrameLayout>
-

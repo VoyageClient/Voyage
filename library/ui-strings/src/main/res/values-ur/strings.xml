@@ -1467,8 +1467,6 @@
     <string name="autodiscover_well_known_error">کوئی درست منزلی خادم نہیں مل سکا۔ براہ کرم اپنا شناخت کنندہ چیک کریں</string>
     <string name="login_scan_qr_code">QR کوڈ اسکین کریں</string>
     <string name="seen_by">دیکھنے والے</string>
-    <string name="signed_out_title">آپ خارج ہو چکے ہیں</string>
-    <string name="signed_out_notice">اس کی مختلف وجوہات ہو سکتی ہیں:\n\n• آپ نے کسی دوسرے جلسے میں اپنا رمز عبور بدل دیا ہے۔\n\n• آپ نے کسی دوسرے جلسے سے یہ جلسہ حذف کر دیا ہے۔\n\n• آپ کے سرور کے منتظم نے حفاظتی وجوہات کی بنا پر آپ کی رسائی منسوخ کر دی ہے۔</string>
     <string name="signed_out_submit">دوبارہ داخل ہوں</string>
     <string name="soft_logout_title">آپ خارج ہو چکے ہیں</string>
     <string name="soft_logout_signin_title">داخل ہوں</string>
@@ -3609,4 +3607,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">سب پر لاگو کریں</string>
     <string name="sed_error_step_no_match">پچھلی تبدیلیاں لاگو ہونے کے بعد %1$s مطابقت نہیں رکھتا۔</string>
+    <string name="signed_out_title">آپ کو خارج کر دیا گیا ہے</string>
+    <string name="signed_out_notice">ایسا تب ہو سکتا ہے جب:\n\n• آپ کا رمز عبور کسی دوسرے آلے سے تبدیل کیا گیا ہو۔\n\n• یہ آلہ کسی دوسرے آلے سے آپ کے کھاتے سے ہٹا دیا گیا ہو۔\n\n• آپ کے سرور کے منتظم نے آپ کا کھاتہ غیر فعال کر دیا ہو۔</string>
+    <string name="signed_out_continue_with_account">کسی دوسرے کھاتے کے ساتھ جاری رکھیں</string>
 </resources>

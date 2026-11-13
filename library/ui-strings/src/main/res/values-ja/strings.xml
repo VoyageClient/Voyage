@@ -1359,7 +1359,6 @@
     <string name="soft_logout_clear_data_dialog_title">データを消去</string>
     <string name="soft_logout_clear_data_submit">全てのデータを消去</string>
     <string name="login_signin_matrix_id_hint">Matrix ID</string>
-    <string name="signed_out_title">サインアウトしました</string>
     <string name="soft_logout_signin_submit">サインイン</string>
     <string name="soft_logout_clear_data_title">個人データを消去</string>
     <string name="login_clear_homeserver_history">履歴を消去</string>
@@ -1697,13 +1696,6 @@
 \nデータをクリアし、その後、別のアカウントにサインインしてください。</string>
     <string name="soft_logout_signin_e2e_warning_notice">暗号化されたメッセージがどの端末でも読めるように、サインインしてこの端末にのみ保存されている暗号鍵を復旧してください。</string>
     <string name="soft_logout_signin_notice">あなたのホームサーバー（%1$s）の管理者があなたを%2$sのアカウントからサインアウトしました（%3$s）。</string>
-    <string name="signed_out_notice">いくつかの原因が考えられます：
-\n
-\n• 他のセッションでパスワードを変更している。
-\n
-\n• 他のセッションでこのセッションを削除している。
-\n
-\n• サーバーの管理者がセキュリティ上の理由であなたのアクセスを取り消している。</string>
     <plurals name="login_error_limit_exceeded_retry_after">
         <item quantity="other">リクエストが多すぎます。%1$d秒後に再試行できます…</item>
     </plurals>
@@ -3640,4 +3632,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">すべてに適用</string>
     <string name="sed_error_step_no_match">前の置換を適用すると、%1$s は一致しません。</string>
+    <string name="signed_out_title">サインアウトされました</string>
+    <string name="signed_out_notice">次の場合に発生することがあります：\n\n• 別のデバイスからパスワードが変更された。\n\n• 別のデバイスからこのデバイスがアカウントから削除された。\n\n• サーバーの管理者がアカウントを無効化した。</string>
+    <string name="signed_out_continue_with_account">別のアカウントで続行</string>
 </resources>

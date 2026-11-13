@@ -985,14 +985,6 @@
         <item quantity="other">傳送了太多請求。請等 %1$d 秒後再試…</item>
     </plurals>
     <string name="seen_by">已讀</string>
-    <string name="signed_out_title">您已登出</string>
-    <string name="signed_out_notice">這可能有多種原因：
-\n
-\n• 您已在其他工作階段中變改密碼。
-\n
-\n• 您已從其他工作階段刪除此工作階段。
-\n
-\n• 您的伺服器管理員因安全性因素，讓您的存取權限失效。</string>
     <string name="signed_out_submit">再次登入</string>
     <string name="soft_logout_title">您已登出</string>
     <string name="soft_logout_signin_title">登入</string>
@@ -3644,4 +3636,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">套用至全部</string>
     <string name="sed_error_step_no_match">套用前面的替換後，%1$s 不再符合。</string>
+    <string name="signed_out_title">您已被登出</string>
+    <string name="signed_out_notice">以下情況可能導致此問題：\n\n• 您的密碼已在另一台裝置上變更。\n\n• 此裝置已在另一台裝置上從您的帳號中移除。\n\n• 您伺服器的管理員已停用您的帳號。</string>
+    <string name="signed_out_continue_with_account">使用其他帳號繼續</string>
 </resources>

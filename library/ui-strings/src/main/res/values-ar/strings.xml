@@ -1661,8 +1661,6 @@
     <string name="autodiscover_well_known_error">تعذّر العثور على خادوم منزل صالح. رجاءً تحقّق من المعرّف</string>
     <string name="login_scan_qr_code">امسح رمز QR</string>
     <string name="seen_by">شاهدها</string>
-    <string name="signed_out_title">خرجت من حسابك</string>
-    <string name="signed_out_notice">قد يكون هذا لأسباب مختلفة:\n\n• غيّرت كلمة السر من جلسة أخرى.\n\n• حذفت هذه الجلسة من جلسة أخرى.\n\n• أبطل مدير خادومك نفاذك لأسباب أمنية.</string>
     <string name="signed_out_submit">لِج مجددًا</string>
     <string name="soft_logout_title">خرجت من حسابك</string>
     <string name="soft_logout_signin_title">لِج</string>
@@ -3900,4 +3898,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">تطبيق على الكل</string>
     <string name="sed_error_step_no_match">لا يتطابق %1$s بعد تطبيق الاستبدالات التي تسبقه.</string>
+    <string name="signed_out_title">أُخرجت من حسابك</string>
+    <string name="signed_out_notice">قد يحدث هذا عندما:\n\n• تُغيَّر كلمة السر من جهاز آخر.\n\n• يُزال هذا الجهاز من حسابك من جهاز آخر.\n\n• يُلغي مدير خادومك تفعيل حسابك.</string>
+    <string name="signed_out_continue_with_account">تابِع بحساب آخر</string>
 </resources>

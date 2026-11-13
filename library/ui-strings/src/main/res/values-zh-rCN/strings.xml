@@ -998,14 +998,6 @@
     <string name="login_signin_matrix_id_password_notice">如果你不知道你的密码，返回并重置。</string>
     <string name="login_signin_matrix_id_error_invalid_matrix_id">这不是有效的用户标识符。预期格式：\'@user:homeserver.org\'</string>
     <string name="autodiscover_well_known_error">无法找到有效的家服务器。请检查你的标识符</string>
-    <string name="signed_out_title">你已登出</string>
-    <string name="signed_out_notice">这可能由于多种原因：
-\n
-\n• 你已在另一个会话中更改了你的密码。
-\n
-\n• 你已从另一个会话删除了此会话。
-\n
-\n• 你的服务器管理员出于安全原因已取消你的访问权限。</string>
     <string name="signed_out_submit">重新登录</string>
     <string name="soft_logout_title">你已登出</string>
     <string name="soft_logout_signin_title">登录</string>
@@ -3642,4 +3634,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">应用到全部</string>
     <string name="sed_error_step_no_match">应用前面的替换后，%1$s 不再匹配。</string>
+    <string name="signed_out_title">你已被登出</string>
+    <string name="signed_out_notice">以下情况可能导致此问题：\n\n• 你的密码已在另一台设备上更改。\n\n• 此设备已在另一台设备上从你的账户中移除。\n\n• 你的服务器管理员停用了你的账户。</string>
+    <string name="signed_out_continue_with_account">使用其他账户继续</string>
 </resources>

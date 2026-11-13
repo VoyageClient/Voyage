@@ -2018,9 +2018,10 @@
 
     <string name="seen_by">Seen by</string>
 
-    <string name="signed_out_title">You’re signed out</string>
-    <string name="signed_out_notice">It can be due to various reasons:\n\n• You’ve changed your password on another session.\n\n• You have deleted this session from another session.\n\n• The administrator of your server has invalidated your access for security reason.</string>
+    <string name="signed_out_title">You’ve been signed out</string>
+    <string name="signed_out_notice">This can happen when:\n\n• Your password was changed from another device.\n\n• This device was removed from your account on another device.\n\n• Your server’s administrator deactivated your account.</string>
     <string name="signed_out_submit">Sign in again</string>
+    <string name="signed_out_continue_with_account">Continue with another account</string>
 
     <string name="soft_logout_title">You’re signed out</string>
     <string name="soft_logout_signin_title">Sign in</string>

@@ -1461,8 +1461,6 @@
     <string name="autodiscover_well_known_error">कोई मान्य होमसर्वर नहीं मिला। कृपया अपना पहचानकर्ता जांचें</string>
     <string name="login_scan_qr_code">QR कोड स्कैन करें</string>
     <string name="seen_by">इन्होंने देखा</string>
-    <string name="signed_out_title">आप साइन आउट हो गए हैं</string>
-    <string name="signed_out_notice">इसके कई कारण हो सकते हैं:\n\n• आपने किसी दूसरे सेशन पर अपना पासवर्ड बदला है।\n\n• आपने किसी दूसरे सेशन से यह सेशन हटा दिया है।\n\n• आपके सर्वर के एडमिनिस्ट्रेटर ने सुरक्षा कारणों से आपकी पहुंच अमान्य कर दी है।</string>
     <string name="signed_out_submit">फिर से साइन इन करें</string>
     <string name="soft_logout_title">आप साइन आउट हो गए हैं</string>
     <string name="soft_logout_signin_title">साइन इन करें</string>
@@ -3597,4 +3595,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">सभी पर लागू करें</string>
     <string name="sed_error_step_no_match">पिछले प्रतिस्थापन लागू होने के बाद %1$s मेल नहीं खाता।</string>
+    <string name="signed_out_title">आपको साइन आउट कर दिया गया है</string>
+    <string name="signed_out_notice">ऐसा तब हो सकता है जब:\n\n• किसी दूसरे डिवाइस से आपका पासवर्ड बदला गया हो।\n\n• किसी दूसरे डिवाइस से इस डिवाइस को आपके खाते से हटाया गया हो।\n\n• आपके सर्वर के व्यवस्थापक ने आपका खाता निष्क्रिय कर दिया हो।</string>
+    <string name="signed_out_continue_with_account">किसी दूसरे खाते से जारी रखें</string>
 </resources>

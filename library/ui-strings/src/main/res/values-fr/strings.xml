@@ -986,14 +986,6 @@
         <item quantity="other">Trop de requêtes ont été envoyées. Vous pouvez réessayer dans %1$d secondes…</item>
     </plurals>
     <string name="seen_by">Vu par</string>
-    <string name="signed_out_title">Vous êtes déconnecté</string>
-    <string name="signed_out_notice">Cela peut être dû à plusieurs raisons :
-\n
-\n• Vous avez changé votre mot de passe sur une autre session.
-\n
-\n• Vous avez supprimé cette session depuis une autre session.
-\n
-\n• L’administrateur de votre serveur a invalidé votre accès pour des raisons de sécurité.</string>
     <string name="signed_out_submit">Se reconnecter</string>
     <string name="soft_logout_title">Vous êtes déconnecté</string>
     <string name="soft_logout_signin_title">Se connecter</string>
@@ -3715,4 +3707,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Appliquer à tous</string>
     <string name="sed_error_step_no_match">%1$s ne correspond plus une fois les substitutions précédentes appliquées.</string>
+    <string name="signed_out_title">Vous avez été déconnecté</string>
+    <string name="signed_out_notice">Cela peut se produire lorsque :\n\n• Votre mot de passe a été modifié depuis un autre appareil.\n\n• Cet appareil a été retiré de votre compte depuis un autre appareil.\n\n• L\'administrateur de votre serveur a désactivé votre compte.</string>
+    <string name="signed_out_continue_with_account">Continuer avec un autre compte</string>
 </resources>

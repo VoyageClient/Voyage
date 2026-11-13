@@ -1512,8 +1512,6 @@
     <string name="autodiscover_well_known_error">কোনো বৈধ হোমসার্ভার খুঁজে পাওয়া যায়নি। অনুগ্রহ করে আপনার শনাক্তকারী পরীক্ষা করুন</string>
     <string name="login_scan_qr_code">QR কোড স্ক্যান করুন</string>
     <string name="seen_by">যাঁরা দেখেছেন</string>
-    <string name="signed_out_title">আপনি সাইন আউট হয়ে গেছেন</string>
-    <string name="signed_out_notice">এর বিভিন্ন কারণ থাকতে পারে:\n\n• আপনি অন্য একটি সেশনে পাসওয়ার্ড পরিবর্তন করেছেন।\n\n• আপনি অন্য একটি সেশন থেকে এই সেশনটি মুছে দিয়েছেন।\n\n• আপনার সার্ভারের অ্যাডমিনিস্ট্রেটর নিরাপত্তার কারণে আপনার অ্যাক্সেস বাতিল করেছেন।</string>
     <string name="signed_out_submit">আবার সাইন ইন করুন</string>
     <string name="soft_logout_title">আপনি সাইন আউট হয়ে গেছেন</string>
     <string name="soft_logout_signin_title">সাইন ইন</string>
@@ -3669,4 +3667,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">সবগুলোতে প্রয়োগ করুন</string>
     <string name="sed_error_step_no_match">আগের প্রতিস্থাপনগুলো প্রয়োগ করার পরে %1$s মেলে না।</string>
+    <string name="signed_out_title">আপনাকে সাইন আউট করা হয়েছে</string>
+    <string name="signed_out_notice">এটি ঘটতে পারে যখন:\n\n• অন্য একটি ডিভাইস থেকে আপনার পাসওয়ার্ড পরিবর্তন করা হয়েছে।\n\n• অন্য একটি ডিভাইস থেকে এই ডিভাইসটি আপনার অ্যাকাউন্ট থেকে সরানো হয়েছে।\n\n• আপনার সার্ভারের প্রশাসক আপনার অ্যাকাউন্ট নিষ্ক্রিয় করেছেন।</string>
+    <string name="signed_out_continue_with_account">অন্য অ্যাকাউন্ট দিয়ে চালিয়ে যান</string>
 </resources>

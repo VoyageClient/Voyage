@@ -1010,14 +1010,6 @@
         <item quantity="other">Es wurden zu viele Anfragen gesendet. Versuche es erneut in %1$d Sekunden …</item>
     </plurals>
     <string name="seen_by">Gesehen von</string>
-    <string name="signed_out_title">Du bist abgemeldet</string>
-    <string name="signed_out_notice">Dies kann verschiedene Gründe haben:
-\n
-\n• Du hast dein Passwort in einer anderen Sitzung geändert.
-\n
-\n• Du hast diese Sitzung aus einer anderen Sitzung heraus gelöscht.
-\n
-\n• Der Administrator deines Servers hat deinen Zugriff aus Sicherheitsgründen ungültig gemacht.</string>
     <string name="signed_out_submit">Melde dich erneut an</string>
     <string name="soft_logout_title">Du bist abgemeldet</string>
     <string name="soft_logout_signin_title">Anmelden</string>
@@ -3714,4 +3706,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Auf alle anwenden</string>
     <string name="sed_error_step_no_match">%1$s passt nicht mehr, nachdem die vorherigen Ersetzungen angewendet wurden.</string>
+    <string name="signed_out_title">Du wurdest abgemeldet</string>
+    <string name="signed_out_notice">Das kann passieren, wenn:\n\n• dein Passwort auf einem anderen Gerät geändert wurde.\n\n• dieses Gerät von einem anderen Gerät aus deinem Konto entfernt wurde.\n\n• der Administrator deines Servers dein Konto deaktiviert hat.</string>
+    <string name="signed_out_continue_with_account">Mit einem anderen Konto fortfahren</string>
 </resources>

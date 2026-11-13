@@ -1225,14 +1225,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Éste no es un identificador de usuario válido. Formato esperado: \'@user:homeserver.org\'</string>
     <string name="autodiscover_well_known_error">No se pudo encontrar un servidor de inicio válido. Por favor verifique su identificador</string>
     <string name="seen_by">Visto por</string>
-    <string name="signed_out_title">Estás desconectado</string>
-    <string name="signed_out_notice">Puede deberse a varias razones:
-\n
-\n• Has cambiado tu contraseña en otra sesión. 
-\n
-\n• Ha eliminado esta sesión de otra sesión. 
-\n
-\n• El administrador de su servidor ha invalidado su acceso por motivos de seguridad.</string>
     <string name="signed_out_submit">Iniciar sesión de nuevo</string>
     <string name="soft_logout_title">Estás desconectado</string>
     <string name="soft_logout_signin_title">Registrarse</string>
@@ -3703,4 +3695,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Aplicar a todos</string>
     <string name="sed_error_step_no_match">%1$s no coincide una vez aplicadas las sustituciones anteriores.</string>
+    <string name="signed_out_title">Se ha cerrado tu sesión</string>
+    <string name="signed_out_notice">Esto puede ocurrir cuando:\n\n• Se cambió tu contraseña desde otro dispositivo.\n\n• Se eliminó este dispositivo de tu cuenta desde otro dispositivo.\n\n• El administrador de tu servidor desactivó tu cuenta.</string>
+    <string name="signed_out_continue_with_account">Continuar con otra cuenta</string>
 </resources>

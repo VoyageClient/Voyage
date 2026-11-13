@@ -687,13 +687,6 @@
     <string name="labs_allow_extended_logging_summary">Ayrıntılı günlükler, telefonunuzu öfkeyle salladığınızda daha fazla günlük göndererek geliştiriciye yardım edecektir. Etkin olsa bile, uygulama mesaj içeriklerini veya başka özel verileri günlüğe kaydetmeyecektir.</string>
     <string name="error_network_timeout">Sunucunun yanıt vermesi uzun sürmüş gibi görünüyor. Bu durum, kötü bağlantıdan ya da sunucuyla ilgili bir sorundan meydana gelmiş olabilir. Bir süre sonra tekrar deneyin.</string>
     <string name="login_reset_password_warning_content">Parolanızı değiştirmek, tüm oturumlarınızdaki uçtan uca şifreleme anahtarlarını sıfırlayarak şifreli sohbet geçmişini okunamaz hale getirir. Parolanızı sıfırlamadan önce Anahtar Yedeklemeyi ayarlayın veya oda anahtarlarınızı başka bir oturumdan dışa aktarın.</string>
-    <string name="signed_out_notice">Birçok sebepten dolayı olabilir:
-\n
-\n• Başka bir oturumda şifrenizi değiştirdiniz.
-\n
-\n• Başka bir oturumdan bu oturumu sildiniz.
-\n
-\n• Sunucunuzun yöneticisi, güvenlik sebebiyle erişiminizi engelledi.</string>
     <string name="room_settings_permissions_title">Oda izinleri</string>
     <string name="room_participants_leave_private_warning">Bu oda herkese açık değil. Davet olmadan tekrar katılamayacaksınız.</string>
     <string name="permissions_denied_add_contact">Rehber erişimi için izin verin.</string>
@@ -1324,7 +1317,6 @@
     <string name="soft_logout_signin_title">Kayıt olmak</string>
     <string name="soft_logout_title">çıkış yaptınız</string>
     <string name="signed_out_submit">tekrar oturum aç</string>
-    <string name="signed_out_title">çıkış yaptınız</string>
     <string name="seen_by">Tarafından görüldü</string>
     <string name="login_set_email_notice">Hesabınızı kurtarmak için bir e-posta ayarlayın. Daha sonra isteğe bağlı olarak tanıdığınız kişilerin sizi e-postanızla keşfetmesine izin verebilirsiniz.</string>
     <string name="login_reset_password_cancel_confirmation_content">Şifreniz henüz değiştirilmedi.
@@ -3673,4 +3665,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Tümüne uygula</string>
     <string name="sed_error_step_no_match">Önceki değiştirmeler uygulandıktan sonra %1$s eşleşmiyor.</string>
+    <string name="signed_out_title">Oturumunuz kapatıldı</string>
+    <string name="signed_out_notice">Bu şu durumlarda olabilir:\n\n• Şifreniz başka bir cihazdan değiştirildi.\n\n• Bu cihaz başka bir cihazdan hesabınızdan kaldırıldı.\n\n• Sunucunuzun yöneticisi hesabınızı devre dışı bıraktı.</string>
+    <string name="signed_out_continue_with_account">Başka bir hesapla devam et</string>
 </resources>

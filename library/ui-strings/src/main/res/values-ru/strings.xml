@@ -941,14 +941,6 @@
     <string name="login_wait_for_email_notice">Мы только что отправили письмо на %1$s.
 \nПожалуйста, нажмите на содержащуюся в нём ссылку, чтобы продолжить создание аккаунта.</string>
     <string name="login_error_outdated_homeserver_title">Домашний сервер устарел</string>
-    <string name="signed_out_title">Вы вышли из системы</string>
-    <string name="signed_out_notice">Это могло произойти по разным причинам: 
-\n 
-\n• Вы сменили пароль в другой сессии. 
-\n 
-\n• Вы удалили эту сессию из другой сессии. 
-\n 
-\n• Администратор вашего сервера заблокировал вам доступ из соображений безопасности.</string>
     <string name="signed_out_submit">Войти снова</string>
     <string name="soft_logout_title">Вы вышли из системы</string>
     <string name="soft_logout_signin_title">Войти</string>
@@ -3857,4 +3849,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Применить ко всем</string>
     <string name="sed_error_step_no_match">%1$s не соответствует тексту после применения предыдущих замен.</string>
+    <string name="signed_out_title">Выполнен выход из учётной записи</string>
+    <string name="signed_out_notice">Это может произойти, если:\n\n• Ваш пароль был изменён с другого устройства.\n\n• Это устройство было удалено из вашей учётной записи с другого устройства.\n\n• Администратор вашего сервера деактивировал вашу учётную запись.</string>
+    <string name="signed_out_continue_with_account">Продолжить с другой учётной записью</string>
 </resources>

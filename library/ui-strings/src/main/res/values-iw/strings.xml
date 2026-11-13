@@ -687,14 +687,6 @@
     <string name="soft_logout_signin_title">כניסה</string>
     <string name="soft_logout_title">התנתקתם</string>
     <string name="signed_out_submit">התחבר שוב</string>
-    <string name="signed_out_notice">זה יכול להיות מסיבות שונות:
-\n
-\n• שינית את הסיסמה שלך בפגישה אחרת.
-\n
-\n• מחקת את ההפעלה הזו מהפעלה אחרת.
-\n
-\n• מנהל השרת שלך ביטל את גישתך מסיבות אבטחה.</string>
-    <string name="signed_out_title">התנתקתם</string>
     <string name="seen_by">נראה על ידי</string>
     <string name="autodiscover_well_known_error">לא ניתן למצוא שרת בית חוקי. אנא בדוק את המזהה שלך</string>
     <string name="login_signin_matrix_id_error_invalid_matrix_id">זה לא מזהה משתמש חוקי. פורמט צפוי: \'@ user: homeserver.org\'</string>
@@ -3826,4 +3818,7 @@
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">החלה על הכול</string>
     <string name="sed_error_step_no_match">%1$s לא תואם לאחר החלת ההחלפות שלפניו.</string>
+    <string name="signed_out_title">נותקתם מהחשבון</string>
+    <string name="signed_out_notice">זה יכול לקרות כאשר:\n\n• הסיסמה שלכם שונתה ממכשיר אחר.\n\n• המכשיר הזה הוסר מהחשבון שלכם ממכשיר אחר.\n\n• מנהל השרת שלכם השבית את החשבון שלכם.</string>
+    <string name="signed_out_continue_with_account">המשיכו עם חשבון אחר</string>
 </resources>

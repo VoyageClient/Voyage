@@ -54,6 +54,8 @@ class AccountSwitcherAdapter(
         private val onLogoutClick: (AccountSwitcherEntry) -> Unit,
         private val onLogoutLongClick: (AccountSwitcherEntry) -> Unit,
         private val onAddAccountClick: () -> Unit,
+        private val showLogout: Boolean = true,
+        private val rowHorizontalPaddingPx: Int? = null,
 ) : ListAdapter<AccountSwitcherAdapter.Item, RecyclerView.ViewHolder>(DIFF) {
 
     sealed class Item {
@@ -72,12 +74,16 @@ class AccountSwitcherAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return when (viewType) {
+        val holder = when (viewType) {
             VIEW_TYPE_ACCOUNT -> AccountVH(inflater.inflate(R.layout.item_account_switcher, parent, false))
             else -> AddVH(inflater.inflate(R.layout.item_account_switcher_add, parent, false)).also { holder ->
                 holder.itemView.throttledClicks { onAddAccountClick() }
             }
         }
+        rowHorizontalPaddingPx?.let { padding ->
+            holder.itemView.apply { setPadding(padding, paddingTop, padding, paddingBottom) }
+        }
+        return holder
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -125,7 +131,7 @@ class AccountSwitcherAdapter(
             // Long-clickable children swallow taps, so the row's click has to be repeated here.
             userId.throttledClicks { onAccountClick(entry) }
             activeMark.isVisible = entry.isActive
-            logout.isVisible = !entry.isActive
+            logout.isVisible = showLogout && !entry.isActive
             itemView.throttledClicks { onAccountClick(entry) }
             logout.throttledClicks { onLogoutClick(entry) }
             logout.setOnLongClickListener {

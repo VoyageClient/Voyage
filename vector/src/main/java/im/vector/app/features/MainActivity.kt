@@ -31,6 +31,7 @@ import im.vector.app.core.extensions.vectorStore
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.session.AccountInfoCache
+import im.vector.app.core.session.SignedOutNoticeStore
 import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
 import im.vector.app.core.vpn.VpnGate
@@ -174,6 +175,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
     @Inject lateinit var accountInfoCache: AccountInfoCache
+    @Inject lateinit var signedOutNoticeStore: SignedOutNoticeStore
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var vpnGate: VpnGate
 
@@ -252,6 +254,15 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
         vectorPreferences.setIsOnRustCrypto(true)
 
+        // Notification taps, shortcuts and links would otherwise slip past the notice into the
+        // account that was picked automatically after the sign-out.
+        if (signedOutNoticeStore.isPending() && !hasCleanupArgs()) {
+            startIntentAndFinish(
+                    SignedOutActivity.newIntent(this).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            )
+            return
+        }
+
         if (intent.hasExtra(EXTRA_NEXT_INTENT)) {
             // Start the next Activity
             startSyncing()
@@ -324,6 +335,11 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
         // Also clear the alerts
         popupAlertManager.cancelAll()
+    }
+
+    private fun hasCleanupArgs(): Boolean {
+        val argsFromIntent: MainActivityArgs = intent.getParcelableExtraCompat(EXTRA_ARGS) ?: return false
+        return argsFromIntent != MainActivityArgs()
     }
 
     private fun parseArgs(): MainActivityArgs {
@@ -409,6 +425,15 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             }
             Timber.w("SIGN_OUT: success, start app")
             val signedOutSessionId = session.sessionId
+            if (args.isUserLoggedOut) {
+                withContext(Dispatchers.IO) {
+                    signedOutNoticeStore.set(
+                            userId = session.myUserId,
+                            displayName = accountInfoCache.displayNameFor(signedOutSessionId),
+                            cachedAvatar = accountInfoCache.avatarFileFor(signedOutSessionId),
+                    )
+                }
+            }
             redactionPreservationService.clearForSignedOutUser(session.myUserId)
             activeSessionHolder.clearActiveSession()
             accountInfoCache.delete(signedOutSessionId)
@@ -486,7 +511,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 navigator.softLogout(this)
                 null
             }
-            args.isUserLoggedOut ->
+            args.isUserLoggedOut || signedOutNoticeStore.isPending() ->
                 // the homeserver has invalidated the token (password changed, device deleted, other security reasons)
                 SignedOutActivity.newIntent(this)
             activeSessionHolder.hasActiveSession() ->

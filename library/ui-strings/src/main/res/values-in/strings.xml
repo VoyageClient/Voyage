@@ -1331,14 +1331,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="soft_logout_signin_title">Masuk</string>
     <string name="soft_logout_title">Anda telah keluar</string>
     <string name="signed_out_submit">Masuk lagi</string>
-    <string name="signed_out_notice">Ini dapat disebabkan oleh berbagai alasan:
-\n
-\n• Anda telah mengubah kata sandi Anda pada sesi lain.
-\n
-\n• Anda telah menghapus sesi ini dari sesi lain.
-\n
-\n• Administrator server Anda telah menghilangkan akses Anda untuk keamanan.</string>
-    <string name="signed_out_title">Anda telah keluar</string>
     <string name="seen_by">Dilihat oleh</string>
     <string name="autodiscover_well_known_error">Tidak dapat menemukan homeserver yang absah. Mohon cek pengenal Anda</string>
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Ini bukan pengenal pengguna yang absah. Format yang diharapkan: \'@pengguna:homeserver.org\'</string>
@@ -3642,4 +3634,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="attachment_estimated_size">~%1$s</string>
     <string name="attachment_apply_to_all">Terapkan ke semua</string>
     <string name="sed_error_step_no_match">%1$s tidak cocok setelah substitusi sebelumnya diterapkan.</string>
+    <string name="signed_out_title">Anda telah dikeluarkan</string>
+    <string name="signed_out_notice">Ini dapat terjadi jika:\n\n• Sandi Anda diubah dari perangkat lain.\n\n• Perangkat ini dihapus dari akun Anda melalui perangkat lain.\n\n• Administrator server Anda menonaktifkan akun Anda.</string>
+    <string name="signed_out_continue_with_account">Lanjutkan dengan akun lain</string>
 </resources>

@@ -23,7 +23,6 @@ import android.graphics.drawable.Drawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.style.RelativeSizeSpan
 import android.text.style.StrikethroughSpan
 import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
@@ -497,14 +496,13 @@ class EventHtmlRenderer @Inject constructor(
             if (start < 0) continue
             val empty = text.getSpanEnd(span) == start + 1 && text[start] == '\u00a0'
             text.removeSpan(span)
-            val marker = if (span is SourceOrderedListItemSpan) "${span.number}." else "●"
+            val marker = if (span is SourceOrderedListItemSpan) "${span.number}." else BULLET_MARKER
             val display = marker + if (empty) "" else "\u00a0"
             val source = (if (span is SourceOrderedListItemSpan) marker else "-") + if (empty) "" else " "
             val indent = "   ".repeat(depth)
             text.replace(start, if (empty) start + 1 else start, indent + display)
             if (span !is SourceOrderedListItemSpan) {
-                // The small • glyph reads undersized next to the old drawn bullet; a scaled ● matches it
-                text.setSpan(RelativeSizeSpan(0.8f), start + indent.length, start + indent.length + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.scaleBulletMarker(start + indent.length)
             }
             text.setSpan(ListMarkerSpan(indent + source), start, start + indent.length + display.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
