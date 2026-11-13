@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.logLimit
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @SessionScope
@@ -39,6 +40,15 @@ internal class ShieldSummaryUpdater @Inject constructor(
 
     @Volatile
     private var holding = false
+
+    private val uncomputedRefreshed = AtomicBoolean(false)
+
+    // Shields are otherwise only refreshed when a room changes, so a quiet room would never get one.
+    fun refreshUncomputedShieldsOnce(roomIds: () -> Collection<String>) {
+        if (!uncomputedRefreshed.compareAndSet(false, true)) return
+        val pending = roomIds()
+        if (pending.isNotEmpty()) refreshShieldsForRoomIds(pending.toSet())
+    }
 
     /** Defer trust refreshes until initial room coverage finishes to avoid repeated full membership scans. */
     fun holdRefreshes() {

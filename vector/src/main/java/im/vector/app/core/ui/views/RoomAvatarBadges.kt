@@ -23,7 +23,7 @@ data class RoomBadgeConfig(
     }
 }
 
-// The SDK only computes trust once the full member list is loaded, i.e. after the room is first opened.
+// The SDK only computes trust once it knows every member, i.e. for larger rooms after they are first opened.
 fun RoomSummary.badgeTrustLevel(): RoomEncryptionTrustLevel? =
         roomEncryptionTrustLevel ?: RoomEncryptionTrustLevel.Default.takeIf { isEncrypted }
 

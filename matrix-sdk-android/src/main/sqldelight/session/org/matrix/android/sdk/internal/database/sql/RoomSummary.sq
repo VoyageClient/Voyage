@@ -97,6 +97,10 @@ SELECT is_favourite, is_low_priority, is_server_notice FROM room_summary WHERE r
 selectRoomMembershipInfo:
 SELECT room_id, membership_str, other_member_ids FROM room_summary;
 
+selectEncryptedRoomIdsWithoutTrustLevel:
+SELECT room_id FROM room_summary
+WHERE membership_str = ? AND is_encrypted = 1 AND room_encryption_trust_level_str IS NULL;
+
 selectRoomIdsWithPreviewFromSenders:
 SELECT rs.room_id FROM room_summary rs
 JOIN event e ON e.room_id = rs.room_id AND e.event_id = rs.latest_previewable_event_id

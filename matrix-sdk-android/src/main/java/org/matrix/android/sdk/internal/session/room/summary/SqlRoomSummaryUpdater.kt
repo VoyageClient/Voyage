@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
 import org.matrix.android.sdk.internal.database.model.SpaceChildSummaryEntity
 import org.matrix.android.sdk.internal.database.model.SpaceParentSummaryEntity
@@ -257,11 +258,15 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
                     .filter { it.userId != userId }
                     .map { it.userId }
             entity.otherMemberIds = ArrayList<String>().apply { addAll(otherRoomMembers) }
+            // The server only restates counts on membership changes; until fully loaded, local rows are a lower bound.
+            val membersLoaded = stores.room.get(roomId)?.membersLoadStatus == RoomMembersLoadStatusType.LOADED
             if (roomSummary?.joinedMembersCount == null) {
-                entity.joinedMembersCount = activeMembers.count { it.membership == Membership.JOIN }
+                val localJoined = activeMembers.count { it.membership == Membership.JOIN }
+                entity.joinedMembersCount = if (membersLoaded) localJoined else maxOf(localJoined, entity.joinedMembersCount ?: 0)
             }
             if (roomSummary?.invitedMembersCount == null) {
-                entity.invitedMembersCount = activeMembers.count { it.membership == Membership.INVITE }
+                val localInvited = activeMembers.count { it.membership == Membership.INVITE }
+                entity.invitedMembersCount = if (membersLoaded) localInvited else maxOf(localInvited, entity.invitedMembersCount ?: 0)
             }
         }
 

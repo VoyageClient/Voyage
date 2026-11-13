@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerParams
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
@@ -46,6 +47,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
+        private val stores: SessionStores,
         private val reanchorRejoinedRoomTask: dagger.Lazy<ReanchorRejoinedRoomTask>,
         private val seedJoinedRoomHistoryTask: dagger.Lazy<SeedJoinedRoomHistoryTask>,
         private val pendingUnIgnoreStore: PendingUnIgnoreStore,
@@ -143,6 +145,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
     }
 
     private fun handleRefreshRoomShieldsForRooms(roomIds: Set<String>) {
+        roomShieldSummaryUpdater.refreshUncomputedShieldsOnce { stores.roomSummary.joinedEncryptedRoomIdsWithoutTrustLevel() }
         if (roomIds.isEmpty()) return
         roomShieldSummaryUpdater.refreshShieldsForRoomIds(roomIds)
     }

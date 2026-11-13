@@ -96,4 +96,23 @@ class ShieldSummaryUpdaterTest {
 
         enqueuedRoomIds shouldBeEqualTo listOf(listOf("!a:hs"))
     }
+
+    @Test
+    fun `uncomputed shields are refreshed on the first pass only`() {
+        var lookups = 0
+        val uncomputed = { lookups++; listOf("!a:hs", "!b:hs") }
+
+        updater.refreshUncomputedShieldsOnce(uncomputed)
+        updater.refreshUncomputedShieldsOnce(uncomputed)
+
+        enqueuedRoomIds shouldBeEqualTo listOf(listOf("!a:hs", "!b:hs"))
+        lookups shouldBeEqualTo 1
+    }
+
+    @Test
+    fun `no uncomputed shields enqueues nothing`() {
+        updater.refreshUncomputedShieldsOnce { emptyList() }
+
+        enqueuedRoomIds shouldBeEqualTo emptyList()
+    }
 }

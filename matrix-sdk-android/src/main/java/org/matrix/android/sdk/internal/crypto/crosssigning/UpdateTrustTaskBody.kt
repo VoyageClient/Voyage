@@ -32,6 +32,14 @@ import org.matrix.android.sdk.internal.worker.BackgroundTaskOutcome
 import timber.log.Timber
 import javax.inject.Inject
 
+internal fun hasCompleteMemberList(
+        loadStatus: RoomMembersLoadStatusType?,
+        activeMemberCount: Int,
+        joinedCount: Int?,
+        invitedCount: Int?,
+): Boolean = loadStatus == RoomMembersLoadStatusType.LOADED ||
+        (joinedCount != null && activeMemberCount > 0 && activeMemberCount == joinedCount + (invitedCount ?: 0))
+
 internal class UpdateTrustTaskBody @Inject constructor(
         private val crossSigningService: CrossSigningService,
         private val cryptoStore: IMXCryptoStore,
@@ -139,14 +147,18 @@ internal class UpdateTrustTaskBody @Inject constructor(
                     return@forEachRoom
                 }
                 Timber.v("## CrossSigning [$sId]- Check shield state for room $roomId")
-                // Sliding sync only sends the members who spoke recently, so until the full list has been
-                // fetched the members present are a subset — and judging the room by them would show a
-                // reassuring shield for a room whose unverified member simply has not spoken lately.
-                if (stores.room.get(roomId)?.membersLoadStatus != RoomMembersLoadStatusType.LOADED) {
-                    Timber.v("## CrossSigning [$sId]- Members not fully loaded for $roomId, leaving shield as is")
+                // Lazy-loaded members are only the recent speakers; judging by them hides a quiet unverified member.
+                val allActiveRoomMembers = SqlRoomMemberHelper(stores, roomId).getActiveRoomMemberIds()
+                val membersComplete = hasCompleteMemberList(
+                        stores.room.get(roomId)?.membersLoadStatus,
+                        allActiveRoomMembers.size,
+                        roomSummary.joinedMembersCount,
+                        roomSummary.invitedMembersCount,
+                )
+                if (!membersComplete) {
+                    Timber.v("## CrossSigning [$sId]- Members not fully known for $roomId, leaving shield as is")
                     return@forEachRoom
                 }
-                val allActiveRoomMembers = SqlRoomMemberHelper(stores, roomId).getActiveRoomMemberIds()
                 try {
                     val updatedTrust = computeRoomShield(myCrossSigningInfo, allActiveRoomMembers, roomSummary)
                     if (roomSummary.roomEncryptionTrustLevel != updatedTrust) {

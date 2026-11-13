@@ -43,6 +43,9 @@ internal class RoomSummarySqlStore(
 
     fun updateEncryptionTrustLevel(roomId: String, level: String?) = queries.updateEncryptionTrustLevel(level, roomId)
 
+    fun joinedEncryptedRoomIdsWithoutTrustLevel(): List<String> =
+            queries.selectEncryptedRoomIdsWithoutTrustLevel(Membership.JOIN.name).executeAsList()
+
     fun updateDirectInfo(roomId: String, isDirect: Boolean, directUserId: String?) =
             queries.updateDirectInfo(if (isDirect) 1L else 0L, directUserId, roomId)
 
