@@ -151,15 +151,16 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                 if (refusedWhileRemoved) return
                 throw throwable
             }
-            try {
-                // This will also set the status to LOADED
-                insertInDb(response, params.roomId)
-                if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
-            } catch (throwable: Throwable) {
-                withContext(NonCancellable) {
+            // Callers run in the room screen's scope; leaving the room must not throw away a downloaded response.
+            withContext(NonCancellable) {
+                try {
+                    // This will also set the status to LOADED
+                    insertInDb(response, params.roomId)
+                    if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
+                } catch (throwable: Throwable) {
                     setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
+                    throw throwable
                 }
-                throw throwable
             }
         } finally {
             inFlightRoomIds.remove(params.roomId)
@@ -167,13 +168,14 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
     }
 
     private suspend fun insertInDb(response: RoomMembersResponse, roomId: String) {
-        // A room with thousands of members needs many chunks and closing it cancels the load mid-way, so
-        // without skipping what is already stored every reopen rewrites the same rows and never advances.
+        // A room with thousands of members needs many chunks and the process can die mid-way, so without
+        // skipping what is already stored every reload rewrites the same rows.
         val (knownMemberEventIds, receiptUserIds) = database.awaitDbTransaction(dispatcher) {
             stores.currentStateEvent.getEventIdsByStateKey(roomId, EventType.STATE_ROOM_MEMBER) to
                     stores.readReceipt.getReceiptsInRoom(roomId).keys.mapTo(HashSet()) { it.first }
         }
-        val chunks = response.roomMemberEvents.receiptHoldersFirst(receiptUserIds).chunked(500)
+        // Small so other writers queued behind the write lock wait a fraction of a second, not over one.
+        val chunks = response.roomMemberEvents.receiptHoldersFirst(receiptUserIds).chunked(100)
         chunks.forEach { roomMemberEvents ->
             database.awaitDbTransaction(dispatcher) {
                 Timber.v("Insert ${roomMemberEvents.size} member events in room $roomId")

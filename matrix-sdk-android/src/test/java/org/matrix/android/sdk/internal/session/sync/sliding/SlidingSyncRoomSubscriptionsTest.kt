@@ -26,6 +26,19 @@ class SlidingSyncRoomSubscriptionsTest {
     }
 
     @Test
+    fun `closing a room does not interrupt the current sync`() {
+        val subscriptions = SlidingSyncRoomSubscriptions()
+        subscriptions.acquire("room-a")
+        var notifications = 0
+        subscriptions.addListener { notifications++ }
+
+        subscriptions.release("room-a")
+
+        notifications shouldBeEqualTo 0
+        subscriptions.snapshot() shouldBeEqualTo emptyMap()
+    }
+
+    @Test
     fun `a viewport update does not interrupt the current sync`() {
         val subscriptions = SlidingSyncRoomSubscriptions()
         var notifications = 0

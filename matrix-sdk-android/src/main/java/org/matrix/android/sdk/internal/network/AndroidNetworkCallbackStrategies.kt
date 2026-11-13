@@ -58,13 +58,21 @@ internal class PreferredNetworkCallbackStrategy @Inject constructor(context: Con
 
     private var hasChangedCallback: (() -> Unit)? = null
     private val conn = context.getSystemService<ConnectivityManager>()!!
+
+    // Kept across unregister: each resume re-registers and replays the current network, which is not a change.
+    @Volatile
+    private var currentNetwork: Network? = null
+
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
         override fun onLost(network: Network) {
+            if (network == currentNetwork) currentNetwork = null
             hasChangedCallback?.invoke()
         }
 
         override fun onAvailable(network: Network) {
+            if (network == currentNetwork) return
+            currentNetwork = network
             hasChangedCallback?.invoke()
         }
     }

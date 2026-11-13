@@ -31,9 +31,15 @@ internal class NetworkInfoReceiver @Inject constructor() : BroadcastReceiver() {
 
     var isConnectedCallback: ((Boolean) -> Unit)? = null
 
+    // Each resume re-registers and replays the sticky broadcast, which is not a change.
+    private var lastState: Pair<Int?, Boolean>? = null
+
     override fun onReceive(context: Context, intent: Intent) {
         val conn = context.getSystemService<ConnectivityManager>()!!
         val networkInfo: NetworkInfo? = conn.activeNetworkInfo
-        isConnectedCallback?.invoke(networkInfo?.isConnected ?: false)
+        val state = networkInfo?.type to (networkInfo?.isConnected ?: false)
+        if (state == lastState) return
+        lastState = state
+        isConnectedCallback?.invoke(state.second)
     }
 }

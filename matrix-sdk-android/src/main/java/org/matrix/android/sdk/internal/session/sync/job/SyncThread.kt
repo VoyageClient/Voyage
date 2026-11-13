@@ -54,6 +54,8 @@ private const val RETRY_WAIT_TIME_MS = 10_000L
 
 private const val MIN_AGE_TO_CANCEL_SYNC_MS = 5_000L
 
+private const val MIN_BACKGROUND_TO_STRAND_SYNC_MS = 30_000L
+
 // How long a resume may keep requesting without a long poll before it is treated as ordinary traffic.
 private const val MAX_CATCH_UP_MS = 60_000L
 
@@ -97,6 +99,9 @@ internal class SyncThread @Inject constructor(
     private var cancelledSyncGeneration = -1L
     @Volatile
     private var inflightSyncStartedAt = 0L
+    @Volatile
+    private var inflightSyncTimeout = 0L
+    private var pausedAt = 0L
 
     // `pause()` does not interrupt the run loop, so when the app is backgrounded mid-request (and the
     // device then dozes, freezing that request for the whole background period) the loop never reaches
@@ -130,13 +135,19 @@ internal class SyncThread @Inject constructor(
 
     fun restart() = synchronized(lock) {
         forceImmediateSync = true
-        if (!isStarted) {
+        val resumed = !isStarted
+        if (resumed) {
             Timber.tag(loggerTag.value).d("Resume sync...")
             isStarted = true
             // Check again server availability and the token validity
             canReachServer = true
             isTokenValid = true
             lock.notify()
+        }
+        // Doze and NAT expiry take far longer than a hop to another app; kicking then only discards a slow, healthy request.
+        if (resumed && SystemClock.elapsedRealtime() - pausedAt < MIN_BACKGROUND_TO_STRAND_SYNC_MS) {
+            Timber.tag(loggerTag.value).d("Not cancelling a sync after a short background trip (restart)")
+            return@synchronized
         }
         // Kick the in-flight sync. If the request is still healthy it will be re-issued
         // immediately using the saved since-token (no data loss, sync is idempotent on the
@@ -149,16 +160,20 @@ internal class SyncThread @Inject constructor(
         if (isStarted) {
             Timber.tag(loggerTag.value).d("Pause sync...")
             isStarted = false
+            pausedAt = SystemClock.elapsedRealtime()
             forceImmediateSync = true
             retryNoNetworkTask?.cancel()
-            cancelInflightSync("backgrounded", force = true)
+            // Let a timeout=0 request finish rather than discard its response; restart() kicks it if doze strands it.
+            if (inflightSyncTimeout > 0) cancelInflightSync("backgrounded", force = true)
         }
     }
 
     private fun requestImmediateSyncIfRunning() = synchronized(lock) {
         if (!isStarted) return@synchronized
         forceQuietImmediateSync = true
-        cancelInflightSync("room-subscriptions-changed", force = true)
+        // A timeout=0 request already returns as soon as the server can answer, and the next one carries the new
+        // subscriptions; cancelling it on a slow server discards every response while rooms are browsed.
+        if (inflightSyncTimeout > 0) cancelInflightSync("room-subscriptions-changed", force = true)
     }
 
     fun kill() = synchronized(lock) {
@@ -174,8 +189,7 @@ internal class SyncThread @Inject constructor(
     override fun onConnectivityChanged() {
         retryNoNetworkTask?.cancel()
         synchronized(lock) {
-            // Only force a catch-up when recovering from an actual outage. The checker also reports the
-            // current network on every resume, where the loop is already issuing one.
+            // Only force a catch-up when recovering from an actual outage, not on a plain network switch.
             if (!canReachServer) forceImmediateSync = true
             canReachServer = true
             lock.notify()
@@ -271,6 +285,7 @@ internal class SyncThread @Inject constructor(
                 synchronized(lock) {
                     inflightSyncGeneration++
                     inflightSyncStartedAt = SystemClock.elapsedRealtime()
+                    inflightSyncTimeout = timeout
                     inflightSyncJob = sync
                 }
                 runBlocking {
