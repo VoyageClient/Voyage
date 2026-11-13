@@ -40,7 +40,12 @@ sealed class Failure(cause: Throwable? = null) : Throwable(cause = cause) {
     /**
      * When server send an error, but it cannot be interpreted as a MatrixError.
      */
-    data class OtherServerError(val errorBody: String, val httpCode: Int) : Failure(RuntimeException("HTTP $httpCode: $errorBody"))
+    data class OtherServerError(
+            val errorBody: String,
+            val httpCode: Int,
+            /** URL of the failed request, when known. */
+            val url: String? = null,
+    ) : Failure(RuntimeException("HTTP $httpCode: $errorBody"))
 
     data class RegistrationFlowError(val registrationFlowResponse: RegistrationFlowResponse) : Failure(RuntimeException(registrationFlowResponse.toString()))
 

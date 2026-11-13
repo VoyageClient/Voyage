@@ -71,23 +71,31 @@ class VectorWebViewActivity : VectorBaseActivity<ActivityVectorWebViewBinding>()
             cookieManager.setAcceptThirdPartyCookies(views.simpleWebview, true)
         }
 
-        val url = intent.extras?.getString(EXTRA_URL) ?: return
+        val url = intent.extras?.getString(EXTRA_URL)
+        val content = intent.extras?.getString(EXTRA_CONTENT)
+        if (url == null && content == null) return
         val title = intent.extras?.getString(EXTRA_TITLE, USE_TITLE_FROM_WEB_PAGE)
         if (title != USE_TITLE_FROM_WEB_PAGE) {
             setTitle(title)
         }
 
         val webViewMode = intent.extras?.getSerializableCompat<WebViewMode>(EXTRA_MODE)!!
-        val eventListener = webViewMode.eventListener(this, session)
+        val eventListener = webViewMode.eventListener(this) { session }
         views.simpleWebview.webViewClient = VectorWebViewClient(eventListener)
         views.simpleWebview.webChromeClient = object : WebChromeClient() {
-            override fun onReceivedTitle(view: WebView, title: String) {
+            override fun onReceivedTitle(view: WebView, receivedTitle: String) {
                 if (title == USE_TITLE_FROM_WEB_PAGE) {
-                    setTitle(title)
+                    setTitle(receivedTitle)
                 }
             }
         }
-        views.simpleWebview.loadUrl(url)
+        when {
+            content != null -> {
+                val mimeType = intent.extras?.getString(EXTRA_CONTENT_MIME_TYPE) ?: "text/html"
+                views.simpleWebview.loadDataWithBaseURL(url, content, mimeType, "utf-8", url)
+            }
+            url != null -> views.simpleWebview.loadUrl(url)
+        }
     }
 
     /* ==========================================================================================
@@ -111,6 +119,11 @@ class VectorWebViewActivity : VectorBaseActivity<ActivityVectorWebViewBinding>()
         private const val EXTRA_URL = "EXTRA_URL"
         private const val EXTRA_TITLE = "EXTRA_TITLE"
         private const val EXTRA_MODE = "EXTRA_MODE"
+        private const val EXTRA_CONTENT = "EXTRA_CONTENT"
+        private const val EXTRA_CONTENT_MIME_TYPE = "EXTRA_CONTENT_MIME_TYPE"
+
+        // Keeps the Intent well under the Binder transaction limit.
+        private const val MAX_CONTENT_LENGTH = 100_000
 
         private const val USE_TITLE_FROM_WEB_PAGE = ""
 
@@ -125,6 +138,19 @@ class VectorWebViewActivity : VectorBaseActivity<ActivityVectorWebViewBinding>()
                         putExtra(EXTRA_URL, url)
                         putExtra(EXTRA_TITLE, title)
                         putExtra(EXTRA_MODE, mode)
+                    }
+        }
+
+        /**
+         * Show [content] as if it had been loaded from [baseUrl].
+         */
+        fun getIntentForContent(context: Context, content: String, mimeType: String, baseUrl: String?): Intent {
+            return Intent(context, VectorWebViewActivity::class.java)
+                    .apply {
+                        putExtra(EXTRA_URL, baseUrl)
+                        putExtra(EXTRA_CONTENT, content.take(MAX_CONTENT_LENGTH))
+                        putExtra(EXTRA_CONTENT_MIME_TYPE, mimeType)
+                        putExtra(EXTRA_MODE, WebViewMode.DEFAULT)
                     }
         }
     }

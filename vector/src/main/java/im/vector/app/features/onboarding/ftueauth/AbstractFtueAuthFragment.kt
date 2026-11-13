@@ -17,6 +17,7 @@ import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
+import im.vector.app.core.error.showUnexpectedServerPage
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.features.onboarding.OnboardingAction
@@ -83,7 +84,7 @@ abstract class AbstractFtueAuthFragment<VB : ViewBinding> : VectorBaseFragment<V
             is CancellationException ->
                 /* Ignore this error, user has cancelled the action */
                 Unit
-            else -> onError(throwable)
+            else -> if (!requireContext().showUnexpectedServerPage(throwable)) onError(throwable)
         }
     }
 

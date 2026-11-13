@@ -56,28 +56,35 @@ internal suspend fun okhttp3.Call.awaitResponse(): okhttp3.Response {
  * Convert a retrofit Response to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun <T> Response<T>.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(errorBody(), code(), globalErrorReceiver, headers().get(HttpHeaders.RetryAfter))
+    return toFailure(errorBody(), code(), globalErrorReceiver, headers().get(HttpHeaders.RetryAfter), raw().request().url().toString())
 }
 
 /**
  * Convert a HttpException to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun HttpException.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(response()?.errorBody(), code(), globalErrorReceiver, response()?.headers()?.get(HttpHeaders.RetryAfter))
+    return toFailure(
+            response()?.errorBody(),
+            code(),
+            globalErrorReceiver,
+            response()?.headers()?.get(HttpHeaders.RetryAfter),
+            response()?.raw()?.request()?.url()?.toString()
+    )
 }
 
 /**
  * Convert a okhttp3 Response to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun okhttp3.Response.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(body(), code(), globalErrorReceiver, header(HttpHeaders.RetryAfter))
+    return toFailure(body(), code(), globalErrorReceiver, header(HttpHeaders.RetryAfter), request().url().toString())
 }
 
 private fun toFailure(
         errorBody: ResponseBody?,
         httpCode: Int,
         globalErrorReceiver: GlobalErrorReceiver?,
-        retryAfterHeader: String?
+        retryAfterHeader: String?,
+        url: String?
 ): Failure {
     if (errorBody == null) {
         return Failure.Unknown(RuntimeException("errorBody should not be null"))
@@ -116,5 +123,5 @@ private fun toFailure(
         Timber.w("The error returned by the server is not a MatrixError, probably HTML string")
     }
 
-    return Failure.OtherServerError(errorBodyStr, httpCode)
+    return Failure.OtherServerError(errorBodyStr, httpCode, url)
 }

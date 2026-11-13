@@ -17,6 +17,7 @@ import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
+import im.vector.app.core.error.showUnexpectedServerPage
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.features.settings.applySelectedAppLogo
@@ -94,7 +95,7 @@ abstract class AbstractLoginFragment<VB : ViewBinding> : VectorBaseFragment<VB>(
             is Failure.UnrecognizedCertificateFailure ->
                 showUnrecognizedCertificateFailure(throwable)
             else ->
-                onError(throwable)
+                if (!requireContext().showUnexpectedServerPage(throwable)) onError(throwable)
         }
     }
 
