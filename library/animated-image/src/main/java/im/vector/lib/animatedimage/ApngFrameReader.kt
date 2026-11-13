@@ -26,9 +26,10 @@ import java.util.zip.CRC32
  */
 object ApngFrameReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, null, it) }
 
-    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+    /** Frames blend onto the whole canvas, so the scale [onHeader] returns is never applied. */
+    fun visitFrames(file: File, onHeader: FrameHeader?, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         val parsed = try {
             parseChunks(file.readBytes())
         } catch (error: Throwable) {
@@ -36,6 +37,7 @@ object ApngFrameReader {
             null
         } ?: return false
         if (parsed.frames.isEmpty()) return false
+        onHeader?.invoke(parsed.canvasWidth, parsed.canvasHeight, IntArray(parsed.frames.size) { parsed.frames[it].delayMs })
         return composeFrames(parsed, onFrame)
     }
 

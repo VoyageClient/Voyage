@@ -1014,7 +1014,8 @@ class AttachmentsPreviewFragment :
         // that opens on a black frame.
         videoControls?.suspendPlayback()
         val source = original.queryUriAndroid
-        val animatedFormat = animatedFormatOf(currentAttachment)
+        // The editor opens the original, and an edited animation is always WebP whatever it started as.
+        val animatedFormat = animatedFormatOf(original)
         editorPreviewPending = true
         editorPreviewBeforeUri = currentAttachment.queryUri
         editorPreviewExpectedUri = null

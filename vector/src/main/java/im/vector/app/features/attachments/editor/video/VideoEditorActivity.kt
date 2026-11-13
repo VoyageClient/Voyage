@@ -79,6 +79,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.debug.DebugLog
@@ -160,6 +161,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var animatedFormat: AnimatedImageFormat? = null
     private var animatedSource: File? = null
     private var animatedPlayer: AnimatedFramePlayer? = null
+
+    /** Every frame decoded; the player starts on the first. */
+    private var animatedLoaded = false
 
     private val isAnimated get() = animatedFormat != null
 
@@ -540,6 +544,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     /** Saves the frame under the playhead, framed as the editor shows it, as a still image. */
     private fun captureFrame() {
         if (exporting || exportJob?.isActive == true) return
+        if (isAnimated && !animatedLoaded) return
         pausePlayback()
         // The animated player draws its own frames, so its playhead is already exact.
         val positionUs = if (isAnimated) playheadUs else shownFrameUs()
@@ -678,56 +683,69 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
      * The frame readers work from a file, and the source is a content:// uri, so it is copied out
      * once here and reused by the export.
      */
+    @SuppressLint("ClickableViewAccessibility")
     private fun loadAnimatedMetadata() {
+        // A gesture before history starts would become the state undo returns to.
+        views.videoEditorCropOverlay.setOnTouchListener { _, _ -> animatedPlayer == null }
         lifecycleScope.launch {
-            val loaded = withContext(Dispatchers.IO) {
-                val file = copySourceToCache() ?: return@withContext null
-                AnimatedImageSource.load(file, animatedFormat)?.let { file to it }
+            val file = withContext(Dispatchers.IO) { copySourceToCache() }
+            val loaded = file?.let {
+                withContext(Dispatchers.IO) {
+                    AnimatedImageSource.load(file, animatedFormat, isCancelled = { !isActive }) { source ->
+                        handler.post { showAnimatedSource(file, source) }
+                    }
+                }
             }
-            if (loaded == null) {
+            if (file == null || loaded == null) {
                 Toast.makeText(
                         this@VideoEditorActivity, getString(CommonStrings.animated_image_editor_load_failed), Toast.LENGTH_SHORT
                 ).show()
                 finish()
                 return@launch
             }
-            val (file, source) = loaded
-            animatedSource = file
-            durationUs = source.durationUs
-            frameRate = source.frameRate
-            views.videoEditorTimeline.durationUs = durationUs
-            views.videoEditorTimeline.frameRate = frameRate
-            val edits = initialEdits
-            startUs = edits?.startUs ?: 0L
-            endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
-            edits?.speed?.let { playbackSpeed = it }
-            if (edits?.reversed == true) setReversed(true, announce = false)
-            views.videoEditorCropOverlay.setVideoSize(source.width, source.height)
-            applyTargetSizeOverride()
-            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop, edits?.tiltDegrees ?: 0f)
-            views.videoEditorTimeline.setTrim(startUs, endUs)
-            updateScrubberRange()
-            updateDurationLabel()
-            animatedPreview = source
-            startHistory()
-            addAnimatedThumbnails(source)
-            animatedPlayer = AnimatedFramePlayer(source, file, animatedFormat, views.videoEditorAnimatedFrame, handler) { positionUs ->
-                setPlayhead(positionUs)
-            }
-            applyPlaybackSpeed()
-            animatedPlayer?.reversed = reversed
-            applyTrimToAnimatedPlayer()
-            startPlayback()
+            showAnimatedSource(file, loaded)
+            animatedLoaded = true
+            addAnimatedThumbnails(loaded)
         }
     }
 
+    /** Runs as soon as the first frame is in; the player shows the rest as they arrive. */
+    private fun showAnimatedSource(file: File, source: AnimatedImageSource) {
+        if (animatedPreview != null || isFinishing) return
+        animatedSource = file
+        durationUs = source.durationUs
+        frameRate = source.frameRate
+        views.videoEditorTimeline.durationUs = durationUs
+        views.videoEditorTimeline.frameRate = frameRate
+        val edits = initialEdits
+        startUs = edits?.startUs ?: 0L
+        endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
+        edits?.speed?.let { playbackSpeed = it }
+        if (edits?.reversed == true) setReversed(true, announce = false)
+        views.videoEditorCropOverlay.setVideoSize(source.width, source.height)
+        applyTargetSizeOverride()
+        views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop, edits?.tiltDegrees ?: 0f)
+        views.videoEditorTimeline.setTrim(startUs, endUs)
+        updateScrubberRange()
+        updateDurationLabel()
+        animatedPreview = source
+        startHistory()
+        animatedPlayer = AnimatedFramePlayer(source, file, animatedFormat, views.videoEditorAnimatedFrame, handler) { positionUs ->
+            setPlayhead(positionUs)
+        }
+        applyPlaybackSpeed()
+        animatedPlayer?.reversed = reversed
+        applyTrimToAnimatedPlayer()
+        startPlayback()
+    }
+
     private fun addAnimatedThumbnails(source: AnimatedImageSource) = views.videoEditorTimeline.doOnLayout {
-        val count = THUMBNAIL_COUNT.coerceAtMost(source.frames.size)
+        val count = THUMBNAIL_COUNT.coerceAtMost(source.frameCount)
         if (count <= 0) return@doOnLayout
         views.videoEditorTimeline.prepareThumbnails(count)
         val targetHeight = views.videoEditorTimeline.height
         for (index in 0 until count) {
-            val frame = source.frames[index * source.frames.size / count].bitmap
+            val frame = source.frameAtOrBefore(index * source.frameCount / count)?.takeUnless { it.isRecycled } ?: continue
             val scale = targetHeight.toFloat() / frame.height
             val scaled = runCatching {
                 Bitmap.createScaledBitmap(frame, (frame.width * scale).toInt().coerceAtLeast(1), targetHeight, true)
@@ -1332,6 +1350,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun save(extractAudio: Boolean = false) {
         if (exporting || exportJob?.isActive == true) return
+        // The export decodes every frame again at full size; not alongside the preview's own decode.
+        if (isAnimated && !animatedLoaded) return
         val edits = VideoEditorEdits(
                 startUs = startUs,
                 endUs = endUs,

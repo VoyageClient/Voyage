@@ -17,9 +17,9 @@ import java.nio.ByteBuffer
 
 object GifFrameReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, null, it) }
 
-    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+    fun visitFrames(file: File, onHeader: FrameHeader?, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         val data = try {
             file.readBytes()
         } catch (error: Throwable) {
@@ -32,14 +32,18 @@ object GifFrameReader {
             Timber.w(error, "GIF: cannot parse header")
             return false
         }
+        if (header.width <= 0 || header.height <= 0) return false
         val decoder = StandardGifDecoder(SimpleBitmapProvider, header, ByteBuffer.wrap(data), 1)
         try {
             if (decoder.frameCount <= 0) return false
+            val durations = IntArray(decoder.frameCount) { decoder.getDelay(it).coerceAtLeast(MIN_FRAME_DELAY_MS) }
+            val sampleSize = onHeader?.let { sampleSizeFor(it(header.width, header.height, durations)) } ?: 1
+            if (sampleSize != 1) decoder.setData(header, ByteBuffer.wrap(data), sampleSize)
             for (index in 0 until decoder.frameCount) {
                 decoder.advance()
                 val bitmap = decoder.nextFrame ?: return false
                 try {
-                    onFrame(AnimatedFrame(bitmap, decoder.getDelay(index).coerceAtLeast(MIN_FRAME_DELAY_MS)), index, decoder.frameCount)
+                    onFrame(AnimatedFrame(bitmap, durations[index]), index, decoder.frameCount)
                 } finally {
                     bitmap.recycle()
                 }

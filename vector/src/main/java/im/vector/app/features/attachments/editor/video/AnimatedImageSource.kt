@@ -8,11 +8,12 @@
 package im.vector.app.features.attachments.editor.video
 
 import android.graphics.Bitmap
-import im.vector.lib.animatedimage.AnimatedFrame
+import android.os.SystemClock
 import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.animatedimage.AnimatedImageReader
 import timber.log.Timber
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.sqrt
 
 /**
@@ -23,40 +24,65 @@ import kotlin.math.sqrt
  * fit a memory budget first — a long animation at full size would be tens of megabytes of bitmap,
  * and this fork still runs on devices with a 48 MB heap. The export decodes the original again, so
  * nothing on show here limits the quality of what is sent.
+ *
+ * The timeline comes from the header, so the source is usable while its frames are still decoding.
  */
 class AnimatedImageSource private constructor(
-        val frames: List<Frame>,
         /** The source's own size, not the preview's: everything the editor reports is in these terms. */
         val width: Int,
         val height: Int,
+        private val startsUs: LongArray,
+        val durationUs: Long,
+        /** True when the held frames are smaller than the source, so a zoomed-in still is worth decoding afresh. */
+        val isDownscaled: Boolean,
 ) {
 
-    class Frame(val bitmap: Bitmap, val startUs: Long, val durationUs: Long)
+    private val bitmaps = arrayOfNulls<Bitmap>(startsUs.size)
+    private var loaded = 0
+    private var released = false
 
-    val durationUs: Long get() = frames.lastOrNull()?.let { it.startUs + it.durationUs } ?: 0L
+    val frameCount: Int get() = startsUs.size
 
     val frameRate: Float
-        get() = if (durationUs <= 0) DEFAULT_FRAME_RATE else frames.size * 1_000_000f / durationUs
+        get() = if (durationUs <= 0) DEFAULT_FRAME_RATE else frameCount * 1_000_000f / durationUs
 
-    /** True when the held frames are smaller than the source, so a zoomed-in still is worth decoding afresh. */
-    val isDownscaled: Boolean get() = frames.firstOrNull()?.let { it.bitmap.width < width } ?: false
+    /** Only the frame due at [us] itself, so null while that one is still decoding. */
+    @Synchronized
+    fun frameAt(us: Long): Bitmap? = indexAt(us)?.takeIf { it < loaded }?.let { bitmaps[it] }
 
-    fun frameAt(us: Long): Bitmap? = indexAt(us)?.let { frames[it].bitmap }
+    /** Frame [index], or while it is still decoding the latest one before it that is in. */
+    @Synchronized
+    fun frameAtOrBefore(index: Int): Bitmap? = if (loaded == 0) null else bitmaps[minOf(index, loaded - 1)]
 
     fun indexAt(us: Long): Int? {
-        if (frames.isEmpty()) return null
+        if (startsUs.isEmpty()) return null
         // Binary search rather than a scan: this runs once per displayed frame while scrubbing.
         var low = 0
-        var high = frames.size - 1
+        var high = startsUs.size - 1
         while (low < high) {
             val middle = (low + high + 1) / 2
-            if (frames[middle].startUs <= us) low = middle else high = middle - 1
+            if (startsUs[middle] <= us) low = middle else high = middle - 1
         }
         return low
     }
 
+    @Synchronized
+    private fun add(bitmap: Bitmap): Boolean {
+        if (released || loaded >= bitmaps.size) {
+            bitmap.recycle()
+            return false
+        }
+        bitmaps[loaded++] = bitmap
+        return true
+    }
+
+    @Synchronized
     fun release() {
-        frames.forEach { it.bitmap.recycle() }
+        released = true
+        bitmaps.forEachIndexed { index, bitmap ->
+            bitmap?.recycle()
+            bitmaps[index] = null
+        }
     }
 
     companion object {
@@ -67,16 +93,56 @@ class AnimatedImageSource private constructor(
         private const val BYTES_PER_PIXEL = 4
         private const val MAX_PREVIEW_DIMENSION = 1080
 
-        fun load(file: File, format: AnimatedImageFormat? = null): AnimatedImageSource? {
-            val decoded = AnimatedImageReader.readFrames(file, format) ?: return null
-            if (decoded.isEmpty()) return null
-            val width = decoded[0].bitmap.width
-            val height = decoded[0].bitmap.height
-            if (width <= 0 || height <= 0) {
-                decoded.forEach { it.bitmap.recycle() }
+        /**
+         * Each frame is scaled as it is decoded, so the full-size frames are never all held at once.
+         * [onReady] is called on this thread once the first frame is in, long before the rest are;
+         * the source returned at the end is the same one, now complete. A failure releases it.
+         */
+        fun load(
+                file: File,
+                format: AnimatedImageFormat? = null,
+                isCancelled: () -> Boolean = { false },
+                onReady: (AnimatedImageSource) -> Unit,
+        ): AnimatedImageSource? {
+            var source: AnimatedImageSource? = null
+            var scale = 1f
+            val startedAt = SystemClock.elapsedRealtime()
+            var firstFrameMs = 0L
+            val onHeader = { width: Int, height: Int, durationsMs: IntArray ->
+                if (width <= 0 || height <= 0 || durationsMs.isEmpty()) throw IllegalStateException("Empty animation")
+                scale = previewScale(durationsMs.size, width, height)
+                var startUs = 0L
+                val startsUs = LongArray(durationsMs.size) { index -> startUs.also { startUs += durationsMs[index] * 1000L } }
+                source = AnimatedImageSource(width, height, startsUs, startUs, scale < 1f)
+                scale
+            }
+            val decoded = try {
+                AnimatedImageReader.visitFrames(file, format, onHeader) { frame, index, _ ->
+                    val target = source ?: throw IllegalStateException("Frame before header")
+                    if (isCancelled()) throw CancellationException()
+                    // The reader recycles its bitmap after the callback, so even an unscaled frame is a copy.
+                    val bitmap = frame.bitmap.resizedCopy(target.width * scale, target.height * scale)
+                            ?: throw OutOfMemoryError("Animated: no room for a preview frame")
+                    if (!target.add(bitmap)) throw CancellationException()
+                    if (index == 0) {
+                        firstFrameMs = SystemClock.elapsedRealtime() - startedAt
+                        onReady(target)
+                    }
+                }
+            } catch (error: Throwable) {
+                if (error !is CancellationException) Timber.w(error, "Animated: cannot load frames")
+                false
+            }
+            val result = source
+            if (!decoded || result == null || result.loaded < result.frameCount) {
+                result?.release()
                 return null
             }
-            return AnimatedImageSource(scaleForPreview(decoded, width, height), width, height)
+            Timber.d(
+                    "Animated: loaded ${result.frameCount} frames of ${result.width}x${result.height} at scale $scale " +
+                            "in ${SystemClock.elapsedRealtime() - startedAt} ms, first after $firstFrameMs ms"
+            )
+            return result
         }
 
         /** Frame [index] alone, at the source's size or as near as [maxPixels] allows. Frames composite, so every earlier one is decoded too. */
@@ -92,8 +158,7 @@ class AnimatedImageSource private constructor(
                                 1f,
                         )
                         // The reader recycles its bitmap after the callback, so this has to be a copy.
-                        result = (if (scale < 1f) bitmap.scaledBy(scale) else bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false))
-                                ?.takeUnless { it === bitmap }
+                        result = bitmap.resizedCopy(bitmap.width * scale, bitmap.height * scale)
                         throw FrameFound()
                     }
                 }
@@ -106,17 +171,6 @@ class AnimatedImageSource private constructor(
 
         private class FrameFound : RuntimeException()
 
-        private fun scaleForPreview(decoded: List<AnimatedFrame>, width: Int, height: Int): List<Frame> {
-            val scale = previewScale(decoded.size, width, height)
-            var startUs = 0L
-            return decoded.map { frame ->
-                val bitmap = if (scale < 1f) frame.bitmap.scaledBy(scale) else frame.bitmap
-                if (bitmap !== frame.bitmap) frame.bitmap.recycle()
-                val durationUs = frame.durationMs * 1000L
-                Frame(bitmap, startUs, durationUs).also { startUs += durationUs }
-            }
-        }
-
         private fun previewScale(frameCount: Int, width: Int, height: Int): Float {
             val budgetPerFrame = PREVIEW_BUDGET_BYTES.toFloat() / frameCount.coerceAtLeast(1) / BYTES_PER_PIXEL
             val byBudget = sqrt(budgetPerFrame / (width.toFloat() * height))
@@ -124,14 +178,19 @@ class AnimatedImageSource private constructor(
             return minOf(byBudget, byDimension, 1f)
         }
 
-        private fun Bitmap.scaledBy(scale: Float): Bitmap {
-            val scaledWidth = (width * scale).toInt().coerceAtLeast(1)
-            val scaledHeight = (height * scale).toInt().coerceAtLeast(1)
+        /** Always a new bitmap, never this one. */
+        private fun Bitmap.resizedCopy(targetWidth: Float, targetHeight: Float): Bitmap? {
+            val scaledWidth = targetWidth.toInt().coerceAtLeast(1)
+            val scaledHeight = targetHeight.toInt().coerceAtLeast(1)
             return try {
-                Bitmap.createScaledBitmap(this, scaledWidth, scaledHeight, true)
+                if (scaledWidth == width && scaledHeight == height) {
+                    copy(config ?: Bitmap.Config.ARGB_8888, false)
+                } else {
+                    Bitmap.createScaledBitmap(this, scaledWidth, scaledHeight, true)
+                }
             } catch (error: OutOfMemoryError) {
                 Timber.w(error, "Animated: out of memory scaling a preview frame")
-                this
+                null
             }
         }
     }

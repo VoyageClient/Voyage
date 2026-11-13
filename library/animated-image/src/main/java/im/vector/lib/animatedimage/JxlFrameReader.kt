@@ -35,9 +35,9 @@ internal object JxlFrameReader {
         }
     }
 
-    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, null, it) }
 
-    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+    fun visitFrames(file: File, onHeader: FrameHeader?, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         if (!isAvailable) return false
         val animation = try {
             open(file.readBytes())
@@ -48,10 +48,17 @@ internal object JxlFrameReader {
         animation.use {
             val count = it.numberOfFrames
             if (count <= 0) return false
+            val width = it.getWidth()
+            val height = it.getHeight()
+            val durations = IntArray(count) { index -> it.getFrameDuration(index).coerceAtLeast(MIN_FRAME_DELAY_MS) }
+            val scale = onHeader?.invoke(width, height, durations)?.takeIf { scale -> scale < 1f }
+            // 0 x 0 asks for the frame at its own size.
+            val frameWidth = scale?.let { s -> (width * s).toInt().coerceAtLeast(1) } ?: 0
+            val frameHeight = scale?.let { s -> (height * s).toInt().coerceAtLeast(1) } ?: 0
             for (index in 0 until count) {
-                val bitmap = it.getFrame(index, 0, 0)
+                val bitmap = it.getFrame(index, frameWidth, frameHeight)
                 try {
-                    onFrame(AnimatedFrame(bitmap, it.getFrameDuration(index).coerceAtLeast(MIN_FRAME_DELAY_MS)), index, count)
+                    onFrame(AnimatedFrame(bitmap, durations[index]), index, count)
                 } finally {
                     bitmap.recycle()
                 }

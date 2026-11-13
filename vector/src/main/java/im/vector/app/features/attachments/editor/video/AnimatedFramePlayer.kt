@@ -51,7 +51,7 @@ class AnimatedFramePlayer(
     private val sharpDecoder = Executors.newSingleThreadExecutor()
 
     fun start() {
-        if (isPlaying || source.frames.isEmpty()) return
+        if (isPlaying || source.frameCount == 0) return
         if (reversed && positionUs <= loopStartUs) positionUs = loopEndUs
         if (!reversed && positionUs >= loopEndUs) positionUs = loopStartUs
         dropSharpFrame()
@@ -102,7 +102,7 @@ class AnimatedFramePlayer(
     fun draw() {
         val index = source.indexAt(positionUs) ?: return
         val sharp = sharpFrame?.takeIf { !isPlaying && sharpIndex == index && !it.isRecycled }
-        frameView.frame = sharp ?: source.frames[index].bitmap.takeIf { !it.isRecycled } ?: return
+        frameView.frame = sharp ?: source.frameAtOrBefore(index)?.takeIf { !it.isRecycled } ?: return
         if (!isPlaying && sharp == null) scheduleSharpFrame(index)
     }
 

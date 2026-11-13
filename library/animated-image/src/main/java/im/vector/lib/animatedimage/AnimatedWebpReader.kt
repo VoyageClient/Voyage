@@ -27,9 +27,10 @@ import java.io.File
  */
 object AnimatedWebpReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, null, it) }
 
-    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+    /** Frames blend onto the whole canvas, so the scale [onHeader] returns is never applied. */
+    fun visitFrames(file: File, onHeader: FrameHeader?, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         val image = try {
             WebpImage.create(file.readBytes())
         } catch (error: Throwable) {
@@ -38,6 +39,9 @@ object AnimatedWebpReader {
         }
         try {
             if (image.frameCount <= 0 || image.width <= 0 || image.height <= 0) return false
+            val reported = image.frameDurations
+            val durations = IntArray(image.frameCount) { (reported?.getOrNull(it) ?: 0).coerceAtLeast(MIN_FRAME_DELAY_MS) }
+            onHeader?.invoke(image.width, image.height, durations)
             val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             val clear = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
@@ -47,7 +51,7 @@ object AnimatedWebpReader {
                     try {
                         if (!frame.isBlendWithPreviousFrame) canvas.clearRect(frame, clear)
                         frame.drawOnto(canvas)
-                        onFrame(AnimatedFrame(bitmap, frame.durationMs.coerceAtLeast(MIN_FRAME_DELAY_MS)), index, image.frameCount)
+                        onFrame(AnimatedFrame(bitmap, durations[index]), index, image.frameCount)
                         if (frame.shouldDisposeToBackgroundColor()) canvas.clearRect(frame, clear)
                     } finally {
                         frame.dispose()

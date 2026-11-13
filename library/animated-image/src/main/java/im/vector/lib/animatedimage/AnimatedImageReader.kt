@@ -25,15 +25,31 @@ object AnimatedImageReader {
     }
 
     // The bitmap belongs to the reader and is only valid during the callback.
-    fun visitFrames(file: File, format: AnimatedImageFormat? = null, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean =
+    fun visitFrames(
+            file: File,
+            format: AnimatedImageFormat? = null,
+            onHeader: FrameHeader? = null,
+            onFrame: (AnimatedFrame, Int, Int) -> Unit,
+    ): Boolean =
             when (format ?: AnimatedImageFormat.detect(file)) {
-                AnimatedImageFormat.GIF -> GifFrameReader.visitFrames(file, onFrame)
-                AnimatedImageFormat.APNG -> ApngFrameReader.visitFrames(file, onFrame)
-                AnimatedImageFormat.WEBP -> AnimatedWebpReader.visitFrames(file, onFrame)
-                AnimatedImageFormat.JXL -> JxlFrameReader.visitFrames(file, onFrame)
+                AnimatedImageFormat.GIF -> GifFrameReader.visitFrames(file, onHeader, onFrame)
+                AnimatedImageFormat.APNG -> ApngFrameReader.visitFrames(file, onHeader, onFrame)
+                AnimatedImageFormat.WEBP -> AnimatedWebpReader.visitFrames(file, onHeader, onFrame)
+                AnimatedImageFormat.JXL -> JxlFrameReader.visitFrames(file, onHeader, onFrame)
                 null -> false
             }
 }
+
+/**
+ * Called once, before the first frame, with the canvas size and every frame's duration as the frames
+ * will report it. The reader may then decode frames down to the returned fraction of the canvas, so
+ * they need not be canvas-sized.
+ */
+typealias FrameHeader = (width: Int, height: Int, durationsMs: IntArray) -> Float
+
+/** The largest power of two that shrinks no further than [scale]; GIF decoders only subsample by those. */
+internal fun sampleSizeFor(scale: Float): Int =
+        if (scale >= 1f || scale <= 0f) 1 else Integer.highestOneBit((1f / scale).toInt()).coerceAtLeast(1)
 
 internal fun collectFrames(read: ((AnimatedFrame, Int, Int) -> Unit) -> Boolean): List<AnimatedFrame>? {
     val frames = ArrayList<AnimatedFrame>()
