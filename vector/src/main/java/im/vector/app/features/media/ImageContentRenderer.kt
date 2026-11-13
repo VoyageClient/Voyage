@@ -199,6 +199,8 @@ class ImageContentRenderer @Inject constructor(
      * square: a tile is flush with its neighbours, and the grid rounds the outer edge itself.
      */
     fun render(data: Data, imageView: ImageView, width: Int, height: Int, fromRetryTap: Boolean = false) {
+        // renderFailed leaves FIT_XY behind, which would stretch the picture a later load draws here.
+        imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         // A plain THUMBNAIL asks the homeserver to scale the file, which it cannot do for formats it
         // has no decoder for — JPEG XL among them — leaving the grid blank. previewMode routes those
         // to the original, exactly as the timeline's previews already do.
