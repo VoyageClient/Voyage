@@ -42,11 +42,6 @@ class DebugFeaturesStateFactory @Inject constructor(
                                 factory = VectorFeatures::isOnboardingUseCaseEnabled
                         ),
                         createBooleanFeature(
-                                label = "FTUE Personalize profile",
-                                key = DebugFeatureKeys.onboardingPersonalize,
-                                factory = VectorFeatures::isOnboardingPersonalizeEnabled
-                        ),
-                        createBooleanFeature(
                                 label = "FTUE Combined register",
                                 key = DebugFeatureKeys.onboardingCombinedRegister,
                                 factory = VectorFeatures::isOnboardingCombinedRegisterEnabled

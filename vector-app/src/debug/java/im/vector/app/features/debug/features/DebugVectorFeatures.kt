@@ -43,9 +43,6 @@ class DebugVectorFeatures(
 
     override fun isOnboardingUseCaseEnabled(): Boolean = read(DebugFeatureKeys.onboardingUseCase) ?: vectorFeatures.isOnboardingUseCaseEnabled()
 
-    override fun isOnboardingPersonalizeEnabled(): Boolean = read(DebugFeatureKeys.onboardingPersonalize)
-            ?: vectorFeatures.isOnboardingPersonalizeEnabled()
-
     override fun isOnboardingCombinedRegisterEnabled(): Boolean = read(DebugFeatureKeys.onboardingCombinedRegister)
             ?: vectorFeatures.isOnboardingCombinedRegisterEnabled()
 
@@ -121,7 +118,6 @@ object DebugFeatureKeys {
     val onboardingAlreadyHaveAnAccount = booleanPreferencesKey("onboarding-already-have-an-account")
     val onboardingSplashCarousel = booleanPreferencesKey("onboarding-splash-carousel")
     val onboardingUseCase = booleanPreferencesKey("onboarding-use-case")
-    val onboardingPersonalize = booleanPreferencesKey("onboarding-personalize")
     val onboardingCombinedRegister = booleanPreferencesKey("onboarding-combined-register")
     val onboardingCombinedLogin = booleanPreferencesKey("onboarding-combined-login")
     val allowExternalUnifiedPushDistributors = booleanPreferencesKey("allow-external-unified-push-distributors")

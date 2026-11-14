@@ -1948,19 +1948,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="live_location_sharing_notification_description">Penbagian lokasi sedang dilakukan</string>
     <string name="live_location_sharing_notification_title">${app_name} Lokasi langsung</string>
     <string name="error_forbidden_digits_only_username">Homeserver tidak menerima nama pengguna dengan hanya angka.</string>
-    <string name="ftue_personalize_skip_this_step">Lewati</string>
-    <string name="ftue_personalize_submit">Simpan dan lanjutkan</string>
-    <string name="ftue_personalize_complete_subtitle">Pergi ke pengaturan kapan saja untuk memperbarui profil Anda</string>
-    <string name="ftue_personalize_complete_title">Kelihatan bagus!</string>
-    <string name="ftue_personalize_lets_go">Ayo</string>
-    <string name="ftue_profile_picture_subtitle">Saatnya pasang wajah pada nama</string>
-    <string name="ftue_display_name_entry_footer">Anda dapat mengubahnya nanti</string>
-    <string name="ftue_display_name_entry_title">Nama Tampilan</string>
-    <string name="ftue_display_name_title">Pilih nama tampilan</string>
-    <string name="ftue_account_created_subtitle">Akun %s Anda telah dibuat</string>
-    <string name="ftue_account_created_congratulations_title">Selamat!</string>
-    <string name="ftue_account_created_take_me_home">Kembalikan saya ke beranda</string>
-    <string name="ftue_account_created_personalize">Ubah profil</string>
     <string name="location_share_live_started">Memuat lokasi langsung…</string>
     <string name="location_share_live_select_duration_option_3">8 jam</string>
     <string name="location_share_live_select_duration_option_2">1 jam</string>
@@ -2785,7 +2772,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_preview_cancel_knock">Batalkan permintaan</string>
     <string name="settings_profile_picture">Avatar</string>
     <string name="avatar_of_user">Avatar pengguna %1$s</string>
-    <string name="ftue_profile_picture_title">Tambahkan avatar</string>
     <string name="room_profile_section_more_personalization">Personalisasi</string>
     <string name="room_personalization_title">Tampilan Anda di ruangan ini</string>
     <string name="room_personalization_reset">Setel ulang</string>

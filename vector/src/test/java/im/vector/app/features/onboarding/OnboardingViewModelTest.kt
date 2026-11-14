@@ -7,7 +7,6 @@
 
 package im.vector.app.features.onboarding
 
-import android.net.Uri
 import android.os.Build
 import com.airbnb.mvrx.test.MavericksTestRule
 import im.vector.app.core.session.ConfigureAndStartSessionUseCase
@@ -39,13 +38,10 @@ import im.vector.app.test.fakes.FakeRegistrationWizard
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeStartAuthenticationFlowUseCase
 import im.vector.app.test.fakes.FakeStringProvider
-import im.vector.app.test.fakes.FakeUri
-import im.vector.app.test.fakes.FakeUriFilenameResolver
 import im.vector.app.test.fakes.FakeVectorFeatures
 import im.vector.app.test.fakes.FakeVectorOverrides
 import im.vector.app.test.fakes.toTestString
 import im.vector.app.test.fixtures.a401ServerError
-import im.vector.app.test.fixtures.aHomeServerCapabilities
 import im.vector.app.test.fixtures.anUnrecognisedCertificateError
 import im.vector.app.test.test
 import io.mockk.coEvery
@@ -63,17 +59,13 @@ import org.matrix.android.sdk.api.auth.registration.Stage
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.network.ssl.Fingerprint
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 
-private const val A_DISPLAY_NAME = "a display name"
-private const val A_PICTURE_FILENAME = "a-picture.png"
 private val A_SERVER_ERROR = a401ServerError()
 private val AN_ERROR = RuntimeException("an error!")
 private val AN_UNRECOGNISED_CERTIFICATE_ERROR = anUnrecognisedCertificateError()
 private val A_LOADABLE_REGISTER_ACTION = RegisterAction.StartRegistration
 private val A_NON_LOADABLE_REGISTER_ACTION = RegisterAction.CheckIfEmailHasBeenValidated(delayMillis = -1L)
 private val A_RESULT_IGNORED_REGISTER_ACTION = RegisterAction.SendAgainThreePid
-private val A_HOMESERVER_CAPABILITIES = aHomeServerCapabilities(canChangeDisplayName = true, canChangeAvatar = true)
 private val A_FINGERPRINT = Fingerprint(ByteArray(1), Fingerprint.HashType.SHA1)
 private val ANY_CONTINUING_REGISTRATION_RESULT = RegistrationActionHandler.Result.NextStage(Stage.Dummy(mandatory = true))
 private val A_DIRECT_LOGIN = OnboardingAction.AuthenticateAction.LoginDirect("@a-user:id.org", "a-password", "a-device-name")
@@ -88,7 +80,6 @@ private const val AN_EMAIL = "hello@example.com"
 private const val A_PASSWORD = "a-password"
 private const val A_USERNAME = "hello-world"
 private const val A_DEVICE_NAME = "a-device-name"
-private const val A_MATRIX_ID = "@$A_USERNAME:matrix.org"
 private const val A_LOGIN_TOKEN = "a-login-token"
 private val A_REGISTRATION_STATE = aRegistrationState(email = AN_EMAIL)
 private const val A_SSO_URL = "https://a-sso.url"
@@ -127,10 +118,8 @@ class OnboardingViewModelTest {
     @get:Rule
     val mavericksTestRule = MavericksTestRule()
 
-    private val fakeUri = FakeUri()
     private val fakeContext = FakeContext()
     private val fakeSession = FakeSession()
-    private val fakeUriFilenameResolver = FakeUriFilenameResolver()
     private val fakeActiveSessionHolder = FakeActiveSessionHolder(fakeSession)
     private val fakeAuthenticationService = FakeAuthenticationService()
     private val fakeRegistrationActionHandler = FakeRegistrationActionHandler()
@@ -259,48 +248,10 @@ class OnboardingViewModelTest {
     fun `when handling PostViewEvent, then emits contents as view event`() = runTest {
         val test = viewModel.test()
 
-        viewModel.handle(OnboardingAction.PostViewEvent(OnboardingViewEvents.OnTakeMeHome))
+        viewModel.handle(OnboardingAction.PostViewEvent(OnboardingViewEvents.OnBack))
 
         test
-                .assertEvents(OnboardingViewEvents.OnTakeMeHome)
-                .finish()
-    }
-
-    @Test
-    fun `given supports changing display name, when handling PersonalizeProfile, then emits contents choose display name`() = runTest {
-        viewModelWith(
-                initialState.copy(
-                        personalizationState = PersonalizationState(
-                                supportsChangingDisplayName = true,
-                                supportsChangingProfilePicture = false
-                        )
-                )
-        )
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.PersonalizeProfile)
-
-        test
-                .assertEvents(OnboardingViewEvents.OnChooseDisplayName)
-                .finish()
-    }
-
-    @Test
-    fun `given only supports changing profile picture, when handling PersonalizeProfile, then emits contents choose profile picture`() = runTest {
-        viewModelWith(
-                initialState.copy(
-                        personalizationState = PersonalizationState(
-                                supportsChangingDisplayName = false,
-                                supportsChangingProfilePicture = true
-                        )
-                )
-        )
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.PersonalizeProfile)
-
-        test
-                .assertEvents(OnboardingViewEvents.OnChooseProfilePicture)
+                .assertEvents(OnboardingViewEvents.OnBack)
                 .finish()
     }
 
@@ -725,10 +676,8 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `given matrix id and personalisation enabled, when registering account, then updates state and emits account created event`() = runTest {
-        viewModelWith(initialState.copy(registrationState = RegistrationState(selectedMatrixId = A_MATRIX_ID)))
-        fakeVectorFeatures.givenPersonalisationEnabled()
-        givenSuccessfullyCreatesAccount(A_HOMESERVER_CAPABILITIES)
+    fun `when registering account, then signs in with a register description`() = runTest {
+        givenInitialisesSession(fakeSession)
         givenRegistrationResultFor(RegisterAction.StartRegistration, RegistrationActionHandler.Result.RegistrationComplete(fakeSession))
         val test = viewModel.test()
 
@@ -738,9 +687,16 @@ class OnboardingViewModelTest {
                 .assertStatesChanges(
                         initialState,
                         { copy(isLoading = true) },
-                        { copy(isLoading = false, personalizationState = A_HOMESERVER_CAPABILITIES.toPersonalisationState("@fake:server.fake", A_USERNAME)) }
+                        {
+                            copy(
+                                    isLoading = false,
+                                    selectedAuthenticationState = SelectedAuthenticationState(
+                                            AuthenticationDescription.Register(AuthenticationDescription.AuthenticationType.Other)
+                                    )
+                            )
+                        }
                 )
-                .assertEvents(OnboardingViewEvents.OnAccountCreated)
+                .assertEvents(OnboardingViewEvents.OnAccountSignedIn)
                 .finish()
     }
 
@@ -812,7 +768,7 @@ class OnboardingViewModelTest {
                 aGatewayOperation(GatewayOperation.STATUS_SUCCEEDED, accountCreated = true, result = GatewayResult(null, "login_required", null))
         fakeAuthenticationService.givenLoginWizard(fakeLoginWizard)
         fakeLoginWizard.givenLoginSuccess(A_USERNAME, A_PASSWORD, A_DEVICE_NAME, fakeSession)
-        givenSuccessfullyCreatesAccount(A_HOMESERVER_CAPABILITIES)
+        givenInitialisesSession(fakeSession)
         val test = viewModel.test()
 
         viewModel.handle(OnboardingAction.AuthenticateAction.Register(A_USERNAME, A_PASSWORD, A_DEVICE_NAME))
@@ -823,9 +779,9 @@ class OnboardingViewModelTest {
                         { copy(selectedAuthenticationState = SelectedAuthenticationState(AuthenticationDescription.Register(AuthenticationDescription.AuthenticationType.Password))) },
                         { copy(isLoading = true, gatewayRegistering = true) },
                         { copy(gatewayRegistering = false) },
-                        { copy(isLoading = false, personalizationState = A_HOMESERVER_CAPABILITIES.toPersonalisationState("@fake:server.fake")) },
+                        { copy(isLoading = false) },
                 )
-                .assertEvents(OnboardingViewEvents.OnAccountCreated)
+                .assertEvents(OnboardingViewEvents.OnAccountSignedIn)
                 .finish()
     }
 
@@ -881,122 +837,6 @@ class OnboardingViewModelTest {
         }
         test.states.assertLatestValue { !it.isLoading && !it.gatewayRegistering }
         test.finish()
-    }
-
-    @Test
-    fun `given changing profile avatar is supported, when updating display name, then updates upstream user display name and moves to choose profile avatar`() {
-        runTest {
-            viewModelWith(initialState.copy(personalizationState = PersonalizationState(supportsChangingProfilePicture = true)))
-            val test = viewModel.test()
-
-            viewModel.handle(OnboardingAction.UpdateDisplayName(A_DISPLAY_NAME))
-
-            test
-                    .assertStatesChanges(initialState, expectedSuccessfulDisplayNameUpdateStates())
-                    .assertEvents(OnboardingViewEvents.OnChooseProfilePicture)
-                    .finish()
-            fakeSession.fakeProfileService.verifyUpdatedName(fakeSession.myUserId, A_DISPLAY_NAME)
-        }
-    }
-
-    @Test
-    fun `given changing profile avatar is not supported, when updating display name, then updates upstream user display name and completes personalization`() {
-        runTest {
-            viewModelWith(initialState.copy(personalizationState = PersonalizationState(supportsChangingProfilePicture = false)))
-            val test = viewModel.test()
-
-            viewModel.handle(OnboardingAction.UpdateDisplayName(A_DISPLAY_NAME))
-
-            test
-                    .assertStatesChanges(initialState, expectedSuccessfulDisplayNameUpdateStates())
-                    .assertEvents(OnboardingViewEvents.OnPersonalizationComplete)
-                    .finish()
-            fakeSession.fakeProfileService.verifyUpdatedName(fakeSession.myUserId, A_DISPLAY_NAME)
-        }
-    }
-
-    @Test
-    fun `given upstream failure, when handling display name update, then emits failure event`() = runTest {
-        val test = viewModel.test()
-        fakeSession.fakeProfileService.givenSetDisplayNameErrors(AN_ERROR)
-
-        viewModel.handle(OnboardingAction.UpdateDisplayName(A_DISPLAY_NAME))
-
-        test
-                .assertStatesChanges(
-                        initialState,
-                        { copy(isLoading = true) },
-                        { copy(isLoading = false) },
-                )
-                .assertEvents(OnboardingViewEvents.Failure(AN_ERROR))
-                .finish()
-    }
-
-    @Test
-    fun `when handling profile picture selected, then updates selected picture state`() = runTest {
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.ProfilePictureSelected(fakeUri.instance))
-
-        test
-                .assertStates(
-                        initialState,
-                        initialState.copy(personalizationState = initialState.personalizationState.copy(selectedPictureUri = fakeUri.instance))
-                )
-                .assertNoEvents()
-                .finish()
-    }
-
-    @Test
-    fun `given a selected picture, when handling save selected profile picture, then updates upstream avatar and completes personalization`() = runTest {
-        viewModelWith(givenPictureSelected(fakeUri.instance, A_PICTURE_FILENAME))
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.SaveSelectedProfilePicture)
-
-        test
-                .assertStates(expectedProfilePictureSuccessStates(initialState))
-                .assertEvents(OnboardingViewEvents.OnPersonalizationComplete)
-                .finish()
-        fakeSession.fakeProfileService.verifyAvatarUpdated(fakeSession.myUserId, fakeUri.instance.toString(), A_PICTURE_FILENAME)
-    }
-
-    @Test
-    fun `given upstream update avatar fails, when saving selected profile picture, then emits failure event`() = runTest {
-        fakeSession.fakeProfileService.givenUpdateAvatarErrors(AN_ERROR)
-        viewModelWith(givenPictureSelected(fakeUri.instance, A_PICTURE_FILENAME))
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.SaveSelectedProfilePicture)
-
-        test
-                .assertStates(expectedProfilePictureFailureStates(initialState))
-                .assertEvents(OnboardingViewEvents.Failure(AN_ERROR))
-                .finish()
-    }
-
-    @Test
-    fun `given no selected picture, when saving selected profile picture, then emits failure event`() = runTest {
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.SaveSelectedProfilePicture)
-
-        test
-                .assertStates(initialState)
-                .assertEvent { it is OnboardingViewEvents.Failure && it.throwable is NullPointerException }
-                .finish()
-    }
-
-    @Test
-    fun `when handling profile skipped, then completes personalization`() = runTest {
-        val test = viewModel.test()
-
-        viewModel.handle(OnboardingAction.UpdateProfilePictureSkipped)
-
-        test
-                .assertStates(initialState)
-                .assertEvents(OnboardingViewEvents.OnPersonalizationComplete)
-                .finish()
     }
 
     @Test
@@ -1279,7 +1119,6 @@ class OnboardingViewModelTest {
                 FakeStringProvider().instance,
                 fakeHomeServerHistoryService,
                 fakeVectorFeatures,
-                fakeUriFilenameResolver.instance,
                 fakeDirectLoginUseCase.instance,
                 fakeStartAuthenticationFlowUseCase.instance,
                 FakeVectorOverrides(),
@@ -1293,36 +1132,6 @@ class OnboardingViewModelTest {
             viewModel = it
             initialState = state
         }
-    }
-
-    private fun givenPictureSelected(fileUri: Uri, filename: String): OnboardingViewState {
-        val initialStateWithPicture = OnboardingViewState(personalizationState = PersonalizationState(selectedPictureUri = fileUri))
-        fakeUriFilenameResolver.givenFilename(fileUri, name = filename)
-        return initialStateWithPicture
-    }
-
-    private fun expectedProfilePictureSuccessStates(state: OnboardingViewState) = listOf(
-            state,
-            state.copy(isLoading = true),
-            state.copy(isLoading = false)
-    )
-
-    private fun expectedProfilePictureFailureStates(state: OnboardingViewState) = listOf(
-            state,
-            state.copy(isLoading = true),
-            state.copy(isLoading = false)
-    )
-
-    private fun expectedSuccessfulDisplayNameUpdateStates(): List<OnboardingViewState.() -> OnboardingViewState> {
-        return listOf(
-                { copy(isLoading = true) },
-                { copy(isLoading = false, personalizationState = personalizationState.copy(displayName = A_DISPLAY_NAME)) }
-        )
-    }
-
-    private fun givenSuccessfullyCreatesAccount(homeServerCapabilities: HomeServerCapabilities) {
-        fakeSession.fakeHomeServerCapabilitiesService.givenCapabilities(homeServerCapabilities)
-        givenInitialisesSession(fakeSession)
     }
 
     private fun givenInitialisesSession(session: Session) {
@@ -1387,10 +1196,3 @@ class OnboardingViewModelTest {
         fakeStartAuthenticationFlowUseCase.givenErrors(A_HOMESERVER_CONFIG, cause)
     }
 }
-
-private fun HomeServerCapabilities.toPersonalisationState(userId: String, displayName: String? = null) = PersonalizationState(
-        userId = userId,
-        supportsChangingDisplayName = canChangeDisplayName,
-        supportsChangingProfilePicture = canChangeAvatar,
-        displayName = displayName,
-)

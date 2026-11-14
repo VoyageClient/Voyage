@@ -1808,11 +1808,6 @@
     <string name="ftue_auth_use_case_join_existing_server">Looking to join an existing server?</string>
     <string name="ftue_auth_use_case_connect_to_server">Connect to server</string>
 
-    <string name="ftue_account_created_personalize">Personalize profile</string>
-    <string name="ftue_account_created_take_me_home">Take me home</string>
-    <string name="ftue_account_created_congratulations_title">Congratulations!</string>
-    <string name="ftue_account_created_subtitle">Your account %s has been created</string>
-
     <string name="ftue_auth_create_account_title">Create your account</string>
     <!-- Note for translators, %s is the full matrix of the account being created, eg @hello:matrix.org -->
     <string name="ftue_auth_create_account_username_entry_footer">Others can discover you %s</string>
@@ -1873,19 +1868,6 @@
 
     <string name="ftue_auth_captcha_title">Are you a human?</string>
     <string name="ftue_auth_login_username_entry">Username / Email / Phone</string>
-
-    <string name="ftue_display_name_title">Choose a display name</string>
-
-    <string name="ftue_display_name_entry_title">Display Name</string>
-    <string name="ftue_display_name_entry_footer">You can change this later</string>
-
-    <string name="ftue_profile_picture_subtitle">Time to put a face to the name</string>
-    <string name="ftue_personalize_lets_go">Let\'s go</string>
-    <string name="ftue_personalize_complete_title">Looking good!</string>
-    <string name="ftue_personalize_complete_subtitle">Head to settings anytime to update your profile</string>
-
-    <string name="ftue_personalize_submit">Save and continue</string>
-    <string name="ftue_personalize_skip_this_step">Skip this step</string>
 
     <string name="login_splash_title">It\'s your conversation. Own it.</string>
     <string name="login_splash_text1">Chat with people directly or in groups</string>
@@ -3750,7 +3732,6 @@
     <string name="room_preview_cancel_knock">Cancel request</string>
     <string name="settings_profile_picture">Avatar</string>
     <string name="avatar_of_user">Avatar of user %1$s</string>
-    <string name="ftue_profile_picture_title">Add an avatar</string>
     <string name="room_profile_section_more_personalization">Personalization</string>
     <string name="room_personalization_title">Your appearance in this room</string>
     <string name="room_personalization_reset">Reset</string>

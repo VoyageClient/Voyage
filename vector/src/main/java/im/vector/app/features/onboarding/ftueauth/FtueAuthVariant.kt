@@ -24,7 +24,6 @@ import im.vector.app.R
 import im.vector.app.core.extensions.addFragment
 import im.vector.app.core.extensions.addFragmentToBackstack
 import im.vector.app.core.extensions.popBackstack
-import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.ScreenOrientationLocker
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.resources.BuildMeta
@@ -128,8 +127,6 @@ class FtueAuthVariant(
         }
     }
 
-    override fun setIsLoading(isLoading: Boolean) = Unit
-
     private fun handleOnboardingViewEvents(viewEvents: OnboardingViewEvents) {
         when (viewEvents) {
             is OnboardingViewEvents.OutdatedHomeserver -> {
@@ -222,12 +219,7 @@ class FtueAuthVariant(
                         option = commonOption
                 )
             }
-            is OnboardingViewEvents.OnAccountCreated -> onAccountCreated()
-            OnboardingViewEvents.OnAccountSignedIn -> onAccountSignedIn()
-            OnboardingViewEvents.OnChooseDisplayName -> onChooseDisplayName()
-            OnboardingViewEvents.OnTakeMeHome -> navigateToHome()
-            OnboardingViewEvents.OnChooseProfilePicture -> onChooseProfilePicture()
-            OnboardingViewEvents.OnPersonalizationComplete -> onPersonalizationComplete()
+            OnboardingViewEvents.OnAccountSignedIn -> navigateToHome()
             OnboardingViewEvents.OnBack -> activity.popBackstack()
             OnboardingViewEvents.EditServerSelection -> {
                 activity.addFragmentToBackstack(
@@ -483,19 +475,6 @@ class FtueAuthVariant(
         }
     }
 
-    private fun onAccountSignedIn() {
-        navigateToHome()
-    }
-
-    private fun onAccountCreated() {
-        activity.supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        activity.replaceFragment(
-                views.loginFragmentContainer,
-                FtueAuthAccountCreatedFragment::class.java,
-                useCustomAnimation = true
-        )
-    }
-
     private fun navigateToHome() {
         withState(onboardingViewModel) {
             val isAddAccountFlow = activity.intent.getBooleanExtra(
@@ -517,31 +496,6 @@ class FtueAuthVariant(
                 activity.finish()
             }
         }
-    }
-
-    private fun onChooseDisplayName() {
-        activity.addFragmentToBackstack(
-                views.loginFragmentContainer,
-                FtueAuthChooseDisplayNameFragment::class.java,
-                option = commonOption
-        )
-    }
-
-    private fun onChooseProfilePicture() {
-        activity.addFragmentToBackstack(
-                views.loginFragmentContainer,
-                FtueAuthChooseProfilePictureFragment::class.java,
-                option = commonOption
-        )
-    }
-
-    private fun onPersonalizationComplete() {
-        activity.supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        activity.replaceFragment(
-                views.loginFragmentContainer,
-                FtueAuthPersonalizationCompleteFragment::class.java,
-                useCustomAnimation = true
-        )
     }
 
     private fun addRegistrationStageFragmentToBackstack(fragmentClass: Class<out Fragment>, params: Parcelable? = null, allowStateLoss: Boolean = false) {

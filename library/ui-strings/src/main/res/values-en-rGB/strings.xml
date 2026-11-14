@@ -23,7 +23,6 @@
     <string name="thread_list_empty_title">Keep discussions organised with threads</string>
     <string name="command_not_supported_in_threads">The command \"%s\" is recognised but not supported in threads.</string>
     <string name="room_list_filter_favourites">Favourites</string>
-    <string name="ftue_account_created_personalize">Personalise profile</string>
     <string name="verification_request_other_cancelled">%s cancelled</string>
     <string name="verification_request_you_cancelled">You cancelled</string>
     <string name="verification_profile_device_untrust_info">Until this user trusts this session, messages sent to and from it are labelled with warnings. Alternatively, you can manually verify it.</string>

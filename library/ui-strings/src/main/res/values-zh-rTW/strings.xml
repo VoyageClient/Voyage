@@ -1951,19 +1951,6 @@
     <string name="live_location_sharing_notification_description">正在分享位置</string>
     <string name="live_location_sharing_notification_title">${app_name} 即時位置</string>
     <string name="error_forbidden_digits_only_username">家伺服器不接受僅有數字的使用者名稱。</string>
-    <string name="ftue_personalize_skip_this_step">略過此步驟</string>
-    <string name="ftue_personalize_submit">儲存並繼續</string>
-    <string name="ftue_personalize_complete_subtitle">您可以隨時到設定頁面更新個人資料</string>
-    <string name="ftue_personalize_complete_title">看起來真棒！</string>
-    <string name="ftue_personalize_lets_go">開始吧</string>
-    <string name="ftue_profile_picture_subtitle">是時候為名字加上臉了</string>
-    <string name="ftue_display_name_entry_footer">您可以在稍後變更這個</string>
-    <string name="ftue_display_name_entry_title">顯示名稱</string>
-    <string name="ftue_display_name_title">選擇顯示名稱</string>
-    <string name="ftue_account_created_subtitle">您的帳號 %s 已建立</string>
-    <string name="ftue_account_created_congratulations_title">恭喜！</string>
-    <string name="ftue_account_created_take_me_home">回到首頁</string>
-    <string name="ftue_account_created_personalize">調整個人資料</string>
     <string name="location_share_live_started">正在載入即時位置…</string>
     <string name="location_share_live_select_duration_option_3">8 小時</string>
     <string name="location_share_live_select_duration_option_2">1 小時</string>
@@ -2788,7 +2775,6 @@
     <string name="room_preview_cancel_knock">取消申請</string>
     <string name="settings_profile_picture">大頭貼</string>
     <string name="avatar_of_user">使用者 %1$s 的大頭貼</string>
-    <string name="ftue_profile_picture_title">新增大頭貼</string>
     <string name="room_profile_section_more_personalization">個人化</string>
     <string name="room_personalization_title">您在此聊天室中的外觀</string>
     <string name="room_personalization_reset">重設</string>

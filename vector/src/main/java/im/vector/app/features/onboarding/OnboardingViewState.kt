@@ -7,7 +7,6 @@
 
 package im.vector.app.features.onboarding
 
-import android.net.Uri
 import android.os.Parcelable
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.PersistState
@@ -48,9 +47,6 @@ data class OnboardingViewState(
         @PersistState
         val selectedAuthenticationState: SelectedAuthenticationState = SelectedAuthenticationState(),
 
-        @PersistState
-        val personalizationState: PersonalizationState = PersonalizationState(),
-
         /** Set while the selected homeserver signs up through the configured registration gateway. */
         @PersistState
         val gatewayRegistration: GatewayRegistrationState? = null,
@@ -74,18 +70,6 @@ data class SelectedHomeserverState(
         val isLogoutDevicesSupported: Boolean = false,
         val isLoginWithQrSupported: Boolean = false,
 ) : Parcelable
-
-@Parcelize
-data class PersonalizationState(
-        val userId: String = "",
-        val supportsChangingDisplayName: Boolean = false,
-        val supportsChangingProfilePicture: Boolean = false,
-        val displayName: String? = null,
-        val selectedPictureUri: Uri? = null,
-) : Parcelable {
-
-    fun supportsPersonalization() = supportsChangingDisplayName || supportsChangingProfilePicture
-}
 
 @Parcelize
 data class ResetState(

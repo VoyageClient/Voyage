@@ -1320,10 +1320,6 @@
     <string name="ftue_auth_use_case_skip_partial">یہ سوال چھوڑ دیں</string>
     <string name="ftue_auth_use_case_join_existing_server">کسی موجودہ سرور میں شامل ہونا چاہتے ہیں؟</string>
     <string name="ftue_auth_use_case_connect_to_server">سرور سے جڑیں</string>
-    <string name="ftue_account_created_personalize">پروفائل ذاتی بنائیں</string>
-    <string name="ftue_account_created_take_me_home">مجھے ہوم پر لے جائیں</string>
-    <string name="ftue_account_created_congratulations_title">مبارک ہو!</string>
-    <string name="ftue_account_created_subtitle">آپ کا کھاتہ %s بن گیا ہے</string>
     <string name="ftue_auth_create_account_title">اپنا کھاتہ بنائیں</string>
     <string name="ftue_auth_create_account_username_entry_footer">دوسرے آپ کو دریافت کر سکتے ہیں %s</string>
     <string name="ftue_auth_create_account_password_entry_footer">کم از کم 8 حروف ہونے چاہئیں</string>
@@ -1358,15 +1354,6 @@
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">%s پر بھیجی گئی ہدایات پر عمل کریں</string>
     <string name="ftue_auth_captcha_title">کیا آپ انسان ہیں؟</string>
     <string name="ftue_auth_login_username_entry">صارف نام / ای میل / فون</string>
-    <string name="ftue_display_name_title">نمائشی نام منتخب کریں</string>
-    <string name="ftue_display_name_entry_title">نمائشی نام</string>
-    <string name="ftue_display_name_entry_footer">آپ اسے بعد میں بدل سکتے ہیں</string>
-    <string name="ftue_profile_picture_subtitle">نام کے ساتھ ایک چہرہ لگانے کا وقت</string>
-    <string name="ftue_personalize_lets_go">چلیں</string>
-    <string name="ftue_personalize_complete_title">بہت خوب!</string>
-    <string name="ftue_personalize_complete_subtitle">اپنا پروفائل اپ ڈیٹ کرنے کے لیے کبھی بھی ترتیبات میں جائیں</string>
-    <string name="ftue_personalize_submit">محفوظ کریں اور جاری رکھیں</string>
-    <string name="ftue_personalize_skip_this_step">یہ مرحلہ چھوڑ دیں</string>
     <string name="login_splash_title">یہ آپ کی گفتگو ہے۔ اس کے مالک بنیں۔</string>
     <string name="login_splash_text1">لوگوں سے براہِ راست یا گروپوں میں بات کریں</string>
     <string name="login_splash_text2">مرموزکاری کے ذریعے گفتگو نجی رکھیں</string>
@@ -2748,7 +2735,6 @@
     <string name="room_preview_cancel_knock">درخواست منسوخ کریں</string>
     <string name="settings_profile_picture">اوتار</string>
     <string name="avatar_of_user">صارف %1$s کا اوتار</string>
-    <string name="ftue_profile_picture_title">اوتار شامل کریں</string>
     <string name="room_profile_section_more_personalization">ذاتی ترتیب</string>
     <string name="room_personalization_title">اس کمرے میں آپ کی ظاہری شکل</string>
     <string name="room_personalization_reset">دوبارہ ترتیب دیں</string>

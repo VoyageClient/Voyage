@@ -7,7 +7,6 @@
 
 package im.vector.app.features.onboarding
 
-import android.net.Uri
 import im.vector.app.core.platform.VectorViewModelAction
 import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.login.ServerType
@@ -75,11 +74,4 @@ sealed interface OnboardingAction : VectorViewModelAction {
     data class PostViewEvent(val viewEvent: OnboardingViewEvents) : OnboardingAction
 
     data class UserAcceptCertificate(val fingerprint: Fingerprint, val retryAction: OnboardingAction) : OnboardingAction
-
-    object PersonalizeProfile : OnboardingAction
-    data class UpdateDisplayName(val displayName: String) : OnboardingAction
-    object UpdateDisplayNameSkipped : OnboardingAction
-    data class ProfilePictureSelected(val uri: Uri) : OnboardingAction
-    object SaveSelectedProfilePicture : OnboardingAction
-    object UpdateProfilePictureSkipped : OnboardingAction
 }

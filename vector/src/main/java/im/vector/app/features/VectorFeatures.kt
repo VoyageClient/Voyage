@@ -17,7 +17,6 @@ interface VectorFeatures {
     fun isOnboardingAlreadyHaveAccountSplashEnabled(): Boolean
     fun isOnboardingSplashCarouselEnabled(): Boolean
     fun isOnboardingUseCaseEnabled(): Boolean
-    fun isOnboardingPersonalizeEnabled(): Boolean
     fun isOnboardingCombinedRegisterEnabled(): Boolean
     fun isOnboardingCombinedLoginEnabled(): Boolean
     fun allowExternalUnifiedPushDistributors(): Boolean
@@ -39,7 +38,6 @@ class DefaultVectorFeatures : VectorFeatures {
     override fun isOnboardingAlreadyHaveAccountSplashEnabled() = true
     override fun isOnboardingSplashCarouselEnabled() = true
     override fun isOnboardingUseCaseEnabled() = true
-    override fun isOnboardingPersonalizeEnabled() = true
     override fun isOnboardingCombinedRegisterEnabled() = true
     override fun isOnboardingCombinedLoginEnabled() = true
     override fun allowExternalUnifiedPushDistributors(): Boolean = Config.ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS

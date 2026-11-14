@@ -78,11 +78,6 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
         }
     }
 
-    // Hack for AccountCreatedFragment
-    fun setIsLoading(isLoading: Boolean) {
-        onboardingVariant.setIsLoading(isLoading)
-    }
-
     companion object {
         const val EXTRA_CONFIG = "EXTRA_CONFIG"
         const val EXTRA_KEEP_EXISTING_SESSION = "EXTRA_KEEP_EXISTING_SESSION"

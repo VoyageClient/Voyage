@@ -755,19 +755,6 @@
     <string name="login_splash_text2">حافظ على خصوصية محادثاتك بالتعميّة</string>
     <string name="login_splash_text1">تراسل مع أفراد أو مجموعات</string>
     <string name="login_splash_title">تحكم في محادثاتك.</string>
-    <string name="ftue_personalize_skip_this_step">تخط هذه الخطوة</string>
-    <string name="ftue_personalize_submit">احفظ وتابع</string>
-    <string name="ftue_personalize_complete_subtitle">اذهب الى الاعدادات في اي وقت لتغير او تعديل ملفك الشخصي للتطبيق.</string>
-    <string name="ftue_personalize_complete_title">كل شيئ جاهز!</string>
-    <string name="ftue_personalize_lets_go">لننطلق</string>
-    <string name="ftue_profile_picture_subtitle">يمكنك تغييرها في أي وقت.</string>
-    <string name="ftue_display_name_entry_footer">يمكنك تغييره لاحقًا</string>
-    <string name="ftue_display_name_entry_title">الاسم العلني</string>
-    <string name="ftue_display_name_title">اختر الاسم العلني</string>
-    <string name="ftue_account_created_subtitle">أُنشئ حسابك %s.</string>
-    <string name="ftue_account_created_congratulations_title">مبارك!</string>
-    <string name="ftue_account_created_take_me_home">انقلني للمنزل</string>
-    <string name="ftue_account_created_personalize">خصص لاحتك</string>
     <string name="ftue_auth_use_case_connect_to_server">اتصل بخادم</string>
     <string name="ftue_auth_use_case_join_existing_server">ترغب في الانضمام لخادم موجودٍ سلفًا؟</string>
     <string name="ftue_auth_use_case_skip_partial">تخط هذا السؤال</string>
@@ -2934,7 +2921,6 @@
     <string name="room_preview_cancel_knock">ألغِ الطلب</string>
     <string name="settings_profile_picture">الصورة الرمزية</string>
     <string name="avatar_of_user">الصورة الرمزية للمستخدم %1$s</string>
-    <string name="ftue_profile_picture_title">أضف صورة رمزية</string>
     <string name="room_profile_section_more_personalization">التخصيص</string>
     <string name="room_personalization_title">مظهرك في هذه الغرفة</string>
     <string name="room_personalization_reset">صفّر</string>

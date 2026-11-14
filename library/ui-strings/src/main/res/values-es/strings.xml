@@ -1893,7 +1893,6 @@
     <string name="action_thread_copy_link_to_thread">Copiar enlace al hilo</string>
     <string name="tooltip_attachment_sticker">Enviar sticker</string>
     <string name="location_timeline_failed_to_load_map">Ocurrió un error al cargar el mapa</string>
-    <string name="ftue_personalize_complete_title">¡Estás listo!</string>
     <string name="thread_list_empty_subtitle">Los hilos ayudan a mantener sus conversaciones en el tema fijado y son fáciles de organizar.</string>
     <string name="threads_labs_enable_notice_message">Tu servidor doméstico actualmente no soporta hilos, por lo tanto esta función podría ser poco fiable. Algunos mensajes en hilos puede que no estén disponibles de forma fiable. %s ¿Deseas activar la función de hilos de todas formas\?</string>
     <string name="threads_beta_enable_notice_title">Beta de hilos</string>
@@ -1905,15 +1904,6 @@
     <string name="threads_notice_migration_title">Hilos acercándose a versión beta 🎉</string>
     <string name="login_splash_already_have_account">Ya tengo una cuenta</string>
     <string name="login_splash_create_account">Crear cuenta</string>
-    <string name="ftue_personalize_skip_this_step">Saltar este paso</string>
-    <string name="ftue_personalize_submit">Guardar y continuar</string>
-    <string name="ftue_personalize_complete_subtitle">Tus preferencias han sido guardadas.</string>
-    <string name="ftue_personalize_lets_go">Vámonos</string>
-    <string name="ftue_display_name_entry_footer">Puedes cambiar esto más tarde</string>
-    <string name="ftue_display_name_entry_title">Nombre público</string>
-    <string name="ftue_display_name_title">Escoger un nombre público</string>
-    <string name="ftue_account_created_subtitle">Tu cuenta %s ha sido creada.</string>
-    <string name="ftue_account_created_congratulations_title">¡Felicidades!</string>
     <string name="beta_title_bottom_sheet_action">BETA</string>
     <string name="settings_presence_user_always_appears_offline">Modo fuera de línea</string>
     <string name="settings_presence">Presencia</string>
@@ -2012,9 +2002,6 @@
     <string name="room_profile_section_restore_security">Restaurar Encriptación</string>
     <string name="contact_admin_to_restore_encryption">Por favor, contacta con un administrador para restablecer la encriptación a un estado válido.</string>
     <string name="encryption_has_been_misconfigured">La encriptación ha sido configurada de forma incorrecta.</string>
-    <string name="ftue_profile_picture_subtitle">Puedes cambiar esto en todo momento.</string>
-    <string name="ftue_account_created_take_me_home">Llévame a casa</string>
-    <string name="ftue_account_created_personalize">Personalizar perfil</string>
     <string name="ftue_auth_use_case_connect_to_server">Conectar a servidor</string>
     <string name="ftue_auth_use_case_join_existing_server">¿Querías unirte a un servidor ya existente\?</string>
     <string name="ftue_auth_carousel_encrypted_body">Encriptado extremo-a-extremo, sin requerir un número de teléfono. Sin anuncios o minado de datos.</string>
@@ -2827,7 +2814,6 @@
     <string name="room_preview_cancel_knock">Cancelar solicitud</string>
     <string name="settings_profile_picture">Avatar</string>
     <string name="avatar_of_user">Avatar del usuario %1$s</string>
-    <string name="ftue_profile_picture_title">Añade un avatar</string>
     <string name="room_profile_section_more_personalization">Personalización</string>
     <string name="room_personalization_title">Tu apariencia en esta sala</string>
     <string name="room_personalization_reset">Restablecer</string>

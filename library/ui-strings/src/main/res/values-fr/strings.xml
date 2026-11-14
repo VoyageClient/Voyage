@@ -1986,19 +1986,6 @@
     <string name="a11y_location_share_locate_button">Agrandir jusqu’à l’emplacement actuel</string>
     <string name="a11y_location_share_pin_on_map">Épingle de l’emplacement sélectionné sur la carte</string>
     <string name="error_forbidden_digits_only_username">Le serveur hôte n’accepte pas de nom d’utilisateur avec seulement des chiffres.</string>
-    <string name="ftue_personalize_skip_this_step">Ignorer cette étape</string>
-    <string name="ftue_personalize_submit">Enregistrer et continuer</string>
-    <string name="ftue_personalize_complete_subtitle">Dirigez vous dans les paramètres à tout moment pour mettre à jour votre profil</string>
-    <string name="ftue_personalize_complete_title">Ça a l’air correct !</string>
-    <string name="ftue_personalize_lets_go">Allons-y</string>
-    <string name="ftue_profile_picture_subtitle">C’est le moment de mettre un visage sur ce nom</string>
-    <string name="ftue_display_name_entry_footer">Vous pourrez le changer plus tard</string>
-    <string name="ftue_display_name_entry_title">Nom d’affichage</string>
-    <string name="ftue_display_name_title">Choisissez un nom d’affichage</string>
-    <string name="ftue_account_created_subtitle">Votre compte %s a été créé</string>
-    <string name="ftue_account_created_congratulations_title">Félicitations !</string>
-    <string name="ftue_account_created_take_me_home">Aller à l’accueil</string>
-    <string name="ftue_account_created_personalize">Personnaliser le profil</string>
     <string name="threads_notice_migration_title">Les fils de discussion se rapproche de la bêta 🎉</string>
     <string name="threads_notice_migration_message">Nous nous approchons d’une publication en bêta des fils de discussions.
 \n
@@ -2839,7 +2826,6 @@
     <string name="room_preview_cancel_knock">Annuler la demande</string>
     <string name="settings_profile_picture">Avatar</string>
     <string name="avatar_of_user">Avatar de l’utilisateur %1$s</string>
-    <string name="ftue_profile_picture_title">Ajouter un avatar</string>
     <string name="room_profile_section_more_personalization">Personnalisation</string>
     <string name="room_personalization_title">Votre apparence dans ce salon</string>
     <string name="room_personalization_reset">Réinitialiser</string>

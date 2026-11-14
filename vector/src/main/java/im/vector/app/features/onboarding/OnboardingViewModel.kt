@@ -46,7 +46,6 @@ import im.vector.app.features.onboarding.gateway.RegistrationGatewayException
 import im.vector.app.features.onboarding.gateway.RegistrationGatewayWire
 import im.vector.app.features.settings.useragent.UserAgentSettings
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
@@ -66,7 +65,6 @@ import org.matrix.android.sdk.api.network.ssl.Fingerprint
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.BuildVersionSdkIntProvider
 import timber.log.Timber
-import java.util.UUID
 import java.util.concurrent.CancellationException
 
 /**
@@ -82,7 +80,6 @@ class OnboardingViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val homeServerHistoryService: HomeServerHistoryService,
         private val vectorFeatures: VectorFeatures,
-        private val uriFilenameResolver: UriFilenameResolver,
         private val directLoginUseCase: DirectLoginUseCase,
         private val startAuthenticationFlowUseCase: StartAuthenticationFlowUseCase,
         private val vectorOverrides: VectorOverrides,
@@ -169,12 +166,6 @@ class OnboardingViewModel @AssistedInject constructor(
             is OnboardingAction.ResetAction -> handleResetAction(action)
             is OnboardingAction.UserAcceptCertificate -> handleUserAcceptCertificate(action)
             OnboardingAction.ClearHomeServerHistory -> handleClearHomeServerHistory()
-            is OnboardingAction.UpdateDisplayName -> updateDisplayName(action.displayName)
-            OnboardingAction.UpdateDisplayNameSkipped -> handleDisplayNameStepComplete()
-            OnboardingAction.UpdateProfilePictureSkipped -> completePersonalization()
-            OnboardingAction.PersonalizeProfile -> handlePersonalizeProfile()
-            is OnboardingAction.ProfilePictureSelected -> handleProfilePictureSelected(action)
-            OnboardingAction.SaveSelectedProfilePicture -> updateProfilePicture()
             is OnboardingAction.PostViewEvent -> _viewEvents.post(action.viewEvent)
             OnboardingAction.StopEmailValidationCheck -> cancelWaitForEmailValidation()
         }
@@ -818,36 +809,10 @@ class OnboardingViewModel @AssistedInject constructor(
         authenticationService.reset()
         configureAndStartSessionUseCase.execute(session)
 
-        when (authenticationDescription) {
-            is AuthenticationDescription.Register -> {
-                val personalizationState = createPersonalizationState(session, state)
-                setState {
-                    copy(isLoading = false, personalizationState = personalizationState)
-                }
-                _viewEvents.post(OnboardingViewEvents.OnAccountCreated)
-            }
-            AuthenticationDescription.Login -> {
-                setState { copy(isLoading = false, selectedAuthenticationState = SelectedAuthenticationState(authenticationDescription)) }
-                awaitState()
-                _viewEvents.post(OnboardingViewEvents.OnAccountSignedIn)
-            }
-        }
-    }
-
-    private suspend fun createPersonalizationState(session: Session, state: OnboardingViewState): PersonalizationState {
-        return when {
-            vectorFeatures.isOnboardingPersonalizeEnabled() -> {
-                val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
-                val capabilityOverrides = vectorOverrides.forceHomeserverCapabilities?.firstOrNull()
-                state.personalizationState.copy(
-                        userId = session.myUserId,
-                        displayName = state.registrationState.selectedMatrixId?.let { MatrixPatterns.extractUserNameFromId(it) },
-                        supportsChangingDisplayName = capabilityOverrides?.canChangeDisplayName ?: homeServerCapabilities.canChangeDisplayName,
-                        supportsChangingProfilePicture = capabilityOverrides?.canChangeAvatar ?: homeServerCapabilities.canChangeAvatar
-                )
-            }
-            else -> state.personalizationState
-        }
+        // HomeActivity bootstraps cross-signing only for a Register description.
+        setState { copy(isLoading = false, selectedAuthenticationState = SelectedAuthenticationState(authenticationDescription)) }
+        awaitState()
+        _viewEvents.post(OnboardingViewEvents.OnAccountSignedIn)
     }
 
     private fun handleLoginWithAccessToken(action: OnboardingAction.LoginWithAccessToken) = withState { state ->
@@ -1047,95 +1012,6 @@ class OnboardingViewModel @AssistedInject constructor(
 
     fun getFallbackUrl(forSignIn: Boolean, deviceId: String?): String? {
         return authenticationService.getFallbackUrl(forSignIn, deviceId)
-    }
-
-    private fun updateDisplayName(displayName: String) {
-        setState { copy(isLoading = true) }
-        viewModelScope.launch {
-            val activeSession = activeSessionHolder.getActiveSession()
-            try {
-                activeSession.profileService().setDisplayName(activeSession.myUserId, displayName)
-                setState {
-                    copy(
-                            isLoading = false,
-                            personalizationState = personalizationState.copy(displayName = displayName)
-                    )
-                }
-                handleDisplayNameStepComplete()
-            } catch (error: Throwable) {
-                setState { copy(isLoading = false) }
-                _viewEvents.post(OnboardingViewEvents.Failure(error))
-            }
-        }
-    }
-
-    private fun handlePersonalizeProfile() {
-        withPersonalisationState {
-            when {
-                it.supportsChangingDisplayName -> _viewEvents.post(OnboardingViewEvents.OnChooseDisplayName)
-                it.supportsChangingProfilePicture -> _viewEvents.post(OnboardingViewEvents.OnChooseProfilePicture)
-                else -> {
-                    throw IllegalStateException("It should not be possible to personalize without supporting display name or avatar changing")
-                }
-            }
-        }
-    }
-
-    private fun handleDisplayNameStepComplete() {
-        withPersonalisationState {
-            when {
-                it.supportsChangingProfilePicture -> _viewEvents.post(OnboardingViewEvents.OnChooseProfilePicture)
-                else -> completePersonalization()
-            }
-        }
-    }
-
-    private fun handleProfilePictureSelected(action: OnboardingAction.ProfilePictureSelected) {
-        setState {
-            copy(personalizationState = personalizationState.copy(selectedPictureUri = action.uri))
-        }
-    }
-
-    private fun withPersonalisationState(block: (PersonalizationState) -> Unit) {
-        withState { block(it.personalizationState) }
-    }
-
-    private fun updateProfilePicture() {
-        withState { state ->
-            when (val pictureUri = state.personalizationState.selectedPictureUri) {
-                null -> _viewEvents.post(OnboardingViewEvents.Failure(NullPointerException("picture uri is missing from state")))
-                else -> {
-                    setState { copy(isLoading = true) }
-                    viewModelScope.launch {
-                        val activeSession = activeSessionHolder.getActiveSession()
-                        try {
-                            activeSession.profileService().updateAvatar(
-                                    activeSession.myUserId,
-                                    pictureUri.toString(),
-                                    uriFilenameResolver.getFilenameFromUri(pictureUri) ?: UUID.randomUUID().toString()
-                            )
-                            setState {
-                                copy(
-                                        isLoading = false,
-                                )
-                            }
-                            onProfilePictureSaved()
-                        } catch (error: Throwable) {
-                            setState { copy(isLoading = false) }
-                            _viewEvents.post(OnboardingViewEvents.Failure(error))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun onProfilePictureSaved() {
-        completePersonalization()
-    }
-
-    private fun completePersonalization() {
-        _viewEvents.post(OnboardingViewEvents.OnPersonalizationComplete)
     }
 
     private fun cancelWaitForEmailValidation() {

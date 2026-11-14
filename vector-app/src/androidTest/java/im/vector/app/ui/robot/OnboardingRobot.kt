@@ -12,7 +12,6 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
@@ -61,23 +60,6 @@ class OnboardingRobot {
             createAccountViaCombinedRegister(homeServerUrl, userId, password)
         } else {
             initSession(true, userId, password, homeServerUrl)
-        }
-
-        waitUntilViewVisible(withText(CommonStrings.ftue_account_created_congratulations_title))
-        if (defaultVectorFeatures.isOnboardingPersonalizeEnabled()) {
-            clickOn(CommonStrings.ftue_account_created_personalize)
-
-            waitUntilViewVisible(withText(CommonStrings.ftue_display_name_title))
-            writeTo(R.id.displayNameInput, "UI automation")
-            clickOn(CommonStrings.ftue_personalize_submit)
-
-            waitUntilViewVisible(withText(CommonStrings.ftue_profile_picture_title))
-            clickOn(CommonStrings.ftue_personalize_skip_this_step)
-
-            waitUntilViewVisible(withText(CommonStrings.ftue_personalize_complete_title))
-            clickOn(CommonStrings.ftue_personalize_lets_go)
-        } else {
-            clickOn(CommonStrings.ftue_account_created_take_me_home)
         }
     }
 

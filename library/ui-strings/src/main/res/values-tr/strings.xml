@@ -1557,10 +1557,6 @@
     <string name="a11y_open_spaces">Alan listesini aç</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} iş yeri için de harika. Dünyanın en güvenlik odaklı kuruluşları tarafından güveniliyor.</string>
     <string name="ftue_auth_use_case_title">En çok kiminle sohbet edeceksiniz?</string>
-    <string name="ftue_account_created_personalize">Profili kişiselleştir</string>
-    <string name="ftue_account_created_take_me_home">Ana sayfaya git</string>
-    <string name="ftue_account_created_congratulations_title">Tebrikler!</string>
-    <string name="ftue_account_created_subtitle">%s hesabınız oluşturuldu</string>
     <string name="ftue_auth_create_account_title">Hesabınızı oluşturun</string>
     <string name="ftue_auth_create_account_username_entry_footer">Diğerleri sizi %s olarak bulabilir</string>
     <string name="ftue_auth_create_account_password_entry_footer">En az 8 karakter olmalı</string>
@@ -1604,15 +1600,6 @@
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">%s adresine gönderilen talimatları izleyin</string>
     <string name="ftue_auth_captcha_title">İnsan mısınız?</string>
     <string name="ftue_auth_login_username_entry">Kullanıcı adı / E-posta / Telefon</string>
-    <string name="ftue_display_name_title">Bir görünen ad seçin</string>
-    <string name="ftue_display_name_entry_title">Görünen Ad</string>
-    <string name="ftue_display_name_entry_footer">Bunu daha sonra değiştirebilirsiniz</string>
-    <string name="ftue_profile_picture_subtitle">İsminize bir yüz ekleme zamanı</string>
-    <string name="ftue_personalize_lets_go">Hadi başlayalım</string>
-    <string name="ftue_personalize_complete_title">Harika görünüyor!</string>
-    <string name="ftue_personalize_complete_subtitle">Profilinizi güncellemek için istediğiniz zaman ayarlara gidebilirsiniz</string>
-    <string name="ftue_personalize_submit">Kaydet ve devam et</string>
-    <string name="ftue_personalize_skip_this_step">Bu adımı atla</string>
     <string name="login_splash_sign_in">Oturum Aç</string>
     <string name="login_scan_qr_code">QR kodu tara</string>
     <string name="permalink_unsupported_groups">Bu bağlantı açılamıyor: topluluklar yerini alanlara bıraktı</string>
@@ -2796,7 +2783,6 @@
     <string name="room_preview_cancel_knock">İsteği iptal et</string>
     <string name="settings_profile_picture">Avatar</string>
     <string name="avatar_of_user">%1$s kullanıcısının avatarı</string>
-    <string name="ftue_profile_picture_title">Bir avatar ekleyin</string>
     <string name="room_profile_section_more_personalization">Kişiselleştirme</string>
     <string name="room_personalization_title">Bu odadaki görünümünüz</string>
     <string name="room_personalization_reset">Sıfırla</string>

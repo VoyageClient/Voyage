@@ -1882,8 +1882,6 @@
     <string name="threads_beta_enable_notice_title">消息列 beta</string>
     <string name="thread_list_title">消息列</string>
     <string name="settings_show_latest_profile_description">为所有消息显示最新资料信息（头像和显示名称）。</string>
-    <string name="ftue_display_name_entry_title">显示名称</string>
-    <string name="ftue_display_name_title">选择显示名称</string>
     <string name="ftue_auth_reset_password_breaker_title">检查你的电子邮件。</string>
     <string name="ftue_auth_email_entry_title">电子邮件</string>
     <string name="ftue_auth_carousel_control_title">一切由你掌控。</string>
@@ -1951,9 +1949,6 @@
     <string name="poll_type_title">投票类型</string>
     <string name="edit_poll_title">编辑投票</string>
     <string name="poll_undisclosed_not_ended">结果将在投票结束时可见</string>
-    <string name="ftue_personalize_skip_this_step">跳过此步</string>
-    <string name="ftue_personalize_complete_subtitle">随时前往设置以更新你的用户资料</string>
-    <string name="ftue_profile_picture_subtitle">是时候给名称加一张脸了</string>
     <string name="ftue_auth_email_resend_email">重发电子邮件</string>
     <string name="ftue_auth_email_verification_footer">没有收到电子邮件？</string>
     <string name="ftue_auth_email_verification_subtitle">跟随发送到%s的说明</string>
@@ -1975,7 +1970,6 @@
     <string name="ftue_auth_terms_subtitle">请仔细阅读%s的条款和政策</string>
     <string name="ftue_auth_choose_server_ems_cta">取得联系</string>
     <string name="ftue_auth_choose_server_subtitle">你的服务器地址是什么？这就像你所有数据的家</string>
-    <string name="ftue_account_created_personalize">个性化用户资料</string>
     <string name="ftue_auth_carousel_encrypted_body">端到端加密，不需要电话号码。没有广告和数据挖掘。</string>
     <string name="tooltip_attachment_poll">创建投票</string>
     <string name="tooltip_attachment_sticker">发送贴纸</string>
@@ -2024,10 +2018,6 @@
     <string name="permalink_unsupported_groups">无法打开此链接：社群已被空间取代</string>
     <string name="login_splash_already_have_account">我已经有账户了</string>
     <string name="login_splash_create_account">创建账户</string>
-    <string name="ftue_personalize_submit">保存并继续</string>
-    <string name="ftue_personalize_complete_title">看起来不错！</string>
-    <string name="ftue_personalize_lets_go">走吧</string>
-    <string name="ftue_display_name_entry_footer">你可以稍后更改这个</string>
     <string name="ftue_auth_login_username_entry">用户名/电子邮件/电话号码</string>
     <string name="ftue_auth_captcha_title">你是人类吗？</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">按照发送到%s的操作说明</string>
@@ -2040,9 +2030,6 @@
     <string name="ftue_auth_create_account_password_entry_footer">必须有8个及以上的字符</string>
     <string name="ftue_auth_create_account_username_entry_footer">其他人可以通过 %s 发现你</string>
     <string name="ftue_auth_create_account_title">创建你的账户</string>
-    <string name="ftue_account_created_congratulations_title">恭喜！</string>
-    <string name="ftue_account_created_subtitle">你的账户%s已创建</string>
-    <string name="ftue_account_created_take_me_home">带我回家</string>
     <string name="ftue_auth_use_case_connect_to_server">连接服务器</string>
     <string name="ftue_auth_use_case_join_existing_server">想要加入已有的服务器？</string>
     <string name="ftue_auth_use_case_skip_partial">跳过此问题</string>
@@ -2786,7 +2773,6 @@
     <string name="room_preview_cancel_knock">取消申请</string>
     <string name="settings_profile_picture">头像</string>
     <string name="avatar_of_user">用户 %1$s 的头像</string>
-    <string name="ftue_profile_picture_title">添加头像</string>
     <string name="room_profile_section_more_personalization">个性化</string>
     <string name="room_personalization_title">你在此房间中的形象</string>
     <string name="room_personalization_reset">重置</string>

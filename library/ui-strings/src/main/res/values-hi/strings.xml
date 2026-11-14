@@ -1299,10 +1299,6 @@
     <string name="ftue_auth_use_case_skip_partial">यह सवाल छोड़ें</string>
     <string name="ftue_auth_use_case_join_existing_server">किसी मौजूदा सर्वर से जुड़ना चाहते हैं?</string>
     <string name="ftue_auth_use_case_connect_to_server">सर्वर से कनेक्ट करें</string>
-    <string name="ftue_account_created_personalize">प्रोफ़ाइल को पर्सनलाइज़ करें</string>
-    <string name="ftue_account_created_take_me_home">मुझे होम पर ले चलें</string>
-    <string name="ftue_account_created_congratulations_title">बधाई हो!</string>
-    <string name="ftue_account_created_subtitle">आपका खाता %s बन गया है</string>
     <string name="ftue_auth_create_account_title">अपना खाता बनाएं</string>
     <string name="ftue_auth_create_account_username_entry_footer">दूसरे आपको %s के रूप में ढूंढ सकते हैं</string>
     <string name="ftue_auth_create_account_password_entry_footer">कम से कम 8 अक्षर होने चाहिए</string>
@@ -1346,15 +1342,6 @@
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">%s पर भेजे गए निर्देशों का पालन करें</string>
     <string name="ftue_auth_captcha_title">क्या आप इंसान हैं?</string>
     <string name="ftue_auth_login_username_entry">उपयोगकर्ता नाम / ईमेल / फ़ोन</string>
-    <string name="ftue_display_name_title">डिस्प्ले नाम चुनें</string>
-    <string name="ftue_display_name_entry_title">डिस्प्ले नाम</string>
-    <string name="ftue_display_name_entry_footer">आप इसे बाद में बदल सकते हैं</string>
-    <string name="ftue_profile_picture_subtitle">अब नाम के साथ एक चेहरा जोड़ें</string>
-    <string name="ftue_personalize_lets_go">चलिए शुरू करें</string>
-    <string name="ftue_personalize_complete_title">बढ़िया लग रहा है!</string>
-    <string name="ftue_personalize_complete_subtitle">अपनी प्रोफ़ाइल अपडेट करने के लिए कभी भी सेटिंग में जाएं</string>
-    <string name="ftue_personalize_submit">सहेजें और जारी रखें</string>
-    <string name="ftue_personalize_skip_this_step">यह चरण छोड़ें</string>
     <string name="login_splash_title">यह आपकी बातचीत है। इस पर आपका अधिकार है।</string>
     <string name="login_splash_text1">लोगों से सीधे या ग्रुप में चैट करें</string>
     <string name="login_splash_text2">एन्क्रिप्शन से बातचीत निजी रखें</string>
@@ -2736,7 +2723,6 @@
     <string name="room_preview_cancel_knock">अनुरोध रद्द करें</string>
     <string name="settings_profile_picture">अवतार</string>
     <string name="avatar_of_user">उपयोगकर्ता %1$s का अवतार</string>
-    <string name="ftue_profile_picture_title">अवतार जोड़ें</string>
     <string name="room_profile_section_more_personalization">पर्सनलाइज़ेशन</string>
     <string name="room_personalization_title">इस रूम में आपका रूप</string>
     <string name="room_personalization_reset">रीसेट करें</string>

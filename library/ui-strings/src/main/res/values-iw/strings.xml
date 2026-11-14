@@ -2125,10 +2125,6 @@
     <string name="a11y_create_message">צור שיחה או חדר חדשים</string>
     <string name="a11y_open_spaces">פתח את רשימת המרחבים</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} מצוין גם למקום העבודה. הארגונים המאובטחים ביותר בעולם סומכים עליו.</string>
-    <string name="ftue_account_created_personalize">התאם אישית את הפרופיל</string>
-    <string name="ftue_account_created_take_me_home">קח אותי למסך הבית</string>
-    <string name="ftue_account_created_congratulations_title">ברכות!</string>
-    <string name="ftue_account_created_subtitle">החשבון שלך %s נוצר</string>
     <string name="ftue_auth_create_account_title">צור את החשבון שלך</string>
     <string name="ftue_auth_create_account_username_entry_footer">אחרים יכולים למצוא אותך %s</string>
     <string name="ftue_auth_create_account_password_entry_footer">חייבת להכיל 8 תווים לפחות</string>
@@ -2172,15 +2168,6 @@
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">עקוב אחר ההוראות שנשלחו אל %s</string>
     <string name="ftue_auth_captcha_title">האם אתה אנושי?</string>
     <string name="ftue_auth_login_username_entry">שם משתמש / דוא\"ל / טלפון</string>
-    <string name="ftue_display_name_title">בחר שם תצוגה</string>
-    <string name="ftue_display_name_entry_title">שם תצוגה</string>
-    <string name="ftue_display_name_entry_footer">תוכל לשנות זאת מאוחר יותר</string>
-    <string name="ftue_profile_picture_subtitle">הגיע הזמן להוסיף פנים לשם</string>
-    <string name="ftue_personalize_lets_go">יאללה</string>
-    <string name="ftue_personalize_complete_title">נראה טוב!</string>
-    <string name="ftue_personalize_complete_subtitle">תוכל לעבור להגדרות בכל עת כדי לעדכן את הפרופיל שלך</string>
-    <string name="ftue_personalize_submit">שמור והמשך</string>
-    <string name="ftue_personalize_skip_this_step">דלג על שלב זה</string>
     <string name="login_splash_sign_in">כניסה</string>
     <string name="login_scan_qr_code">סרוק קוד QR</string>
     <string name="permalink_unsupported_groups">לא ניתן לפתוח קישור זה: קהילות הוחלפו במרחבים</string>
@@ -2897,7 +2884,6 @@
     <string name="room_preview_cancel_knock">בטל בקשה</string>
     <string name="settings_profile_picture">אווטאר</string>
     <string name="avatar_of_user">האווטאר של המשתמש %1$s</string>
-    <string name="ftue_profile_picture_title">הוסף אווטאר</string>
     <string name="room_profile_section_more_personalization">התאמה אישית</string>
     <string name="room_personalization_title">המראה שלך בחדר זה</string>
     <string name="room_personalization_reset">אפס</string>

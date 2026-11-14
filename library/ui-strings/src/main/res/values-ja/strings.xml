@@ -1926,19 +1926,11 @@
     <plurals name="entries">
         <item quantity="other">%d個のエントリー</item>
     </plurals>
-    <string name="ftue_personalize_submit">保存して続行</string>
-    <string name="ftue_personalize_complete_subtitle">設定画面からいつでもプロフィールを更新できます</string>
-    <string name="ftue_profile_picture_subtitle">表示名にプロフィール画像を追加しましょう</string>
-    <string name="ftue_display_name_entry_footer">これは後から変更できます</string>
-    <string name="ftue_display_name_entry_title">表示名</string>
     <string name="a11y_location_share_option_pinned_icon">この位置情報を共有</string>
     <string name="location_share_option_pinned">この位置情報を共有</string>
     <string name="a11y_location_share_option_user_live_icon">位置情報（ライブ）を共有</string>
     <string name="location_share_option_user_live">位置情報（ライブ）を共有</string>
     <string name="location_share_live_stop">中止</string>
-    <string name="ftue_display_name_title">表示名を選択</string>
-    <string name="ftue_account_created_subtitle">あなたのアカウント %s が作成されました</string>
-    <string name="ftue_account_created_congratulations_title">おめでとうございます！</string>
     <string name="threads_notice_migration_message">近日中にスレッド機能はベータ版となります。
 \n
 \nその準備として、この時点以前に作成されたスレッドは、通常の返信として表示するように変更します。
@@ -1971,9 +1963,6 @@
     <string name="auth_reset_password_error_unverified">メールアドレスが認証されていません。メールボックスを確認してください</string>
     <string name="invites_title">招待</string>
     <string name="device_manager_push_notifications_title">プッシュ通知</string>
-    <string name="ftue_personalize_skip_this_step">このステップをスキップ</string>
-    <string name="ftue_personalize_complete_title">問題ありません！</string>
-    <string name="ftue_personalize_lets_go">進みましょう</string>
     <string name="ftue_auth_login_username_entry">ユーザー名 / 電子メール / 電話番号</string>
     <string name="ftue_auth_captcha_title">あなたは人間ですか？</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">%sに送信された手順に従ってください。</string>
@@ -2158,8 +2147,6 @@
     <string name="ftue_auth_create_account_edit_server_selection">編集</string>
     <string name="ftue_auth_create_account_password_entry_footer">8文字以上にしてください</string>
     <string name="ftue_auth_create_account_title">アカウントを作成</string>
-    <string name="ftue_account_created_take_me_home">ホームに移動</string>
-    <string name="ftue_account_created_personalize">プロフィールを設定</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name}は職場利用にも最適です。世界で最も安全な組織によって信頼されています。</string>
     <string name="a11y_open_spaces">スペースの一覧を開く</string>
     <string name="a11y_create_message">新しい会話またはルームを作成</string>
@@ -2785,7 +2772,6 @@
     <string name="room_preview_cancel_knock">リクエストを取り消す</string>
     <string name="settings_profile_picture">アバター</string>
     <string name="avatar_of_user">ユーザー%1$sのアバター</string>
-    <string name="ftue_profile_picture_title">アバターを追加</string>
     <string name="room_profile_section_more_personalization">パーソナライズ</string>
     <string name="room_personalization_title">このルームでのあなたの見え方</string>
     <string name="room_personalization_reset">リセット</string>

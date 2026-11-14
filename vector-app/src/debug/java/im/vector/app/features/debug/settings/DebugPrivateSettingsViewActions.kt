@@ -13,6 +13,4 @@ sealed interface DebugPrivateSettingsViewActions : VectorViewModelAction {
     data class SetDialPadVisibility(val force: Boolean) : DebugPrivateSettingsViewActions
     data class SetForceLoginFallbackEnabled(val force: Boolean) : DebugPrivateSettingsViewActions
     data class SetForceIdentityChangeBanner(val force: Boolean) : DebugPrivateSettingsViewActions
-    data class SetDisplayNameCapabilityOverride(val option: BooleanHomeserverCapabilitiesOverride?) : DebugPrivateSettingsViewActions
-    data class SetAvatarCapabilityOverride(val option: BooleanHomeserverCapabilitiesOverride?) : DebugPrivateSettingsViewActions
 }
