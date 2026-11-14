@@ -14,13 +14,30 @@ import java.util.IdentityHashMap
 data class NotificationEventQueue(
         private val queue: MutableList<NotifiableEvent>,
 
-        /**
-         * An in memory FIFO cache of the seen events.
-         * Acts as a notification debouncer to stop already dismissed push notifications from
-         * displaying again when the /sync response is delayed.
-         */
+        // Retain dismissed push IDs until sync catches up, so they cannot reappear.
         private val seenEventIds: CircularCache<String>
 ) {
+
+    init {
+        trim()
+    }
+
+    private fun trim() {
+        val roomCounts = mutableMapOf<String, Int>()
+        val retained = queue.asReversed().filter { event ->
+            event !is NotifiableMessageEvent || roomCounts.getOrPut(event.roomId) { 0 }.let { count ->
+                roomCounts[event.roomId] = count + 1
+                count < MAX_EVENTS_PER_ROOM
+            }
+        }.take(MAX_EVENTS).asReversed()
+        queue.clear()
+        queue.addAll(retained)
+    }
+
+    companion object {
+        const val MAX_EVENTS = 200
+        const val MAX_EVENTS_PER_ROOM = 20
+    }
 
     fun markRedacted(eventIds: List<String>) {
         eventIds.forEach { redactedId ->
@@ -51,6 +68,7 @@ data class NotificationEventQueue(
     fun clearAndAdd(events: List<NotifiableEvent>) {
         queue.clear()
         queue.addAll(events)
+        trim()
     }
 
     /** Removes by identity, so an event replaced or re-added since [events] were read is kept. */
@@ -63,31 +81,25 @@ data class NotificationEventQueue(
         queue.clear()
     }
 
+    fun reset() {
+        clear()
+        seenEventIds.clear()
+    }
+
     fun add(notifiableEvent: NotifiableEvent) {
         val existing = findExistingById(notifiableEvent)
         val edited = findEdited(notifiableEvent)
         when {
             existing != null -> {
                 if (existing.canBeReplaced) {
-                    // Use the event coming from the event stream as it may contains more info than
-                    // the fcm one (like type/content/clear text) (e.g when an encrypted message from
-                    // FCM should be update with clear text after a sync)
-                    // In this case the message has already been notified, and might have done some noise
-                    // So we want the notification to be updated even if it has already been displayed
-                    // Use setOnlyAlertOnce to ensure update notification does not interfere with sound
-                    // from first notify invocation as outlined in:
-                    // https://developer.android.com/training/notify-user/build-notification#Updating
+                    // Sync can replace a push placeholder with decrypted content without alerting again.
                     replace(replace = existing, with = notifiableEvent)
-                } else {
-                    // keep the existing one, do not replace
                 }
             }
             edited != null -> {
-                // Replace the existing notification with the new content
                 replace(replace = edited, with = notifiableEvent)
             }
             seenEventIds.contains(notifiableEvent.eventId) -> {
-                // we've already seen the event, lets skip
                 Timber.d("onNotifiableEventReceived(): skipping event, already seen")
             }
             else -> {
@@ -95,6 +107,7 @@ data class NotificationEventQueue(
                 queue.add(notifiableEvent)
             }
         }
+        trim()
     }
 
     private fun findExistingById(notifiableEvent: NotifiableEvent): NotifiableEvent? {

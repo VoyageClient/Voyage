@@ -60,5 +60,7 @@ interface PushRuleService {
         fun onEvents(pushEvents: PushEvents)
     }
 
+    fun getNotificationReadReceiptsFlow(): Flow<List<NotificationReadReceipt>>
+
     fun getKeywordsFlow(): Flow<Set<String>>
 }

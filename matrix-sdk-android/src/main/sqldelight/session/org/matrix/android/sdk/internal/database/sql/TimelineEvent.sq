@@ -161,6 +161,16 @@ AND (
 )
 ORDER BY event.origin_server_ts;
 
+selectReadPosition:
+SELECT timeline_event.ts, timeline_event.seq, event.sender, event.origin_server_ts
+FROM timeline_event LEFT JOIN event ON event.id = timeline_event.root_event_db_id
+WHERE timeline_event.room_id = ? AND timeline_event.event_id = ? LIMIT 1;
+
+selectReadPositions:
+SELECT timeline_event.event_id, timeline_event.ts, timeline_event.seq, event.sender, event.origin_server_ts
+FROM timeline_event LEFT JOIN event ON event.id = timeline_event.root_event_db_id
+WHERE timeline_event.room_id = ? AND timeline_event.event_id IN ?;
+
 selectByRoomAndEventId:
 SELECT * FROM timeline_event WHERE room_id = ? AND event_id = ? LIMIT 1;
 

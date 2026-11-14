@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.pushrules.NotificationReadReceipt
 import org.matrix.android.sdk.api.session.pushrules.PushEvents
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
 import org.matrix.android.sdk.api.session.pushrules.getActions
@@ -33,17 +34,16 @@ class PushRuleTriggerListener @Inject constructor(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 
     override fun onEvents(pushEvents: PushEvents) {
+        val eventSession = session ?: return Timber.e("Called without active session")
         scope.launch {
-            session?.let { session ->
-                val notifiableEvents = createNotifiableEvents(pushEvents, session)
-                notificationDrawerManager.updateEvents { queuedEvents ->
-                    notifiableEvents.forEach { notifiableEvent ->
-                        queuedEvents.onNotifiableEventReceived(notifiableEvent)
-                    }
-                    queuedEvents.syncRoomEvents(roomsLeft = pushEvents.roomsLeft, roomsJoined = pushEvents.roomsJoined)
-                    queuedEvents.markRedacted(pushEvents.redactedEventIds)
-                }
-            } ?: Timber.e("Called without active session")
+            if (session !== eventSession) return@launch
+            val notifiableEvents = if (notificationDrawerManager.canShowNotifications()) createNotifiableEvents(pushEvents, eventSession) else emptyList()
+            if (session !== eventSession) return@launch
+            notificationDrawerManager.updateEvents { queuedEvents ->
+                notifiableEvents.forEach { queuedEvents.onNotifiableEventReceived(it) }
+                queuedEvents.syncRoomEvents(roomsLeft = pushEvents.roomsLeft, roomsJoined = pushEvents.roomsJoined)
+                queuedEvents.markRedacted(pushEvents.redactedEventIds)
+            }
         }
     }
 
@@ -70,9 +70,15 @@ class PushRuleTriggerListener @Inject constructor(
         }
         this.session = session
         session.pushRuleService().addPushRuleListener(this)
-        session.syncService().syncFlow()
-                .onEach {
-                    if (this.session === session) notificationDrawerManager.updateEvents { }
+        notificationDrawerManager.updateEvents { }
+        var previous = emptyMap<Pair<String, String?>, NotificationReadReceipt>()
+        session.pushRuleService().getNotificationReadReceiptsFlow()
+                .onEach { receipts ->
+                    if (this.session === session) {
+                        val current = receipts.associateBy { it.roomId to it.threadId }
+                        notificationDrawerManager.onReadReceiptsChanged(receipts.filter { previous[it.roomId to it.threadId] != it })
+                        previous = current
+                    }
                 }
                 .launchIn(scope)
     }
@@ -81,6 +87,6 @@ class PushRuleTriggerListener @Inject constructor(
         scope.coroutineContext.cancelChildren(CancellationException("PushRuleTriggerListener stopping"))
         session?.pushRuleService()?.removePushRuleListener(this)
         session = null
-        notificationDrawerManager.clearAllEvents()
+        notificationDrawerManager.resetForAccountSwitch()
     }
 }

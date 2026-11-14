@@ -17,14 +17,15 @@
 package org.matrix.android.sdk.internal.session.room.membership
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -106,9 +107,12 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     override fun getRoomMembersFlow(queryParams: RoomMemberQueryParams): Flow<List<RoomMemberSummary>> {
-        // flowOn: the map re-queries and maps every room member, so it must not run on the collector's thread.
-        return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
-                .map { roomMembersFiltered(queryParams).map { entity -> entity.asDomain() } }
+        // Pace large imports without waiting for a quiet gap in membership updates.
+        return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().conflate()
+                .transform {
+                    emit(roomMembersFiltered(queryParams).map { entity -> entity.asDomain() })
+                    delay(250)
+                }
                 .flowOn(dispatcher)
     }
 

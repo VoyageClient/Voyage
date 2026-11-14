@@ -22,16 +22,14 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.getUserOrDefault
+import org.matrix.android.sdk.api.session.pushrules.NotificationReadReceipt
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * The NotificationDrawerManager receives notification events as they arrived (from event stream or fcm) and
- * organise them in order to display them in the notification drawer.
- * Events can be grouped into the same notification, old (already read) events can be removed to do some cleaning.
- */
 @Singleton
 class NotificationDrawerManager @Inject constructor(
         context: Context,
@@ -48,15 +46,15 @@ class NotificationDrawerManager @Inject constructor(
     private val handlerThread: HandlerThread = HandlerThread("NotificationDrawerManager", Thread.MIN_PRIORITY)
     private var backgroundHandler: Handler
 
-    // TODO Multi-session: this will have to be improved
     private val currentSession: Session?
         get() = activeSessionDataSource.currentValue?.orNull()
 
-    /**
-     * Lazily initializes the NotificationState as we rely on having a current session in order to fetch the persisted queue of events.
-     */
+    // Persisted notifications require an initialized session.
     private val notificationState by lazy { createInitialNotificationState() }
     private val avatarSize = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.profile_avatar_size)
+    private val changedReceipts = mutableSetOf<Pair<String, String>>()
+    private var reconciledPersistedEvents = false
+    private val accountGeneration = AtomicLong()
     private var currentRoomId: String? = null
     private var currentThreadId: String? = null
     private val firstThrottler = FirstThrottler(200)
@@ -69,26 +67,19 @@ class NotificationDrawerManager @Inject constructor(
     }
 
     private fun createInitialNotificationState(): NotificationState {
+        val renderedEvents = mutableListOf<ProcessedEvent<NotifiableEvent>>()
         val queuedEvents = notificationEventPersistence.loadEvents(factory = { rawEvents ->
-            NotificationEventQueue(rawEvents.toMutableList(), seenEventIds = CircularCache.create(cacheSize = 25))
+            renderedEvents.addAll(rawEvents.map { ProcessedEvent(ProcessedEvent.Type.KEEP, it) })
+            NotificationEventQueue(rawEvents.toMutableList(), seenEventIds = CircularCache.create(cacheSize = 1000))
         })
-        val renderedEvents = queuedEvents.rawEvents().map { ProcessedEvent(ProcessedEvent.Type.KEEP, it) }.toMutableList()
         return NotificationState(queuedEvents, renderedEvents)
     }
 
-    /**
-    Should be called as soon as a new event is ready to be displayed.
-    The notification corresponding to this event will not be displayed until
-    #refreshNotificationDrawer() is called.
-    Events might be grouped and there might not be one notification per event!
-     */
     fun NotificationEventQueue.onNotifiableEventReceived(notifiableEvent: NotifiableEvent) {
-        if (!vectorPreferences.areNotificationEnabledForDevice()) {
+        if (!canShowNotifications()) {
             Timber.i("Notification are disabled for this device")
             return
         }
-        // If we support multi session, event list should be per userId
-        // Currently only manage single session
         if (buildMeta.lowPrivacyLoggingEnabled) {
             Timber.d("onNotifiableEventReceived(): $notifiableEvent")
         } else {
@@ -103,17 +94,10 @@ class NotificationDrawerManager @Inject constructor(
         add(notifiableEvent)
     }
 
-    /**
-     * Clear all known events and refresh the notification drawer.
-     */
     fun clearAllEvents() {
         updateEvents { it.clear() }
     }
 
-    /**
-     * Should be called when the application is currently opened and showing timeline for the given roomId.
-     * Used to ignore events related to that room (no need to display notification) and clean any existing notification on this room.
-     */
     fun setCurrentRoom(roomId: String?) {
         val dispatcher = currentSession?.coroutineDispatchers?.io ?: return
         val scope = currentSession?.coroutineScope ?: return
@@ -128,10 +112,6 @@ class NotificationDrawerManager @Inject constructor(
         }
     }
 
-    /**
-     * Should be called when the application is currently opened and showing timeline for the given threadId.
-     * Used to ignore events related to that thread (no need to display notification) and clean any existing notification on this room.
-     */
     fun setCurrentThread(threadId: String?) {
         val dispatcher = currentSession?.coroutineDispatchers?.io ?: return
         val scope = currentSession?.coroutineScope ?: return
@@ -148,18 +128,19 @@ class NotificationDrawerManager @Inject constructor(
         }
     }
 
-    /**
-     * The drawer is single-account: queued events from the previous account would be re-rendered
-     * (and their Reply/MarkRead actions executed) with whichever session is active, so wipe
-     * queued, rendered and persisted state when the account switches.
-     */
+    // Notifications and their actions belong to a single account.
     fun resetForAccountSwitch() {
-        backgroundHandler.removeCallbacksAndMessages(null)
-        backgroundHandler.post {
-            notificationState.updateQueuedEvents(this) { queuedEvents, _ -> queuedEvents.clear() }
-            notificationState.clearAndAddRenderedEvents(emptyList())
+        backgroundHandler.removeCallbacks(refreshRunnable)
+        notificationState.updateQueuedEvents(this) { queuedEvents, _ ->
+            accountGeneration.incrementAndGet()
+            queuedEvents.reset()
+            changedReceipts.clear()
             currentRoomId = null
             currentThreadId = null
+        }
+        backgroundHandler.post {
+            notificationState.clearAndAddRenderedEvents(emptyList())
+            reconciledPersistedEvents = false
             persistEvents()
             notificationDisplayer.cancelAllNotifications()
         }
@@ -169,47 +150,73 @@ class NotificationDrawerManager @Inject constructor(
         updateEvents {
             val newSettings = vectorPreferences.useCompleteNotificationFormat()
             if (newSettings != useCompleteNotificationFormat) {
-                // Settings has changed, remove all current notifications
                 notificationDisplayer.cancelAllNotifications()
                 useCompleteNotificationFormat = newSettings
             }
         }
     }
 
+    fun canShowNotifications(): Boolean =
+            vectorPreferences.areNotificationEnabledForDevice() && notificationDisplayer.canShowNotifications()
+
+    fun onReadReceiptsChanged(receipts: List<NotificationReadReceipt>) {
+        val affected = notificationState.updateQueuedEvents(this) { queuedEvents, _ ->
+            val queuedRooms = queuedEvents.rawEvents().filterIsInstance<NotifiableMessageEvent>().mapTo(HashSet()) { it.roomId }
+            receipts.filter { it.roomId in queuedRooms }.forEach {
+                changedReceipts.add(it.roomId to (it.threadId ?: ReadService.THREAD_ID_MAIN))
+            }
+            changedReceipts.isNotEmpty()
+        }
+        if (affected) refreshNotificationDrawer()
+    }
+
     fun updateEvents(action: NotificationDrawerManager.(NotificationEventQueue) -> Unit) {
         notificationState.updateQueuedEvents(this) { queuedEvents, _ ->
             action(queuedEvents)
+            if (!canShowNotifications()) queuedEvents.clear()
         }
         refreshNotificationDrawer()
     }
 
+    private val refreshRunnable = Runnable {
+        try {
+            refreshNotificationDrawerBg()
+        } catch (throwable: Throwable) {
+            // The session can be released while a refresh is queued.
+            Timber.w(throwable, "refreshNotificationDrawerBg failure")
+        }
+    }
+
     private fun refreshNotificationDrawer() {
-        // Implement last throttler
         val canHandle = firstThrottler.canHandle()
         Timber.v("refreshNotificationDrawer(), delay: ${canHandle.waitMillis()} ms")
-        backgroundHandler.removeCallbacksAndMessages(null)
-
-        backgroundHandler.postDelayed(
-                {
-                    try {
-                        refreshNotificationDrawerBg()
-                    } catch (throwable: Throwable) {
-                        // It can happen if for instance session has been destroyed. It's a bit ugly to try catch like this, but it's safer
-                        Timber.w(throwable, "refreshNotificationDrawerBg failure")
-                    }
-                },
-                canHandle.waitMillis()
-        )
+        backgroundHandler.removeCallbacks(refreshRunnable)
+        backgroundHandler.postDelayed(refreshRunnable, canHandle.waitMillis())
     }
 
     @WorkerThread
     private fun refreshNotificationDrawerBg() = PerfTrace.time("notif.drawer.refresh") {
         Timber.v("refreshNotificationDrawerBg()")
-        val (snapshot, rendered) = notificationState.updateQueuedEvents(this) { queuedEvents, renderedEvents ->
-            queuedEvents.rawEvents().toList() to renderedEvents.toList()
+        if (!canShowNotifications()) {
+            notificationState.updateQueuedEvents(this) { queuedEvents, _ ->
+                queuedEvents.clear()
+                changedReceipts.clear()
+            }
+            notificationState.clearAndAddRenderedEvents(emptyList())
+            notificationDisplayer.cancelAllNotifications()
+            persistEvents()
+            return@time
         }
-        // Processed outside the lock: it hits the database per event, and the main thread takes this lock in updateEvents().
-        val eventsToRender = notifiableEventProcessor.process(snapshot, currentRoomId, currentThreadId, rendered)
+        val generation = accountGeneration.get()
+        val (snapshot, rendered, receipts) = notificationState.updateQueuedEvents(this) { queuedEvents, renderedEvents ->
+            Triple(queuedEvents.rawEvents().toList(), renderedEvents.toList(), changedReceipts.toSet()).also { changedReceipts.clear() }
+        }
+        val eventsToRender = notifiableEventProcessor.process(
+                snapshot, currentRoomId, currentThreadId, rendered, receipts.takeIf { reconciledPersistedEvents }
+        )
+        val session = currentSession ?: return@time
+        if (generation != accountGeneration.get()) return@time
+        reconciledPersistedEvents = true
         val removed = eventsToRender.filter { it.type == ProcessedEvent.Type.REMOVE }.map { it.event }
         if (removed.isNotEmpty()) {
             notificationState.updateQueuedEvents(this) { queuedEvents, _ -> queuedEvents.removeInstances(removed) }
@@ -218,9 +225,8 @@ class NotificationDrawerManager @Inject constructor(
         if (notificationState.hasAlreadyRendered(eventsToRender)) {
             Timber.d("Skipping notification update due to event list not changing")
         } else {
-            notificationState.clearAndAddRenderedEvents(eventsToRender)
-            val session = currentSession ?: return
             renderEvents(session, eventsToRender)
+            notificationState.clearAndAddRenderedEvents(eventsToRender.filter { it.type == ProcessedEvent.Type.KEEP })
             persistEvents()
         }
     }

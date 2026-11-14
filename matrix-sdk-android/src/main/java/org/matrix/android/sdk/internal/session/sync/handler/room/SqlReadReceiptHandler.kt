@@ -194,8 +194,8 @@ internal class SqlReadReceiptHandler @Inject constructor(
             existing: ReadReceiptEntity,
     ): Boolean {
         if (eventId == existing.eventId) return false
-        val incomingEvent = stores.timelineEvent.getByRoomAndEventId(roomId, eventId)
-        val existingEvent = stores.timelineEvent.getByRoomAndEventId(roomId, existing.eventId)
+        val incomingEvent = stores.database.timelineEventQueries.selectReadPosition(roomId, eventId).executeAsOneOrNull()
+        val existingEvent = stores.database.timelineEventQueries.selectReadPosition(roomId, existing.eventId).executeAsOneOrNull()
         return if (incomingEvent != null && existingEvent != null) {
             incomingEvent.ts > existingEvent.ts ||
                     (incomingEvent.ts == existingEvent.ts && incomingEvent.seq > existingEvent.seq)

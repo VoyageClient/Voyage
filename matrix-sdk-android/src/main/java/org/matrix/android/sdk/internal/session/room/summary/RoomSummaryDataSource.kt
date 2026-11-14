@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -56,9 +57,7 @@ import org.matrix.android.sdk.internal.session.sync.SyncImportState
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryRow
 
-// Session-scoped: init registers a driver-level query listener that is never removed, and the
-// snapshot/mapping caches only dedupe when shared. Unscoped, every DefaultRoom resolution leaked
-// a listener, slowing every DB commit's notify pass as they accumulated.
+// Room instances must share query listeners and snapshot caches.
 @SessionScope
 internal class RoomSummaryDataSource @Inject constructor(
         @SessionDatabase internal val database: SessionSqlDatabase,
@@ -71,25 +70,15 @@ internal class RoomSummaryDataSource @Inject constructor(
 ) {
     internal val queries get() = database.roomSummaryQueries
 
-    // The room list's sections each get their own paged list; on the default IO pool they load
-    // concurrently and the smallest (usually Low priority) wins the race and briefly shows first. Loading
-    // them on one thread makes them populate in the order they're observed (Favourites, Rooms/DMs, Low
-    // priority) instead.
+    // Serialize section loads so small sections cannot appear ahead of higher-priority ones.
     internal val sectionFetchExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "room-list-section-paging")
     }
 
-    // Mapping a row is expensive (deep latest-event/space/tag resolution). Memoize per room, holding the
-    // row it was mapped from: a new message mutates the row (latest event id, unread counts, activity),
-    // so an unequal row is a miss and re-maps just that room. Keyed by room id rather than by the row
-    // itself because that grew an entry per changed row until it hit a size cap and dropped every
-    // mapping, making the next pass re-map the whole account (traced: ~30s of a cold fill).
+    // Keep one mapping per room; keying by full row would retain every revision.
     private val summaryCache = java.util.concurrent.ConcurrentHashMap<String, Pair<RoomSummaryRow, RoomSummary>>()
 
-    // One deserialized selectAll snapshot shared by every observer. The room list spins up 10+
-    // selectAll-based observers (per-section paged lists, counts, notification counts); without this,
-    // each re-ran its own full-table deserialize (~50-250ms for ~400 rooms) on every sync write.
-    // The generation guard prevents caching a snapshot that a concurrent write already superseded.
+    // Share selectAll across observers; generations reject snapshots superseded by concurrent writes.
     private val roomSummaryGeneration = MutableStateFlow(0L)
     @Volatile private var cachedAllRows: Pair<Long, List<RoomSummaryRow>>? = null
     private val allRowsLock = Any()
@@ -104,28 +93,20 @@ internal class RoomSummaryDataSource @Inject constructor(
         roomSummaryGeneration.value += 1
     }
 
-    // Retained so the driver-level listener registration lives as long as the (session-scoped) source.
     private val invalidationQuery = database.roomSummaryQueries.selectAll().also { it.addListener(allRowsInvalidator) }
 
-    // Tags live in room_tag, so a tag-only change leaves the summary row — and every cached filter
-    // pass keyed on tags — untouched. The mapped summaries are evicted per room by the writer
-    // (RoomSummarySqlStore.updateTags): a sync writes tags for every room it delivers, and dropping the
-    // whole memo there re-mapped the account several times over a cold fill.
+    // Tag-only changes must invalidate filters even when summary rows stay unchanged.
     private val tagInvalidator = Query.Listener { allRowsInvalidator.queryResultsChanged() }
     private val tagInvalidationQuery = database.roomTagQueries.selectRoomIdsByTag("").also { it.addListener(tagInvalidator) }
 
     init {
-        // Preview decryption changes the mapped summary without changing the row, so the memo must be
-        // evicted explicitly (see RoomSummaryPreviewInvalidation).
+        // Decryption can change a preview without changing its summary row.
         previewInvalidation.register { roomId -> summaryCache.remove(roomId) }
     }
 
     private fun allRows(): List<RoomSummaryRow> {
         cachedAllRows?.let { (gen, rows) -> if (gen == roomSummaryGeneration.value) return rows }
-        // Single-flight. One generation bump wakes every room-list observer at once, on several threads;
-        // without this they each miss the cache simultaneously and run their own full-table deserialize,
-        // so a single sync paid for ~7 of them (traced: 7 concurrent selectAll, 110ms of work each,
-        // serializing into a 322ms stall). They now share the first one's result.
+        // Observers share one table read per generation.
         return synchronized(allRowsLock) {
             cachedAllRows?.let { (gen, rows) -> if (gen == roomSummaryGeneration.value) return rows }
             val gen = roomSummaryGeneration.value
@@ -137,12 +118,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         }
     }
 
-    /**
-     * Emits the first change immediately, then paces the rest: every observer downstream re-runs a full
-     * filter pass over every row, and a room-list fill writes without pause, so the idle cadence spends the
-     * whole fill re-listing rooms on the database dispatcher the import itself is waiting on. Debouncing
-     * instead would starve observers entirely for as long as the writes keep coming.
-     */
+    // Pace updates during imports without starving observers.
     private val roomSummaryChange: Flow<Long> = flow {
         var emitted = -1L
         roomSummaryGeneration.collect { generation ->
@@ -161,7 +137,14 @@ internal class RoomSummaryDataSource @Inject constructor(
             roomSummaryChange.map { transform() }.flowOn(dispatcher)
 
     internal fun RoomSummaryRow.toDomain(): RoomSummary? {
-        summaryCache[room_id]?.let { (row, mapped) -> if (row == this) return mapped }
+        summaryCache[room_id]?.let { cached ->
+            val (row, mapped) = cached
+            if (row === this) return mapped
+            if (row == this) {
+                summaryCache.replace(room_id, cached, this to mapped)
+                return mapped
+            }
+        }
         val perfStart = MatrixPerf.now()
         val mapped = stores.roomSummary.get(room_id)?.let { roomSummaryMapper.map(it) } ?: return null
         MatrixPerf.end(perfStart) { "roomlist.toDomain.miss room=$room_id" }
@@ -188,6 +171,7 @@ internal class RoomSummaryDataSource @Inject constructor(
     fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
         return queries.selectByRoomId(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull { !it.display_name.isNullOrEmpty() }?.toDomain().toOptional() }
+                .distinctUntilChanged { old, new -> old.orNull() === new.orNull() }
                 .flowOn(dispatcher)
     }
 
@@ -205,6 +189,7 @@ internal class RoomSummaryDataSource @Inject constructor(
 
     fun getRoomSummariesFlow(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
             flowOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).mapNotNull { row -> row.toDomain() } }
+                    .distinctUntilChanged { old, new -> old.size == new.size && old.indices.all { old[it] === new[it] } }
 
     fun getSpaceSummariesFlow(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
             getRoomSummariesFlow(queryParams, sortOrder)
@@ -237,7 +222,7 @@ internal class RoomSummaryDataSource @Inject constructor(
                     .filter { it.breadcrumbs_index > RoomSummary.NOT_IN_BREADCRUMBS }
                     .sortedBy { it.breadcrumbs_index }
                     .mapNotNull { it.toDomain() }
-        }
+        }.distinctUntilChanged { old, new -> old.size == new.size && old.indices.all { old[it] === new[it] } }
     }
 
     fun getCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
@@ -248,12 +233,7 @@ internal class RoomSummaryDataSource @Inject constructor(
     fun getRoomSummariesCount(queryParams: RoomSummaryQueryParams): Int =
             filteredSortedRows(queryParams, RoomSortOrder.NONE).size
 
-    /**
-     * Every room-list section and every space badge asks for its own count, and they all wake from the
-     * same change tick — a dozen-odd identical-shaped aggregates within a few milliseconds of each other,
-     * serialized on the single database read thread. Answering from the shared row snapshot (one query per
-     * generation, not one per observer) and memoizing the result keeps a tick to one table read.
-     */
+    // Counts and room-list sections share the same row snapshot and generation.
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount =
             MatrixPerf.time("roomlist.notificationCount") {
                 val generation = roomSummaryGeneration.value

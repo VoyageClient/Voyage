@@ -42,17 +42,31 @@ internal fun SessionStores.latestSyncedEventId(roomId: String): String? =
 // Local echoes and own events are read by definition. Otherwise the receipt must sit at or past the
 // event in the room's order, which is (ts, seq).
 internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: String, threadId: String? = null): Boolean {
-    if (LocalEcho.isLocalEchoId(eventId)) return true
-    val eventToCheck = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
-    if (eventToCheck.root?.sender == userId) return true
-    val receipt = readReceipt.getReceipt(roomId, userId, threadId ?: ReadService.THREAD_ID_MAIN) ?: return false
-    val receiptRow = timelineEvent.getByRoomAndEventId(roomId, receipt.eventId)
-    return when {
-        receiptRow != null -> eventToCheck.ts < receiptRow.ts ||
-                (eventToCheck.ts == receiptRow.ts && eventToCheck.seq <= receiptRow.seq)
-        // Sliding sync may omit the receipt event; use its timestamp when no stored row can be compared.
-        else -> (eventToCheck.root?.originServerTs ?: 0L) <= receipt.originServerTs.toLong()
+    return readEventIds(userId, roomId, listOf(eventId), threadId).contains(eventId)
+}
+
+internal fun SessionStores.readEventIds(userId: String, roomId: String, eventIds: Collection<String>, threadId: String?): Set<String> {
+    if (eventIds.isEmpty()) return emptySet()
+    val read = eventIds.filterTo(HashSet()) { LocalEcho.isLocalEchoId(it) }
+    if (read.size == eventIds.size) return read
+    // Room and thread chunks can store the same event.
+    val rows = eventIds.flatMapInChunks { database.timelineEventQueries.selectReadPositions(roomId, it).executeAsList() }
+            .distinctBy { it.event_id }
+    rows.filter { it.sender == userId }.forEach { read.add(it.event_id) }
+    val candidates = rows.filter { it.event_id !in read }
+    if (candidates.isEmpty()) return read
+    val receipt = readReceipt.getReceipt(roomId, userId, threadId ?: ReadService.THREAD_ID_MAIN) ?: return read
+    val receiptRow = database.timelineEventQueries.selectReadPosition(roomId, receipt.eventId).executeAsOneOrNull()
+    candidates.forEach { event ->
+        val isRead = when {
+            event.event_id == receipt.eventId -> true
+            receiptRow != null -> event.ts < receiptRow.ts || (event.ts == receiptRow.ts && event.seq <= receiptRow.seq)
+            // Sliding sync can omit the event carrying the receipt.
+            else -> (event.origin_server_ts ?: 0L) <= receipt.originServerTs.toLong()
+        }
+        if (isRead) read.add(event.event_id)
     }
+    return read
 }
 
 // The escaped paths the two mention push rules are defined with.
@@ -240,8 +254,8 @@ private fun SessionStores.roomNotificationState(roomId: String, facts: AccountPu
 internal fun SessionStores.isReadMarkerMoreRecent(roomId: String, eventId: String): Boolean {
     val currentMarker = readMarker.get(roomId) ?: return false
     if (currentMarker == eventId) return true
-    val marker = timelineEvent.getByRoomAndEventId(roomId, currentMarker) ?: return false
-    val target = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
+    val marker = database.timelineEventQueries.selectReadPosition(roomId, currentMarker).executeAsOneOrNull() ?: return false
+    val target = database.timelineEventQueries.selectReadPosition(roomId, eventId).executeAsOneOrNull() ?: return false
 
     return if (marker.ts != target.ts) marker.ts > target.ts else marker.seq >= target.seq
 }

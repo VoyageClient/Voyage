@@ -20,7 +20,6 @@ import im.vector.app.features.crypto.verification.IncomingVerificationRequestHan
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.SendingMediaGate
-import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.PushRuleTriggerListener
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.popup.PopupAlertManager
@@ -49,7 +48,6 @@ class ActiveSessionHolder @Inject constructor(
         // Provider: these reach ActiveSessionHolder themselves, so a direct injection would cycle.
         private val redactionPreservationService: Provider<RedactionPreservationService>,
         private val redactedContentRepository: Provider<RedactedContentRepository>,
-        private val notificationDrawerManager: Provider<NotificationDrawerManager>,
         private val shortcutsHandler: Provider<ShortcutsHandler>,
         private val popupAlertManager: PopupAlertManager,
         private val audioPlaybackController: Provider<AudioPlaybackController>,
@@ -172,10 +170,8 @@ class ActiveSessionHolder @Inject constructor(
     private fun stopAppLevelHandlers() {
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
+        // Single-account handlers must clear state before publishing the replacement session.
         pushRuleTriggerListener.stop()
-        // The drawer, dynamic shortcuts and popup alerts are single-account: anything left over
-        // would display the previous account's content and act on it with the next session.
-        notificationDrawerManager.get().resetForAccountSwitch()
         shortcutsHandler.get().resetForAccountSwitch()
         popupAlertManager.cancelAll()
         audioPlaybackController.get().stop(clearTracker = true)

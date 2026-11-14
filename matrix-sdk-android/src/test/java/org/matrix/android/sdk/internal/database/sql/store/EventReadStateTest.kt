@@ -16,6 +16,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
+import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
 import org.robolectric.RobolectricTestRunner
@@ -131,6 +132,56 @@ class EventReadStateTest {
         )?.eventId shouldBeEqualTo "\$message"
     }
 
+    @Test
+    fun `batch read checks use sequence to split events with the same timestamp`() {
+        add("\$before", ts = HOUR)
+        add("\$read", ts = HOUR)
+        add("\$after", ts = HOUR)
+        add("\$own", ts = 2 * HOUR, sender = ME)
+        receipt("\$read", ts = HOUR)
+
+        stores.readEventIds(ME, ROOM_ID, listOf("\$before", "\$read", "\$after", "\$own", "\$missing"), null) shouldBeEqualTo
+                setOf("\$before", "\$read", "\$own")
+    }
+
+    @Test
+    fun `batch read checks do not use another threads receipt`() {
+        add("\$older", ts = HOUR)
+        add("\$newer", ts = 2 * HOUR)
+        receipt("\$newer", ts = 2 * HOUR, threadId = "\$thread")
+
+        stores.readEventIds(ME, ROOM_ID, listOf("\$older", "\$newer"), null) shouldBeEqualTo emptySet()
+        stores.readEventIds(ME, ROOM_ID, listOf("\$older", "\$newer"), "\$thread") shouldBeEqualTo setOf("\$older", "\$newer")
+    }
+
+    @Test
+    fun `batch read checks split large queues below sqlite bind limits`() {
+        val ids = (1..1100).map { "\$event-$it" }
+        ids.forEachIndexed { index, id -> add(id, ts = index.toLong()) }
+        receipt(ids[749], ts = 749)
+
+        stores.readEventIds(ME, ROOM_ID, ids, null) shouldBeEqualTo ids.take(750).toSet()
+    }
+
+    @Test
+    fun `a duplicate timeline row does not change an events read position`() {
+        add("\$receipt", ts = HOUR)
+        add("\$unread", ts = HOUR)
+        receipt("\$receipt", ts = HOUR)
+        val duplicateChunk = stores.chunk.insert(ROOM_ID, null, null, false, false, null, false)
+        stores.timelineEvent.insert(
+                TimelineEventEntity(
+                        eventId = "\$unread", roomId = ROOM_ID,
+                        localId = stores.timelineEvent.nextLocalId(), ts = HOUR,
+                ),
+                chunkId = duplicateChunk,
+                rootEventDbId = stores.event.getDbId(ROOM_ID, "\$unread"),
+                atOlderEnd = true,
+        )
+
+        stores.readEventIds(ME, ROOM_ID, listOf("\$unread"), null) shouldBeEqualTo emptySet()
+    }
+
     private fun add(
             eventId: String,
             ts: Long,
@@ -158,7 +209,7 @@ class EventReadStateTest {
     private fun receipt(eventId: String, ts: Long, threadId: String = ReadService.THREAD_ID_MAIN) {
         stores.readReceipt.upsertReceipt(
                 ReadReceiptEntity(
-                        primaryKey = "$ROOM_ID$ME$threadId",
+                        primaryKey = "${ROOM_ID}_${ME}_$threadId",
                         eventId = eventId,
                         roomId = ROOM_ID,
                         userId = ME,

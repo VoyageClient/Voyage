@@ -22,6 +22,11 @@ class CircularCache<T : Any>(cacheSize: Int, factory: (Int) -> Array<T?>) {
 
     fun contains(value: T): Boolean = cache.contains(value)
 
+    fun clear() {
+        cache.fill(null)
+        writeIndex = 0
+    }
+
     fun put(value: T) {
         if (writeIndex == cache.size) {
             writeIndex = 0

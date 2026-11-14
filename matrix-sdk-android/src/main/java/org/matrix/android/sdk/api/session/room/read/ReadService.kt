@@ -64,6 +64,9 @@ interface ReadService {
 
     fun isEventRead(eventId: String, threadId: String?): Boolean = isEventRead(eventId)
 
+    fun getReadEventIds(eventIds: Collection<String>, threadId: String?): Set<String> =
+            eventIds.filterTo(HashSet()) { isEventRead(it, threadId) }
+
     /**
      * Returns a live read marker id for the room.
      */

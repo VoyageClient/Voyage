@@ -18,10 +18,12 @@ package org.matrix.android.sdk.internal.session.pushrules
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.ConditionResolver
+import org.matrix.android.sdk.api.session.pushrules.NotificationReadReceipt
 import org.matrix.android.sdk.api.session.pushrules.PushEvents
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
@@ -36,6 +38,7 @@ import org.matrix.android.sdk.internal.database.model.PushRuleEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.pushers.AddPushRuleTask
 import org.matrix.android.sdk.internal.session.pushers.GetPushRulesTask
@@ -60,6 +63,7 @@ internal class DefaultPushRuleService @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
         private val stores: SessionStores,
+        @UserId private val userId: String,
 ) : PushRuleService {
 
     private var listeners = mutableSetOf<PushRuleService.PushRuleListener>()
@@ -130,6 +134,11 @@ internal class DefaultPushRuleService @Inject constructor(
     override fun resolveSenderNotificationPermissionCondition(event: Event, condition: SenderNotificationPermissionCondition): Boolean {
         return conditionResolver.resolveSenderNotificationPermissionCondition(event, condition)
     }
+
+    override fun getNotificationReadReceiptsFlow(): Flow<List<NotificationReadReceipt>> =
+            database.readReceiptQueries.selectNotificationReceipts(userId).asFlow().mapToList(dispatcher)
+                    .map { rows -> rows.map { NotificationReadReceipt(it.room_id, it.thread_id, it.event_id, it.origin_server_ts) } }
+                    .distinctUntilChanged()
 
     override fun getKeywordsFlow(): Flow<Set<String>> {
         // Keywords are all content rules that don't start with '.'

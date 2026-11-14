@@ -89,11 +89,12 @@ class InlineCodeTextView @JvmOverloads constructor(
     private fun truncated(source: Spanned, width: Int): CharSequence? {
         val maxLines = TextViewCompat.getMaxLines(this)
         if (maxLines <= 0) return null
+        val codeSpans = source.getSpans(0, source.length, HtmlCodeSpan::class.java)
+        if (codeSpans.isEmpty()) return null
         val full = StaticLayout(source, paint, width, Layout.Alignment.ALIGN_NORMAL, 1f, 0f, true)
         if (full.lineCount <= maxLines) return null
         val lastLine = maxLines - 1
         val lineStart = full.getLineStart(lastLine)
-        val codeSpans = source.getSpans(0, source.length, HtmlCodeSpan::class.java)
         val atomicSpans = source.getSpans(0, source.length, ReplacementSpan::class.java)
 
         fun Int.outsideAtomicRuns(): Int {

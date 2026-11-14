@@ -15,6 +15,25 @@ import org.junit.Test
 
 class NotificationEventQueueTest {
 
+    @Test
+    fun `large room backlogs retain only the newest messages`() {
+        val events = (1..80).map { aNotifiableMessageEvent(eventId = "event-$it", roomId = "!room:example.org") }
+        val queue = NotificationEventQueue(events.toMutableList(), CircularCache.create(1000))
+
+        queue.rawEvents() shouldBeEqualTo events.takeLast(NotificationEventQueue.MAX_EVENTS_PER_ROOM)
+        queue.add(aNotifiableMessageEvent(eventId = "latest", roomId = "!room:example.org"))
+        queue.rawEvents().size shouldBeEqualTo NotificationEventQueue.MAX_EVENTS_PER_ROOM
+        queue.rawEvents().last().eventId shouldBeEqualTo "latest"
+    }
+
+    @Test
+    fun `backlogs across rooms are bounded too`() {
+        val events = (1..300).map { aNotifiableMessageEvent(eventId = "event-$it", roomId = "!room-$it:example.org") }
+        val queue = NotificationEventQueue(events.toMutableList(), CircularCache.create(1000))
+
+        queue.rawEvents() shouldBeEqualTo events.takeLast(NotificationEventQueue.MAX_EVENTS)
+    }
+
     private val seenIdsCache = CircularCache.create<String>(5)
 
     @Test

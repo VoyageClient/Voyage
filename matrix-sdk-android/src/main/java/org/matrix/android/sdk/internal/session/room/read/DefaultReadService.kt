@@ -37,6 +37,7 @@ import org.matrix.android.sdk.internal.database.mapper.ReadReceiptsSummaryMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
+import org.matrix.android.sdk.internal.database.sql.store.readEventIds
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -130,6 +131,9 @@ internal class DefaultReadService @AssistedInject constructor(
     override fun isEventRead(eventId: String, threadId: String?): Boolean {
         return stores.isEventRead(userId, roomId, eventId, threadId)
     }
+
+    override fun getReadEventIds(eventIds: Collection<String>, threadId: String?): Set<String> =
+            stores.readEventIds(userId, roomId, eventIds, threadId)
 
     override fun getReadMarkerFlow(): Flow<Optional<String>> {
         return database.readMarkerQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)

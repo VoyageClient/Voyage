@@ -12,7 +12,7 @@ import im.vector.app.features.notifications.ProcessedEvent.Type.KEEP
 import im.vector.app.features.notifications.ProcessedEvent.Type.REMOVE
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,15 +23,27 @@ class NotifiableEventProcessor @Inject constructor(
         private val autoAcceptInvites: AutoAcceptInvites
 ) {
 
-    fun process(queuedEvents: List<NotifiableEvent>, currentRoomId: String?, currentThreadId: String?, renderedEvents: ProcessedEvents): ProcessedEvents {
-        val roomCache = mutableMapOf<String, Room?>()
+    fun process(
+            queuedEvents: List<NotifiableEvent>,
+            currentRoomId: String?,
+            currentThreadId: String?,
+            renderedEvents: ProcessedEvents,
+            changedReceipts: Set<Pair<String, String>>? = null,
+    ): ProcessedEvents {
+        val previouslyChecked = renderedEvents.filter { it.type == KEEP }.mapTo(HashSet()) { it.event }
+        val toCheck = queuedEvents.filterIsInstance<NotifiableMessageEvent>().filter { event ->
+            !event.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) &&
+                    (changedReceipts == null || event !in previouslyChecked ||
+                            (event.roomId to (event.threadId ?: ReadService.THREAD_ID_MAIN)) in changedReceipts)
+        }
+        val readEventIds = if (toCheck.isEmpty()) emptySet() else outdatedDetector.readEventIds(toCheck)
         val processedEvents = queuedEvents.map { event ->
             val type = when (event) {
                 is InviteNotifiableEvent -> if (autoAcceptInvites.hideInvites) REMOVE else KEEP
                 is NotifiableMessageEvent -> when {
                     event.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) -> REMOVE
                             .also { Timber.d("notification message removed due to currently viewing the same room or thread") }
-                    outdatedDetector.isMessageOutdated(event, roomCache) -> REMOVE
+                    event.eventId in readEventIds -> REMOVE
                             .also {
                                 DebugLog.i {
                                     "NOTIFDBG Removing read notification event=${event.eventId} " +
@@ -48,8 +60,9 @@ class NotifiableEventProcessor @Inject constructor(
             ProcessedEvent(type, event)
         }
 
+        val queuedIds = queuedEvents.mapTo(HashSet()) { it.eventId }
         val removedEventsDiff = renderedEvents.filter { renderedEvent ->
-            queuedEvents.none { it.eventId == renderedEvent.event.eventId }
+            renderedEvent.type == KEEP && renderedEvent.event.eventId !in queuedIds
         }.map { ProcessedEvent(REMOVE, it.event) }
 
         return removedEventsDiff + processedEvents

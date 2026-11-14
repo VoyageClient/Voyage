@@ -22,25 +22,14 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.features.themes.ThemeUtils
-import kotlin.math.roundToInt
 
-/**
- * Draws multi-select state without touching the Epoxy models: message rows shift over to make room for
- * a check circle in the start gutter (drawn for the selectable ones), and selected rows get a tint. Rows
- * that aren't messages, like date separators, keep their full width.
- *
- * The gutter grows and shrinks over the slide rather than switching at once, so rows sized to the width
- * left to them (wide media) narrow along with it.
- */
+/** Commit row insets once per mode change; redraw selection controls independently. */
 class TimelineSelectionDecoration(
         context: Context,
         private val recyclerView: RecyclerView,
         private val selection: TimelineSelection,
-        /** The selectable event shown by [child], or null. */
         private val selectableEventIdOf: (child: View) -> String?,
-        /** Whether [child] is a message row, selectable or not, and so shifts with the others. */
         private val isMessageRow: (child: View) -> Boolean,
-        /** The color [child] washes its own row in, which the gutter beside it carries on. */
         private val rowTintOf: (child: View) -> Int?,
 ) : RecyclerView.ItemDecoration() {
 
@@ -67,19 +56,22 @@ class TimelineSelectionDecoration(
     }
     private val checkPath = Path()
 
-    /** How far the gutter has slid in, 0 (hidden) to 1 (shown). */
     private var shown = if (selection.isActive) 1f else 0f
     private var animator: ValueAnimator? = null
+    private var gutterVisible = selection.isActive
 
-    /** Call when selection starts or ends. */
     fun animateGutter(active: Boolean) {
         animator?.cancel()
+        if (gutterVisible != active) {
+            gutterVisible = active
+            relayoutGutter()
+        }
         animator = ValueAnimator.ofFloat(shown, if (active) 1f else 0f).apply {
             duration = SLIDE_MS
             interpolator = DecelerateInterpolator(1.5f)
             addUpdateListener {
                 shown = it.animatedValue as Float
-                relayoutGutter()
+                recyclerView.invalidate()
             }
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
@@ -91,15 +83,21 @@ class TimelineSelectionDecoration(
     }
 
     private fun relayoutGutter() {
-        // Insets can't be invalidated mid-layout; the next frame catches up.
-        if (!recyclerView.isComputingLayout) recyclerView.invalidateItemDecorations()
+        if (recyclerView.isComputingLayout) {
+            recyclerView.post { recyclerView.invalidateItemDecorations() }
+        } else {
+            recyclerView.invalidateItemDecorations()
+        }
     }
 
-    private fun currentGutter(): Int = (gutter * shown).roundToInt()
+    fun dispose() {
+        animator?.cancel()
+        animator = null
+    }
 
     override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-        if (shown <= 0f || !isMessageRow(view)) return
-        if (isRtl()) outRect.right = currentGutter() else outRect.left = currentGutter()
+        if (!gutterVisible || !isMessageRow(view)) return
+        if (isRtl()) outRect.right = gutter else outRect.left = gutter
     }
 
     override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {

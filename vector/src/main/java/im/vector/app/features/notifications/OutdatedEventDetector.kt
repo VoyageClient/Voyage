@@ -15,21 +15,12 @@ class OutdatedEventDetector @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource
 ) {
 
-    /**
-     * Returns true if the given event is outdated.
-     * Used to clean up notifications if a displayed message has been read on an
-     * other device.
-     */
-    fun isMessageOutdated(notifiableEvent: NotifiableEvent, roomCache: MutableMap<String, Room?> = mutableMapOf()): Boolean {
-        val session = activeSessionDataSource.currentValue?.orNull() ?: return false
-
-        if (notifiableEvent is NotifiableMessageEvent) {
-            val eventID = notifiableEvent.eventId
-            val roomID = notifiableEvent.roomId
-            // Building a Room wires up every room service; a backlog of hundreds of notifications would build one per event.
-            val room = roomCache.getOrPut(roomID) { session.getRoom(roomID) } ?: return false
-            return room.readService().isEventRead(eventID, notifiableEvent.threadId)
-        }
-        return false
+    fun readEventIds(events: List<NotifiableMessageEvent>): Set<String> {
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return emptySet()
+        val rooms = mutableMapOf<String, Room?>()
+        return events.groupBy { it.roomId to it.threadId }.flatMap { (key, messages) ->
+            rooms.getOrPut(key.first) { session.getRoom(key.first) }?.readService()
+                    ?.getReadEventIds(messages.map { it.eventId }, key.second).orEmpty()
+        }.toSet()
     }
 }

@@ -19,31 +19,34 @@ package org.matrix.android.sdk.internal.session.room.membership
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
 import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
 import org.matrix.android.sdk.internal.database.mapper.toEntity
+import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
-import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
-import org.matrix.android.sdk.internal.session.room.RoomDataSource
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
 import org.matrix.android.sdk.internal.task.Task
@@ -58,11 +61,7 @@ internal interface LoadRoomMembersTask : Task<LoadRoomMembersTask.Params, Unit> 
     data class Params(
             val roomId: String,
             val excludeMembership: Membership? = null,
-            /**
-             * Fetch the room's whole state rather than only its members. Sliding sync delivers only the
-             * state types it was asked for, so this is how a room the user actually opened gets the rest —
-             * but it is a large request, so nothing that runs per room in a list should ask for it.
-             */
+            /** Fetch full state for an opened sliding-sync room, never for room-list rows. */
             val fullState: Boolean = false,
     )
 }
@@ -73,7 +72,7 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
-        private val roomDataSource: RoomDataSource,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val syncTokenStore: SyncTokenStore,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val roomMemberEventHandler: SqlRoomMemberEventHandler,
@@ -83,48 +82,34 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         private val clock: Clock,
 ) : LoadRoomMembersTask {
 
-    // Rooms with a /members request genuinely in flight in this process. A persisted LOADING marker alone can't
-    // be trusted: a request cancelled with its caller's scope (or an app killed mid-load) leaves LOADING behind
-    // with nothing running, which would otherwise wedge the member list until a 1-minute timeout on each reopen.
-    private val inFlightRoomIds = Collections.synchronizedSet(HashSet<String>())
+    private val roomLocks = mutableMapOf<String, Mutex>()
+    private val importPermit = Semaphore(1)
 
-    // Rooms whose whole state has been fetched. The LOADED marker only means members are in, and it is
-    // persisted — so without this a room that ever took the members-only path would never fetch the rest of
-    // its state, which under sliding sync is the only chance it gets.
+    // The persisted LOADED marker covers members only; sliding sync also needs the rest of the state.
     private val fullStateLoadedRoomIds = Collections.synchronizedSet(HashSet<String>())
 
     override suspend fun execute(params: LoadRoomMembersTask.Params) {
-        val owesFullState = params.fullState && params.roomId !in fullStateLoadedRoomIds
-        when {
-            !owesFullState && roomDataSource.getRoomMembersLoadStatus(params.roomId) == RoomMembersLoadStatusType.LOADED -> Unit
-            !owesFullState && params.roomId in inFlightRoomIds -> waitPreviousRequestToFinish(params)
-            // NONE, or a stale LOADING left by a dead/cancelled request — fetch either way.
-            else -> doRequest(params)
-        }
-    }
-
-    private suspend fun waitPreviousRequestToFinish(params: LoadRoomMembersTask.Params) {
-        try {
-            awaitNotEmptyResult(
-                    query = database.roomQueries.selectByRoomIdAndLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADED.name),
-                    timeoutMillis = TimeUnit.MINUTES.toMillis(1L),
-                    dispatcher = dispatcher,
-            )
-        } catch (exception: TimeoutCancellationException) {
+        val lock = synchronized(roomLocks) { roomLocks.getOrPut(params.roomId) { Mutex() } }
+        lock.withLock {
+            val loaded = withContext(dispatcher) { stores.room.get(params.roomId)?.membersLoadStatus == RoomMembersLoadStatusType.LOADED }
+            if (!loaded) fullStateLoadedRoomIds.remove(params.roomId)
+            val owesFullState = params.fullState && syncTokenStore.getSlidingSyncPos() != null && params.roomId !in fullStateLoadedRoomIds
+            if (!owesFullState && loaded) return
             doRequest(params)
         }
     }
 
     private suspend fun doRequest(params: LoadRoomMembersTask.Params) {
-        inFlightRoomIds.add(params.roomId)
+        var imported = false
         try {
             setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADING)
 
-            // For a room we're no longer in, the current sync token is past our leave and the server
-            // refuses it; without `at` it serves the membership as of when we left.
-            val lastToken = syncTokenStore.getLastToken()
-                    .takeIf { stores.room.get(params.roomId)?.membership == Membership.JOIN }
-            // /state answers with every state event, members included, in the one request this already made.
+            // Departed rooms reject sync tokens newer than their leave.
+            val (lastToken, stateBeforeRequest) = withContext(dispatcher) {
+                syncTokenStore.getLastToken().takeIf { stores.room.get(params.roomId)?.membership == Membership.JOIN } to
+                        database.currentStateEventQueries.selectStateIdsByRoom(params.roomId).executeAsList()
+                                .associate { (it.type to it.state_key) to it.event_id }
+            }
             val loadFullState = params.fullState && syncTokenStore.getSlidingSyncPos() != null
             val response = try {
                 executeRequest(globalErrorReceiver) {
@@ -135,71 +120,79 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                     }
                 }
             } catch (throwable: Throwable) {
-                // A removed room the server refuses members for will refuse forever; mark it LOADED
-                // so the member list settles on the local state instead of retrying.
                 val refusedWhileRemoved = throwable is Failure.ServerError &&
                         throwable.error.code == MatrixError.M_FORBIDDEN &&
-                        stores.room.get(params.roomId)?.membership != Membership.JOIN
-                // NonCancellable so the revert still runs if the caller's scope died mid-request; otherwise the
-                // marker stays stuck at LOADING.
+                        withContext(dispatcher) { stores.room.get(params.roomId)?.membership != Membership.JOIN }
+                if (!refusedWhileRemoved) throw throwable
+                // Removed rooms may permanently refuse membership and full-state requests.
                 withContext(NonCancellable) {
-                    setRoomMembersLoadStatus(
-                            params.roomId,
-                            if (refusedWhileRemoved) RoomMembersLoadStatusType.LOADED else RoomMembersLoadStatusType.NONE,
-                    )
-                }
-                if (refusedWhileRemoved) return
-                throw throwable
-            }
-            // Callers run in the room screen's scope; leaving the room must not throw away a downloaded response.
-            withContext(NonCancellable) {
-                try {
-                    // This will also set the status to LOADED
-                    insertInDb(response, params.roomId)
+                    setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADED)
                     if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
-                } catch (throwable: Throwable) {
-                    setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
-                    throw throwable
                 }
+                return
             }
-        } finally {
-            inFlightRoomIds.remove(params.roomId)
+            // Keep downloaded state when the room screen closes.
+            withContext(NonCancellable) {
+                importPermit.withPermit { insertInDb(response, params.roomId, stateBeforeRequest) }
+                if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
+                imported = true
+            }
+        } catch (throwable: Throwable) {
+            if (!imported) withContext(NonCancellable) { setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE) }
+            throw throwable
         }
     }
 
-    private suspend fun insertInDb(response: RoomMembersResponse, roomId: String) {
-        // A room with thousands of members needs many chunks and the process can die mid-way, so without
-        // skipping what is already stored every reload rewrites the same rows.
-        val (knownMemberEventIds, receiptUserIds) = database.awaitDbTransaction(dispatcher) {
-            stores.currentStateEvent.getEventIdsByStateKey(roomId, EventType.STATE_ROOM_MEMBER) to
+    private suspend fun insertInDb(response: RoomMembersResponse, roomId: String, stateBeforeRequest: Map<Pair<String, String>, String>) {
+        val (knownState, receiptUserIds) = withContext(dispatcher) {
+            database.currentStateEventQueries.selectStateIdsByRoom(roomId).executeAsList()
+                    .associate { (it.type to it.state_key) to it.event_id } to
                     stores.readReceipt.getReceiptsInRoom(roomId).keys.mapTo(HashSet()) { it.first }
         }
-        // Small so other writers queued behind the write lock wait a fraction of a second, not over one.
-        val chunks = response.roomMemberEvents.receiptHoldersFirst(receiptUserIds).chunked(100)
-        chunks.forEach { roomMemberEvents ->
-            database.awaitDbTransaction(dispatcher) {
-                Timber.v("Insert ${roomMemberEvents.size} member events in room $roomId")
-                // We ignore all the already known members
-                val now = clock.epochMillis()
-                for (roomMemberEvent in roomMemberEvents) {
-                    val memberEventId = roomMemberEvent.eventId ?: continue
-                    // The response carries whatever state the room has, not only members, so an encrypted
-                    // state event has to take the slot its packed key names rather than the wire type.
-                    val (memberType, memberStateKey) = EncryptedStateEvents.stateSlot(roomMemberEvent) ?: continue
-                    if (memberType == EventType.STATE_ROOM_MEMBER && knownMemberEventIds[memberStateKey] == memberEventId) {
-                        continue
-                    }
-                    val ageLocalTs = now - (roomMemberEvent.unsignedData?.age ?: 0)
-                    val entity = roomMemberEvent.toEntity(roomId, SendState.SYNCED, ageLocalTs)
-                    if (stores.event.getDbId(roomId, entity.eventId) == null) {
-                        stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = EventInsertType.PAGINATION)
-                        stores.event.insert(entity)
-                    }
-                    stores.currentStateEvent.upsert(roomId, memberType, memberStateKey, memberEventId, memberEventId)
-                    roomMemberEventHandler.handle(stores, roomId, roomMemberEvent, false)
-                }
+        val pending = withContext(coroutineDispatchers.computation) {
+            response.roomMemberEvents.receiptHoldersFirst(receiptUserIds).filter { event ->
+                val slot = EncryptedStateEvents.stateSlot(event)
+                slot != null && event.eventId != null && knownState[slot] != event.eventId && knownState[slot] == stateBeforeRequest[slot]
             }
         }
+        var inserted = 0
+        pending.chunked(20).forEach { events ->
+            val prepared = withContext(coroutineDispatchers.computation) {
+                val now = clock.epochMillis()
+                events.mapNotNull { event ->
+                    val slot = EncryptedStateEvents.stateSlot(event) ?: return@mapNotNull null
+                    PreparedStateEvent(
+                            event = event,
+                            slot = slot,
+                            entity = event.toEntity(roomId, SendState.SYNCED, now - (event.unsignedData?.age ?: 0)),
+                    )
+                }
+            }
+            var offset = 0
+            while (offset < prepared.size) {
+                database.awaitDbTransaction(dispatcher) {
+                    val started = System.nanoTime()
+                    do {
+                        val (event, slot, entity) = prepared[offset++]
+                        val current = database.currentStateEventQueries.selectOne(roomId, slot.first, slot.second)
+                                .executeAsOneOrNull()?.event_id
+                        // Sync can advance this slot while /members or /state is downloading.
+                        if (current != entity.eventId && current == stateBeforeRequest[slot]) {
+                            if (stores.event.getDbId(roomId, entity.eventId) == null) {
+                                stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = EventInsertType.PAGINATION)
+                                stores.event.insert(entity)
+                            }
+                            stores.currentStateEvent.upsert(roomId, slot.first, slot.second, entity.eventId, entity.eventId)
+                            roomMemberEventHandler.handle(stores, roomId, event, false)
+                            inserted++
+                        }
+                    } while (offset < prepared.size && System.nanoTime() - started < TimeUnit.MILLISECONDS.toNanos(40))
+                }
+                // Give sync, sends and drafts a chance to enqueue before the next import transaction.
+                delay(1)
+            }
+        }
+        Timber.d("Member import completed: received=%d changed=%d inserted=%d", response.roomMemberEvents.size, pending.size, inserted)
         database.awaitDbTransaction(dispatcher) {
             val roomEntity = stores.room.get(roomId) ?: RoomEntity(roomId = roomId)
             roomEntity.membersLoadStatus = RoomMembersLoadStatusType.LOADED
@@ -208,11 +201,10 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         }
         if (cryptoSessionInfoProvider.isRoomEncrypted(roomId)) {
             cryptoService.get().onE2ERoomMemberLoadedFromServer(roomId)
-//            val userIds = cryptoSessionInfoProvider.getRoomUserIds(roomId, true)
-//            olmMachineProvider.olmMachine.updateTrackedUsers(userIds)
-//            deviceListManager.onRoomMembersLoadedFor(roomId)
         }
     }
+
+    private data class PreparedStateEvent(val event: Event, val slot: Pair<String, String>, val entity: EventEntity)
 
     private suspend fun setRoomMembersLoadStatus(roomId: String, status: RoomMembersLoadStatusType) {
         database.awaitDbTransaction(dispatcher) {
@@ -223,6 +215,6 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
     }
 }
 
-/** Stable partition putting members holding a read receipt in the room first, so they land in the first chunk. */
+/** Receipt-holder profiles are needed before the rest of a large room finishes loading. */
 internal fun List<Event>.receiptHoldersFirst(receiptUserIds: Set<String>): List<Event> =
-        if (receiptUserIds.isEmpty()) this else sortedByDescending { it.stateKey in receiptUserIds }
+        if (receiptUserIds.isEmpty()) this else partition { it.stateKey in receiptUserIds }.let { it.first + it.second }

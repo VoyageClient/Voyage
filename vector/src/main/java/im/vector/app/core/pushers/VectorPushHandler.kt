@@ -23,7 +23,6 @@ import im.vector.app.features.notifications.NotificationActionIds
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.SimpleNotifiableEvent
 import im.vector.app.features.settings.VectorDataStore
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +46,6 @@ class VectorPushHandler @Inject constructor(
         private val notificationDrawerManager: NotificationDrawerManager,
         private val notifiableEventResolver: NotifiableEventResolver,
         private val activeSessionHolder: ActiveSessionHolder,
-        private val vectorPreferences: VectorPreferences,
         private val vectorDataStore: VectorDataStore,
         private val actionIds: NotificationActionIds,
         private val context: Context,
@@ -86,7 +84,7 @@ class VectorPushHandler @Inject constructor(
             return false
         }
 
-        if (!vectorPreferences.areNotificationEnabledForDevice()) {
+        if (!notificationDrawerManager.canShowNotifications()) {
             Timber.tag(loggerTag.value).i("Notification are disabled for this device")
             return false
         }
@@ -160,6 +158,10 @@ class VectorPushHandler @Inject constructor(
      * better than silence they read as a broken app.
      */
     suspend fun resolveAndNotify(session: Session, request: PushRequest): Result<Unit> {
+        if (!notificationDrawerManager.canShowNotifications()) {
+            notificationDrawerManager.clearAllEvents()
+            return Result.success(Unit)
+        }
         if (isEventAlreadyKnown(session, request)) {
             Timber.tag(loggerTag.value).d("Ignoring push, event already known")
             return Result.success(Unit)

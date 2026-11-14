@@ -50,6 +50,10 @@ ORDER BY rr.event_id, rr.user_id;
 selectReceiptsForEvents:
 SELECT * FROM read_receipt WHERE event_id IN ?;
 
+selectNotificationReceipts:
+SELECT room_id, thread_id, event_id, origin_server_ts FROM read_receipt WHERE user_id = ?
+ORDER BY room_id, thread_id;
+
 selectReceiptForUserInRoom:
 SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND thread_id IS ?;
 

@@ -13,9 +13,11 @@ import im.vector.app.test.fakes.FakeOutdatedEventDetector
 import im.vector.app.test.fixtures.aNotifiableMessageEvent
 import im.vector.app.test.fixtures.aSimpleNotifiableEvent
 import im.vector.app.test.fixtures.anInviteNotifiableEvent
+import io.mockk.verify
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.read.ReadService
 
 private val NOT_VIEWING_A_ROOM: String? = null
 private val NOT_VIEWING_A_THREAD: String? = null
@@ -169,6 +171,52 @@ class NotifiableEventProcessorTest {
                 Type.REMOVE to renderedEvents[1].event,
                 Type.KEEP to renderedEvents[0].event
         )
+    }
+
+    @Test
+    fun `unchanged messages do not query read state when another message arrives`() {
+        val old = aNotifiableMessageEvent(eventId = "old", roomId = "!room:example.org")
+        val fresh = aNotifiableMessageEvent(eventId = "fresh", roomId = "!room:example.org")
+        val rendered = listOf<ProcessedEvent<NotifiableEvent>>(ProcessedEvent(Type.KEEP, old))
+
+        val result = eventProcessor.process(listOf(old, fresh), null, null, rendered, emptySet())
+
+        result shouldBeEqualTo listOfProcessedEvents(Type.KEEP to old, Type.KEEP to fresh)
+        verify(exactly = 1) { outdatedDetector.instance.readEventIds(listOf(fresh)) }
+    }
+
+    @Test
+    fun `receipt updates clear only read messages in the affected room and thread`() {
+        val read = aNotifiableMessageEvent(eventId = "read", roomId = "!room:example.org")
+        val unread = aNotifiableMessageEvent(eventId = "unread", roomId = "!room:example.org")
+        val thread = aNotifiableMessageEvent(eventId = "thread-message", roomId = "!room:example.org", threadId = "thread")
+        val other = aNotifiableMessageEvent(eventId = "other", roomId = "!other:example.org")
+        val events = listOf(read, unread, thread, other)
+        outdatedDetector.givenEventIsOutOfDate(read)
+        val rendered = events.map { ProcessedEvent<NotifiableEvent>(Type.KEEP, it) }
+
+        val result = eventProcessor.process(events, null, null, rendered, setOf(read.roomId to ReadService.THREAD_ID_MAIN))
+
+        result shouldBeEqualTo listOfProcessedEvents(Type.REMOVE to read, Type.KEEP to unread, Type.KEEP to thread, Type.KEEP to other)
+        verify(exactly = 1) { outdatedDetector.instance.readEventIds(listOf(read, unread)) }
+    }
+
+    @Test
+    fun `an idle refresh performs no read queries`() {
+        val message = aNotifiableMessageEvent(eventId = "kept", roomId = "!room:example.org")
+        val rendered = listOf<ProcessedEvent<NotifiableEvent>>(ProcessedEvent(Type.KEEP, message))
+
+        eventProcessor.process(listOf(message), null, null, rendered, emptySet()) shouldBeEqualTo rendered
+
+        verify(exactly = 0) { outdatedDetector.instance.readEventIds(any()) }
+    }
+
+    @Test
+    fun `removed notifications are not retained across refreshes`() {
+        val message = aNotifiableMessageEvent(eventId = "removed", roomId = "!room:example.org")
+        val removed = listOf<ProcessedEvent<NotifiableEvent>>(ProcessedEvent(Type.REMOVE, message))
+
+        eventProcessor.process(emptyList(), null, null, removed, emptySet()) shouldBeEqualTo emptyList()
     }
 
     private fun listOfProcessedEvents(vararg event: Pair<Type, NotifiableEvent>) = event.map {

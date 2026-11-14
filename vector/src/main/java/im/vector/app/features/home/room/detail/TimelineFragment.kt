@@ -56,6 +56,8 @@ import androidx.lifecycle.withResumed
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.ChangeBounds
+import androidx.transition.TransitionManager
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyViewHolder
 import com.airbnb.epoxy.EpoxyVisibilityTracker
@@ -414,6 +416,9 @@ class TimelineFragment :
     private var lastMediaPreviewMode: MediaPreviewMode? = null
     private var lastTimelineVisibility: List<Boolean>? = null
     private var pinnedBannerJumpApplied = false
+    private var renderedPins: List<TimelineEvent>? = null
+    private var renderedPinsDirect = false
+    private var renderedPinsAvatars = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
 
@@ -549,7 +554,10 @@ class TimelineFragment :
         // Code is colored into the models, so a palette change rebuilds them, while settings is still in front.
         codeBlockHighlighter.paletteChanges
                 .drop(1)
-                .onEach { timelineEventController.invalidateAllCache() }
+                .onEach {
+                    renderedPins = null
+                    timelineEventController.invalidateAllCache()
+                }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Cached Epoxy models need invalidation to rebind sender colors without replacing their holders.
@@ -921,6 +929,14 @@ class TimelineFragment :
 
     override fun onDestroyView() {
         if (::scrollOnHighlightedEventCallback.isInitialized) scrollOnHighlightedEventCallback.dispose()
+        composerSlideAnimator?.cancel()
+        composerSlideAnimator = null
+        selectionDecoration?.dispose()
+        selectionDecoration = null
+        selectionTouchListener?.let { views.timelineRecyclerView.removeOnItemTouchListener(it) }
+        selectionTouchListener = null
+        TransitionManager.endTransitions(views.coordinatorLayout)
+        renderedPins = null
         floatingDateHeader?.release()
         floatingDateHeader = null
         mediaContentRevealManager.clearAll()
@@ -1018,13 +1034,21 @@ class TimelineFragment :
         val pinnedEvents = state.pinnedEvents
         if (isThreadTimeLine() || !vectorPreferences.showPinnedMessagesBanner() || pinnedEvents.isEmpty()) {
             views.pinnedMessagesBanner.isVisible = false
+            renderedPins = null
             return
         }
         val roomSummary = state.asyncRoomSummary()
         val isDirect = roomSummary?.isDirect ?: false
+        val loadAvatars = !shouldHideAvatars(roomSummary, vectorPreferences)
+        val previous = renderedPins
+        if (previous != null && isDirect == renderedPinsDirect && loadAvatars == renderedPinsAvatars &&
+                previous.size == pinnedEvents.size && previous.indices.all { previous[it] === pinnedEvents[it] }) return
+        renderedPins = pinnedEvents
+        renderedPinsDirect = isDirect
+        renderedPinsAvatars = loadAvatars
         views.pinnedMessagesBanner.render(
                 eventIds = pinnedEvents.map { it.eventId },
-                loadMentionAvatars = !shouldHideAvatars(roomSummary, vectorPreferences),
+                loadMentionAvatars = loadAvatars,
         ) { eventId ->
             pinnedEvents.firstOrNull { it.eventId == eventId }
                     ?.let {
@@ -1403,6 +1427,7 @@ class TimelineFragment :
     override fun onResume() {
         super.onResume()
         restoreToolbarBackground()
+        renderedPins = null
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.withResumed { flushPendingProfileChanges() }
         }
@@ -1431,6 +1456,8 @@ class TimelineFragment :
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             return
         }
+        if (pendingProfileUsers.isNotEmpty() || pendingProfileOverrideUsers.isNotEmpty() ||
+                pendingProfileColorUsers.isNotEmpty() || pendingPronounUsers.isNotEmpty()) renderedPins = null
         if (pendingProfileUsers.isNotEmpty()) {
             val users = pendingProfileUsers.toSet()
             timelineEventController.invalidateForwardsFrom(users)
@@ -2650,6 +2677,7 @@ class TimelineFragment :
             view?.hideKeyboard()
             selectionPermissions = readSelectionPermissions()
         }
+        if (active != selectionWasActive) beginSelectionTransition()
         views.selectionToolbar.isVisible = active
         views.roomToolbar.isVisible = !active
         views.timelineRecyclerView.blocksChildTouches = active
@@ -2676,7 +2704,6 @@ class TimelineFragment :
                         else -> Color.TRANSPARENT
                     }
             )
-            // The gutter changes every row's insets; a plain toggle only needs a redraw.
             selectionDecoration?.animateGutter(active)
         } else {
             views.timelineRecyclerView.invalidate()
@@ -2698,13 +2725,18 @@ class TimelineFragment :
         }
     }
 
-    /**
-     * Slides the composer off the bottom while selecting and back afterwards, with the content's bottom
-     * margin following so the timeline moves with it. The composer's behavior normally keeps that margin
-     * equal to the composer's height on every layout pass, so it's paused for the slide. That also covers
-     * the return: left to the behavior, the margin only came back in a later layout pass, leaving the
-     * content (and the jump-to-bottom button) under the composer until something relaid it.
-     */
+    private fun beginSelectionTransition() {
+        val transition = ChangeBounds().apply {
+            duration = COMPOSER_SLIDE_MS
+            interpolator = DecelerateInterpolator(1.5f)
+            addTarget(views.rootConstraintLayout)
+            for (i in 0 until views.rootConstraintLayout.childCount) addTarget(views.rootConstraintLayout.getChildAt(i))
+            for (i in 0 until views.timelineRecyclerView.childCount) addTarget(views.timelineRecyclerView.getChildAt(i))
+        }
+        TransitionManager.beginDelayedTransition(views.coordinatorLayout, transition)
+    }
+
+    // Commit the final geometry once; ChangeBounds animates it without remeasuring message text each frame.
     private fun animateComposerForSelection(selecting: Boolean) {
         val composer = views.composerContainer
         val behavior = ExpandingBottomSheetBehavior.from(composer)
@@ -2714,15 +2746,15 @@ class TimelineFragment :
         }
         val reserved = rootBottomMarginBeforeSelection
         behavior?.applyInsetsToContentViewWhenCollapsed = false
+        val hiddenFrom = if (composer.isVisible) composer.translationY / reserved.coerceAtLeast(1) else 1f
         composer.isVisible = true
-        val hiddenFrom = if (selecting) composer.translationY / reserved.coerceAtLeast(1) else 1f
+        views.rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = if (selecting) 0 else reserved }
         composerSlideAnimator = ValueAnimator.ofFloat(hiddenFrom, if (selecting) 1f else 0f).apply {
             duration = COMPOSER_SLIDE_MS
             interpolator = DecelerateInterpolator(1.5f)
             addUpdateListener {
                 val hidden = it.animatedValue as Float
                 composer.translationY = hidden * reserved
-                views.rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = (reserved * (1 - hidden)).toInt() }
             }
             addListener(object : AnimatorListenerAdapter() {
                 private var cancelled = false

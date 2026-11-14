@@ -11,6 +11,7 @@ import android.Manifest
 import android.app.Notification
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import timber.log.Timber
@@ -22,11 +23,20 @@ class NotificationDisplayer @Inject constructor(
 
     private val notificationManager = NotificationManagerCompat.from(context)
 
+    fun canShowNotifications(): Boolean =
+            (Build.VERSION.SDK_INT < 33 ||
+                    ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) &&
+                    notificationManager.areNotificationsEnabled()
+
     fun showNotificationMessage(tag: String?, id: Int, notification: Notification) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (!canShowNotifications()) {
             Timber.w("Not allowed to notify.")
         } else {
-            notificationManager.notify(tag, id, notification)
+            try {
+                notificationManager.notify(tag, id, notification)
+            } catch (exception: SecurityException) {
+                Timber.w(exception, "Not allowed to notify.")
+            }
         }
     }
 
