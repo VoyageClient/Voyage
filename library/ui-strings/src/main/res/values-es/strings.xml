@@ -2112,7 +2112,6 @@
     <string name="ftue_auth_sign_in_choose_server_header">Dónde se guardarán tus conversaciones</string>
     <string name="ftue_auth_create_account_choose_server_header">Dónde se guardarán tus conversaciones</string>
     <string name="ftue_auth_create_account_password_entry_footer">Debe tener al menos 8 caracteres</string>
-    <string name="ftue_auth_create_account_username_entry_footer">Otros pueden buscarte como %s</string>
     <string name="ftue_auth_create_account_title">Crea tu cuenta</string>
     <string name="a11y_open_spaces">Abrir lista de espacios</string>
     <string name="a11y_create_message">Crear una nueva conversación o sala</string>
@@ -3744,4 +3743,5 @@
     <string name="room_personalization_room_list_reset_confirmation">¿Restablecer los ajustes de la lista de salas de esta sala a los de toda tu cuenta?</string>
     <string name="option_yes">Sí</string>
     <string name="option_no">No</string>
+    <string name="ftue_auth_create_account_username_entry_footer">Otros pueden encontrarte como %s</string>
 </resources>

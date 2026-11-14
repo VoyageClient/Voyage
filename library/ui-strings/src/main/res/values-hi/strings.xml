@@ -1299,7 +1299,6 @@
     <string name="ftue_auth_use_case_join_existing_server">किसी मौजूदा सर्वर से जुड़ना चाहते हैं?</string>
     <string name="ftue_auth_use_case_connect_to_server">सर्वर से कनेक्ट करें</string>
     <string name="ftue_auth_create_account_title">अपना खाता बनाएं</string>
-    <string name="ftue_auth_create_account_username_entry_footer">दूसरे आपको %s के रूप में ढूंढ सकते हैं</string>
     <string name="ftue_auth_create_account_password_entry_footer">कम से कम 8 अक्षर होने चाहिए</string>
     <string name="ftue_auth_create_account_choose_server_header">आपकी बातचीत कहां रहेगी</string>
     <string name="ftue_auth_sign_in_choose_server_header">आपकी बातचीत कहां रहती है</string>
@@ -3644,4 +3643,5 @@
     <string name="room_personalization_room_list_reset_confirmation">इस रूम की रूम लिस्ट सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
     <string name="option_yes">हां</string>
     <string name="option_no">नहीं</string>
+    <string name="ftue_auth_create_account_username_entry_footer">दूसरे आपको %s के रूप में ढूंढ सकते हैं</string>
 </resources>

@@ -2060,7 +2060,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="ftue_auth_create_account_sso_section_header">Atau</string>
     <string name="ftue_auth_create_account_choose_server_header">Di mana percakapan Anda akan tinggal</string>
     <string name="ftue_auth_create_account_password_entry_footer">Harus 8 karakter atau lebih</string>
-    <string name="ftue_auth_create_account_username_entry_footer">Orang lain dapat menemukan Anda %s</string>
     <string name="ftue_auth_create_account_title">Buat akun Anda</string>
     <string name="font_size_use_system">Gunakan bawaan sistem</string>
     <string name="font_size_section_manually">Pilih secara manual</string>
@@ -3683,4 +3682,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_personalization_room_list_reset_confirmation">Setel ulang pengaturan daftar ruangan untuk ruangan ini ke yang berlaku di seluruh akun?</string>
     <string name="option_yes">Ya</string>
     <string name="option_no">Tidak</string>
+    <string name="ftue_auth_create_account_username_entry_footer">Orang lain dapat menemukan Anda sebagai %s</string>
 </resources>

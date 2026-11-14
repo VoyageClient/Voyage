@@ -2147,7 +2147,6 @@
     <string name="home_empty_no_unreads_title">Es gibt nichts Neues.</string>
     <string name="all_chats">Alle Unterhaltungen</string>
     <string name="start_chat">Unterhaltung beginnen</string>
-    <string name="ftue_auth_create_account_username_entry_footer">Andere können dich als %s finden</string>
     <string name="labs_enable_deferred_dm_summary">Erstelle Unterhaltungen mit der ersten Nachricht</string>
     <string name="labs_enable_deferred_dm_title">Verzögerte Direktnachrichten</string>
     <string name="home_layout_preferences_recents">Verlauf anzeigen</string>
@@ -3755,4 +3754,5 @@
     <string name="room_personalization_room_list_reset_confirmation">Raumliste-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
     <string name="option_yes">Ja</string>
     <string name="option_no">Nein</string>
+    <string name="ftue_auth_create_account_username_entry_footer">Andere können dich als %s finden</string>
 </resources>

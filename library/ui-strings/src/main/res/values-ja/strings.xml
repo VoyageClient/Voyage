@@ -2167,7 +2167,6 @@
     <string name="ftue_auth_create_account_choose_server_header">アカウントを作成するサーバー</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 セキュリティーの設定で、全てのルームに関して認証済のセッションにのみ暗号化を行うよう設定しました。</string>
     <string name="settings_presence">プレゼンス（ステータス表示）</string>
-    <string name="ftue_auth_create_account_username_entry_footer">他の人は %s であなたを見つけることができます</string>
     <string name="push_gateway_item_enabled">有効：</string>
     <string name="push_gateway_item_profile_tag">プロフィールのタグ：</string>
     <string name="error_check_network" tools:ignore="UnusedResources">問題が発生しました。ネットワークの接続を確認して、もう一度やり直してください。</string>
@@ -3681,4 +3680,5 @@
     <string name="room_personalization_room_list_reset_confirmation">このルームのルーム一覧の設定を、アカウント全体のものにリセットしますか？</string>
     <string name="option_yes">はい</string>
     <string name="option_no">いいえ</string>
+    <string name="ftue_auth_create_account_username_entry_footer">他の人は %s であなたを見つけることができます</string>
 </resources>

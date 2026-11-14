@@ -1557,7 +1557,6 @@
     <string name="ftue_auth_carousel_workplace_body">${app_name} iş yeri için de harika. Dünyanın en güvenlik odaklı kuruluşları tarafından güveniliyor.</string>
     <string name="ftue_auth_use_case_title">En çok kiminle sohbet edeceksiniz?</string>
     <string name="ftue_auth_create_account_title">Hesabınızı oluşturun</string>
-    <string name="ftue_auth_create_account_username_entry_footer">Diğerleri sizi %s olarak bulabilir</string>
     <string name="ftue_auth_create_account_password_entry_footer">En az 8 karakter olmalı</string>
     <string name="ftue_auth_create_account_choose_server_header">Sohbetlerinizin barınacağı yer</string>
     <string name="ftue_auth_sign_in_choose_server_header">Sohbetlerinizin barındığı yer</string>
@@ -3714,4 +3713,5 @@
     <string name="room_personalization_room_list_reset_confirmation">Bu odanın oda listesi ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
     <string name="option_yes">Evet</string>
     <string name="option_no">Hayır</string>
+    <string name="ftue_auth_create_account_username_entry_footer">Diğerleri sizi %s olarak bulabilir</string>
 </resources>

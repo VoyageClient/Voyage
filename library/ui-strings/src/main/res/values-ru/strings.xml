@@ -2185,7 +2185,6 @@
 \nПожалуйста, попробуйте снова позже.%s</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ В этой комнате есть неподтверждённые устройства, они не смогут расшифровывать сообщения, отправленные вами.</string>
     <string name="grant_permission">Дать разрешение</string>
-    <string name="ftue_auth_create_account_username_entry_footer">Другие пользователи могут найти вас по %s</string>
     <string name="message_reply_to_sender_created_poll">создал опрос.</string>
     <string name="message_reply_to_sender_sent_sticker">отправил стикер.</string>
     <string name="message_reply_to_sender_sent_video">отправил видео.</string>
@@ -3898,4 +3897,5 @@
     <string name="room_personalization_room_list_reset_confirmation">Вернуть настройки списка комнат для этой комнаты к настройкам вашей учётной записи?</string>
     <string name="option_yes">Да</string>
     <string name="option_no">Нет</string>
+    <string name="ftue_auth_create_account_username_entry_footer">Другие пользователи могут найти вас как %s</string>
 </resources>

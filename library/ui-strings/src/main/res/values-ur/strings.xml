@@ -1320,7 +1320,6 @@
     <string name="ftue_auth_use_case_join_existing_server">کسی موجودہ سرور میں شامل ہونا چاہتے ہیں؟</string>
     <string name="ftue_auth_use_case_connect_to_server">سرور سے جڑیں</string>
     <string name="ftue_auth_create_account_title">اپنا کھاتہ بنائیں</string>
-    <string name="ftue_auth_create_account_username_entry_footer">دوسرے آپ کو دریافت کر سکتے ہیں %s</string>
     <string name="ftue_auth_create_account_password_entry_footer">کم از کم 8 حروف ہونے چاہئیں</string>
     <string name="ftue_auth_create_account_choose_server_header">جہاں آپ کی گفتگو رہے گی</string>
     <string name="ftue_auth_sign_in_choose_server_header">جہاں آپ کی گفتگو رہتی ہے</string>
@@ -3656,4 +3655,5 @@
     <string name="room_personalization_room_list_reset_confirmation">اس کمرے کی کمروں کی فہرست کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
     <string name="option_yes">ہاں</string>
     <string name="option_no">نہیں</string>
+    <string name="ftue_auth_create_account_username_entry_footer">دوسرے آپ کو %s کے طور پر تلاش کر سکتے ہیں</string>
 </resources>

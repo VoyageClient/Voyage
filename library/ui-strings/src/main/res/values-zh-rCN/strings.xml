@@ -2023,7 +2023,6 @@
     <string name="ftue_auth_create_account_sso_section_header">或</string>
     <string name="ftue_auth_create_account_choose_server_header">你的对话将进行的地方</string>
     <string name="ftue_auth_create_account_password_entry_footer">必须有8个及以上的字符</string>
-    <string name="ftue_auth_create_account_username_entry_footer">其他人可以通过 %s 发现你</string>
     <string name="ftue_auth_create_account_title">创建你的账户</string>
     <string name="ftue_auth_use_case_connect_to_server">连接服务器</string>
     <string name="ftue_auth_use_case_join_existing_server">想要加入已有的服务器？</string>
@@ -3683,4 +3682,5 @@
     <string name="room_personalization_room_list_reset_confirmation">将此房间的房间列表设置重置为账户全局设置？</string>
     <string name="option_yes">是</string>
     <string name="option_no">否</string>
+    <string name="ftue_auth_create_account_username_entry_footer">其他人可以通过 %s 找到你</string>
 </resources>

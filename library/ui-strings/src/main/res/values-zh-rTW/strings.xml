@@ -2063,7 +2063,6 @@
     <string name="ftue_auth_create_account_sso_section_header">或</string>
     <string name="ftue_auth_create_account_choose_server_header">您的對話將在哪裡進行</string>
     <string name="ftue_auth_create_account_password_entry_footer">至少需要 8 個字元</string>
-    <string name="ftue_auth_create_account_username_entry_footer">其他人可以透過 %s 找到您</string>
     <string name="ftue_auth_create_account_title">建立您的帳號</string>
     <string name="font_size_use_system">使用系統預設值</string>
     <string name="font_size_section_manually">手動選擇</string>
@@ -3685,4 +3684,5 @@
     <string name="room_personalization_room_list_reset_confirmation">要將此聊天室的聊天室清單設定重設為帳號層級的設定嗎？</string>
     <string name="option_yes">是</string>
     <string name="option_no">否</string>
+    <string name="ftue_auth_create_account_username_entry_footer">其他人可以透過 %s 找到您</string>
 </resources>

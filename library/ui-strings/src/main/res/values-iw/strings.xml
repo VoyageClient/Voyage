@@ -2121,7 +2121,6 @@
     <string name="a11y_open_spaces">פתח את רשימת המרחבים</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} מצוין גם למקום העבודה. הארגונים המאובטחים ביותר בעולם סומכים עליו.</string>
     <string name="ftue_auth_create_account_title">צור את החשבון שלך</string>
-    <string name="ftue_auth_create_account_username_entry_footer">אחרים יכולים למצוא אותך %s</string>
     <string name="ftue_auth_create_account_password_entry_footer">חייבת להכיל 8 תווים לפחות</string>
     <string name="ftue_auth_create_account_choose_server_header">היכן יישמרו השיחות שלך</string>
     <string name="ftue_auth_sign_in_choose_server_header">היכן נשמרות השיחות שלך</string>
@@ -3867,4 +3866,5 @@
     <string name="room_personalization_room_list_reset_confirmation">לאפס את הגדרות רשימת החדרים של חדר זה לאלה של החשבון כולו?</string>
     <string name="option_yes">כן</string>
     <string name="option_no">לא</string>
+    <string name="ftue_auth_create_account_username_entry_footer">אחרים יכולים למצוא אותך בתור %s</string>
 </resources>
