@@ -187,6 +187,7 @@ import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelect
 import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelectionDecoration
 import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelectionTouchListener
 import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
+import im.vector.app.features.home.room.detail.timeline.tools.clampForMaxLines
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
@@ -348,6 +349,7 @@ class TimelineFragment :
         private const val JSON_VIEWER_TAG = "JSON_VIEWER"
         private const val MESSAGE_ACTIONS_TAG = "MESSAGE_CONTEXTUAL_ACTIONS"
         private const val COMPOSER_SLIDE_MS = 220L
+        private const val REMOVED_REASON_MAX_LINES = 3
 
         // How long an action carried in from another screen waits for its event to be paginated in.
         private const val PENDING_ACTION_EVENT_TIMEOUT_MS = 10_000L
@@ -1903,7 +1905,7 @@ class TimelineFragment :
                         }
                 )
                 mainState.removedFromRoomReason?.let {
-                    append("\n").append(getString(CommonStrings.room_removed_reason, it))
+                    append("\n").append(getString(CommonStrings.room_removed_reason, it).clampForMaxLines(REMOVED_REASON_MAX_LINES))
                 }
             }
             views.roomPreviewJoinPrompt.text = prompt.prepareForDisplay()

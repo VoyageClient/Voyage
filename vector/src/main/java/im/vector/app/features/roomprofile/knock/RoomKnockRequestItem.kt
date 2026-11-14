@@ -23,6 +23,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.clampForMaxLines
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
@@ -51,8 +52,11 @@ abstract class RoomKnockRequestItem : VectorEpoxyModel<RoomKnockRequestItem.Hold
         holder.name.text = matrixItem.getBestName().prepareForDisplay()
         holder.time.setTextOrHide(requestTime)
         holder.userId.setTextOrHide(matrixItem.id.takeIf { it != matrixItem.getBestName() }?.neutralizeDirectionOverrides())
-        holder.reason.setTextOrHide(reason?.let { holder.view.context.getString(CommonStrings.room_knock_request_reason, it).prepareForDisplay() })
-        holder.reason.maxLines = if (reasonExpanded) Int.MAX_VALUE else REASON_COLLAPSED_LINES
+        val reasonLines = if (reasonExpanded) Int.MAX_VALUE else REASON_COLLAPSED_LINES
+        holder.reason.setTextOrHide(
+                reason?.let { holder.view.context.getString(CommonStrings.room_knock_request_reason, it).clampForMaxLines(reasonLines).prepareForDisplay() }
+        )
+        holder.reason.maxLines = reasonLines
         holder.reason.onClick(reasonClickListener)
 
         holder.actions.isVisible = canAccept || canDecline

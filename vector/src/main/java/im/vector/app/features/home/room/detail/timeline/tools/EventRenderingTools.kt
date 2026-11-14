@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.tools
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.TextUtils
 import android.text.style.ClickableSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
@@ -134,6 +135,17 @@ fun CharSequence.withoutTrailingLineBreak(): CharSequence = when {
 fun CharSequence.prepareForDisplay(): CharSequence {
     val neutralized = neutralizeDirectionOverrides()
     return messageEmojiSpanify?.spanify(neutralized) ?: neutralized
+}
+
+private const val MAX_CHARS_PER_LINE = 200
+
+// A maxLines-capped TextView still lays out (and prepareForDisplay still spans) the whole text.
+fun CharSequence.clampForMaxLines(maxLines: Int): CharSequence {
+    val limit = maxLines.toLong() * MAX_CHARS_PER_LINE
+    if (length <= limit) return this
+    var end = limit.toInt()
+    if (Character.isHighSurrogate(this[end - 1])) end--
+    return TextUtils.concat(subSequence(0, end), "…")
 }
 
 /** Render emoji and neutralize direction overrides in an input field, display-side only so the entered text

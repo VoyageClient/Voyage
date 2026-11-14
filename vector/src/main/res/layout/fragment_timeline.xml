@@ -270,6 +270,8 @@
                     android:layout_marginEnd="12dp"
                     android:layout_marginRight="12dp"
                     android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="5"
                     android:textColor="?vctr_content_primary"
                     android:textStyle="bold"
                     tools:text="You're previewing My room. Want to join it?" />
