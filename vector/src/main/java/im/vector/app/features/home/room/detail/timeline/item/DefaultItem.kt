@@ -15,6 +15,8 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.flexbox.FlexboxLayout
 import im.vector.app.R
+import im.vector.app.core.epoxy.ClickListener
+import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.bindSenderNameFades
@@ -46,6 +48,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
         holder.messageTextView.text = attributes.text.prepareForDisplay()
         holder.messageTextView.bindSenderNameFades()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
+        holder.avatarImageView.onClick(attributes.avatarClickListener)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
         bindRelationDoubleTap(holder.view, attributes.itemDoubleTapListener)
 
@@ -85,6 +88,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
             val text: CharSequence,
             val itemLongClickListener: View.OnLongClickListener? = null,
             val itemDoubleTapListener: (() -> Unit)? = null,
+            val avatarClickListener: ClickListener? = null,
             val reactionPillCallback: TimelineEventController.ReactionPillCallback? = null,
             val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
     )
