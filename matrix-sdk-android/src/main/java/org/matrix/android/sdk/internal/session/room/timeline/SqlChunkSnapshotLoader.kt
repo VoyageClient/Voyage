@@ -11,7 +11,9 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
@@ -85,11 +87,15 @@ internal class SqlChunkSnapshotLoader(
     fun sendingEvents(roomId: String): List<TimelineEvent> =
             stores.timelineEvent.getSendingByRoom(roomId).map { timelineEventMapper.map(it) }.asReversed()
 
-    /** Change signal for the room's sending events (same no-execute rationale as [chunkChangesFlow]). */
+    // Uploads replace content on the root event without changing its timeline row.
     fun sendingChangesFlow(roomId: String): Flow<Unit> =
-            database.timelineEventQueries.selectSendingByRoom(roomId)
+            database.timelineEventQueries.selectSendingStateByRoom(roomId)
                     .asFlow()
-                    .map { }
+                    .mapToList(dispatcher)
+                    .distinctUntilChanged()
+                    .map { rows ->
+                        DebugLog.i { "UPLOADPREVIEW sending changed room=$roomId rows=${rows.size} ids=${rows.map { it.id }}" }
+                    }
 
     /** The ignored-user id set, re-emitting whenever the user (un)ignores someone — so the timeline can
      *  re-filter instantly without a re-sync. */

@@ -8,12 +8,21 @@
 package im.vector.app.features.attachments.preview
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 import im.vector.app.features.attachments.ZoomPanGesture
+import org.matrix.android.sdk.api.debug.DebugLog
 import kotlin.math.min
 
 /** Rubber-band floor only; releasing below fit springs back to 1x. */
@@ -47,9 +56,11 @@ class ZoomableImageView @JvmOverloads constructor(
         set(value) {
             if (field == value) return
             field = value
+            clearResolutionBuffer()
             // A video's still is shown with zoom off, and FIT_CENTER ignores the matrix entirely.
             applyScaleType()
             updateBaseMatrix()
+            invalidate()
         }
 
     private fun applyScaleType() {
@@ -58,6 +69,11 @@ class ZoomableImageView @JvmOverloads constructor(
 
     private val baseMatrix = Matrix()
     private val drawMatrix = Matrix()
+    private var resolutionBuffer: Bitmap? = null
+    private var resolutionCanvas: Canvas? = null
+    private val resolutionPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val animationFrame = Runnable { invalidate() }
+    private var renderedFrames = 0
 
     private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM, springBackBelowFit = true) { applyMatrix() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
@@ -69,6 +85,7 @@ class ZoomableImageView @JvmOverloads constructor(
     }
 
     override fun setImageDrawable(drawable: Drawable?) {
+        removeCallbacks(animationFrame)
         super.setImageDrawable(drawable)
         gesture.reset()
         updateBaseMatrix()
@@ -82,6 +99,62 @@ class ZoomableImageView @JvmOverloads constructor(
     fun resetZoom() {
         gesture.reset()
         applyMatrix()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val size = contentSizeOverride
+        val image = drawable
+        if (size == null || size.first <= 0 || size.second <= 0 || image == null || image.bounds.isEmpty) {
+            super.onDraw(canvas)
+            return
+        }
+        val maxSide = maxOf(image.bounds.width(), image.bounds.height(), width, height, 1)
+        val scale = minOf(1f, maxSide.toFloat() / maxOf(size.first, size.second))
+        val bufferWidth = (size.first * scale).toInt().coerceAtLeast(1)
+        val bufferHeight = (size.second * scale).toInt().coerceAtLeast(1)
+        var buffer = resolutionBuffer
+        if (buffer == null || buffer.width != bufferWidth || buffer.height != bufferHeight) {
+            clearResolutionBuffer()
+            buffer = createBitmap(bufferWidth, bufferHeight)
+            resolutionBuffer = buffer
+            resolutionCanvas = Canvas(buffer)
+            renderedFrames = 0
+            DebugLog.i { "UPLOADPREVIEW image buffer=${bufferWidth}x$bufferHeight target=${size.first}x${size.second} drawable=${image.javaClass.simpleName}" }
+        }
+        val target = resolutionCanvas ?: return
+        target.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        val savedTarget = target.save()
+        target.scale(bufferWidth.toFloat() / image.bounds.width(), bufferHeight.toFloat() / image.bounds.height())
+        target.translate(-image.bounds.left.toFloat(), -image.bounds.top.toFloat())
+        try {
+            image.draw(target)
+        } finally {
+            target.restoreToCount(savedTarget)
+        }
+        canvas.withTranslation(paddingLeft.toFloat(), paddingTop.toFloat()) {
+            concat(imageMatrix)
+            drawBitmap(buffer, null, image.bounds, resolutionPaint)
+        }
+        removeCallbacks(animationFrame)
+        if ((image as? Animatable)?.isRunning == true) {
+            // Native GIFs normally redraw on RenderThread; a bitmap preview needs UI-thread redraws.
+            postDelayed(animationFrame, ANIMATION_FRAME_MS)
+            if (++renderedFrames % 60 == 0) {
+                DebugLog.i { "UPLOADPREVIEW animation frames=$renderedFrames drawable=${image.javaClass.simpleName} running=true" }
+            }
+        }
+    }
+
+    private fun clearResolutionBuffer() {
+        removeCallbacks(animationFrame)
+        resolutionCanvas?.setBitmap(null)
+        resolutionCanvas = null
+        resolutionBuffer = null
+    }
+
+    override fun onDetachedFromWindow() {
+        clearResolutionBuffer()
+        super.onDetachedFromWindow()
     }
 
     private fun updateBaseMatrix() {
@@ -117,4 +190,8 @@ class ZoomableImageView @JvmOverloads constructor(
     }
 
     override fun performClick(): Boolean = super.performClick()
+
+    private companion object {
+        const val ANIMATION_FRAME_MS = 16L
+    }
 }

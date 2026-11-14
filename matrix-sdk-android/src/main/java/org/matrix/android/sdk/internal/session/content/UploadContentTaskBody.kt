@@ -7,11 +7,15 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.net.Uri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -27,6 +31,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryConte
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.ThumbnailInfo
 import org.matrix.android.sdk.api.session.room.model.message.coerceGalleryJsonNumbers
 import org.matrix.android.sdk.api.session.room.model.message.galleryFallbackBody
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContent
@@ -75,6 +80,8 @@ private data class NewAttachmentAttributes(
         val newMimeType: String? = null,
         val newIsAnimated: Boolean? = null,
 )
+
+private data class PreparedMediaEcho(val originalContent: String?, val preparedContent: String?)
 
 /**
  * Possible previous worker: None.
@@ -138,6 +145,7 @@ internal class UploadContentTaskBody @Inject constructor(
         // Only spared below once that worker is actually queued, so a failure in between can't strand them.
         val filesToKeep = hashSetOf<File>()
         var handedOver = false
+        val preparedEchoes = mutableMapOf<String, PreparedMediaEcho>()
 
         return try {
             // Materialize the source to a local temp file. Deferred until first access so the
@@ -309,6 +317,13 @@ internal class UploadContentTaskBody @Inject constructor(
                     )
                 }
 
+                DebugLog.i {
+                    "UPLOADPREVIEW prepared events=${params.localEchoIds.map { it.eventId }} type=${attachment.type} " +
+                            "source=${attachment.displayWidth}x${attachment.displayHeight} requested=${attachment.compressionWidth}x${attachment.compressionHeight} " +
+                            "actual=${newAttachmentAttributes.newWidth}x${newAttachmentAttributes.newHeight} bytes=${fileToUpload.length()} " +
+                            "file=${fileToUpload.path} transcoded=${transcodedVideoFile != null}"
+                }
+
                 // Compression can take a long time; re-check cancellation here so a cancel that
                 // arrived mid-compress short-circuits the chain (failure stops the dispatcher
                 // from then trying to send the half-baked event with a local file:// URL).
@@ -316,6 +331,21 @@ internal class UploadContentTaskBody @Inject constructor(
                 if (isCancelledByUser(params)) {
                     notifyTracker(params) { contentUploadStateTracker.setFailure(it, Throwable("Cancelled")) }
                     return BackgroundTaskOutcome.Failure
+                }
+
+                if (transcodedVideoFile != null || (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne && !isVector)) {
+                    val localUrl = Uri.fromFile(fileToUpload).toString()
+                    val localThumbnail = if (attachment.type == ContentAttachmentData.Type.VIDEO) {
+                        UploadThumbnailResult(
+                                localUrl, null,
+                                newAttachmentAttributes.newWidth ?: 0, newAttachmentAttributes.newHeight ?: 0,
+                                fileToUpload.length(), null, newAttachmentAttributes.newMimeType ?: MimeTypes.Mp4,
+                        )
+                    } else null
+                    params.localEchoIds.forEach {
+                        updateEvent(it.eventId, localUrl, null, localThumbnail, null, null,
+                                newAttachmentAttributes, params.galleryItemIndex, preparedEchoes)
+                    }
                 }
 
                 val encryptedFile: File?
@@ -424,7 +454,7 @@ internal class UploadContentTaskBody @Inject constructor(
                         },
                         onHandedOver = { handedOver = it },
                         context = context,
-                )
+                ).also { preparedEchoes.clear() }
             } catch (t: Throwable) {
                 Timber.e(t, "## ERROR ${t.localizedMessage}")
                 handleFailure(params, t)
@@ -433,6 +463,24 @@ internal class UploadContentTaskBody @Inject constructor(
             Timber.e(e, "## ERROR")
             handleFailure(params, e)
         } finally {
+            // Failed/cancelled uploads must not leave an echo pointing at a temporary compressed file.
+            withContext(NonCancellable) {
+                preparedEchoes.forEach { (eventId, content) ->
+                    try {
+                        localEchoRepository.updateEcho(eventId) { event ->
+                            val current = ContentMapper.map(event.content, castJsonNumbers = true)
+                            val restored = restorePreparedMediaEcho(current, ContentMapper.map(content.originalContent, castJsonNumbers = true),
+                                    ContentMapper.map(content.preparedContent, castJsonNumbers = true), params.galleryItemIndex)
+                            if (restored != current) {
+                                event.content = ContentMapper.map(restored)
+                                DebugLog.i { "UPLOADPREVIEW prepared echo restored event=$eventId" }
+                            }
+                        }
+                    } catch (failure: Throwable) {
+                        Timber.w(failure, "Failed to restore prepared media echo")
+                    }
+                }
+            }
             // Delete all temporary files
             (if (handedOver) filesToDelete - filesToKeep else filesToDelete).forEach {
                 tryOrNull { it.delete() }
@@ -471,6 +519,7 @@ internal class UploadContentTaskBody @Inject constructor(
                 // Transcoding produces a fresh container with no source metadata atoms.
                 val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
                 val (w, h) = media.readVideoSize(compressedFile)
+                DebugLog.i { "UPLOADPREVIEW video compressed actual=${w}x$h bytes=${compressedFile.length()} file=${compressedFile.path}" }
                 VideoCompressOutcome(
                         fileToUpload = compressedFile,
                         attributes = initialAttributes.copy(
@@ -529,6 +578,7 @@ internal class UploadContentTaskBody @Inject constructor(
             val height: Int,
             val size: Long,
             val blurHash: String?,
+            val mimeType: String,
     )
 
     /**
@@ -545,6 +595,10 @@ internal class UploadContentTaskBody @Inject constructor(
         val thumbnailData = transcodedVideo?.let { thumbnailExtractor.extractVideoThumbnailFromFile(it) }
                 ?: thumbnailExtractor.extractThumbnail(params.attachment)
                 ?: return null
+        DebugLog.i {
+            "UPLOADPREVIEW thumbnail events=${params.localEchoIds.map { it.eventId }} transcoded=${transcodedVideo != null} " +
+                    "actual=${thumbnailData.width}x${thumbnailData.height} mime=${thumbnailData.mimeType} bytes=${thumbnailData.size}"
+        }
         val thumbnailProgressListener = object : ProgressRequestBody.Listener {
             override fun onProgress(current: Long, total: Long) {
                 notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
@@ -568,6 +622,7 @@ internal class UploadContentTaskBody @Inject constructor(
                         height = thumbnailData.height,
                         size = thumbnailData.size,
                         blurHash = thumbnailData.blurHash,
+                        mimeType = thumbnailData.mimeType,
                 )
             } else {
                 val contentUploadResponse = fileUploader.uploadByteArray(
@@ -583,11 +638,14 @@ internal class UploadContentTaskBody @Inject constructor(
                         height = thumbnailData.height,
                         size = thumbnailData.size,
                         blurHash = thumbnailData.blurHash,
+                        mimeType = thumbnailData.mimeType,
                 )
             }
         } catch (t: Throwable) {
             Timber.e(t, "Thumbnail upload failed")
             null
+        }.also { result ->
+            DebugLog.i { "UPLOADPREVIEW thumbnail uploaded url=${result?.uploadedThumbnailUrl} size=${result?.width}x${result?.height}" }
         }
     }
 
@@ -688,8 +746,10 @@ internal class UploadContentTaskBody @Inject constructor(
             audioWaveform: List<Int>?,
             newAttachmentAttributes: NewAttachmentAttributes,
             galleryItemIndex: Int? = null,
+            preparedEchoes: MutableMap<String, PreparedMediaEcho>? = null,
     ) {
         localEchoRepository.updateEcho(eventId) { event ->
+            val previousContent = event.content
             val content: Content? = event.asDomain(castJsonNumbers = true).content
             fun Content?.withUploadedMedia(): Content {
                 val messageContent: MessageContent? = this.toModel() ?: this.toModel<MessageStickerContent>()
@@ -705,6 +765,11 @@ internal class UploadContentTaskBody @Inject constructor(
                             .updateItem(galleryItemIndex, url, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
                     else -> messageContent
                 }
+                DebugLog.i {
+                    "UPLOADPREVIEW echo content event=$eventId gallery=$galleryItemIndex class=${messageContent?.javaClass?.simpleName} " +
+                            "url=$url actual=${newAttachmentAttributes.newWidth}x${newAttachmentAttributes.newHeight} " +
+                            "thumbnail=${thumbnail?.uploadedThumbnailUrl} size=${thumbnail?.width}x${thumbnail?.height}"
+                }
                 return updatedContent.toContent().plus(additionalContent)
             }
             // An edit carries the media twice: the copy under m.new_content is the one clients display.
@@ -712,6 +777,7 @@ internal class UploadContentTaskBody @Inject constructor(
             val newContent = (content?.get("m.new_content") as? Content)?.withUploadedMedia()
             val updated = content.withUploadedMedia()
             event.content = ContentMapper.map(if (newContent == null) updated else updated + ("m.new_content" to newContent))
+            preparedEchoes?.put(eventId, PreparedMediaEcho(previousContent, event.content))
         }
     }
 
@@ -835,24 +901,24 @@ internal class UploadContentTaskBody @Inject constructor(
     ): MessageVideoContent {
         val thumbnailUrl = thumbnail?.uploadedThumbnailUrl
         val thumbnailEncryptedFileInfo = thumbnail?.uploadedThumbnailEncryptedFileInfo
+        val newMime = newAttachmentAttributes?.newMimeType
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
+                body = if (newMime != null && filename == null) renameForMime(body, newMime) ?: body else body,
+                filename = if (newMime != null && filename != null) renameForMime(filename, newMime) else filename,
                 videoInfo = videoInfo?.let { videoInfo ->
                     videoInfo.copy(
+                            mimeType = newMime ?: videoInfo.mimeType,
                             thumbnailUrl = if (thumbnailEncryptedFileInfo == null) thumbnailUrl else null,
                             thumbnailFile = thumbnailEncryptedFileInfo?.copy(url = thumbnailUrl),
                             width = newAttachmentAttributes?.newWidth ?: videoInfo.width,
                             height = newAttachmentAttributes?.newHeight ?: videoInfo.height,
                             size = newAttachmentAttributes?.newFileSize ?: videoInfo.size,
                             blurHash = thumbnail?.blurHash ?: videoInfo.blurHash,
-                            thumbnailInfo = videoInfo.thumbnailInfo?.let { thumbnailInfo ->
-                                thumbnailInfo.copy(
-                                        width = thumbnail?.width ?: thumbnailInfo.width,
-                                        height = thumbnail?.height ?: thumbnailInfo.height,
-                                        size = thumbnail?.size ?: thumbnailInfo.size,
-                                )
-                            },
+                            thumbnailInfo = thumbnail?.let {
+                                ThumbnailInfo(width = it.width, height = it.height, size = it.size, mimeType = it.mimeType)
+                            } ?: videoInfo.thumbnailInfo,
                     )
                 }
         )
@@ -923,4 +989,36 @@ internal class UploadContentTaskBody @Inject constructor(
             }
         }
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun restorePreparedMediaEcho(current: Content?, original: Content?, prepared: Content?, galleryItemIndex: Int?): Content? {
+    if (current == null || original == null || prepared == null) return current
+    val result = current.toMutableMap()
+    fun Content.mediaUrl() = get("url") ?: (get("file") as? Map<*, *>)?.get("url")
+    val url = prepared.mediaUrl()
+    if (url != null && current.mediaUrl() == url) {
+        (original.keys + prepared.keys).filter { it != "m.new_content" && original[it] != prepared[it] }.forEach { key ->
+            if (current[key] == prepared[key]) {
+                if (original.containsKey(key)) result[key] = original.getValue(key) else result.remove(key)
+            }
+        }
+    }
+    val itemsKey = MessageGalleryContent.ITEMS_JSON_KEY
+    if (galleryItemIndex != null) {
+        val items = current[itemsKey] as? List<Content>
+        val before = (original[itemsKey] as? List<Content>)?.getOrNull(galleryItemIndex)
+        val local = (prepared[itemsKey] as? List<Content>)?.getOrNull(galleryItemIndex)
+        if (items != null && galleryItemIndex in items.indices) {
+            result[itemsKey] = items.toMutableList().also {
+                it[galleryItemIndex] = restorePreparedMediaEcho(items[galleryItemIndex], before, local, null) ?: items[galleryItemIndex]
+            }
+        }
+    }
+    val newContent = current["m.new_content"] as? Content
+    if (newContent != null) {
+        result["m.new_content"] = restorePreparedMediaEcho(newContent, original["m.new_content"] as? Content,
+                prepared["m.new_content"] as? Content, galleryItemIndex) ?: newContent
+    }
+    return result
 }

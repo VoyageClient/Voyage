@@ -24,6 +24,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.LayoutRes
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.widget.ImageViewCompat
@@ -48,6 +49,7 @@ import im.vector.lib.attachmentviewer.VideoForwardDrawable
 import im.vector.lib.attachmentviewer.VideoLastFrame
 import im.vector.lib.mediatranscode.AudioEditExporter
 import im.vector.lib.mediatranscode.AudioWaveform
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import timber.log.Timber
@@ -113,14 +115,15 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // frame extract is much faster than the full-size one, which can take a second
                 // of black screen on a large clip.
                 val uri = attachment.queryUriAndroid
-                // Backgrounding trims the Glide memory cache, so a rebind re-extracts the frame;
-                // keep the clip's current poster up instead of clearing to black meanwhile.
-                val currentPoster = holder.imageView.drawable.takeIf { holder.imageView.tag == uri }
+                // Only captured frames are ours to retain; Glide can recycle its own decoded posters.
+                val currentPoster = holder.ownedVideoPoster?.takeIf { holder.imageView.tag == uri }
+                        ?.toDrawable(holder.view.resources)
+                holder.ownedVideoPoster = null
                 holder.imageView.tag = uri
                 Glide.with(holder.view.context)
                         .asBitmap()
                         .load(uri)
-                        .apply(RequestOptions().frame(0))
+                        .apply(RequestOptions().frame(0).disallowHardwareConfig())
                         .placeholder(currentPoster)
                         .listener(object : RequestListener<Bitmap> {
                             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
@@ -138,7 +141,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                                 Glide.with(holder.view.context)
                                         .asBitmap()
                                         .load(uri)
-                                        .apply(RequestOptions().frame(0).override(240))
+                                        .apply(RequestOptions().frame(0).override(240).disallowHardwareConfig())
                         )
                         .into(holder.imageView)
             }
@@ -149,6 +152,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // thread.
                 Glide.with(holder.view.context)
                         .load(attachment.queryUriAndroid)
+                        .disallowHardwareConfig()
                         // Undecodable formats still need a file card so users can review the attachment.
                         .listener(object : RequestListener<Drawable> {
                             override fun onLoadFailed(
@@ -223,6 +227,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
 
     abstract class Holder : VectorEpoxyHolder() {
         abstract val imageView: ImageView
+        var ownedVideoPoster: Bitmap? = null
     }
 }
 
@@ -323,6 +328,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // attachment its views are rebound to next.
         holder.releasePlaybackControls(playbackListener)
         holder.release()
+        holder.ownedVideoPoster = null
         holder.resetZoom()
         super.unbind(holder)
     }
@@ -388,6 +394,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private var scrubResumePlaying = false
         private var mediaPlayer: MediaPlayer? = null
         private var surface: Surface? = null
+        private var videoRenderer: VideoPreviewRenderer? = null
+        private var fallbackSurface: Surface? = null
         private var isPrepared = false
         private var wantsPlayback = false
         private var waitingForFirstFrame = false
@@ -432,6 +440,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
          */
         fun setAnimatedImagePlaying(playing: Boolean) {
             val drawable = bigImageView.drawable
+            if (drawable is Animatable) {
+                DebugLog.i { "UPLOADPREVIEW animation playback requested=$playing running=${drawable.isRunning} drawable=${drawable.javaClass.simpleName}" }
+            }
             // penfeizhou's stop() rewinds to frame 0, so APNG/WebP have to pause instead. Glide's
             // GifDrawable has no pause and already holds its position on stop().
             if (drawable is FrameAnimationDrawable<*>) {
@@ -449,6 +460,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
         fun setTargetSize(size: Pair<Int, Int>?) {
             bigImageView.contentSizeOverride = size
+            if (videoView.contentSizeOverride != size) videoRenderer?.setResolution(size)
             videoView.contentSizeOverride = size
         }
 
@@ -779,7 +791,12 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             if (!videoView.isAvailable || videoView.alpha != 1f) return
             if (videoWidth <= 0 || videoHeight <= 0) return
             // The no-arg getBitmap() stretches the buffer to the view's bounds, ignoring aspect.
-            val frame = runCatching { videoView.getBitmap(videoWidth, videoHeight) }.getOrNull() ?: return
+            val size = videoView.contentSizeOverride ?: (videoWidth to videoHeight)
+            val scale = minOf(1f, videoView.width.toFloat() / size.first, videoView.height.toFloat() / size.second)
+            val width = (size.first * scale).toInt().coerceAtLeast(1)
+            val height = (size.second * scale).toInt().coerceAtLeast(1)
+            val frame = runCatching { videoView.getBitmap(width, height) }.getOrNull() ?: return
+            ownedVideoPoster = frame
             bigImageView.setImageBitmap(frame)
             bigImageView.tag = uri
         }
@@ -794,15 +811,25 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             listenerAttached = true
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-                    surface = Surface(texture)
-                    mediaPlayer?.setSurface(surface)
-                    if (wantsPlayback && mediaPlayer == null) {
-                        startPlayer()
-                    }
+                    videoRenderer = VideoPreviewRenderer(
+                            texture, width, height, videoView.contentSizeOverride,
+                            onReady = { input ->
+                                if (videoView.surfaceTexture === texture) attachPlayerSurface(input)
+                            },
+                            onFailure = { failure ->
+                                Timber.w(failure, "Video resolution preview failed; using direct playback")
+                                if (videoView.surfaceTexture === texture) {
+                                    // A GL driver failure must still leave the original playable.
+                                    val direct = Surface(texture).also { fallbackSurface = it }
+                                    attachPlayerSurface(direct)
+                                }
+                            },
+                    )
                     videoView.setVideoSize(videoWidth, videoHeight)
                 }
 
                 override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+                    videoRenderer?.resize(width, height)
                     videoView.setVideoSize(videoWidth, videoHeight)
                 }
 
@@ -814,8 +841,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     }
                     capturePosterFromVideo()
                     releasePlayer()
-                    surface?.release()
+                    fallbackSurface?.release()
+                    fallbackSurface = null
                     surface = null
+                    videoRenderer?.release()
+                    videoRenderer = null
                     // A dead surface renders black, so the poster covers the gap until the rebuilt
                     // player paints its first frame.
                     if (videoView.isVisible) {
@@ -823,7 +853,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                         videoView.alpha = 0f
                         bigImageView.isVisible = true
                     }
-                    return true
+                    return false
                 }
 
                 override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
@@ -834,6 +864,12 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     }
                 }
             }
+        }
+
+        private fun attachPlayerSurface(input: Surface) {
+            surface = input
+            mediaPlayer?.setSurface(input)
+            if (wantsPlayback && mediaPlayer == null) startPlayer()
         }
 
         private fun startPlayer() {

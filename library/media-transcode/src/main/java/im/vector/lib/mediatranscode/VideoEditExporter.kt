@@ -24,6 +24,11 @@ object VideoEditExporter {
 
     fun isSupported() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
 
+    fun outputSize(displayWidth: Int, displayHeight: Int, targetWidth: Int, targetHeight: Int): Pair<Int, Int> {
+        val geometry = CropGeometry.outputFor(displayWidth, displayHeight, floatArrayOf(0f, 0f, 1f, 1f), targetWidth, targetHeight)
+        return geometry.width to geometry.height
+    }
+
     @RequiresApi(18)
     suspend fun export(
             context: Context,

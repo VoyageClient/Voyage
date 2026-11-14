@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
+import org.matrix.android.sdk.internal.database.sql.SelectSendingStateByRoom
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.robolectric.RobolectricTestRunner
@@ -30,19 +31,26 @@ class SendingRowNotificationTest {
     private lateinit var database: SessionSqlDatabase
     private lateinit var stores: SessionStores
     private var notifications = 0
-    private val listener = Query.Listener { notifications++ }
+    private var previous = emptyList<SelectSendingStateByRoom>()
+    private val listener = Query.Listener {
+        val current = database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).executeAsList()
+        if (current != previous) {
+            previous = current
+            notifications++
+        }
+    }
 
     @Before
     fun setUp() {
         driver = FrameworkSqliteDriver.create(RuntimeEnvironment.getApplication(), name = null, schema = SessionSqlDatabase.Schema)
         database = SessionSqlDatabase(driver)
         stores = SessionStores(database)
-        database.timelineEventQueries.selectSendingByRoom(ROOM_ID).addListener(listener)
+        database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).addListener(listener)
     }
 
     @After
     fun tearDown() {
-        database.timelineEventQueries.selectSendingByRoom(ROOM_ID).removeListener(listener)
+        database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).removeListener(listener)
         driver.close()
     }
 
@@ -64,12 +72,12 @@ class SendingRowNotificationTest {
     fun `the row really is readable when the wake-up arrives`() {
         var seenWhenNotified = -1
         val counting = Query.Listener { seenWhenNotified = stores.timelineEvent.getSendingByRoom(ROOM_ID).size }
-        database.timelineEventQueries.selectSendingByRoom(ROOM_ID).addListener(counting)
+        database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).addListener(counting)
 
         database.transaction { insertSendingRow("\$echo1") }
 
         seenWhenNotified shouldBeEqualTo 1
-        database.timelineEventQueries.selectSendingByRoom(ROOM_ID).removeListener(counting)
+        database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).removeListener(counting)
     }
 
     @Test
@@ -81,6 +89,20 @@ class SendingRowNotificationTest {
 
         notifications shouldBeEqualTo 1
         stores.timelineEvent.getSendingByRoom(ROOM_ID).size shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `replacing media content and dimensions wakes the timeline without changing its timeline row`() {
+        insertSendingRow("\$compressed.echo")
+        notifications = 0
+        val entity = stores.event.getByEventId("\$compressed.echo")!!
+        entity.content = """{"msgtype":"m.video","url":"mxc://example.org/compressed","info":{"w":320,"h":176}}"""
+
+        database.transaction { stores.event.updateEcho(entity) }
+
+        notifications shouldBeEqualTo 1
+        database.timelineEventQueries.selectSendingStateByRoom(ROOM_ID).executeAsOne().content shouldBeEqualTo entity.content
+        stores.timelineEvent.getSendingByRoom(ROOM_ID).single().root?.content shouldBeEqualTo entity.content
     }
 
     private fun insertSendingRow(eventId: String) {

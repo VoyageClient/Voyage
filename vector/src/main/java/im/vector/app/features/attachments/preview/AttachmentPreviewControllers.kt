@@ -8,6 +8,8 @@
 package im.vector.app.features.attachments.preview
 
 import com.airbnb.epoxy.TypedEpoxyController
+import im.vector.lib.mediatranscode.VideoEditExporter
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import javax.inject.Inject
 
@@ -47,6 +49,19 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
             val settings = data.compressionSettings[data.stableIdOf(contentAttachmentData)]
                     .takeIf { !data.isSvg(contentAttachmentData) || data.rasterize.contains(data.stableIdOf(contentAttachmentData)) }
                     ?.takeUnless { data.isSentOriginal(contentAttachmentData) }
+            val requestedSize = settings?.width?.let { width -> settings.height?.let { width to it } }
+            val targetSize = if (contentAttachmentData.type == ContentAttachmentData.Type.VIDEO && requestedSize != null) {
+                // Older devices upload the original video because their platform cannot transcode it.
+                if (VideoEditExporter.isSupported()) {
+                    val width = contentAttachmentData.displayWidth?.toInt()?.takeIf { it > 0 } ?: requestedSize.first
+                    val height = contentAttachmentData.displayHeight?.toInt()?.takeIf { it > 0 } ?: requestedSize.second
+                    VideoEditExporter.outputSize(width, height, requestedSize.first, requestedSize.second)
+                } else null
+            } else requestedSize
+            DebugLog.i {
+                "UPLOADPREVIEW model type=${contentAttachmentData.type} source=${contentAttachmentData.displayWidth}x${contentAttachmentData.displayHeight} " +
+                        "requested=$requestedSize preview=$targetSize original=${data.isSentOriginal(contentAttachmentData)}"
+            }
             attachmentBigPreviewItem {
                 id(data.stableIdOf(contentAttachmentData))
                 attachment(data.previewOf(contentAttachmentData))
@@ -57,8 +72,7 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
                 previewReadyListener(host.previewReadyListener)
                 showInlineArt(host.showInlineArt)
                 waveformHeightPx(host.waveformHeightPx)
-                // So the preview is shaped like what will actually be sent.
-                targetSize(settings?.width?.let { width -> settings.height?.let { width to it } })
+                targetSize(targetSize)
             }
         }
     }

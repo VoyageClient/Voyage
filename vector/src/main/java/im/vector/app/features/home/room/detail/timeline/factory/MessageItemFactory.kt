@@ -107,6 +107,7 @@ import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -802,6 +803,11 @@ class MessageItemFactory @Inject constructor(
                 // The preserved copy is the full video, which also serves as its own poster frame.
                 preservedFile = preservedMediaFor(informationData),
         )
+        DebugLog.i {
+            "UPLOADPREVIEW timeline video event=${informationData.eventId} state=${informationData.sendState} " +
+                    "video=${messageContent.videoInfo?.width}x${messageContent.videoInfo?.height} " +
+                    "thumbnail=${thumbnailData.width}x${thumbnailData.height} url=${thumbnailData.url} local=${thumbnailData.allowNonMxcUrls}"
+        }
 
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,

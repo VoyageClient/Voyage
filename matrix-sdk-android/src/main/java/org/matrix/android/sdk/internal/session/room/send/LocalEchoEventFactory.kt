@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import im.vector.lib.mediatranscode.VideoEditExporter
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.ensureNotEmpty
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.Content
@@ -723,19 +725,26 @@ internal class LocalEchoEventFactory @Inject constructor(
         val aspectDisagrees = frameW > 0 && frameH > 0 && width > 0 && height > 0 &&
                 kotlin.math.abs(width.toFloat() / height - frameW.toFloat() / frameH) > 0.01f * (frameW.toFloat() / frameH)
         var (finalWidth, finalHeight) = if (aspectDisagrees) frameW to frameH else width to height
-        // A size the sender chose wins over anything measured from the source, and the thumbnail is
-        // declared at the same shape so the two never disagree — a deliberate stretch is applied to
-        // the still as well, which is what the video will look like.
         val targetWidth = attachment.compressionWidth
         val targetHeight = attachment.compressionHeight
-        if (targetWidth != null && targetHeight != null && targetWidth > 0 && targetHeight > 0) {
-            finalWidth = targetWidth
-            finalHeight = targetHeight
+        if (targetWidth != null && targetHeight != null && targetWidth > 0 && targetHeight > 0 &&
+                VideoEditExporter.isSupported()) {
+            val output = VideoEditExporter.outputSize(
+                    width.takeIf { it > 0 } ?: attachment.displayWidth?.toInt()?.takeIf { it > 0 } ?: targetWidth,
+                    height.takeIf { it > 0 } ?: attachment.displayHeight?.toInt()?.takeIf { it > 0 } ?: targetHeight,
+                    targetWidth, targetHeight,
+            )
+            finalWidth = output.first
+            finalHeight = output.second
             thumbnailInfo = thumbnailInfo?.let {
                 val thumbnailHeight = it.height.coerceAtLeast(1)
-                val thumbnailWidth = (thumbnailHeight.toFloat() * targetWidth / targetHeight).roundToInt()
+                val thumbnailWidth = (thumbnailHeight.toFloat() * finalWidth / finalHeight).roundToInt()
                 it.copy(width = thumbnailWidth.coerceAtLeast(1), height = thumbnailHeight)
             }
+        }
+        DebugLog.i {
+            "UPLOADPREVIEW local video source=${width}x$height frame=${frameW}x$frameH requested=${targetWidth}x$targetHeight " +
+                    "output=${finalWidth}x$finalHeight thumbnail=${thumbnailInfo?.width}x${thumbnailInfo?.height}"
         }
         val body = buildMediaBody(attachment, "video", captionText, captionFormattedText, autoMarkdown)
         return MessageVideoContent(

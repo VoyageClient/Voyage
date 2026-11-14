@@ -22,9 +22,12 @@ import android.graphics.Matrix
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
 import im.vector.lib.animatedimage.AnimatedFrame
+import im.vector.lib.animatedimage.AnimatedImageFormat
+import im.vector.lib.animatedimage.AnimatedImageReader
 import im.vector.lib.animatedimage.AnimatedWebpEncoder
-import im.vector.lib.animatedimage.ApngFrameReader
-import im.vector.lib.animatedimage.GifFrameReader
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.util.JxlSupport
@@ -59,11 +62,12 @@ internal class ImageCompressor @Inject constructor(
             }
 
             when (format) {
-                ImageSourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
-                ImageSourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                ImageSourceFormat.GIF -> compressAnimation(imageFile, AnimatedImageFormat.GIF, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                ImageSourceFormat.APNG -> compressAnimation(imageFile, AnimatedImageFormat.APNG, desiredWidth, desiredHeight, desiredQuality, exactSize)
                 ImageSourceFormat.JXL -> compressJxl(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
-                // Re-encoding would drop to the first frame and strip the animation.
-                ImageSourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
+                ImageSourceFormat.ANIMATED_WEBP -> if (exactSize) {
+                    compressAnimation(imageFile, AnimatedImageFormat.WEBP, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                } else CompressedImage(imageFile, mimeType = "image/webp")
                 // Platform WebP has no alpha/lossless support before 4.2.1: decoding either fails
                 // or bakes transparency to black, so keep the original bytes there.
                 ImageSourceFormat.STATIC_WEBP_ALPHA ->
@@ -122,10 +126,7 @@ internal class ImageCompressor @Inject constructor(
         if (!JxlSupport.isAvailable) return CompressedImage(imageFile, mimeType = null)
         // An animation would otherwise be decoded as its first frame alone and sent as a still.
         if ((JxlImageReader.frameCount(imageFile) ?: 1) > 1) {
-            val frames = JxlImageReader.readFrames(imageFile)
-            if (frames != null) {
-                return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
-            }
+            return compressAnimation(imageFile, AnimatedImageFormat.JXL, desiredWidth, desiredHeight, desiredQuality, exactSize)
         }
         val decoded = JxlImageReader.decode(imageFile, REENCODE_MAX_DIMENSION) ?: return CompressedImage(imageFile, mimeType = null)
         return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality, exactSize)
@@ -141,6 +142,7 @@ internal class ImageCompressor @Inject constructor(
             exactSize: Boolean,
     ): CompressedImage {
         val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight, exactSize)
+        if (compressedBitmap !== sourceBitmap) sourceBitmap.recycle()
         return try {
             val (format, mimeType) = if (hasTransparency(compressedBitmap)) {
                 Bitmap.CompressFormat.PNG to "image/png"
@@ -162,55 +164,48 @@ internal class ImageCompressor @Inject constructor(
         }
     }
 
-    private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
-        val frames = GifFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
-    }
-
-    private suspend fun compressApng(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
-        val frames = ApngFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
-    }
-
     @Suppress("LongParameterList")
-    private suspend fun encodeFramesToAnimatedWebp(
+    private suspend fun compressAnimation(
             originalFile: File,
-            frames: List<AnimatedFrame>,
+            format: AnimatedImageFormat,
             desiredWidth: Int,
             desiredHeight: Int,
             desiredQuality: Int,
             exactSize: Boolean,
     ): CompressedImage {
-        if (frames.isEmpty()) return CompressedImage(originalFile, mimeType = null)
-        // ANMF requires uniform canvas dims; scale every frame to fit the same bounds.
-        val scaled = frames.map { frame ->
-            val out = scaleBitmapToFit(frame.bitmap, desiredWidth, desiredHeight, exactSize)
-            if (out !== frame.bitmap) frame.bitmap.recycle()
-            AnimatedFrame(out, frame.durationMs)
-        }
-        // The platform WebP encoder cannot preserve alpha before API 18; retain the source animation there.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 && scaled.any { hasTransparency(it.bitmap) }) {
-            scaled.forEach { it.bitmap.recycle() }
-            return CompressedImage(originalFile, mimeType = null)
-        }
-        val destinationFile = temporaryFileCreator.create()
-        val ok = runCatching {
-            destinationFile.outputStream().use { os ->
-                AnimatedWebpEncoder.encode(scaled, desiredQuality, os)
+        val destination = temporaryFileCreator.create()
+        val job = currentCoroutineContext()
+        var writer: AnimatedWebpEncoder.StreamWriter? = null
+        var encoded = false
+        var unsupportedAlpha = false
+        try {
+            val decoded = AnimatedImageReader.visitFrames(originalFile, format) { frame, _, _ ->
+                job.ensureActive()
+                val bitmap = scaleBitmapToFit(frame.bitmap, desiredWidth, desiredHeight, exactSize)
+                try {
+                    // The API 14 WebP encoder cannot preserve transparent animation frames.
+                    unsupportedAlpha = Build.VERSION.SDK_INT < 18 && hasTransparency(bitmap)
+                    check(!unsupportedAlpha)
+                    val output = writer ?: AnimatedWebpEncoder.StreamWriter(destination, bitmap.width, bitmap.height, desiredQuality)
+                            .also { writer = it }
+                    check(output.append(listOf(AnimatedFrame(bitmap, frame.durationMs))))
+                } finally {
+                    if (bitmap !== frame.bitmap) bitmap.recycle()
+                }
             }
-        }.getOrDefault(false)
-        scaled.forEach { it.bitmap.recycle() }
-        if (!ok) {
-            destinationFile.delete()
-            return CompressedImage(originalFile, mimeType = null)
+            encoded = decoded && writer?.finish() == true
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            if (!unsupportedAlpha) Timber.w(failure, "Failed to compress animated image")
+        } finally {
+            runCatching { writer?.close() }.onFailure {
+                encoded = false
+                Timber.w(it, "Failed to close compressed animation")
+            }
+            if (!encoded || (!exactSize && destination.length() >= originalFile.length())) destination.delete()
         }
-        // Safety net: if re-encoding made the file bigger (rare with already-efficient sources),
-        // throw the result away and keep the original.
-        if (destinationFile.length() >= originalFile.length()) {
-            destinationFile.delete()
-            return CompressedImage(originalFile, mimeType = null)
-        }
-        return CompressedImage(destinationFile, mimeType = "image/webp")
+        return if (destination.exists() && encoded) CompressedImage(destination, mimeType = "image/webp")
+        else CompressedImage(originalFile, mimeType = null)
     }
 
     // hasAlpha() alone over-reports (any ARGB_8888 bitmap has an alpha channel, e.g. opaque
@@ -233,9 +228,7 @@ internal class ImageCompressor @Inject constructor(
             val width = maxWidth.coerceAtLeast(1)
             val height = maxHeight.coerceAtLeast(1)
             if (bitmap.width == width && bitmap.height == height) return bitmap
-            return Bitmap.createScaledBitmap(bitmap, width, height, true).also {
-                if (it !== bitmap) bitmap.recycle()
-            }
+            return Bitmap.createScaledBitmap(bitmap, width, height, true)
         }
         // Cap the *smaller* side to the limit (never upscaling), so the larger side scales
         // proportionally. This keeps long/wide images from being squished down to e.g. 100x640;
@@ -246,9 +239,7 @@ internal class ImageCompressor @Inject constructor(
         val scale = limit.toFloat() / smallerSide
         val newWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
         val newHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true).also {
-            if (it !== bitmap) bitmap.recycle()
-        }
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
     private fun rotateBitmap(file: File, bitmap: Bitmap): Bitmap {

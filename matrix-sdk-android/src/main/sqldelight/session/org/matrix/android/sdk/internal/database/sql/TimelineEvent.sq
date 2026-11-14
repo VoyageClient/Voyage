@@ -181,6 +181,13 @@ SELECT * FROM timeline_event WHERE room_id = ? AND event_id IN ?;
 selectSendingByRoom:
 SELECT * FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL ORDER BY id;
 
+selectSendingStateByRoom:
+SELECT timeline_event.*, event.type, event.content, event.decryption_result_json,
+       event.send_state_str, event.send_state_details, event.decryption_error_code, event.decryption_error_reason
+FROM timeline_event JOIN event ON event.id = timeline_event.root_event_db_id
+WHERE timeline_event.room_id = ? AND timeline_event.chunk_id IS NULL
+ORDER BY timeline_event.id;
+
 selectAllSending:
 SELECT * FROM timeline_event WHERE chunk_id IS NULL;
 

@@ -76,6 +76,8 @@ internal class DefaultFileService @Inject constructor(
         private val taskExecutor: org.matrix.android.sdk.internal.task.TaskExecutor,
 ) : FileService, UploadedMediaCache {
 
+    private val uploadCacheLock = Any()
+
     override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
         return fileUploader.uploadFromUri(uri, fileName, mimeType).contentUri
     }
@@ -261,13 +263,13 @@ internal class DefaultFileService @Inject constructor(
                 // MSC2246: our own media whose bytes are still uploading. Asking the homeserver for it
                 // would stall until the upload lands and then time out, so serve the local copy. Written
                 // to the decrypted slot: the registry holds plaintext, which is what callers want here.
-                pendingMediaUploadRegistry.getLocalFile(url)?.let { pending ->
-                    val target = cachedFiles.getClearFile()
-                    if (!target.exists()) {
-                        target.parentFile?.mkdirs()
-                        pending.copyTo(target, overwrite = true)
+                synchronized(uploadCacheLock) {
+                    pendingMediaUploadRegistry.getLocalFile(url)?.let { pending ->
+                        val target = cachedFiles.getClearFile()
+                        cacheUploadFile(pending, target)
+                        DebugLog.i { "UPLOADPREVIEW pending media cached url=$url source=${pending.path} stable=${target.path}" }
+                        return@withContext cachedFiles
                     }
-                    return@withContext cachedFiles
                 }
 
                 if (!cachedFiles.file.exists()) {
@@ -414,22 +416,35 @@ internal class DefaultFileService @Inject constructor(
             mimeType: String?,
             originalFile: File,
             encryptedFile: File?
-    ) {
+    ) = synchronized(uploadCacheLock) {
         val files = getFiles(mxcUrl, filename, mimeType, encryptedFile != null)
         if (encryptedFile != null) {
             // We switch the two files here, original file it the decrypted file
-            files.decryptedFile?.let { originalFile.copyTo(it, overwrite = true) }
-            encryptedFile.copyTo(files.file, overwrite = true)
+            files.decryptedFile?.let { cacheUploadFile(originalFile, it) }
+            cacheUploadFile(encryptedFile, files.file)
         } else {
             // Just copy the original file
-            originalFile.copyTo(files.file, overwrite = true)
+            cacheUploadFile(originalFile, files.file)
         }
+        DebugLog.i { "UPLOADPREVIEW upload cache stored url=$mxcUrl source=${originalFile.path} stable=${files.getClearFile().path}" }
         invalidateLocalFileCache()
+    }
+
+    private fun cacheUploadFile(source: File, target: File) {
+        if (target.exists()) return
+        target.parentFile?.mkdirs()
+        // Readers must never see a partial copy, or a temporary file removed by the byte-upload worker.
+        val temporary = File.createTempFile("upload-cache-", ".part", target.parentFile)
+        try {
+            source.copyTo(temporary, overwrite = true)
+            if (!temporary.renameTo(target)) throw IOException("Cannot cache uploaded media")
+        } finally {
+            temporary.delete()
+        }
     }
 
     override fun getLocalFileFor(mxcUrl: String?, fileName: String?, mimeType: String?, isEncrypted: Boolean): File? {
         mxcUrl ?: return null
-        pendingMediaUploadRegistry.getLocalFile(mxcUrl)?.let { return it }
         // Every bind of a media message asks this, and a timeline scroll binds hundreds — each one a stat
         // on a disk the session database is already hammering, which stalled the main thread for over a
         // second. The answer only changes when something is written or cleared, which bumps [cacheEpoch].

@@ -211,9 +211,10 @@ class ImageContentRenderer @Inject constructor(
                         "caller=${MediaDebug.callers(3)} last=${last?.let { "(event=${it.data.eventId} completed=${it.completed} " +
                                 "stale=${it.isStale} sameData=${it.data.rendersSameAs(data)})" }} " +
                         "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)} " +
-                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url}" }
+                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url} dims=${data.width}x${data.height} " +
+                        "previous=${last?.data?.width}x${last?.data?.height}" }
         val keepsRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
-                (last.data.rendersSameAs(data) || (last.data.isLocalContent && !data.isLocalContent))
+                last.data.rendersSameAs(data)
         if (keepsRender) {
             DebugLog.i { "MEDIADBG grid render kept: event=${data.eventId} view=${viewId(imageView)} url=${data.url}" }
             return
@@ -226,7 +227,7 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
-        val thisRender = last?.takeIf { !fromRetryTap && it.matches(data, mode) }
+        val thisRender = last?.takeIf { !fromRetryTap && !it.failed && it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
         val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
@@ -285,6 +286,10 @@ class ImageContentRenderer @Inject constructor(
                 DebugLog.i { "MEDIADBG thumbnail failed, waiting on the full-size fallback event=${data.eventId} view=${viewId(imageView)}" }
                 return true
             }
+            imageView.lastRender()?.let {
+                it.failed = true
+                it.completed = false
+            }
             e?.let { DebugLog.w(it) { "MEDIADBG load failure tree event=${data.eventId}" } }
             settle("failed: ${e?.message}")
             if (data.isUploading()) {
@@ -316,6 +321,7 @@ class ImageContentRenderer @Inject constructor(
             imageView.setTag(R.id.image_renderer_retrying, null)
             failedMediaTracker.onLoadSucceeded(data.url)
             current.completed = true
+            current.failed = false
             // Real bounds at last — drop the holding square for the picture's own shape.
             if (sizesToPicture && !data.hasKnownDimensions()) {
                 imageView.sizeToPicture(data, mode, resource)
@@ -339,15 +345,11 @@ class ImageContentRenderer @Inject constructor(
      */
     @VisibleForTesting(otherwise = PRIVATE)
     internal fun keepsPendingRender(last: LastRender?, data: Data, mode: Mode, fromRetryTap: Boolean): Boolean =
-            last != null && !last.completed && !fromRetryTap && !last.isStale && last.matches(data, mode)
+            last != null && !last.completed && !last.failed && !fromRetryTap && !last.isStale && last.matches(data, mode)
 
-    /**
-     * A render that has gone this long without an answer is treated as wedged, and its replacement
-     * carries a fresh key so Glide starts a new request rather than folding it into the stuck one.
-     * Anything sooner would throw away a download that is still progressing.
-     */
+    // A fresh key prevents Glide from reusing a failed or stalled request.
     private fun restartsWedgedRender(last: LastRender?, data: Data, mode: Mode): Boolean =
-            last != null && !last.completed && last.isStale && last.matches(data, mode)
+            last != null && !last.completed && (last.failed || last.isStale) && last.matches(data, mode)
 
     private fun freshKeyIf(needed: Boolean): String? = if (needed) "retry-${SystemClock.uptimeMillis()}" else null
 
@@ -357,6 +359,7 @@ class ImageContentRenderer @Inject constructor(
             val mode: Mode,
             var completed: Boolean,
             val startedAt: Long = SystemClock.uptimeMillis(),
+            var failed: Boolean = false,
     ) {
 
         val isStale: Boolean get() = SystemClock.uptimeMillis() - startedAt > PENDING_RENDER_STALE_MS
@@ -448,20 +451,18 @@ class ImageContentRenderer @Inject constructor(
             showFailureGlyph: Boolean = true,
     ) {
         val size = processSize(data, mode)
-        // Local-echo → remote swap of a fully-rendered message: the media is byte-identical to what
-        // is on screen (we just uploaded it) — reloading would only flash the blurhash and restart
-        // animations. Keep the completed local render.
         val last = imageView.lastRender()
         DebugLog.i { "MEDIADBG render decide event=${data.eventId} view=${viewId(imageView)} mode=$mode retryTap=$fromRetryTap " +
                         "caller=${MediaDebug.callers(3)} last=${last?.let { "(event=${it.data.eventId} stable=${it.stableId} mode=${it.mode} " +
                                 "completed=${it.completed} stale=${it.isStale} sameData=${it.data.rendersSameAs(data)})" }} " +
                         "drawable=${MediaDebug.drawable(imageView.drawable)} request=${MediaDebug.request(imageView)} " +
-                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url}" }
+                        "trackerFailed=${failedMediaTracker.isFailed(data.url)} url=${data.url} dims=${data.width}x${data.height} " +
+                        "previous=${last?.data?.width}x${last?.data?.height}" }
         // A rebind that asks for exactly what is already drawn starts a fresh Glide request all the
         // same, and its placeholder step wipes the finished image for the frames that takes.
-        val keepsLocalRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
-                (last.data.rendersSameAs(data) || (last.data.isLocalContent && !data.isLocalContent))
-        if (keepsLocalRender) {
+        val keepsRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
+                last.data.rendersSameAs(data)
+        if (keepsRender) {
             DebugLog.i { "MEDIADBG render kept: event=${data.eventId} view=${viewId(imageView)} url=${data.url}" }
             return
         }
@@ -505,7 +506,7 @@ class ImageContentRenderer @Inject constructor(
 
         // An identical rebind may reuse the still-current Glide request (no new onResourceReady),
         // so keep the existing record and its completed flag.
-        val thisRender = last?.takeIf { it.matches(data, mode) }
+        val thisRender = last?.takeIf { !it.failed && it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
         val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
@@ -528,8 +529,6 @@ class ImageContentRenderer @Inject constructor(
                         "retryTap=$fromRetryTap restartsWedged=$restartsWedgedRender " +
                         "knownFailed=$retryingFailed drawable=${imageView.drawable?.javaClass?.simpleName} url=${data.url}" }
         val pending = PendingRenders.startOn(imageView, data, mode)
-        // Built once per view so a rebind is the request Glide is already serving, and handed to the
-        // request itself so the thumbnail fallback keeps it up rather than blanking the view.
         val placeholder = pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
         fun listener(isFallback: Boolean) = RenderListener(
                 imageView, data, mode, pending, isFallback,
@@ -683,6 +682,10 @@ class ImageContentRenderer @Inject constructor(
      */
     private fun Data.isUploading(): Boolean {
         if (allowNonMxcUrls) return true
+        return isUploadPending()
+    }
+
+    private fun Data.isUploadPending(): Boolean {
         val session = activeSessionHolder.getSafeActiveSession() ?: return false
         return session.fileService().isUploadPending(url)
     }
@@ -890,8 +893,7 @@ class ImageContentRenderer @Inject constructor(
             return
         }
         val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
-        val req = if (data.elementToDecrypt != null) {
-            // Encrypted image
+        val req = if (data.elementToDecrypt != null || data.isUploadPending()) {
             GlideApp
                     .with(contextView)
                     .load(data)
@@ -927,8 +929,7 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
-        val req = if (data.elementToDecrypt != null) {
-            // Encrypted image
+        val req = if (data.elementToDecrypt != null || data.isUploadPending()) {
             GlideApp
                     .with(imageView)
                     .load(data)
@@ -1004,9 +1005,10 @@ class ImageContentRenderer @Inject constructor(
         val localCopy = lazy { localCopyOf(data) }
         val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
         val isLocalVideoUri = isLocalUri && data.mimeType?.startsWith("video/") == true
-        if (isLocalVideoUri || data.elementToDecrypt != null || isLocalUri) {
+        val uploadPending = data.isUploadPending()
+        if (isLocalVideoUri || data.elementToDecrypt != null || isLocalUri || uploadPending) {
             DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode size=${size.width}x${size.height} " +
-                            "via=${if (isLocalVideoUri) "localVideoUri" else if (isLocalUri) "localUri" else "encryptedDataLoader"} url=${data.url}" }
+                            "via=${if (isLocalVideoUri) "localVideoUri" else if (isLocalUri) "localUri" else if (uploadPending) "pendingUpload" else "encryptedDataLoader"} url=${data.url}" }
         }
         val request = if (isLocalVideoUri) {
             // Local-echo video — load the uri directly so Glide can use a
@@ -1019,12 +1021,8 @@ class ImageContentRenderer @Inject constructor(
                     .load(android.net.Uri.parse(data.url))
                     .frame(0)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
-        } else if (data.elementToDecrypt != null || isLocalUri) {
-            // Encrypted image, or local-echo uri — go through our custom data loader so
-            // Glide always sees an InputStream. The default local-uri loader otherwise prefers a
-            // ParcelFileDescriptor, which routes to Downsampler (still bitmap) and skips the
-            // animated decoder chain — so APNG/animated WebP previews freeze on the first frame
-            // until the upload completes and we switch to an HTTP URL.
+        } else if (data.elementToDecrypt != null || isLocalUri || uploadPending) {
+            // ByteBuffer decoding preserves animation; the SDK also gives pending uploads stable cache files.
             glideRequests
                     .load(data)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)

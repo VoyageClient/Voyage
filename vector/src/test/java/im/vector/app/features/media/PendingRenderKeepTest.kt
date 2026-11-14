@@ -87,6 +87,11 @@ class PendingRenderKeepTest {
     }
 
     @Test
+    fun `a failed render is not a pending one`() {
+        keeps(pending().apply { failed = true }) shouldBeEqualTo false
+    }
+
+    @Test
     fun `nothing rendered yet is not a pending render`() {
         keeps(null) shouldBeEqualTo false
     }

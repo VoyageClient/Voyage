@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
@@ -274,8 +275,12 @@ internal class LocalEchoRepository @Inject constructor(
             try {
                 database.awaitDbTransaction(dispatcher) {
                     stores.event.getByEventId(eventId)?.let { entity ->
+                        val oldContent = entity.content
                         block(entity)
                         stores.event.updateEcho(entity)
+                        DebugLog.i {
+                            "UPLOADPREVIEW echo stored event=$eventId content=${oldContent.hashCode()}->${entity.content.hashCode()} type=${entity.type} state=${entity.sendState}"
+                        }
                     }
                 }
                 done.complete(Unit)

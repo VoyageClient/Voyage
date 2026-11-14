@@ -61,12 +61,9 @@ interface FileService {
             )
 
     /**
-     * A local copy of this content URI, if one exists — either bytes we are still uploading (MSC2246)
-     * or an earlier download already in the cache. Null when the content really has to be fetched.
-     *
-     * Rendering from this avoids re-downloading our own media, and avoids asking the homeserver for a
-     * URI whose bytes have not landed yet (which stalls until it times out). Cheap enough for a binding
-     * path: an in-memory lookup plus at most one stat.
+     * A stable cached copy of this content URI. A pending upload's temporary source is withheld because
+     * its worker can delete it; use [downloadFile] to copy pending bytes into the cache asynchronously.
+     * Cheap enough for a binding path: an in-memory lookup plus at most one stat.
      */
     fun getLocalFileFor(mxcUrl: String?, fileName: String?, mimeType: String?, isEncrypted: Boolean = false): File?
 
