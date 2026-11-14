@@ -1790,8 +1790,6 @@
     <string name="reset_cross_signing">صفّر المفاتيح</string>
     <string name="a11y_qr_code_for_verification">رمز QR</string>
     <string name="qr_code_scanned_by_other_notice">أوشكنا! هل تظهر علامة صح لدى %s؟</string>
-    <string name="qr_code_scanned_by_other_yes">نعم</string>
-    <string name="qr_code_scanned_by_other_no">لا</string>
     <string name="no_connectivity_to_the_server_indicator">انقطع الاتصال بالخادوم</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">وضع الطيران مفعّل</string>
     <string name="settings_dev_tools">أدوات المطوّرين</string>
@@ -3047,8 +3045,6 @@
     <string name="encryption_export_notice_optional">يمكنك اختياريًا إنشاء عبارة مرور لتعمية المفاتيح المصدَّرة. إن عيّنت واحدة فستحتاج إلى إدخال عبارة المرور نفسها لاستيراد المفاتيح؛ اتركها فارغة للتصدير دون تعمية.</string>
     <string name="settings_randomize_upload_filenames_title">اجعل أسماء الملفات المرفوعة عشوائية</string>
     <string name="settings_randomize_upload_filenames_summary">استبدل اسم الملفات المرفوعة بمعرّف عشوائي</string>
-    <string name="settings_randomize_upload_filenames_always">نعم</string>
-    <string name="settings_randomize_upload_filenames_never">لا</string>
     <string name="settings_randomize_upload_filenames_public">في الغرف العامة</string>
     <string name="login_server_matrix_id_text">استخدم حسابك الحالي ‎@user:domain.com</string>
     <string name="settings_app_icon_color_title">لون أيقونة التطبيق</string>
@@ -3214,16 +3210,12 @@
     <string name="redaction_media_size_10mb">10 ميغابايت</string>
     <string name="redaction_media_size_25mb">25 ميغابايت</string>
     <string name="redaction_media_size_50mb">50 ميغابايت</string>
-    <string name="redaction_override_on">نعم</string>
-    <string name="redaction_override_off">لا</string>
     <string name="settings_use_account_setting">استخدم إعداد الحساب</string>
     <string name="room_personalization_media_category">الأمان والخصوصية</string>
     <string name="room_personalization_redaction_category">الحذف</string>
     <string name="room_personalization_media_preview_show">اعرض</string>
     <string name="room_personalization_media_preview_hide">أخفِ</string>
     <string name="settings_homeserver_info_reloaded">أُعيد تحميل معلومات خادوم المنزل</string>
-    <string name="settings_server_admin_yes">نعم</string>
-    <string name="settings_server_admin_no">لا</string>
     <string name="settings_server_admin_unknown">غير معروف</string>
     <string name="room_settings_room_access_knock_restricted_title">أعضاء المساحة، أو طلب الانضمام</string>
     <string name="room_settings_room_access_knock_restricted_description">يمكن لأعضاء المساحات المحددة الانضمام دون دعوة. على الآخرين طلب الانضمام.</string>
@@ -3287,7 +3279,6 @@
     <string name="settings_link_previews_encrypted">الغرف المعمّاة</string>
     <string name="settings_link_previews_unencrypted">الغرف غير المعمّاة</string>
     <string name="settings_link_previews_room">اجلب معاينات الروابط</string>
-    <string name="settings_link_preview_source_none">لا</string>
     <string name="settings_link_preview_source_device">على الجهاز</string>
     <string name="settings_link_preview_source_server">على الخادوم</string>
     <string name="attachment_caption_hint">أضف تعليقًا…</string>
@@ -3946,4 +3937,14 @@
     <string name="room_personalization_media_reset_confirmation">أتريد إعادة إعدادات الأمان والخصوصية لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
     <string name="room_personalization_redaction_reset_confirmation">أتريد إعادة إعدادات الحذف لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
     <string name="settings_hide_avatars_summary">اعرض الصورة الرمزية المبدئية للغرف والمساحات التي تكون فيها الوسائط مخفية، وللأشخاص فيها</string>
+    <string name="settings_room_sync_scope_title">مزامنة حالات الغرف</string>
+    <string name="settings_room_sync_scope_all">كل الغرف</string>
+    <string name="settings_room_sync_scope_direct">الرسائل المباشرة فقط</string>
+    <string name="settings_room_sync_scope_opened">الغرف التي تفتحها فقط</string>
+    <string name="settings_room_sync_scope_summary">أبقِ غرفك محدّثة بالتحقق من خادوم المنزل بحثًا عن رسائل جديدة. الغرف غير المُزامَنة لا تتحدّث إلا عند فتحها.</string>
+    <string name="settings_room_sync_unavailable">يتطلب مزامنة الجيل التالي (MSC4186)، وهي معطّلة في المختبرات أو لا يوفرها خادوم المنزل.</string>
+    <string name="room_personalization_sync_title">مزامنة حالة الغرفة</string>
+    <string name="room_personalization_room_list_reset_confirmation">أتريد إعادة إعدادات قائمة الغرف لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="option_yes">نعم</string>
+    <string name="option_no">لا</string>
 </resources>

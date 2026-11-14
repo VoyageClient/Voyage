@@ -46,6 +46,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
 import org.matrix.android.sdk.api.session.space.SpaceOrderUtils
@@ -218,7 +219,7 @@ class SpaceListViewModel @AssistedInject constructor(
                 .map { roomSummaries ->
                     val tagItems = roomSummaries
                             .flatMap { summary -> summary.tags.map { it.name } }
-                            .filterNot(RoomSections::isSectionTag)
+                            .filterNot { RoomSections.isSectionTag(it) || RoomTag.isSyncOverrideTag(it) }
                             .groupingBy { it }
                             .eachCount()
                             .map { (name, count) ->

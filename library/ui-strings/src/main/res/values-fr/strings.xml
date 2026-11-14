@@ -1118,8 +1118,6 @@
     <string name="reset_cross_signing">Réinitialiser les clés</string>
     <string name="a11y_qr_code_for_verification">Code QR</string>
     <string name="qr_code_scanned_by_other_notice">On y est presque ! Est-ce que %s affiche une marque cochée \?</string>
-    <string name="qr_code_scanned_by_other_yes">Oui</string>
-    <string name="qr_code_scanned_by_other_no">Non</string>
     <string name="no_connectivity_to_the_server_indicator">La connexion avec le serveur a été perdue</string>
     <string name="login_signup_username_hint">Nom d’utilisateur</string>
     <string name="settings_dev_tools">Outils de développement</string>
@@ -2952,8 +2950,6 @@
     <string name="encryption_export_notice_optional">Vous pouvez éventuellement créer une phrase secrète pour chiffrer les clés exportées. Si vous en définissez une, vous devrez saisir la même phrase secrète pour importer les clés ; laissez vide pour exporter sans chiffrement.</string>
     <string name="settings_randomize_upload_filenames_title">Rendre aléatoires les noms des fichiers envoyés</string>
     <string name="settings_randomize_upload_filenames_summary">Remplacer le nom des fichiers envoyés par un identifiant aléatoire</string>
-    <string name="settings_randomize_upload_filenames_always">Oui</string>
-    <string name="settings_randomize_upload_filenames_never">Non</string>
     <string name="settings_randomize_upload_filenames_public">Dans les salons publics</string>
     <string name="login_server_matrix_id_text">Utilisez votre compte @utilisateur:domaine.com existant</string>
     <string name="settings_app_icon_color_title">Couleur de l’icône de l’application</string>
@@ -3119,16 +3115,12 @@
     <string name="redaction_media_size_10mb">10 Mo</string>
     <string name="redaction_media_size_25mb">25 Mo</string>
     <string name="redaction_media_size_50mb">50 Mo</string>
-    <string name="redaction_override_on">Oui</string>
-    <string name="redaction_override_off">Non</string>
     <string name="settings_use_account_setting">Utiliser le paramètre du compte</string>
     <string name="room_personalization_media_category">Sécurité et vie privée</string>
     <string name="room_personalization_redaction_category">Suppressions</string>
     <string name="room_personalization_media_preview_show">Afficher</string>
     <string name="room_personalization_media_preview_hide">Masquer</string>
     <string name="settings_homeserver_info_reloaded">Infos du serveur d’accueil rechargées</string>
-    <string name="settings_server_admin_yes">Oui</string>
-    <string name="settings_server_admin_no">Non</string>
     <string name="settings_server_admin_unknown">Inconnu</string>
     <string name="room_settings_room_access_knock_restricted_title">Membres de l’espace, ou demande pour rejoindre</string>
     <string name="room_settings_room_access_knock_restricted_description">Les membres des espaces sélectionnés peuvent rejoindre sans invitation. Les autres doivent demander à rejoindre.</string>
@@ -3192,7 +3184,6 @@
     <string name="settings_link_previews_encrypted">Salons chiffrés</string>
     <string name="settings_link_previews_unencrypted">Salons non chiffrés</string>
     <string name="settings_link_previews_room">Récupérer les aperçus de liens</string>
-    <string name="settings_link_preview_source_none">Non</string>
     <string name="settings_link_preview_source_device">Sur l’appareil</string>
     <string name="settings_link_preview_source_server">Côté serveur</string>
     <string name="attachment_caption_hint">Ajouter une légende…</string>
@@ -3755,4 +3746,14 @@
     <string name="room_personalization_media_reset_confirmation">Rétablir les paramètres de sécurité et de vie privée de ce salon sur ceux de votre compte ?</string>
     <string name="room_personalization_redaction_reset_confirmation">Rétablir les paramètres de suppression de ce salon sur ceux de votre compte ?</string>
     <string name="settings_hide_avatars_summary">Afficher l’avatar par défaut pour les salons et espaces où les médias sont masqués, ainsi que pour les personnes qui s’y trouvent</string>
+    <string name="settings_room_sync_scope_title">Synchroniser l’état des salons</string>
+    <string name="settings_room_sync_scope_all">Tous les salons</string>
+    <string name="settings_room_sync_scope_direct">Messages directs uniquement</string>
+    <string name="settings_room_sync_scope_opened">Uniquement les salons que vous ouvrez</string>
+    <string name="settings_room_sync_scope_summary">Gardez vos salons à jour en demandant les nouveaux messages à votre serveur d’accueil. Les salons non synchronisés ne se mettent à jour que lorsque vous les ouvrez.</string>
+    <string name="settings_room_sync_unavailable">Nécessite la synchronisation de nouvelle génération (MSC4186), désactivée dans Expérimental ou non proposée par votre serveur d’accueil.</string>
+    <string name="room_personalization_sync_title">Synchroniser l’état du salon</string>
+    <string name="room_personalization_room_list_reset_confirmation">Rétablir les paramètres de liste des salons de ce salon sur ceux de votre compte ?</string>
+    <string name="option_yes">Oui</string>
+    <string name="option_no">Non</string>
 </resources>

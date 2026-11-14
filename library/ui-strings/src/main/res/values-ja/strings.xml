@@ -476,8 +476,6 @@
     </plurals>
     <string name="crosssigning_verify_this_session">この端末を認証</string>
     <string name="a11y_qr_code_for_verification">QRコード</string>
-    <string name="qr_code_scanned_by_other_yes">はい</string>
-    <string name="qr_code_scanned_by_other_no">いいえ</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">機内モードが有効です</string>
     <string name="settings_dev_tools">開発者ツール</string>
     <string name="settings_account_data">アカウントデータ</string>
@@ -2898,8 +2896,6 @@
     <string name="encryption_export_notice_optional">必要に応じて、エクスポートした鍵を暗号化するパスフレーズを作成してください。設定した場合、鍵をインポートするには同じパスフレーズを入力する必要があります。空欄のままにすると暗号化せずにエクスポートします。</string>
     <string name="settings_randomize_upload_filenames_title">アップロードするファイル名をランダム化</string>
     <string name="settings_randomize_upload_filenames_summary">アップロードするファイルの名前をランダムなIDに置き換える</string>
-    <string name="settings_randomize_upload_filenames_always">はい</string>
-    <string name="settings_randomize_upload_filenames_never">いいえ</string>
     <string name="settings_randomize_upload_filenames_public">公開ルームで</string>
     <string name="login_server_matrix_id_text">既存の@user:domain.comアカウントを使用</string>
     <string name="settings_app_icon_color_title">アプリアイコンの色</string>
@@ -3065,16 +3061,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">はい</string>
-    <string name="redaction_override_off">いいえ</string>
     <string name="settings_use_account_setting">アカウントの設定を使用</string>
     <string name="room_personalization_media_category">セキュリティーとプライバシー</string>
     <string name="room_personalization_redaction_category">削除されたメッセージ</string>
     <string name="room_personalization_media_preview_show">表示</string>
     <string name="room_personalization_media_preview_hide">非表示</string>
     <string name="settings_homeserver_info_reloaded">ホームサーバーの情報を再読み込みしました</string>
-    <string name="settings_server_admin_yes">はい</string>
-    <string name="settings_server_admin_no">いいえ</string>
     <string name="settings_server_admin_unknown">不明</string>
     <string name="room_settings_room_access_knock_restricted_title">スペースのメンバー、または参加をリクエスト</string>
     <string name="room_settings_room_access_knock_restricted_description">選択したスペースのメンバーは招待なしで参加できます。それ以外の人は参加をリクエストする必要があります。</string>
@@ -3137,7 +3129,6 @@
     <string name="settings_link_previews_encrypted">暗号化されたルーム</string>
     <string name="settings_link_previews_unencrypted">暗号化されていないルーム</string>
     <string name="settings_link_previews_room">リンクのプレビューを取得</string>
-    <string name="settings_link_preview_source_none">しない</string>
     <string name="settings_link_preview_source_device">端末上</string>
     <string name="settings_link_preview_source_server">サーバー側</string>
     <string name="attachment_caption_hint">キャプションを追加…</string>
@@ -3680,4 +3671,14 @@
     <string name="room_personalization_media_reset_confirmation">このルームのセキュリティーとプライバシーの設定を、アカウント全体のものにリセットしますか？</string>
     <string name="room_personalization_redaction_reset_confirmation">このルームの削除されたメッセージの設定を、アカウント全体のものにリセットしますか？</string>
     <string name="settings_hide_avatars_summary">メディアが非表示のルームとスペース、およびその参加者に既定のアバターを表示</string>
+    <string name="settings_room_sync_scope_title">ルームの状態を同期</string>
+    <string name="settings_room_sync_scope_all">すべてのルーム</string>
+    <string name="settings_room_sync_scope_direct">ダイレクトメッセージのみ</string>
+    <string name="settings_room_sync_scope_opened">開いたルームのみ</string>
+    <string name="settings_room_sync_scope_summary">ホームサーバーに新しいメッセージを確認して、ルームを最新の状態に保ちます。同期しないルームは、開いたときにだけ更新されます。</string>
+    <string name="settings_room_sync_unavailable">次世代の同期（MSC4186）が必要です。ラボで無効になっているか、ホームサーバーが対応していません。</string>
+    <string name="room_personalization_sync_title">ルームの状態を同期</string>
+    <string name="room_personalization_room_list_reset_confirmation">このルームのルーム一覧の設定を、アカウント全体のものにリセットしますか？</string>
+    <string name="option_yes">はい</string>
+    <string name="option_no">いいえ</string>
 </resources>

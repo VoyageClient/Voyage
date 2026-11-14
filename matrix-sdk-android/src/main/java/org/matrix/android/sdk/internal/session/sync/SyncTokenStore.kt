@@ -34,4 +34,7 @@ internal class SyncTokenStore @Inject constructor(private val stores: SessionSto
 
     fun getSlidingSyncStateVersion(): String? = stores.syncToken.getSlidingSyncStateVersion()
     fun setSlidingSyncStateVersion(version: String?) = stores.syncToken.setSlidingSyncStateVersion(version)
+
+    fun getSlidingSyncTransport(): String? = stores.syncToken.getSlidingSyncTransport()
+    fun setSlidingSyncTransport(transport: String?) = stores.syncToken.setSlidingSyncTransport(transport)
 }

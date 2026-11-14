@@ -78,4 +78,15 @@ interface SyncService {
      * This methods return true if an initial sync has been processed.
      */
     fun hasAlreadySynced(): Boolean
+
+    fun getRoomSyncScope(): RoomSyncScope
+
+    /** Takes effect on the next sync request, which this starts right away. */
+    fun setRoomSyncScope(scope: RoomSyncScope)
+
+    /**
+     * Whether rooms can be left out of sync at all, i.e. MSC4186 is enabled and offered by the server.
+     * [RoomSyncScope] and the per-room sync tags are ignored otherwise.
+     */
+    fun canLimitRoomSync(): Boolean
 }

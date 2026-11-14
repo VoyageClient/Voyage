@@ -59,6 +59,11 @@ internal class SlidingSyncRoomSubscriptions @Inject constructor() {
         }
     }
 
+    /** Something else that shapes the request changed; worth interrupting the current long poll for. */
+    fun invalidate() {
+        listeners.forEach { it() }
+    }
+
     fun addListener(listener: () -> Unit) {
         listeners.add(listener)
     }

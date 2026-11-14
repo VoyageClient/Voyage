@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.settings
 
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.session.sync.RoomSyncScope
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
@@ -89,6 +90,14 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         }
     }
 
+    internal fun getRoomSyncScope(userId: String): RoomSyncScope {
+        return RoomSyncScope.fromValue(sdkDefaultPrefs.getString("${SETTINGS_ROOM_SYNC_SCOPE}_$userId", null)) ?: RoomSyncScope.ALL
+    }
+
+    internal fun setRoomSyncScope(userId: String, scope: RoomSyncScope) {
+        sdkDefaultPrefs.putString("${SETTINGS_ROOM_SYNC_SCOPE}_$userId", scope.value)
+    }
+
     /**
      * Set the presence status sent on syncs when the application is in foreground.
      *
@@ -123,5 +132,6 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         private const val SETTINGS_LINK_PREVIEW_ENCRYPTED = "SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY"
         private const val SETTINGS_LINK_PREVIEW_UNENCRYPTED = "SETTINGS_LINK_PREVIEW_UNENCRYPTED_KEY"
         private const val SETTINGS_LINK_PREVIEW_SOURCE = "SETTINGS_LINK_PREVIEW_SOURCE_KEY"
+        private const val SETTINGS_ROOM_SYNC_SCOPE = "SETTINGS_ROOM_SYNC_SCOPE_KEY"
     }
 }

@@ -1689,8 +1689,6 @@
     <string name="reset_cross_signing">Anahtarları Sıfırla</string>
     <string name="a11y_qr_code_for_verification">QR kodu</string>
     <string name="qr_code_scanned_by_other_notice">Neredeyse bitti! %s bir onay işareti gösteriyor mu?</string>
-    <string name="qr_code_scanned_by_other_yes">Evet</string>
-    <string name="qr_code_scanned_by_other_no">Hayır</string>
     <string name="no_connectivity_to_the_server_indicator">Sunucuyla bağlantı kesildi</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Uçak modu açık</string>
     <string name="settings_dev_tools">Geliştirici Araçları</string>
@@ -2909,8 +2907,6 @@
     <string name="encryption_export_notice_optional">İsteğe bağlı olarak dışa aktarılan anahtarları şifrelemek için bir parola oluşturun. Bir parola belirlerseniz anahtarları içe aktarmak için aynı parolayı girmeniz gerekir; şifrelemeden dışa aktarmak için boş bırakın.</string>
     <string name="settings_randomize_upload_filenames_title">Yüklenen dosya adlarını rastgele yap</string>
     <string name="settings_randomize_upload_filenames_summary">Yüklenen dosyaların adını rastgele bir kimlikle değiştir</string>
-    <string name="settings_randomize_upload_filenames_always">Evet</string>
-    <string name="settings_randomize_upload_filenames_never">Hayır</string>
     <string name="settings_randomize_upload_filenames_public">Herkese açık odalarda</string>
     <string name="login_server_matrix_id_text">Mevcut @kullanici:alanadi.com hesabınızı kullanın</string>
     <string name="settings_app_icon_color_title">Uygulama simgesi rengi</string>
@@ -3085,16 +3081,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">Evet</string>
-    <string name="redaction_override_off">Hayır</string>
     <string name="settings_use_account_setting">Hesap ayarını kullan</string>
     <string name="room_personalization_media_category">Güvenlik ve Gizlilik</string>
     <string name="room_personalization_redaction_category">Silinen mesajlar</string>
     <string name="room_personalization_media_preview_show">Göster</string>
     <string name="room_personalization_media_preview_hide">Gizle</string>
     <string name="settings_homeserver_info_reloaded">Ana sunucu bilgileri yeniden yüklendi</string>
-    <string name="settings_server_admin_yes">Evet</string>
-    <string name="settings_server_admin_no">Hayır</string>
     <string name="settings_server_admin_unknown">Bilinmiyor</string>
     <string name="room_settings_room_access_knock_restricted_title">Alan üyeleri veya katılmak için sor</string>
     <string name="room_settings_room_access_knock_restricted_description">Seçilen alanların üyeleri davet olmadan katılabilir. Diğer herkesin katılmak için istek göndermesi gerekir.</string>
@@ -3157,7 +3149,6 @@
     <string name="settings_link_previews_encrypted">Şifreli odalar</string>
     <string name="settings_link_previews_unencrypted">Şifresiz odalar</string>
     <string name="settings_link_previews_room">Bağlantı önizlemelerini getir</string>
-    <string name="settings_link_preview_source_none">Hayır</string>
     <string name="settings_link_preview_source_device">Cihazda</string>
     <string name="settings_link_preview_source_server">Sunucu tarafında</string>
     <string name="attachment_caption_hint">Açıklama ekle…</string>
@@ -3713,4 +3704,14 @@
     <string name="room_personalization_media_reset_confirmation">Bu odanın güvenlik ve gizlilik ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
     <string name="room_personalization_redaction_reset_confirmation">Bu odanın silinen mesaj ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
     <string name="settings_hide_avatars_summary">Medyanın gizlendiği odalar ve alanlar ile bunlardaki kişiler için varsayılan avatarı göster</string>
+    <string name="settings_room_sync_scope_title">Oda durumlarını eşitle</string>
+    <string name="settings_room_sync_scope_all">Tüm odalar</string>
+    <string name="settings_room_sync_scope_direct">Yalnızca doğrudan mesajlar</string>
+    <string name="settings_room_sync_scope_opened">Yalnızca açtığınız odalar</string>
+    <string name="settings_room_sync_scope_summary">Yeni mesajlar için ana sunucunuzu denetleyerek odalarınızı güncel tutun. Eşitlenmeyen odalar yalnızca onları açtığınızda güncellenir.</string>
+    <string name="settings_room_sync_unavailable">Yeni nesil eşitleme (MSC4186) gerekir; Laboratuarlar bölümünde kapalı ya da ana sunucunuz tarafından sunulmuyor.</string>
+    <string name="room_personalization_sync_title">Oda durumunu eşitle</string>
+    <string name="room_personalization_room_list_reset_confirmation">Bu odanın oda listesi ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="option_yes">Evet</string>
+    <string name="option_no">Hayır</string>
 </resources>

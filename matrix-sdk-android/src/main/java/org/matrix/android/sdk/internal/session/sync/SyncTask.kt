@@ -244,15 +244,15 @@ internal class DefaultSyncTask @Inject constructor(
     }
 
     /**
-     * MSC4525 is MSC4186 with the lists, the connection expiry and the client error path taken out,
-     * so it wins wherever the server offers both. Null means staying on sync v2.
+     * MSC4186 wins wherever the server offers both: MSC4525 has no lists or room subscriptions, so it can
+     * neither prioritize rooms nor leave any out (RoomSyncScope). Null means staying on sync v2.
      */
     private fun slidingSyncMode(): SlidingSyncMode? {
         if (!lightweightSettingsStorage.isSlidingSyncEnabled()) return null
         val capabilities = homeServerCapabilitiesDataSource.getHomeServerCapabilities()
         return when {
-            capabilities?.canUsePaginatedSync == true -> SlidingSyncMode.PAGINATED
             capabilities?.canUseSimplifiedSlidingSync == true -> SlidingSyncMode.SIMPLIFIED
+            capabilities?.canUsePaginatedSync == true -> SlidingSyncMode.PAGINATED
             // An account already on a sliding connection stays on it even if the capability momentarily
             // reads false — a failed capability refresh would otherwise drop it onto sync v2 with no
             // since-token, i.e. re-download the whole account behind a progress screen.

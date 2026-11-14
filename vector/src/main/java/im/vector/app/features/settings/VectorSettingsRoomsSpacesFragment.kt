@@ -10,11 +10,13 @@ package im.vector.app.features.settings
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.sync.RoomSyncScope
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,6 +49,19 @@ class VectorSettingsRoomsSpacesFragment :
             pref.isEnabled = !vectorPreferences.isNewAppLayoutEnabled()
         }
 
+        findPreference<VectorListPreference>(SETTINGS_ROOM_SYNC_SCOPE_KEY)?.let { pref ->
+            val syncService = session.syncService()
+            val available = syncService.canLimitRoomSync()
+            pref.isEnabled = available
+            pref.value = syncService.getRoomSyncScope().value
+            pref.summary = getString(if (available) CommonStrings.settings_room_sync_scope_summary else CommonStrings.settings_room_sync_unavailable)
+            pref.setOnPreferenceChangeListener { _, newValue ->
+                val scope = RoomSyncScope.fromValue(newValue as? String) ?: return@setOnPreferenceChangeListener false
+                syncService.setRoomSyncScope(scope)
+                true
+            }
+        }
+
         findPreference<VectorSwitchPreference>("SETTINGS_ENABLE_APP_SHORTCUTS")?.setOnPreferenceChangeListener { _, newValue ->
             if (newValue == false) {
                 // Drop current dynamic shortcuts immediately; otherwise they'd hang around
@@ -56,5 +71,9 @@ class VectorSettingsRoomsSpacesFragment :
             // When re-enabled, the next emission of the room summaries flow will repopulate.
             true
         }
+    }
+
+    companion object {
+        private const val SETTINGS_ROOM_SYNC_SCOPE_KEY = "SETTINGS_ROOM_SYNC_SCOPE_KEY"
     }
 }

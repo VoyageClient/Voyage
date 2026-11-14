@@ -133,6 +133,19 @@
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_ROOM_ROOM_LIST_CATEGORY_KEY"
+        android:title="@string/settings_rooms_spaces_category_room_list">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_sync_overrides"
+            android:entryValues="@array/room_sync_override_values"
+            android:key="SETTINGS_ROOM_SYNC_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_sync_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
         android:key="SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         android:title="@string/room_personalization_media_category">
 

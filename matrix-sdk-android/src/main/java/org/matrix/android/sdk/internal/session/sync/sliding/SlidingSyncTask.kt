@@ -21,9 +21,11 @@ import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
+import org.matrix.android.sdk.api.session.sync.RoomSyncScope
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.util.MatrixPerf
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
@@ -40,6 +42,7 @@ import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
 import org.matrix.android.sdk.internal.session.sync.handler.ShieldSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.reportSubtask
 import org.matrix.android.sdk.internal.session.user.UserStore
+import org.matrix.android.sdk.internal.settings.DefaultLightweightSettingsStorage
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -75,6 +78,9 @@ internal class SlidingSyncTask @Inject constructor(
         private val shieldSummaryUpdater: ShieldSummaryUpdater,
         private val syncImportState: SyncImportState,
         private val roomSubscriptions: SlidingSyncRoomSubscriptions,
+        private val unsyncedRoomTracker: UnsyncedRoomTracker,
+        private val settingsStorage: DefaultLightweightSettingsStorage,
+        private val stores: SessionStores,
         @UserId private val userId: String,
 ) {
     // Persist coverage per connection. Start with visible rooms, then widen in large batches.
@@ -98,6 +104,21 @@ internal class SlidingSyncTask @Inject constructor(
             syncTokenStore.setSlidingSyncToDeviceSince(null)
             syncTokenStore.setSlidingSyncStateVersion(STATE_VERSION)
         }
+        // A pos only means something to the endpoint that issued it. An unrecorded endpoint is left alone: a
+        // pos from the other one is rejected and restarted from anyway.
+        val storedTransport = syncTokenStore.getSlidingSyncTransport()
+        if (storedTransport != mode.name) {
+            if (storedTransport != null) {
+                Timber.tag(loggerTag.value).i("Switching from $storedTransport to $mode, restarting the sliding sync connection")
+                syncTokenStore.setSlidingSyncPos(null)
+                syncTokenStore.setSlidingSyncToDeviceSince(null)
+            }
+            syncTokenStore.setSlidingSyncTransport(mode.name)
+        }
+
+        // Whatever is still staged belongs to a response that never got its pos stored, and is about to be
+        // replayed: it has to find the rooms it was going to un-track still tracked.
+        unsyncedRoomTracker.rollback()
 
         val pos = syncTokenStore.getSlidingSyncPos()
         val isInitialSync = pos == null
@@ -127,7 +148,14 @@ internal class SlidingSyncTask @Inject constructor(
             executeSync(mode, pos, timeout, params.presence)
         }
         logResponse(mode, slidingResponse, clock.epochMillis() - requestedAt)
-        val syncResponse = MatrixPerf.time("resp.translate") { translator.toSyncResponse(slidingResponse) }
+        val syncResponse = MatrixPerf.time("resp.translate") {
+            translator.toSyncResponse(
+                    response = slidingResponse,
+                    unsyncedRooms = unsyncedRoomTracker,
+                    recordUnsynced = mode == SlidingSyncMode.SIMPLIFIED,
+                    now = clock.epochMillis(),
+            )
+        }
         syncResponse.accountData?.list.orEmpty().firstOrNull { it.type == "m.push_rules" }?.let { event ->
             val mention = (((event.content["global"] as? Map<*, *>)?.get("override") as? List<*>)
                     ?.firstOrNull { (it as? Map<*, *>)?.get("rule_id") == ".m.rule.is_user_mention" } as? Map<*, *>)
@@ -176,6 +204,8 @@ internal class SlidingSyncTask @Inject constructor(
             throw failure
         }
 
+        // Before the pos: a crash in between replays this response, which re-records the same rooms.
+        unsyncedRoomTracker.commit()
         syncTokenStore.setSlidingSyncPos(slidingResponse.pos)
         slidingResponse.extensions?.toDevice?.nextBatch?.let { syncTokenStore.setSlidingSyncToDeviceSince(it) }
 
@@ -250,7 +280,9 @@ internal class SlidingSyncTask @Inject constructor(
         return when (mode) {
             SlidingSyncMode.PAGINATED -> (response.pending ?: 0) > 0
             SlidingSyncMode.SIMPLIFIED -> {
-                val count = response.lists?.get(ALL_ROOMS_LIST)?.count ?: 0
+                // Under RoomSyncScope.ALL the rooms set to sync only while open are carved out of the main list
+                // into their own, and both have to be covered.
+                val count = maxOf(response.lists?.get(ALL_ROOMS_LIST)?.count ?: 0, response.lists?.get(WHEN_OPEN_LIST)?.count ?: 0)
                 if (count <= listRangeEnd + 1) {
                     return false
                 }
@@ -314,40 +346,39 @@ internal class SlidingSyncTask @Inject constructor(
                 toDevice = ToDeviceExtensionRequest(since = syncTokenStore.getSlidingSyncToDeviceSince()),
                 e2ee = EnabledExtensionRequest(),
                 accountData = EnabledExtensionRequest(),
-                receipts = EnabledExtensionRequest(),
-                typing = EnabledExtensionRequest(),
+                receipts = RoomScopedExtensionRequest(),
+                typing = RoomScopedExtensionRequest(),
                 unstableProfiles = profiles,
         )
         return when (mode) {
-            // The server orders by recent activity, so a single list hands over the busiest rooms first and
-            // leaves DMs and invites until whenever their turn comes. These extra lists are priority
-            // requests for the two the user actually looks for first; the room list itself does not care
-            // which list a room arrived on.
-            SlidingSyncMode.SIMPLIFIED -> SlidingSyncRequest(
-                    lists = mapOf(
-                            FAVOURITES_LIST to priorityList(SlidingSyncFilters(tags = listOf(RoomTag.ROOM_TAG_FAVOURITE))),
-                            DM_LIST to priorityList(SlidingSyncFilters(isDm = true)),
-                            INVITES_LIST to priorityList(SlidingSyncFilters(isInvite = true)),
-                            ALL_ROOMS_LIST to SlidingSyncListRequest(
-                                    ranges = listOf(listOf(0, listRangeEnd)),
-                                    requiredState = SlidingSyncRequiredState.EVENTS,
-                                    timelineLimit = FIRST_DELIVERY_TIMELINE_LIMIT,
-                            )
-                    ),
-                    roomSubscriptions = roomSubscriptions.snapshot()
-                            .mapValues { (_, depth) ->
-                                SlidingSyncRoomSubscription(
-                                        requiredState = SlidingSyncRequiredState.EVENTS,
-                                        timelineLimit = when (depth) {
-                                            SlidingSyncRoomSubscriptions.Depth.OPEN -> OPEN_ROOM_TIMELINE_LIMIT
-                                            SlidingSyncRoomSubscriptions.Depth.VISIBLE -> INCREMENTAL_TIMELINE_LIMIT
-                                        },
-                                )
-                            }
-                            .takeIf { it.isNotEmpty() },
-                    extensions = extensions,
-                    setPresence = presence?.value,
-            )
+            SlidingSyncMode.SIMPLIFIED -> {
+                val scope = settingsStorage.getRoomSyncScope(userId)
+                val lists = simplifiedLists(scope)
+                // Receipts and typing in rooms we hold no messages for are only traffic.
+                val syncedLists = lists.filterValues { it.timelineLimit > 0 }.keys.toList()
+                        .takeIf { it.size < lists.size }
+                SlidingSyncRequest(
+                        lists = lists,
+                        roomSubscriptions = roomSubscriptions.snapshot()
+                                // The room-list viewport is a prefetch of messages; rooms left out are not prefetched.
+                                .filter { (roomId, depth) -> depth == SlidingSyncRoomSubscriptions.Depth.OPEN || isSyncedByLists(roomId, scope) }
+                                .mapValues { (_, depth) ->
+                                    SlidingSyncRoomSubscription(
+                                            requiredState = SlidingSyncRequiredState.EVENTS,
+                                            timelineLimit = when (depth) {
+                                                SlidingSyncRoomSubscriptions.Depth.OPEN -> OPEN_ROOM_TIMELINE_LIMIT
+                                                SlidingSyncRoomSubscriptions.Depth.VISIBLE -> INCREMENTAL_TIMELINE_LIMIT
+                                            },
+                                    )
+                                }
+                                .takeIf { it.isNotEmpty() },
+                        extensions = if (syncedLists == null) extensions else extensions.copy(
+                                receipts = RoomScopedExtensionRequest(lists = syncedLists, rooms = ALL_SUBSCRIPTIONS),
+                                typing = RoomScopedExtensionRequest(lists = syncedLists, rooms = ALL_SUBSCRIPTIONS),
+                        ),
+                        setPresence = presence?.value,
+                )
+            }
             // MSC4525 splits the two, so ongoing updates keep the larger limit.
             SlidingSyncMode.PAGINATED -> SlidingSyncRequest(
                     requiredState = SlidingSyncRequiredState.EVENTS,
@@ -360,13 +391,65 @@ internal class SlidingSyncTask @Inject constructor(
         }
     }
 
-    /** A narrow, fixed window: these lists exist to surface their rooms early, not to cover them all. */
-    private fun priorityList(filters: SlidingSyncFilters) = SlidingSyncListRequest(
-            ranges = listOf(listOf(0, PRIORITY_LIST_SIZE - 1)),
-            requiredState = SlidingSyncRequiredState.EVENTS,
-            timelineLimit = FIRST_DELIVERY_TIMELINE_LIMIT,
-            filters = filters,
-    )
+    /**
+     * The server orders by recent activity, so a single list hands over the busiest rooms first and leaves
+     * DMs and invites until whenever their turn comes. The favourites, DM and invite lists are priority
+     * requests for what the user looks for first; the room list itself does not care which list a room
+     * arrived on.
+     *
+     * A room the [scope] leaves out is still covered, with `timeline_limit` 0: its name, avatar, state and
+     * bump stamp keep coming, its messages do not. The server gives a room in several lists the highest
+     * limit among them, so every list that does carry messages excludes [RoomTag.ROOM_TAG_SYNC_WHEN_OPEN].
+     */
+    private fun simplifiedLists(scope: RoomSyncScope): Map<String, SlidingSyncListRequest> {
+        val fullRange = listOf(0, listRangeEnd)
+        val priorityRange = listOf(0, PRIORITY_LIST_SIZE - 1)
+        val whenOpen = listOf(RoomTag.ROOM_TAG_SYNC_WHEN_OPEN)
+        val always = listOf(RoomTag.ROOM_TAG_SYNC_ALWAYS)
+        // Only once a room is known to carry the tag, so an unrestricted account sends the plain request.
+        val carvesOutRooms = scope != RoomSyncScope.ALL || stores.roomTag.getRoomIdsByTag(RoomTag.ROOM_TAG_SYNC_WHEN_OPEN).isNotEmpty()
+        fun list(range: List<Int>, synced: Boolean, filters: SlidingSyncFilters?) = SlidingSyncListRequest(
+                ranges = listOf(range),
+                requiredState = SlidingSyncRequiredState.EVENTS,
+                timelineLimit = if (synced) FIRST_DELIVERY_TIMELINE_LIMIT else 0,
+                filters = if (synced && carvesOutRooms) (filters ?: SlidingSyncFilters()).copy(notTags = whenOpen) else filters,
+        )
+        return when (scope) {
+            RoomSyncScope.ALL -> buildMap {
+                put(FAVOURITES_LIST, list(priorityRange, true, SlidingSyncFilters(tags = listOf(RoomTag.ROOM_TAG_FAVOURITE))))
+                put(DM_LIST, list(priorityRange, true, SlidingSyncFilters(isDm = true)))
+                put(INVITES_LIST, list(priorityRange, true, SlidingSyncFilters(isInvite = true)))
+                put(ALL_ROOMS_LIST, list(fullRange, true, null))
+                if (carvesOutRooms) put(WHEN_OPEN_LIST, list(fullRange, false, SlidingSyncFilters(tags = whenOpen)))
+            }
+            RoomSyncScope.DIRECT_MESSAGES -> mapOf(
+                    FAVOURITES_LIST to list(priorityRange, false, SlidingSyncFilters(tags = listOf(RoomTag.ROOM_TAG_FAVOURITE))),
+                    // Every DM rather than the first few: here this list is what carries their messages.
+                    DM_LIST to list(fullRange, true, SlidingSyncFilters(isDm = true)),
+                    INVITES_LIST to list(priorityRange, false, SlidingSyncFilters(isInvite = true)),
+                    ALWAYS_LIST to list(fullRange, true, SlidingSyncFilters(tags = always)),
+                    ALL_ROOMS_LIST to list(fullRange, false, null),
+            )
+            RoomSyncScope.OPENED_ONLY -> mapOf(
+                    FAVOURITES_LIST to list(priorityRange, false, SlidingSyncFilters(tags = listOf(RoomTag.ROOM_TAG_FAVOURITE))),
+                    DM_LIST to list(priorityRange, false, SlidingSyncFilters(isDm = true)),
+                    INVITES_LIST to list(priorityRange, false, SlidingSyncFilters(isInvite = true)),
+                    ALWAYS_LIST to list(fullRange, true, SlidingSyncFilters(tags = always)),
+                    ALL_ROOMS_LIST to list(fullRange, false, null),
+            )
+        }
+    }
+
+    /** Mirrors [simplifiedLists] from what is stored locally. */
+    private fun isSyncedByLists(roomId: String, scope: RoomSyncScope): Boolean {
+        val tags = stores.roomTag.getTags(roomId).map { it.tagName }
+        return when {
+            RoomTag.ROOM_TAG_SYNC_WHEN_OPEN in tags -> false
+            scope == RoomSyncScope.ALL || RoomTag.ROOM_TAG_SYNC_ALWAYS in tags -> true
+            scope == RoomSyncScope.DIRECT_MESSAGES -> stores.roomSummary.get(roomId)?.isDirect == true
+            else -> false
+        }
+    }
 
     private fun Throwable.isBadRequest(): Boolean = (this as? Failure.ServerError)?.httpCode == 400
 
@@ -375,6 +458,9 @@ internal class SlidingSyncTask @Inject constructor(
         private const val DM_LIST = "dms"
         private const val INVITES_LIST = "invites"
         private const val FAVOURITES_LIST = "favourites"
+        private const val ALWAYS_LIST = "always"
+        private const val WHEN_OPEN_LIST = "when_open"
+        private val ALL_SUBSCRIPTIONS = listOf("*")
 
         // Deliberately small. Everything in the first response is written before the progress screen goes
         // away, so each of these rooms is paid for in time the user spends waiting; they exist to put a few

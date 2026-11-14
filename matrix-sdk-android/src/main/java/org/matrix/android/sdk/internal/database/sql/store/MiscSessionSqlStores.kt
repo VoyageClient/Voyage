@@ -41,6 +41,10 @@ internal class SyncTokenSqlStore(private val database: SessionSqlDatabase) {
     fun setSlidingSyncCoverage(rangeEnd: Int) = queries.upsertSlidingSyncCoverage(rangeEnd.toString())
     fun getSlidingSyncStateVersion(): String? = queries.selectSlidingSyncStateVersion().executeAsOneOrNull()?.next_batch
     fun setSlidingSyncStateVersion(version: String?) = queries.upsertSlidingSyncStateVersion(version)
+    fun getSlidingSyncTransport(): String? = queries.selectSlidingSyncTransport().executeAsOneOrNull()?.next_batch
+    fun setSlidingSyncTransport(transport: String?) = queries.upsertSlidingSyncTransport(transport)
+    fun getUnsyncedRooms(): String? = queries.selectUnsyncedRooms().executeAsOneOrNull()?.next_batch
+    fun setUnsyncedRooms(serialized: String?) = queries.upsertUnsyncedRooms(serialized)
 }
 
 /** Single-row `breadcrumbs` ordered recent-room-id list. */

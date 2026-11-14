@@ -41,7 +41,18 @@ internal class SlidingSyncTranslator @Inject constructor(
         private val stores: SessionStores,
 ) {
 
-    fun toSyncResponse(response: SlidingSyncResponse): SyncResponse {
+    /**
+     * @param unsyncedRooms records rooms delivered without messages, and turns the next timeline of each
+     * into a limited one. Null leaves timelines exactly as the server described them.
+     * @param recordUnsynced false on transports that never leave a room's messages out deliberately, where
+     * a missing timeline only means there was nothing new.
+     */
+    fun toSyncResponse(
+            response: SlidingSyncResponse,
+            unsyncedRooms: UnsyncedRoomTracker? = null,
+            recordUnsynced: Boolean = true,
+            now: Long = 0L,
+    ): SyncResponse {
         val extensions = response.extensions
         val roomAccountData = extensions?.accountData?.rooms.orEmpty()
         val receipts = extensions?.receipts?.rooms.orEmpty()
@@ -63,7 +74,10 @@ internal class SlidingSyncTranslator @Inject constructor(
                 )
                 Membership.LEAVE,
                 Membership.BAN -> leave[roomId] = room.toRoomSync(roomAccountData[roomId], emptyList())
-                Membership.JOIN -> join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral)
+                Membership.JOIN -> {
+                    val forceLimited = unsyncedRooms != null && trackUnsynced(unsyncedRooms, roomId, room, recordUnsynced, now)
+                    join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral, forceLimited)
+                }
                 // Nothing says we are in this room; filing it as joined would list an empty "0 members" room.
                 else -> Timber.w("Sliding sync: ignoring $roomId, no membership known")
             }
@@ -141,13 +155,31 @@ internal class SlidingSyncTranslator @Inject constructor(
         return stores.room.get(roomId)?.membership?.takeIf { it != Membership.NONE }
     }
 
-    private fun SlidingSyncRoom.toRoomSync(accountData: List<Event>?, ephemeral: List<Event>): RoomSync {
+    /** @return whether this room's timeline has to be read as limited. */
+    private fun trackUnsynced(
+            tracker: UnsyncedRoomTracker,
+            roomId: String,
+            room: SlidingSyncRoom,
+            recordUnsynced: Boolean,
+            now: Long,
+    ): Boolean {
+        // Synapse only sends a prev_batch, even with no new events, when the room was asked for any timeline.
+        if (room.timeline.isNullOrEmpty()) {
+            if (room.prevBatch == null && recordUnsynced) tracker.onDeliveredWithoutTimeline(roomId, room.bumpStamp, now)
+            // Asked for messages but none new: the ones skipped earlier are still missing, so keep tracking.
+            return false
+        }
+        // Forcing a gap is only safe with a token to back-paginate it from.
+        return tracker.onDeliveredWithTimeline(roomId) && room.prevBatch != null
+    }
+
+    private fun SlidingSyncRoom.toRoomSync(accountData: List<Event>?, ephemeral: List<Event>, forceLimited: Boolean = false): RoomSync {
         return RoomSync(
                 // required_state is the room state as of the end of the timeline, which is exactly what
                 // MSC4222's state_after means — so the handler applies it in the right order for free.
                 stateAfterStable = requiredState?.let { RoomSyncState(events = it) },
                 timeline = timeline?.let {
-                    RoomSyncTimeline(events = it, limited = limited, prevToken = prevBatch)
+                    RoomSyncTimeline(events = it, limited = limited || forceLimited, prevToken = prevBatch)
                 },
                 summary = RoomSyncSummary(
                         // Sync v2's m.heroes excludes us by definition and the name/avatar resolvers rely on

@@ -1142,8 +1142,6 @@
     <string name="reset_cross_signing">Schlüssel zurücksetzen</string>
     <string name="a11y_qr_code_for_verification">QR-Code</string>
     <string name="qr_code_scanned_by_other_notice">Fast geschafft! Zeigt %s ein Häkchen\?</string>
-    <string name="qr_code_scanned_by_other_yes">Ja</string>
-    <string name="qr_code_scanned_by_other_no">Nein</string>
     <string name="no_connectivity_to_the_server_indicator">Verbindung zum Server wurde unterbrochen</string>
     <string name="settings_dev_tools">Entwicklerwerkzeuge</string>
     <string name="settings_account_data">Kontodaten</string>
@@ -2951,8 +2949,6 @@
     <string name="encryption_export_notice_optional">Optional kannst du eine Passphrase erstellen, um die exportierten Schlüssel zu verschlüsseln. Wenn du eine festlegst, musst du beim Importieren der Schlüssel dieselbe Passphrase eingeben. Lass das Feld leer, um ohne Verschlüsselung zu exportieren.</string>
     <string name="settings_randomize_upload_filenames_title">Dateinamen beim Hochladen zufällig wählen</string>
     <string name="settings_randomize_upload_filenames_summary">Den Namen hochgeladener Dateien durch eine zufällige ID ersetzen</string>
-    <string name="settings_randomize_upload_filenames_always">Ja</string>
-    <string name="settings_randomize_upload_filenames_never">Nein</string>
     <string name="settings_randomize_upload_filenames_public">In öffentlichen Räumen</string>
     <string name="login_server_matrix_id_text">Verwende dein bestehendes @user:domain.com-Konto</string>
     <string name="settings_app_icon_color_title">Farbe des App-Symbols</string>
@@ -3118,16 +3114,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">Ja</string>
-    <string name="redaction_override_off">Nein</string>
     <string name="settings_use_account_setting">Kontoeinstellung verwenden</string>
     <string name="room_personalization_media_category">Sicherheit und Privatsphäre</string>
     <string name="room_personalization_redaction_category">Löschungen</string>
     <string name="room_personalization_media_preview_show">Anzeigen</string>
     <string name="room_personalization_media_preview_hide">Ausblenden</string>
     <string name="settings_homeserver_info_reloaded">Homeserver-Informationen neu geladen</string>
-    <string name="settings_server_admin_yes">Ja</string>
-    <string name="settings_server_admin_no">Nein</string>
     <string name="settings_server_admin_unknown">Unbekannt</string>
     <string name="room_settings_room_access_knock_restricted_title">Space-Mitglieder oder Beitritt auf Anfrage</string>
     <string name="room_settings_room_access_knock_restricted_description">Mitglieder der ausgewählten Spaces können ohne Einladung beitreten. Alle anderen müssen den Beitritt anfragen.</string>
@@ -3191,7 +3183,6 @@
     <string name="settings_link_previews_encrypted">Verschlüsselte Räume</string>
     <string name="settings_link_previews_unencrypted">Unverschlüsselte Räume</string>
     <string name="settings_link_previews_room">Linkvorschauen abrufen</string>
-    <string name="settings_link_preview_source_none">Nein</string>
     <string name="settings_link_preview_source_device">Auf dem Gerät</string>
     <string name="settings_link_preview_source_server">Serverseitig</string>
     <string name="attachment_caption_hint">Bildunterschrift hinzufügen…</string>
@@ -3754,4 +3745,14 @@
     <string name="room_personalization_media_reset_confirmation">Sicherheits- und Privatsphäre-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
     <string name="room_personalization_redaction_reset_confirmation">Löschungs-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
     <string name="settings_hide_avatars_summary">Für Räume und Spaces, in denen Medien ausgeblendet sind, und für die Personen darin den Standard-Avatar anzeigen</string>
+    <string name="settings_room_sync_scope_title">Raumstatus synchronisieren</string>
+    <string name="settings_room_sync_scope_all">Alle Räume</string>
+    <string name="settings_room_sync_scope_direct">Nur Direktnachrichten</string>
+    <string name="settings_room_sync_scope_opened">Nur geöffnete Räume</string>
+    <string name="settings_room_sync_scope_summary">Halte deine Räume aktuell, indem neue Nachrichten von deinem Heim-Server abgefragt werden. Nicht synchronisierte Räume werden nur aktualisiert, wenn du sie öffnest.</string>
+    <string name="settings_room_sync_unavailable">Erfordert Sync der nächsten Generation (MSC4186), der unter „Labor“ deaktiviert ist oder von deinem Heim-Server nicht angeboten wird.</string>
+    <string name="room_personalization_sync_title">Raumstatus synchronisieren</string>
+    <string name="room_personalization_room_list_reset_confirmation">Raumliste-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
+    <string name="option_yes">Ja</string>
+    <string name="option_no">Nein</string>
 </resources>

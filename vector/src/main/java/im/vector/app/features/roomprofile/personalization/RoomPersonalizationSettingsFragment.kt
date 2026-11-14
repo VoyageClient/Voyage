@@ -41,6 +41,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -52,6 +53,7 @@ import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -141,6 +143,7 @@ class RoomPersonalizationSettingsFragment :
         observeRoomOverrides()
         setUpProfileReset()
         setUpRoomOverrideReset()
+        setUpSyncOverride()
         setUpMediaOverrides()
         setUpTimelineOverrides()
         setUpRedactionOverrides()
@@ -233,6 +236,59 @@ class RoomPersonalizationSettingsFragment :
 
     private fun resetRoomOverrides() {
         writeRoomOverride(ROOM_OVERRIDE_TYPES, emptyMap())
+    }
+
+    private val roomListCategory
+        get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_ROOM_LIST_CATEGORY_KEY)
+
+    // Stored as a room tag rather than locally: the server can only leave a room out of a list by its tags.
+    private fun setUpSyncOverride() {
+        val pref = findPreference<VectorListPreference>(SETTINGS_ROOM_SYNC_KEY) ?: return
+        val available = session.syncService().canLimitRoomSync()
+        pref.isEnabled = available
+        pref.setOnPreferenceChangeListener { _, newValue ->
+            setSyncOverride(syncOverrideTagOf(newValue as? String))
+            false
+        }
+        roomListCategory?.actionClickListener = {
+            confirmReset(CommonStrings.room_personalization_room_list_reset_confirmation) { setSyncOverride(null) }
+        }
+        room.flow().liveRoomSummary()
+                .unwrap()
+                .map { summary -> summary.tags.map { it.name }.firstOrNull(RoomTag::isSyncOverrideTag) }
+                .distinctUntilChanged()
+                .onEach { tag ->
+                    pref.value = syncOverrideValueOf(tag)
+                    pref.summary = if (available) pref.entry else getString(CommonStrings.settings_room_sync_unavailable)
+                    roomListCategory?.isActionEnabled = available && tag != null
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun setSyncOverride(tag: String?) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching {
+                val current = room.roomSummary()?.tags?.map { it.name }.orEmpty().filter(RoomTag::isSyncOverrideTag)
+                current.filter { it != tag }.forEach { room.tagsService().deleteTag(it) }
+                if (tag != null && tag !in current) room.tagsService().addTag(tag, null)
+            }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.onFailure { displayErrorDialog(it) }
+        }
+    }
+
+    private fun syncOverrideTagOf(value: String?) = when (value) {
+        SYNC_ALWAYS -> RoomTag.ROOM_TAG_SYNC_ALWAYS
+        SYNC_WHEN_OPEN -> RoomTag.ROOM_TAG_SYNC_WHEN_OPEN
+        else -> null
+    }
+
+    private fun syncOverrideValueOf(tag: String?) = when (tag) {
+        RoomTag.ROOM_TAG_SYNC_ALWAYS -> SYNC_ALWAYS
+        RoomTag.ROOM_TAG_SYNC_WHEN_OPEN -> SYNC_WHEN_OPEN
+        else -> INHERIT
     }
 
     private val mediaCategory
@@ -730,6 +786,10 @@ class RoomPersonalizationSettingsFragment :
         private const val INHERIT = "inherit"
 
         private const val SETTINGS_ROOM_TIMELINE_CATEGORY_KEY = "SETTINGS_ROOM_TIMELINE_CATEGORY_KEY"
+        private const val SETTINGS_ROOM_ROOM_LIST_CATEGORY_KEY = "SETTINGS_ROOM_ROOM_LIST_CATEGORY_KEY"
+        private const val SETTINGS_ROOM_SYNC_KEY = "SETTINGS_ROOM_SYNC_KEY"
+        private const val SYNC_ALWAYS = "always"
+        private const val SYNC_WHEN_OPEN = "when_open"
         private const val SETTINGS_ROOM_MEDIA_CATEGORY_KEY = "SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
         private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"

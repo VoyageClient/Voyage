@@ -754,8 +754,8 @@ class VectorSettingsGeneralFragment :
 
     private fun summaryFor(status: ServerAdminStatus) = getString(
             when (status) {
-                ServerAdminStatus.YES -> CommonStrings.settings_server_admin_yes
-                ServerAdminStatus.NO -> CommonStrings.settings_server_admin_no
+                ServerAdminStatus.YES -> CommonStrings.option_yes
+                ServerAdminStatus.NO -> CommonStrings.option_no
                 ServerAdminStatus.UNKNOWN -> CommonStrings.settings_server_admin_unknown
             }
     )

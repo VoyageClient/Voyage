@@ -10,6 +10,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Background-sync battery fix**: polling is gated on permissions and runs off a single alarm chain with a bounded retry loop, instead of draining the battery overnight.
 
+- **Turn off room syncing**: save data by selectively disabling syncing per room, for everything but direct messages, or for every room you don't have open.
+
 - **Reliable push notifications**: every push is retried until it becomes a notification, so a dozing phone or a lost request no longer swallows a message. A push history in the notification settings shows what arrived and what became of it.
 
 - **Push gateway setting**: choose which gateway your homeserver sends notifications to, instead of accepting whichever one your notification method advertises.
@@ -284,7 +286,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Performance internals**: SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, room-state reads narrowed to the type asked for instead of the room's whole state, and a memoized event mapper are what the faster, freeze-free app is built on.
 
-- **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)**: when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
+- **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)**: when the homeserver offers either, syncing moves onto it, preferring simplified sliding sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
 
 - **Modern sync and spec endpoints**: sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap. A thread's edits and reactions arrive in one request (MSC3981), and reporting (MSC4277), room forgetting (MSC4267), recent emoji, relations and the room directory moved onto their stable identifiers and endpoints. A room upgraded after the fact can also declare what it continues from (MSC3946).
 

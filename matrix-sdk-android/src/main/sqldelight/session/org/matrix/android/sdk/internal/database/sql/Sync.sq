@@ -3,7 +3,8 @@
 -- Rows 2-6 belong to sliding sync: the `pos`, its to-device extension `since`, a fingerprint of the
 -- required_state the connection was opened with, how far its room list currently reaches, and whether that
 -- list has reached every room. The `pos` is kept apart from row 0 because it is not interchangeable with a
--- sync v2 `since`.
+-- sync v2 `since`. Row 7 is the endpoint (MSC4186 or MSC4525) that `pos` belongs to, and row 8 the rooms
+-- the connection has been leaving messages out for (see UnsyncedRoomTracker).
 CREATE TABLE sync (
     id INTEGER NOT NULL PRIMARY KEY,
     next_batch TEXT
@@ -44,6 +45,18 @@ SELECT next_batch FROM sync WHERE id = 4;
 
 upsertSlidingSyncStateVersion:
 INSERT OR REPLACE INTO sync(id, next_batch) VALUES (4, ?);
+
+selectSlidingSyncTransport:
+SELECT next_batch FROM sync WHERE id = 7;
+
+upsertSlidingSyncTransport:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (7, ?);
+
+selectUnsyncedRooms:
+SELECT next_batch FROM sync WHERE id = 8;
+
+upsertUnsyncedRooms:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (8, ?);
 
 deleteAll:
 DELETE FROM sync;

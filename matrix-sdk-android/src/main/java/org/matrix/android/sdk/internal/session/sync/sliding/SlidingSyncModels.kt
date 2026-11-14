@@ -57,6 +57,7 @@ internal data class SlidingSyncFilters(
         @Json(name = "is_dm") val isDm: Boolean? = null,
         @Json(name = "is_invite") val isInvite: Boolean? = null,
         @Json(name = "tags") val tags: List<String>? = null,
+        @Json(name = "not_tags") val notTags: List<String>? = null,
 )
 
 @JsonClass(generateAdapter = true)
@@ -64,8 +65,8 @@ internal data class SlidingSyncExtensionsRequest(
         @Json(name = "to_device") val toDevice: ToDeviceExtensionRequest? = null,
         @Json(name = "e2ee") val e2ee: EnabledExtensionRequest? = null,
         @Json(name = "account_data") val accountData: EnabledExtensionRequest? = null,
-        @Json(name = "receipts") val receipts: EnabledExtensionRequest? = null,
-        @Json(name = "typing") val typing: EnabledExtensionRequest? = null,
+        @Json(name = "receipts") val receipts: RoomScopedExtensionRequest? = null,
+        @Json(name = "typing") val typing: RoomScopedExtensionRequest? = null,
         // MSC4262 has no stable extension name yet, so only the unstable one is ever requested.
         @Json(name = "org.matrix.msc4262.profiles") val unstableProfiles: ProfilesExtensionRequest? = null,
 )
@@ -79,6 +80,14 @@ internal data class ProfilesExtensionRequest(
 @JsonClass(generateAdapter = true)
 internal data class EnabledExtensionRequest(
         @Json(name = "enabled") val enabled: Boolean = true,
+)
+
+/** MSC3960/MSC3961: absent [lists] and [rooms] mean every list and every subscription. */
+@JsonClass(generateAdapter = true)
+internal data class RoomScopedExtensionRequest(
+        @Json(name = "enabled") val enabled: Boolean = true,
+        @Json(name = "lists") val lists: List<String>? = null,
+        @Json(name = "rooms") val rooms: List<String>? = null,
 )
 
 @JsonClass(generateAdapter = true)
@@ -122,6 +131,7 @@ internal data class SlidingSyncRoom(
         @Json(name = "highlight_count") val highlightCount: Int? = null,
         @Json(name = "unread_notifications") val unreadNotifications: RoomSyncUnreadNotifications? = null,
         @Json(name = "membership") val membership: String? = null,
+        @Json(name = "bump_stamp") val bumpStamp: Long? = null,
         // The MSC calls this stripped_state; Synapse and matrix-js-sdk speak invite_state.
         @Json(name = "invite_state") val inviteState: List<Event>? = null,
         @Json(name = "stripped_state") val strippedState: List<Event>? = null,

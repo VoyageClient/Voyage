@@ -1768,8 +1768,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_dev_tools">Alat Pengembang</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Mode pesawat diaktifkan</string>
     <string name="no_connectivity_to_the_server_indicator">Koneksi ke server telah hilang</string>
-    <string name="qr_code_scanned_by_other_no">Tidak</string>
-    <string name="qr_code_scanned_by_other_yes">Ya</string>
     <string name="qr_code_scanned_by_other_notice">Hampir selesai! Apakah %s menampilkan sebuah centang\?</string>
     <string name="a11y_qr_code_for_verification">Kode QR</string>
     <string name="reset_cross_signing">Atur Ulang Kunci</string>
@@ -2898,8 +2896,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="encryption_export_notice_optional">Secara opsional, buat frasa sandi untuk mengenkripsi kunci yang diekspor. Jika Anda mengaturnya, Anda harus memasukkan frasa sandi yang sama untuk mengimpor kunci; biarkan kosong untuk mengekspor tanpa enkripsi.</string>
     <string name="settings_randomize_upload_filenames_title">Acak nama file yang diunggah</string>
     <string name="settings_randomize_upload_filenames_summary">Ganti nama file yang diunggah dengan ID acak</string>
-    <string name="settings_randomize_upload_filenames_always">Ya</string>
-    <string name="settings_randomize_upload_filenames_never">Tidak</string>
     <string name="settings_randomize_upload_filenames_public">Di ruangan publik</string>
     <string name="login_server_matrix_id_text">Gunakan akun @user:domain.com Anda yang sudah ada</string>
     <string name="settings_app_icon_color_title">Warna ikon aplikasi</string>
@@ -3065,16 +3061,12 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">Ya</string>
-    <string name="redaction_override_off">Tidak</string>
     <string name="settings_use_account_setting">Gunakan pengaturan akun</string>
     <string name="room_personalization_media_category">Keamanan &amp; Privasi</string>
     <string name="room_personalization_redaction_category">Penghapusan</string>
     <string name="room_personalization_media_preview_show">Tampilkan</string>
     <string name="room_personalization_media_preview_hide">Sembunyikan</string>
     <string name="settings_homeserver_info_reloaded">Info homeserver dimuat ulang</string>
-    <string name="settings_server_admin_yes">Ya</string>
-    <string name="settings_server_admin_no">Tidak</string>
     <string name="settings_server_admin_unknown">Tidak diketahui</string>
     <string name="room_settings_room_access_knock_restricted_title">Anggota space, atau minta bergabung</string>
     <string name="room_settings_room_access_knock_restricted_description">Anggota space yang dipilih dapat bergabung tanpa undangan. Orang lain perlu meminta untuk bergabung.</string>
@@ -3138,7 +3130,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_link_previews_encrypted">Ruangan terenkripsi</string>
     <string name="settings_link_previews_unencrypted">Ruangan tidak terenkripsi</string>
     <string name="settings_link_previews_room">Ambil pratinjau tautan</string>
-    <string name="settings_link_preview_source_none">Tidak</string>
     <string name="settings_link_preview_source_device">Di perangkat</string>
     <string name="settings_link_preview_source_server">Di server</string>
     <string name="attachment_caption_hint">Tambahkan keterangan…</string>
@@ -3682,4 +3673,14 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_personalization_media_reset_confirmation">Setel ulang pengaturan keamanan &amp; privasi ruangan ini ke yang berlaku di seluruh akun?</string>
     <string name="room_personalization_redaction_reset_confirmation">Setel ulang pengaturan penghapusan ruangan ini ke yang berlaku di seluruh akun?</string>
     <string name="settings_hide_avatars_summary">Tampilkan avatar bawaan untuk ruangan dan space yang medianya disembunyikan, serta untuk orang-orang di dalamnya</string>
+    <string name="settings_room_sync_scope_title">Sinkronkan status ruangan</string>
+    <string name="settings_room_sync_scope_all">Semua ruangan</string>
+    <string name="settings_room_sync_scope_direct">Hanya pesan langsung</string>
+    <string name="settings_room_sync_scope_opened">Hanya ruangan yang Anda buka</string>
+    <string name="settings_room_sync_scope_summary">Jaga ruangan Anda tetap terkini dengan memeriksa pesan baru di homeserver Anda. Ruangan yang tidak disinkronkan hanya diperbarui saat Anda membukanya.</string>
+    <string name="settings_room_sync_unavailable">Memerlukan sinkronisasi generasi berikutnya (MSC4186), yang dinonaktifkan di Uji Coba atau tidak ditawarkan oleh homeserver Anda.</string>
+    <string name="room_personalization_sync_title">Sinkronkan status ruangan</string>
+    <string name="room_personalization_room_list_reset_confirmation">Setel ulang pengaturan daftar ruangan untuk ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="option_yes">Ya</string>
+    <string name="option_no">Tidak</string>
 </resources>

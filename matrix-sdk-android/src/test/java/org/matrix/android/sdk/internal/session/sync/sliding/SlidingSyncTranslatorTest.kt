@@ -476,4 +476,84 @@ class SlidingSyncTranslatorTest {
 
         response.profileUpdates?.keys shouldBeEqualTo setOf("@stable:example.org")
     }
+
+    @Test
+    fun `a room delivered without messages gets its next timeline as a limited one`() {
+        var stored: String? = null
+        val tracker = UnsyncedRoomTracker(mockk {
+            every { syncToken.getUnsyncedRooms() } answers { stored }
+            every { syncToken.setUnsyncedRooms(any()) } answers { stored = firstArg() }
+        })
+        fun translateTracked(json: String) =
+                translator.toSyncResponse(adapter.fromJson(json.trimIndent())!!, unsyncedRooms = tracker, now = 1_000L)
+
+        val unsynced = translateTracked(
+                """{ "pos": "s1", "rooms": { "!room:example.org": { "membership": "join", "bump_stamp": 5 } } }"""
+        )
+        unsynced.rooms?.join?.get("!room:example.org")?.timeline.shouldBeNull()
+
+        // Asked for messages again with none new: the skipped ones are still missing.
+        translateTracked(
+                """{ "pos": "s2", "rooms": { "!room:example.org": { "membership": "join", "prev_batch": "t1", "limited": false } } }"""
+        )
+
+        val resumed = translateTracked(
+                """
+                {
+                  "pos": "s3",
+                  "rooms": {
+                    "!room:example.org": {
+                      "membership": "join", "prev_batch": "t2", "limited": false,
+                      "timeline": [
+                        { "type": "m.room.message", "event_id": "${'$'}e1", "sender": "@alice:example.org", "content": { "body": "hi" } }
+                      ]
+                    }
+                  }
+                }
+                """
+        )
+        resumed.rooms?.join?.get("!room:example.org")?.timeline?.limited shouldBe true
+
+        val next = translateTracked(
+                """
+                {
+                  "pos": "s4",
+                  "rooms": {
+                    "!room:example.org": {
+                      "membership": "join", "prev_batch": "t3", "limited": false,
+                      "timeline": [
+                        { "type": "m.room.message", "event_id": "${'$'}e2", "sender": "@alice:example.org", "content": { "body": "again" } }
+                      ]
+                    }
+                  }
+                }
+                """
+        )
+        next.rooms?.join?.get("!room:example.org")?.timeline?.limited shouldBe false
+    }
+
+    @Test
+    fun `the room filters and scoped extensions serialize`() {
+        val requestAdapter = MoshiProvider.providesMoshi().adapter(SlidingSyncRequest::class.java)
+
+        val json = requestAdapter.toJson(
+                SlidingSyncRequest(
+                        lists = mapOf(
+                                "all" to SlidingSyncListRequest(
+                                        ranges = listOf(listOf(0, 9)),
+                                        requiredState = emptyList(),
+                                        timelineLimit = 0,
+                                        filters = SlidingSyncFilters(notTags = listOf("im.voyage.sync.when_open")),
+                                )
+                        ),
+                        extensions = SlidingSyncExtensionsRequest(
+                                receipts = RoomScopedExtensionRequest(lists = listOf("dms"), rooms = listOf("*")),
+                        ),
+                )
+        )
+
+        json shouldBeEqualTo
+                """{"lists":{"all":{"ranges":[[0,9]],"required_state":[],"timeline_limit":0,"filters":{"not_tags":["im.voyage.sync.when_open"]}}},""" +
+                """"extensions":{"receipts":{"enabled":true,"lists":["dms"],"rooms":["*"]}}}"""
+    }
 }

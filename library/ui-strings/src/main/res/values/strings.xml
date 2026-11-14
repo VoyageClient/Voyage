@@ -1569,6 +1569,12 @@
     <string name="settings_rooms_spaces_category_room_list">Room list</string>
     <string name="settings_rooms_spaces_category_system">Sharing &amp; shortcuts</string>
     <string name="settings_rooms_spaces_category_badges">Avatar badges</string>
+    <string name="settings_room_sync_scope_title">Sync room states</string>
+    <string name="settings_room_sync_scope_all">All rooms</string>
+    <string name="settings_room_sync_scope_direct">Direct messages only</string>
+    <string name="settings_room_sync_scope_opened">Only rooms you open</string>
+    <string name="settings_room_sync_scope_summary">Keep your rooms up to date by checking your homeserver for new messages. Rooms that aren\'t synced only update when you open them.</string>
+    <string name="settings_room_sync_unavailable">Needs sliding sync (MSC4186), which is turned off in Labs or not offered by your homeserver.</string>
     <string name="settings_room_encryption_badge">Encryption badge</string>
     <string name="settings_room_encryption_badge_summary">Show a shield on the avatars of encrypted rooms</string>
     <string name="settings_room_public_badge">Public badge</string>
@@ -2324,8 +2330,6 @@
     <string name="a11y_qr_code_for_verification">QR code</string>
 
     <string name="qr_code_scanned_by_other_notice">Almost there! Is %s showing a tick?</string>
-    <string name="qr_code_scanned_by_other_yes">Yes</string>
-    <string name="qr_code_scanned_by_other_no">No</string>
 
     <string name="no_connectivity_to_the_server_indicator">Connectivity to the server has been lost</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Airplane mode is on</string>
@@ -3745,6 +3749,8 @@
     <string name="room_personalization_room_override_reset_confirmation">Remove your personal name and avatar for this room?</string>
     <string name="room_personalization_timeline_reset_confirmation">Reset this room\'s timeline settings to your account-wide ones?</string>
     <string name="room_personalization_media_reset_confirmation">Reset this room\'s security and privacy settings to your account-wide ones?</string>
+    <string name="room_personalization_sync_title">Sync room state</string>
+    <string name="room_personalization_room_list_reset_confirmation">Reset this room\'s room list settings to your account-wide ones?</string>
     <string name="room_personalization_redaction_reset_confirmation">Reset this room\'s redaction settings to your account-wide ones?</string>
     <string name="user_personalization_section">Personalization</string>
     <string name="user_personalization_reset_confirmation">Remove your personal overrides for this user?</string>
@@ -3897,8 +3903,6 @@
     <string name="encryption_export_notice_optional">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
     <string name="settings_randomize_upload_filenames_title">Randomize uploaded file names</string>
     <string name="settings_randomize_upload_filenames_summary">Replace the name of uploaded files with a random ID</string>
-    <string name="settings_randomize_upload_filenames_always">Yes</string>
-    <string name="settings_randomize_upload_filenames_never">No</string>
     <string name="settings_randomize_upload_filenames_public">In public rooms</string>
     <string name="login_server_matrix_id_text">Use your existing @user:domain.com account</string>
     <string name="settings_app_icon_color_title">App icon color</string>
@@ -4121,8 +4125,9 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">Yes</string>
-    <string name="redaction_override_off">No</string>
+    <!-- A yes/no answer or settings choice; the dialog buttons are `yes`/`no`. -->
+    <string name="option_yes">Yes</string>
+    <string name="option_no">No</string>
     <string name="settings_use_account_setting">Use the account setting</string>
     <string name="room_personalization_media_category">Security &amp; Privacy</string>
     <string name="room_personalization_redaction_category">Redactions</string>
@@ -4131,8 +4136,6 @@
     <string name="notice_state_event_redacted">%1$s\'s room change was redacted</string>
     <string name="notice_state_event_redacted_with_reason">%1$s\'s room change was redacted, reason: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Homeserver info reloaded</string>
-    <string name="settings_server_admin_yes">Yes</string>
-    <string name="settings_server_admin_no">No</string>
     <string name="settings_server_admin_unknown">Unknown</string>
     <string name="room_settings_room_access_knock_restricted_title">Space members, or ask to join</string>
     <string name="room_settings_room_access_knock_restricted_description">Members of the selected spaces can join without an invite. Everyone else needs to ask to join.</string>
@@ -4215,7 +4218,6 @@
     <string name="settings_link_previews_encrypted">Encrypted rooms</string>
     <string name="settings_link_previews_unencrypted">Unencrypted rooms</string>
     <string name="settings_link_previews_room">Fetch link previews</string>
-    <string name="settings_link_preview_source_none">No</string>
     <string name="settings_link_preview_source_device">On-device</string>
     <string name="settings_link_preview_source_server">Server-side</string>
     <string name="attachment_caption_hint">Add a caption…</string>

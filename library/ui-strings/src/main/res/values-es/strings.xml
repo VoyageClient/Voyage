@@ -1064,8 +1064,6 @@
     <string name="initialize_cross_signing">Inicializar Firmas Cruzadas</string>
     <string name="reset_cross_signing">Restablecer claves</string>
     <string name="a11y_qr_code_for_verification">Código QR</string>
-    <string name="qr_code_scanned_by_other_yes">Correcto</string>
-    <string name="qr_code_scanned_by_other_no">No</string>
     <string name="no_connectivity_to_the_server_indicator">Sin conexión</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Modo Avión Activado</string>
     <string name="settings_dev_tools">Herramientas de desarrollo</string>
@@ -2940,8 +2938,6 @@
     <string name="encryption_export_notice_optional">Opcionalmente, crea una frase de contraseña para cifrar las claves exportadas. Si estableces una, tendrás que introducir la misma frase de contraseña para importar las claves; déjala en blanco para exportarlas sin cifrar.</string>
     <string name="settings_randomize_upload_filenames_title">Aleatorizar los nombres de los archivos subidos</string>
     <string name="settings_randomize_upload_filenames_summary">Reemplazar el nombre de los archivos subidos por un ID aleatorio</string>
-    <string name="settings_randomize_upload_filenames_always">Sí</string>
-    <string name="settings_randomize_upload_filenames_never">No</string>
     <string name="settings_randomize_upload_filenames_public">En salas públicas</string>
     <string name="login_server_matrix_id_text">Usa tu cuenta existente @usuario:dominio.com</string>
     <string name="settings_app_icon_color_title">Color del icono de la aplicación</string>
@@ -3107,16 +3103,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">Sí</string>
-    <string name="redaction_override_off">No</string>
     <string name="settings_use_account_setting">Usar el ajuste de la cuenta</string>
     <string name="room_personalization_media_category">Seguridad &amp; Privacidad</string>
     <string name="room_personalization_redaction_category">Borrados</string>
     <string name="room_personalization_media_preview_show">Mostrar</string>
     <string name="room_personalization_media_preview_hide">Ocultar</string>
     <string name="settings_homeserver_info_reloaded">Se recargó la información del servidor doméstico</string>
-    <string name="settings_server_admin_yes">Sí</string>
-    <string name="settings_server_admin_no">No</string>
     <string name="settings_server_admin_unknown">Desconocido</string>
     <string name="room_settings_room_access_knock_restricted_title">Miembros del espacio o solicitar unirse</string>
     <string name="room_settings_room_access_knock_restricted_description">Los miembros de los espacios seleccionados pueden unirse sin invitación. Los demás deben solicitar unirse.</string>
@@ -3180,7 +3172,6 @@
     <string name="settings_link_previews_encrypted">Salas cifradas</string>
     <string name="settings_link_previews_unencrypted">Salas sin cifrar</string>
     <string name="settings_link_previews_room">Obtener vistas previas de enlaces</string>
-    <string name="settings_link_preview_source_none">No</string>
     <string name="settings_link_preview_source_device">En el dispositivo</string>
     <string name="settings_link_preview_source_server">En el servidor</string>
     <string name="attachment_caption_hint">Añade un pie de foto…</string>
@@ -3743,4 +3734,14 @@
     <string name="room_personalization_media_reset_confirmation">¿Restablecer los ajustes de seguridad y privacidad de esta sala a los de toda tu cuenta?</string>
     <string name="room_personalization_redaction_reset_confirmation">¿Restablecer los ajustes de borrados de esta sala a los de toda tu cuenta?</string>
     <string name="settings_hide_avatars_summary">Mostrar el avatar predeterminado para las salas y espacios donde se oculta el contenido multimedia, y para las personas que hay en ellos</string>
+    <string name="settings_room_sync_scope_title">Sincronizar el estado de las salas</string>
+    <string name="settings_room_sync_scope_all">Todas las salas</string>
+    <string name="settings_room_sync_scope_direct">Solo mensajes directos</string>
+    <string name="settings_room_sync_scope_opened">Solo las salas que abras</string>
+    <string name="settings_room_sync_scope_summary">Mantén tus salas al día consultando a tu servidor doméstico si hay mensajes nuevos. Las salas que no se sincronizan solo se actualizan cuando las abres.</string>
+    <string name="settings_room_sync_unavailable">Requiere la sincronización de nueva generación (MSC4186), que está desactivada en Laboratorios o que tu servidor doméstico no ofrece.</string>
+    <string name="room_personalization_sync_title">Sincronizar el estado de la sala</string>
+    <string name="room_personalization_room_list_reset_confirmation">¿Restablecer los ajustes de la lista de salas de esta sala a los de toda tu cuenta?</string>
+    <string name="option_yes">Sí</string>
+    <string name="option_no">No</string>
 </resources>

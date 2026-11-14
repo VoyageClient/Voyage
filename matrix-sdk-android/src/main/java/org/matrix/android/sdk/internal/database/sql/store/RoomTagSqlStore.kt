@@ -25,6 +25,8 @@ internal class RoomTagSqlStore(private val database: SessionSqlDatabase) {
 
     fun deleteTags(roomId: String) = queries.deleteByRoom(roomId)
 
+    fun getRoomIdsByTag(tagName: String): List<String> = queries.selectRoomIdsByTag(tagName).executeAsList()
+
     private fun RoomTagRow.toEntity(): RoomTagEntity = RoomTagEntity(
             tagName = tag_name,
             tagOrder = tag_order,

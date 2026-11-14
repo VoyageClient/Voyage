@@ -1145,8 +1145,6 @@
     <string name="settings_dev_tools">כלי מפתחים</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">מצב טיסה פועל</string>
     <string name="no_connectivity_to_the_server_indicator">הקישוריות לשרת אבדה</string>
-    <string name="qr_code_scanned_by_other_no">לא</string>
-    <string name="qr_code_scanned_by_other_yes">כן</string>
     <string name="qr_code_scanned_by_other_notice">כמעט שם! האם%s מציג את אותו מגן\?</string>
     <string name="a11y_qr_code_for_verification">קוד QR</string>
     <string name="reset_cross_signing">אפס מקשים</string>
@@ -3016,8 +3014,6 @@
     <string name="encryption_export_notice_optional">באופן אופציונלי, צור משפט סיסמה להצפנת המפתחות המיוצאים. אם תגדיר אחד, תצטרך להזין את אותו משפט סיסמה כדי לייבא את המפתחות; השאר ריק כדי לייצא ללא הצפנה.</string>
     <string name="settings_randomize_upload_filenames_title">שמות אקראיים לקבצים שמועלים</string>
     <string name="settings_randomize_upload_filenames_summary">החלף את שם הקבצים שמועלים במזהה אקראי</string>
-    <string name="settings_randomize_upload_filenames_always">כן</string>
-    <string name="settings_randomize_upload_filenames_never">לא</string>
     <string name="settings_randomize_upload_filenames_public">בחדרים ציבוריים</string>
     <string name="login_server_matrix_id_text">השתמש בחשבון @user:domain.com הקיים שלך</string>
     <string name="settings_app_icon_color_title">צבע סמל האפליקציה</string>
@@ -3183,16 +3179,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">כן</string>
-    <string name="redaction_override_off">לא</string>
     <string name="settings_use_account_setting">השתמש בהגדרת החשבון</string>
     <string name="room_personalization_media_category">אבטחה ופרטיות</string>
     <string name="room_personalization_redaction_category">מחיקות</string>
     <string name="room_personalization_media_preview_show">הצג</string>
     <string name="room_personalization_media_preview_hide">הסתר</string>
     <string name="settings_homeserver_info_reloaded">פרטי שרת הבית נטענו מחדש</string>
-    <string name="settings_server_admin_yes">כן</string>
-    <string name="settings_server_admin_no">לא</string>
     <string name="settings_server_admin_unknown">לא ידוע</string>
     <string name="room_settings_room_access_knock_restricted_title">חברי מרחב, או בקשה להצטרף</string>
     <string name="room_settings_room_access_knock_restricted_description">חברי המרחבים שנבחרו יכולים להצטרף ללא הזמנה. כל השאר צריכים לבקש להצטרף.</string>
@@ -3256,7 +3248,6 @@
     <string name="settings_link_previews_encrypted">חדרים מוצפנים</string>
     <string name="settings_link_previews_unencrypted">חדרים לא מוצפנים</string>
     <string name="settings_link_previews_room">טען תצוגות מקדימות של קישורים</string>
-    <string name="settings_link_preview_source_none">לא</string>
     <string name="settings_link_preview_source_device">במכשיר</string>
     <string name="settings_link_preview_source_server">בצד השרת</string>
     <string name="attachment_caption_hint">הוסף כיתוב…</string>
@@ -3866,4 +3857,14 @@
     <string name="room_personalization_media_reset_confirmation">לאפס את הגדרות האבטחה והפרטיות של חדר זה לאלה של החשבון כולו?</string>
     <string name="room_personalization_redaction_reset_confirmation">לאפס את הגדרות המחיקות של חדר זה לאלה של החשבון כולו?</string>
     <string name="settings_hide_avatars_summary">הצג את אווטאר ברירת המחדל עבור חדרים ומרחבים שבהם המדיה מוסתרת, ועבור האנשים שבהם</string>
+    <string name="settings_room_sync_scope_title">סנכרון מצב החדרים</string>
+    <string name="settings_room_sync_scope_all">כל החדרים</string>
+    <string name="settings_room_sync_scope_direct">הודעות ישירות בלבד</string>
+    <string name="settings_room_sync_scope_opened">רק חדרים שאתה פותח</string>
+    <string name="settings_room_sync_scope_summary">שמור על החדרים שלך מעודכנים על ידי בדיקת הודעות חדשות בשרת הבית שלך. חדרים שאינם מסונכרנים מתעדכנים רק כשאתה פותח אותם.</string>
+    <string name="settings_room_sync_unavailable">דורש סנכרון מהדור הבא (MSC4186), שכבוי במעבדות או שאינו מוצע על ידי שרת הבית שלך.</string>
+    <string name="room_personalization_sync_title">סנכרון מצב החדר</string>
+    <string name="room_personalization_room_list_reset_confirmation">לאפס את הגדרות רשימת החדרים של חדר זה לאלה של החשבון כולו?</string>
+    <string name="option_yes">כן</string>
+    <string name="option_no">לא</string>
 </resources>

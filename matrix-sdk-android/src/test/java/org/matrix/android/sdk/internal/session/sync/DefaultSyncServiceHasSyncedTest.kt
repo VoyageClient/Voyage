@@ -26,6 +26,10 @@ class DefaultSyncServiceHasSyncedTest {
             syncRequestStateTracker = mockk(relaxed = true),
             sessionState = mockk(relaxed = true),
             syncStateHolder = mockk(relaxed = true),
+            userId = "@me:example.org",
+            settingsStorage = mockk(relaxed = true),
+            homeServerCapabilitiesDataSource = mockk(relaxed = true),
+            slidingSyncRoomSubscriptions = mockk(relaxed = true),
     )
 
     private fun stored(v2Token: String?, slidingPos: String?, slidingVersion: String?) {

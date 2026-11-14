@@ -71,6 +71,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val lightweightSettingsStorage: org.matrix.android.sdk.api.settings.LightweightSettingsStorage,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
+        private val unsyncedRoomTracker: org.matrix.android.sdk.internal.session.sync.sliding.UnsyncedRoomTracker,
 ) : SetReadMarkersTask {
 
     override suspend fun execute(params: SetReadMarkersTask.Params) = withContext(coroutineDispatchers.io) {
@@ -144,6 +145,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
                 readReceiptHandler.handle(stores, roomId, readReceiptContent, false, null)
             }
             if (shouldUpdateRoomSummary) {
+                unsyncedRoomTracker.clearActivity(roomId)
                 stores.roomSummary.clearUnreadCounters(roomId)
             } else if (readReceiptId != null && stores.syncToken.getSlidingSyncPos() != null) {
                 // Our own counts are what stand in for the server's under sliding sync, so reading part of a

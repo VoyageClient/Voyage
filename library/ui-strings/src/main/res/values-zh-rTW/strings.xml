@@ -1116,8 +1116,6 @@
     <string name="reset_cross_signing">重設金鑰</string>
     <string name="a11y_qr_code_for_verification">QR Code</string>
     <string name="qr_code_scanned_by_other_notice">就快完成了！%s 有顯示打勾嗎？</string>
-    <string name="qr_code_scanned_by_other_yes">是</string>
-    <string name="qr_code_scanned_by_other_no">否</string>
     <string name="no_connectivity_to_the_server_indicator">對伺服器的連線已中斷</string>
     <string name="login_signup_username_hint">使用者名稱</string>
     <string name="settings_dev_tools">開發者工具</string>
@@ -2901,8 +2899,6 @@
     <string name="encryption_export_notice_optional">您可以選擇建立密語來加密匯出的金鑰。若您設定了密語，匯入金鑰時將需要輸入相同的密語；留空則會以未加密方式匯出。</string>
     <string name="settings_randomize_upload_filenames_title">隨機化上傳的檔案名稱</string>
     <string name="settings_randomize_upload_filenames_summary">以隨機 ID 取代上傳檔案的名稱</string>
-    <string name="settings_randomize_upload_filenames_always">是</string>
-    <string name="settings_randomize_upload_filenames_never">否</string>
     <string name="settings_randomize_upload_filenames_public">在公開聊天室中</string>
     <string name="login_server_matrix_id_text">使用您既有的 @user:domain.com 帳號</string>
     <string name="settings_app_icon_color_title">應用程式圖示顏色</string>
@@ -3068,16 +3064,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">是</string>
-    <string name="redaction_override_off">否</string>
     <string name="settings_use_account_setting">使用帳號設定</string>
     <string name="room_personalization_media_category">安全性與隱私權</string>
     <string name="room_personalization_redaction_category">已刪除的訊息</string>
     <string name="room_personalization_media_preview_show">顯示</string>
     <string name="room_personalization_media_preview_hide">隱藏</string>
     <string name="settings_homeserver_info_reloaded">已重新載入家伺服器資訊</string>
-    <string name="settings_server_admin_yes">是</string>
-    <string name="settings_server_admin_no">否</string>
     <string name="settings_server_admin_unknown">未知</string>
     <string name="room_settings_room_access_knock_restricted_title">聊天空間成員，或申請加入</string>
     <string name="room_settings_room_access_knock_restricted_description">所選聊天空間的成員無需邀請即可加入。其他人則需申請加入。</string>
@@ -3141,7 +3133,6 @@
     <string name="settings_link_previews_encrypted">加密聊天室</string>
     <string name="settings_link_previews_unencrypted">未加密聊天室</string>
     <string name="settings_link_previews_room">擷取網址預覽</string>
-    <string name="settings_link_preview_source_none">否</string>
     <string name="settings_link_preview_source_device">裝置端</string>
     <string name="settings_link_preview_source_server">伺服器端</string>
     <string name="attachment_caption_hint">新增說明文字…</string>
@@ -3684,4 +3675,14 @@
     <string name="room_personalization_media_reset_confirmation">要將此聊天室的安全性與隱私權設定重設為帳號層級的設定嗎？</string>
     <string name="room_personalization_redaction_reset_confirmation">要將此聊天室的已刪除訊息設定重設為帳號層級的設定嗎？</string>
     <string name="settings_hide_avatars_summary">為隱藏媒體的聊天室與聊天空間及其中的成員顯示預設大頭照</string>
+    <string name="settings_room_sync_scope_title">同步聊天室狀態</string>
+    <string name="settings_room_sync_scope_all">所有聊天室</string>
+    <string name="settings_room_sync_scope_direct">僅限私訊</string>
+    <string name="settings_room_sync_scope_opened">僅限您開啟的聊天室</string>
+    <string name="settings_room_sync_scope_summary">向家伺服器檢查新訊息，讓您的聊天室保持最新。未同步的聊天室只會在您開啟時更新。</string>
+    <string name="settings_room_sync_unavailable">需要新一代同步（MSC4186），它已在實驗室中關閉，或您的家伺服器未提供。</string>
+    <string name="room_personalization_sync_title">同步聊天室狀態</string>
+    <string name="room_personalization_room_list_reset_confirmation">要將此聊天室的聊天室清單設定重設為帳號層級的設定嗎？</string>
+    <string name="option_yes">是</string>
+    <string name="option_no">否</string>
 </resources>

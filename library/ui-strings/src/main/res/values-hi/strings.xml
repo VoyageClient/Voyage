@@ -1612,8 +1612,6 @@
     <string name="reset_cross_signing">कुंजियां रीसेट करें</string>
     <string name="a11y_qr_code_for_verification">QR कोड</string>
     <string name="qr_code_scanned_by_other_notice">बस हो गया! क्या %s पर सही का निशान दिख रहा है?</string>
-    <string name="qr_code_scanned_by_other_yes">हां</string>
-    <string name="qr_code_scanned_by_other_no">नहीं</string>
     <string name="no_connectivity_to_the_server_indicator">सर्वर से कनेक्शन टूट गया है</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">हवाई जहाज़ मोड चालू है</string>
     <string name="settings_dev_tools">डेवलपर टूल</string>
@@ -2849,8 +2847,6 @@
     <string name="encryption_export_notice_optional">चाहें तो एक्सपोर्ट की गई कुंजियों को एन्क्रिप्ट करने के लिए पासफ़्रेज़ बनाएं। अगर आप इसे सेट करते हैं, तो कुंजियां इम्पोर्ट करने के लिए आपको वही पासफ़्रेज़ डालना होगा; बिना एन्क्रिप्शन के एक्सपोर्ट करने के लिए इसे खाली छोड़ दें।</string>
     <string name="settings_randomize_upload_filenames_title">अपलोड की गई फ़ाइलों के नाम बेतरतीब करें</string>
     <string name="settings_randomize_upload_filenames_summary">अपलोड की गई फ़ाइलों का नाम एक रैंडम ID से बदलें</string>
-    <string name="settings_randomize_upload_filenames_always">हां</string>
-    <string name="settings_randomize_upload_filenames_never">नहीं</string>
     <string name="settings_randomize_upload_filenames_public">सार्वजनिक रूम में</string>
     <string name="login_server_matrix_id_text">अपने मौजूदा @user:domain.com खाते का उपयोग करें</string>
     <string name="settings_app_icon_color_title">ऐप आइकन का रंग</string>
@@ -3016,16 +3012,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">हां</string>
-    <string name="redaction_override_off">नहीं</string>
     <string name="settings_use_account_setting">खाते की सेटिंग का उपयोग करें</string>
     <string name="room_personalization_media_category">सुरक्षा और गोपनीयता</string>
     <string name="room_personalization_redaction_category">हटाए गए मैसेज</string>
     <string name="room_personalization_media_preview_show">दिखाएं</string>
     <string name="room_personalization_media_preview_hide">छिपाएं</string>
     <string name="settings_homeserver_info_reloaded">होमसर्वर की जानकारी फिर से लोड हुई</string>
-    <string name="settings_server_admin_yes">हां</string>
-    <string name="settings_server_admin_no">नहीं</string>
     <string name="settings_server_admin_unknown">अज्ञात</string>
     <string name="room_settings_room_access_knock_restricted_title">स्पेस सदस्य, या शामिल होने का अनुरोध</string>
     <string name="room_settings_room_access_knock_restricted_description">चुने गए स्पेस के सदस्य बिना आमंत्रण के शामिल हो सकते हैं। बाकी सभी को शामिल होने का अनुरोध करना होगा।</string>
@@ -3089,7 +3081,6 @@
     <string name="settings_link_previews_encrypted">एन्क्रिप्टेड रूम</string>
     <string name="settings_link_previews_unencrypted">बिना एन्क्रिप्शन वाले रूम</string>
     <string name="settings_link_previews_room">लिंक प्रीव्यू लाएं</string>
-    <string name="settings_link_preview_source_none">नहीं</string>
     <string name="settings_link_preview_source_device">डिवाइस पर</string>
     <string name="settings_link_preview_source_server">सर्वर पर</string>
     <string name="attachment_caption_hint">कैप्शन जोड़ें…</string>
@@ -3643,4 +3634,14 @@
     <string name="room_personalization_media_reset_confirmation">इस रूम की सुरक्षा और गोपनीयता सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
     <string name="room_personalization_redaction_reset_confirmation">इस रूम की हटाए गए मैसेज वाली सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
     <string name="settings_hide_avatars_summary">जिन रूम और स्पेस में मीडिया छिपा है, उनके और उनमें मौजूद लोगों के लिए डिफ़ॉल्ट अवतार दिखाएं</string>
+    <string name="settings_room_sync_scope_title">रूम की स्थिति सिंक करें</string>
+    <string name="settings_room_sync_scope_all">सभी रूम</string>
+    <string name="settings_room_sync_scope_direct">सिर्फ़ डायरेक्ट मैसेज</string>
+    <string name="settings_room_sync_scope_opened">सिर्फ़ वे रूम जिन्हें आप खोलते हैं</string>
+    <string name="settings_room_sync_scope_summary">नए मैसेज के लिए अपने होमसर्वर से जांच करके अपने रूम अप-टू-डेट रखें। जो रूम सिंक नहीं होते, वे सिर्फ़ खोलने पर अपडेट होते हैं।</string>
+    <string name="settings_room_sync_unavailable">अगली पीढ़ी का सिंक (MSC4186) चाहिए, जो लैब्स में बंद है या आपका होमसर्वर इसे नहीं देता।</string>
+    <string name="room_personalization_sync_title">रूम की स्थिति सिंक करें</string>
+    <string name="room_personalization_room_list_reset_confirmation">इस रूम की रूम लिस्ट सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
+    <string name="option_yes">हां</string>
+    <string name="option_no">नहीं</string>
 </resources>

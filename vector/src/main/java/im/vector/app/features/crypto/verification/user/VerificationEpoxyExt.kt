@@ -331,7 +331,7 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
 
             bottomSheetVerificationActionItem {
                 id("deny")
-                title(host.stringProvider.getString(CommonStrings.qr_code_scanned_by_other_no))
+                title(host.stringProvider.getString(CommonStrings.option_no))
                 titleColor(host.colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorError))
                 iconRes(R.drawable.ic_check_off)
                 iconColor(host.colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorError))
@@ -344,7 +344,7 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
 
             bottomSheetVerificationActionItem {
                 id("confirm")
-                title(host.stringProvider.getString(CommonStrings.qr_code_scanned_by_other_yes))
+                title(host.stringProvider.getString(CommonStrings.option_yes))
                 titleColor(host.colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary))
                 iconRes(R.drawable.ic_check_on)
                 iconColor(host.colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary))

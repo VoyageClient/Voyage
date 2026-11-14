@@ -1618,8 +1618,6 @@
     <string name="reset_cross_signing">چابیاں دوبارہ ترتیب دیں</string>
     <string name="a11y_qr_code_for_verification">QR کوڈ</string>
     <string name="qr_code_scanned_by_other_notice">تقریباً ہو گیا! کیا %s پر درستی کا نشان دکھائی دے رہا ہے؟</string>
-    <string name="qr_code_scanned_by_other_yes">ہاں</string>
-    <string name="qr_code_scanned_by_other_no">نہیں</string>
     <string name="no_connectivity_to_the_server_indicator">سرور سے رابطہ منقطع ہو گیا ہے</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">ہوائی جہاز موڈ آن ہے</string>
     <string name="settings_dev_tools">ڈیولپر ٹولز</string>
@@ -2861,8 +2859,6 @@
     <string name="encryption_export_notice_optional">اختیاری طور پر برآمد شدہ چابیوں کو مرموز کرنے کے لیے ایک پاس فریز بنائیں۔ اگر آپ پاس فریز مقرر کرتے ہیں تو چابیاں درآمد کرنے کے لیے آپ کو وہی پاس فریز درج کرنا ہوگا؛ مرموزکاری کے بغیر برآمد کرنے کے لیے اسے خالی چھوڑ دیں۔</string>
     <string name="settings_randomize_upload_filenames_title">اپ لوڈ کی گئی فائلوں کے نام بے ترتیب کریں</string>
     <string name="settings_randomize_upload_filenames_summary">اپ لوڈ کی گئی فائلوں کا نام ایک بے ترتیب ID سے بدل دیں</string>
-    <string name="settings_randomize_upload_filenames_always">ہاں</string>
-    <string name="settings_randomize_upload_filenames_never">نہیں</string>
     <string name="settings_randomize_upload_filenames_public">عوامی کمروں میں</string>
     <string name="login_server_matrix_id_text">اپنا موجودہ @user:domain.com کھاتہ استعمال کریں</string>
     <string name="settings_app_icon_color_title">ایپ آئیکن کا رنگ</string>
@@ -3028,16 +3024,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">ہاں</string>
-    <string name="redaction_override_off">نہیں</string>
     <string name="settings_use_account_setting">کھاتے کی ترتیب استعمال کریں</string>
     <string name="room_personalization_media_category">حفاظت اور رازداری</string>
     <string name="room_personalization_redaction_category">مٹائے گئے پیغامات</string>
     <string name="room_personalization_media_preview_show">دکھائیں</string>
     <string name="room_personalization_media_preview_hide">چھپائیں</string>
     <string name="settings_homeserver_info_reloaded">منزلی خادم کی معلومات دوبارہ لوڈ ہو گئیں</string>
-    <string name="settings_server_admin_yes">ہاں</string>
-    <string name="settings_server_admin_no">نہیں</string>
     <string name="settings_server_admin_unknown">نامعلوم</string>
     <string name="room_settings_room_access_knock_restricted_title">جگہ کے اراکین، یا شامل ہونے کی درخواست</string>
     <string name="room_settings_room_access_knock_restricted_description">منتخب جگہوں کے اراکین بغیر دعوت کے شامل ہو سکتے ہیں۔ باقی سب کو شامل ہونے کی درخواست کرنی ہوگی۔</string>
@@ -3101,7 +3093,6 @@
     <string name="settings_link_previews_encrypted">مرموز شدہ کمرے</string>
     <string name="settings_link_previews_unencrypted">غیر مرموز کمرے</string>
     <string name="settings_link_previews_room">ربط کے پیش منظر حاصل کریں</string>
-    <string name="settings_link_preview_source_none">نہیں</string>
     <string name="settings_link_preview_source_device">آلے پر</string>
     <string name="settings_link_preview_source_server">سرور کی طرف</string>
     <string name="attachment_caption_hint">کیپشن شامل کریں…</string>
@@ -3655,4 +3646,14 @@
     <string name="room_personalization_media_reset_confirmation">اس کمرے کی حفاظت اور رازداری کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
     <string name="room_personalization_redaction_reset_confirmation">اس کمرے کی مٹائے گئے پیغامات کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
     <string name="settings_hide_avatars_summary">جن کمروں اور جگہوں میں میڈیا چھپا ہو، ان کے اور ان میں موجود لوگوں کے لیے طے شدہ اوتار دکھائیں</string>
+    <string name="settings_room_sync_scope_title">کمروں کی حالت ہم وقت کریں</string>
+    <string name="settings_room_sync_scope_all">تمام کمرے</string>
+    <string name="settings_room_sync_scope_direct">صرف براہِ راست پیغامات</string>
+    <string name="settings_room_sync_scope_opened">صرف وہ کمرے جو آپ کھولیں</string>
+    <string name="settings_room_sync_scope_summary">نئے پیغامات کے لیے اپنا منزلی خادم دیکھ کر اپنے کمروں کو تازہ رکھیں۔ جو کمرے ہم وقت نہیں ہوتے، وہ صرف کھولنے پر تازہ ہوتے ہیں۔</string>
+    <string name="settings_room_sync_unavailable">اگلی نسل کی ہم وقت سازی (MSC4186) درکار ہے، جو تجربہ گاہ میں بند ہے یا آپ کا منزلی خادم اسے فراہم نہیں کرتا۔</string>
+    <string name="room_personalization_sync_title">کمرے کی حالت ہم وقت کریں</string>
+    <string name="room_personalization_room_list_reset_confirmation">اس کمرے کی کمروں کی فہرست کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
+    <string name="option_yes">ہاں</string>
+    <string name="option_no">نہیں</string>
 </resources>

@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.flow.flow
 
@@ -56,11 +57,12 @@ class RoomTagViewModel @AssistedInject constructor(
                 room.flow().liveRoomSummary().distinctUntilChanged(),
                 allRoomsFlow,
         ) { roomSummaryOption, allRooms ->
-            // Custom-section tags have their own management UI (RoomSectionBottomSheet).
+            // Custom-section tags have their own management UI (RoomSectionBottomSheet), sync tags theirs in
+            // room personalization.
             val currentTagNames = roomSummaryOption.getOrNull()?.tags?.map { it.name }.orEmpty()
-                    .filterNot { RoomSections.isSectionTag(it) }
+                    .filterNot { RoomSections.isSectionTag(it) || RoomTag.isSyncOverrideTag(it) }
             val allTagNames = allRooms.flatMap { summary -> summary.tags.map { it.name } }.distinct()
-                    .filterNot { RoomSections.isSectionTag(it) }
+                    .filterNot { RoomSections.isSectionTag(it) || RoomTag.isSyncOverrideTag(it) }
 
             val roomTags = currentTagNames
                     .map { RoomTagItem(it, displayNameForTag(stringProvider, it), 0) }

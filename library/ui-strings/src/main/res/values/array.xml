@@ -29,7 +29,7 @@
     </string-array>
 
     <string-array name="link_preview_sources">
-        <item>@string/settings_link_preview_source_none</item>
+        <item>@string/option_no</item>
         <item>@string/settings_link_preview_source_device</item>
         <item>@string/settings_link_preview_source_server</item>
     </string-array>
@@ -41,7 +41,7 @@
 
     <string-array name="room_link_preview_sources">
         <item>@string/settings_use_account_setting</item>
-        <item>@string/settings_link_preview_source_none</item>
+        <item>@string/option_no</item>
         <item>@string/settings_link_preview_source_device</item>
         <item>@string/settings_link_preview_source_server</item>
     </string-array>
@@ -53,8 +53,8 @@
     </string-array>
 
     <string-array name="randomize_upload_filename_modes">
-        <item>@string/settings_randomize_upload_filenames_always</item>
-        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
         <item>@string/settings_randomize_upload_filenames_public</item>
     </string-array>
     <string-array name="randomize_upload_filename_mode_values">
@@ -63,10 +63,32 @@
         <item>public</item>
     </string-array>
 
+    <string-array name="room_sync_scopes">
+        <item>@string/settings_room_sync_scope_all</item>
+        <item>@string/settings_room_sync_scope_direct</item>
+        <item>@string/settings_room_sync_scope_opened</item>
+    </string-array>
+    <string-array name="room_sync_scope_values">
+        <item>all</item>
+        <item>direct</item>
+        <item>opened</item>
+    </string-array>
+
+    <string-array name="room_sync_overrides">
+        <item>@string/settings_use_account_setting</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
+    </string-array>
+    <string-array name="room_sync_override_values">
+        <item>inherit</item>
+        <item>always</item>
+        <item>when_open</item>
+    </string-array>
+
     <string-array name="room_randomize_upload_filename_modes">
         <item>@string/settings_use_account_setting</item>
-        <item>@string/settings_randomize_upload_filenames_always</item>
-        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
     </string-array>
     <string-array name="room_randomize_upload_filename_mode_values">
         <item>inherit</item>
@@ -75,8 +97,8 @@
     </string-array>
 
     <string-array name="strip_media_metadata_modes">
-        <item>@string/settings_randomize_upload_filenames_always</item>
-        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
         <item>@string/settings_randomize_upload_filenames_public</item>
     </string-array>
     <string-array name="strip_media_metadata_mode_values">
@@ -87,8 +109,8 @@
 
     <string-array name="room_strip_media_metadata_modes">
         <item>@string/settings_use_account_setting</item>
-        <item>@string/settings_randomize_upload_filenames_always</item>
-        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
     </string-array>
     <string-array name="room_strip_media_metadata_mode_values">
         <item>inherit</item>
@@ -99,8 +121,8 @@
     <!-- Per-room booleans that can defer to the account value. -->
     <string-array name="redaction_inherit_bools">
         <item>@string/settings_use_account_setting</item>
-        <item>@string/redaction_override_on</item>
-        <item>@string/redaction_override_off</item>
+        <item>@string/option_yes</item>
+        <item>@string/option_no</item>
     </string-array>
     <string-array name="redaction_inherit_bool_values">
         <item>inherit</item>

@@ -45,6 +45,7 @@ internal class SqlRoomSummaryUpdaterMemberCountTest {
             directRoomsCache = DirectRoomsCache(),
             lightweightSettingsStorage = mockk { every { areThreadMessagesEnabled() } returns true },
             clock = FakeClock().apply { givenEpoch(1_000L) },
+            unsyncedRoomTracker = mockk { every { unseenActivityTs(any()) } returns null },
     )
 
     @After

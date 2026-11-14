@@ -1131,8 +1131,6 @@
     <string name="reset_cross_signing">重置密钥</string>
     <string name="a11y_qr_code_for_verification">QR码</string>
     <string name="qr_code_scanned_by_other_notice">快要完成了！%s 显示对勾了吗？</string>
-    <string name="qr_code_scanned_by_other_yes">是</string>
-    <string name="qr_code_scanned_by_other_no">否</string>
     <string name="no_connectivity_to_the_server_indicator">到服务器的连接已丢失</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">飞行模式已打开</string>
     <string name="settings_dev_tools">开发工具</string>
@@ -2899,8 +2897,6 @@
     <string name="encryption_export_notice_optional">可选择创建一个密码短语来加密导出的密钥。如果设置了密码短语，导入密钥时需要输入相同的密码短语；留空则不加密导出。</string>
     <string name="settings_randomize_upload_filenames_title">随机化上传的文件名</string>
     <string name="settings_randomize_upload_filenames_summary">将上传文件的名称替换为随机 ID</string>
-    <string name="settings_randomize_upload_filenames_always">是</string>
-    <string name="settings_randomize_upload_filenames_never">否</string>
     <string name="settings_randomize_upload_filenames_public">在公开房间中</string>
     <string name="login_server_matrix_id_text">使用你现有的 @user:domain.com 账户</string>
     <string name="settings_app_icon_color_title">应用图标颜色</string>
@@ -3066,16 +3062,12 @@
     <string name="redaction_media_size_10mb">10 MB</string>
     <string name="redaction_media_size_25mb">25 MB</string>
     <string name="redaction_media_size_50mb">50 MB</string>
-    <string name="redaction_override_on">是</string>
-    <string name="redaction_override_off">否</string>
     <string name="settings_use_account_setting">使用账户设置</string>
     <string name="room_personalization_media_category">安全与隐私</string>
     <string name="room_personalization_redaction_category">删除</string>
     <string name="room_personalization_media_preview_show">显示</string>
     <string name="room_personalization_media_preview_hide">隐藏</string>
     <string name="settings_homeserver_info_reloaded">家服务器信息已重新加载</string>
-    <string name="settings_server_admin_yes">是</string>
-    <string name="settings_server_admin_no">否</string>
     <string name="settings_server_admin_unknown">未知</string>
     <string name="room_settings_room_access_knock_restricted_title">空间成员，或申请加入</string>
     <string name="room_settings_room_access_knock_restricted_description">所选空间的成员无需邀请即可加入。其他人需要申请加入。</string>
@@ -3139,7 +3131,6 @@
     <string name="settings_link_previews_encrypted">加密房间</string>
     <string name="settings_link_previews_unencrypted">未加密房间</string>
     <string name="settings_link_previews_room">获取链接预览</string>
-    <string name="settings_link_preview_source_none">否</string>
     <string name="settings_link_preview_source_device">设备端</string>
     <string name="settings_link_preview_source_server">服务器端</string>
     <string name="attachment_caption_hint">添加说明文字…</string>
@@ -3682,4 +3673,14 @@
     <string name="room_personalization_media_reset_confirmation">将此房间的安全与隐私设置重置为账户全局设置？</string>
     <string name="room_personalization_redaction_reset_confirmation">将此房间的删除设置重置为账户全局设置？</string>
     <string name="settings_hide_avatars_summary">为隐藏媒体的房间和空间及其中的成员显示默认头像</string>
+    <string name="settings_room_sync_scope_title">同步房间状态</string>
+    <string name="settings_room_sync_scope_all">所有房间</string>
+    <string name="settings_room_sync_scope_direct">仅私聊</string>
+    <string name="settings_room_sync_scope_opened">仅你打开的房间</string>
+    <string name="settings_room_sync_scope_summary">通过向家服务器检查新消息，让你的房间保持最新。未同步的房间只在你打开时更新。</string>
+    <string name="settings_room_sync_unavailable">需要新一代同步（MSC4186），它已在实验室中关闭，或你的家服务器不提供。</string>
+    <string name="room_personalization_sync_title">同步房间状态</string>
+    <string name="room_personalization_room_list_reset_confirmation">将此房间的房间列表设置重置为账户全局设置？</string>
+    <string name="option_yes">是</string>
+    <string name="option_no">否</string>
 </resources>

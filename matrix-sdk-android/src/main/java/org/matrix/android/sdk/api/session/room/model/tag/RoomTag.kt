@@ -25,5 +25,12 @@ data class RoomTag(
         const val ROOM_TAG_FAVOURITE = "m.favourite"
         const val ROOM_TAG_LOW_PRIORITY = "m.lowpriority"
         const val ROOM_TAG_SERVER_NOTICE = "m.server_notice"
+
+        // Per-room overrides of RoomSyncScope. Tags, because a sliding-sync list can only leave a room
+        // out by filtering on one.
+        const val ROOM_TAG_SYNC_ALWAYS = "im.voyage.sync.always"
+        const val ROOM_TAG_SYNC_WHEN_OPEN = "im.voyage.sync.when_open"
+
+        fun isSyncOverrideTag(name: String) = name == ROOM_TAG_SYNC_ALWAYS || name == ROOM_TAG_SYNC_WHEN_OPEN
     }
 }

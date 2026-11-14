@@ -28,6 +28,13 @@
             android:summary="@string/settings_single_overview_summary"
             android:title="@string/settings_single_overview" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_sync_scopes"
+            android:entryValues="@array/room_sync_scope_values"
+            android:key="SETTINGS_ROOM_SYNC_SCOPE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_room_sync_scope_title" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_rooms_spaces_category_badges">

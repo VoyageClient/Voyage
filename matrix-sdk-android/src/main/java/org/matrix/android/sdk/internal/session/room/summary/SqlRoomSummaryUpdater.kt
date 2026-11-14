@@ -46,6 +46,7 @@ import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelp
 import org.matrix.android.sdk.internal.session.room.relationship.SqlRoomChildRelationInfo
 import org.matrix.android.sdk.internal.session.room.timeline.RoomSummaryEventDecryptor
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
+import org.matrix.android.sdk.internal.session.sync.sliding.UnsyncedRoomTracker
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -61,7 +62,19 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val directRoomsCache: DirectRoomsCache,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val clock: Clock,
+        private val unsyncedRoomTracker: UnsyncedRoomTracker,
 ) {
+
+    private fun updateUnreadState(stores: SessionStores, roomId: String, entity: RoomSummaryEntity) {
+        val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
+        val unseenActivityTs = unsyncedRoomTracker.unseenActivityTs(roomId)
+        entity.hasUnreadMessages = entity.notificationCount > 0 || unseenActivityTs != null ||
+                unreadAnchor?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
+        // Messages the room is not being sent still have to move it up the list.
+        if (unseenActivityTs != null && unseenActivityTs > (entity.lastActivityTime ?: 0L)) {
+            entity.lastActivityTime = unseenActivityTs
+        }
+    }
 
     /**
      * [clearIfNone] is for the ignore list changing: there, finding nothing previewable means every
@@ -81,9 +94,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         } else if (clearIfNone || entity.latestPreviewableEvent?.let { roomSummaryEventsHelper.isHiddenThreadReaction(stores, it) } == true) {
             entity.latestPreviewableEvent = null
         }
-        val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
-        entity.hasUnreadMessages = entity.notificationCount > 0 ||
-                unreadAnchor?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
+        updateUnreadState(stores, roomId, entity)
         stores.roomSummary.upsert(entity)
     }
 
@@ -198,9 +209,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
                     ?: clock.epochMillis()
         }
 
-        val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
-        entity.hasUnreadMessages = entity.notificationCount > 0 ||
-                unreadAnchor?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
+        updateUnreadState(stores, roomId, entity)
 
         if (entity.isRemovedFromRoom) {
             // A kicked/banned room is frozen and the server refuses our read receipts for it, so there is

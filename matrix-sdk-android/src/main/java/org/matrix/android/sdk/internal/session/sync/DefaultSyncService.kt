@@ -16,13 +16,18 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
+import org.matrix.android.sdk.api.session.sync.RoomSyncScope
 import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.internal.di.SessionId
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionState
+import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 import org.matrix.android.sdk.internal.session.sync.job.BackgroundSyncScheduling
 import org.matrix.android.sdk.internal.session.sync.job.SyncThread
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRoomSubscriptions
 import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncTask
+import org.matrix.android.sdk.internal.settings.DefaultLightweightSettingsStorage
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -35,6 +40,10 @@ internal class DefaultSyncService @Inject constructor(
         private val syncRequestStateTracker: SyncRequestStateTracker,
         private val sessionState: SessionState,
         private val syncStateHolder: SyncStateHolder,
+        @UserId private val userId: String,
+        private val settingsStorage: DefaultLightweightSettingsStorage,
+        private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
+        private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : SyncService {
     // Guards the lazy create/start/kill of [syncThread]: startSync() is reached from the main thread
     // (activity startup) and from background threads (foreground hook, session init) at the same time, and
@@ -109,6 +118,19 @@ internal class DefaultSyncService @Inject constructor(
         val slidingSynced = syncTokenStore.getSlidingSyncPos() != null &&
                 syncTokenStore.getSlidingSyncStateVersion() == SlidingSyncTask.STATE_VERSION
         return syncTokenStore.getLastToken() != null || slidingSynced
+    }
+
+    override fun getRoomSyncScope(): RoomSyncScope = settingsStorage.getRoomSyncScope(userId)
+
+    override fun setRoomSyncScope(scope: RoomSyncScope) {
+        if (scope == getRoomSyncScope()) return
+        settingsStorage.setRoomSyncScope(userId, scope)
+        slidingSyncRoomSubscriptions.invalidate()
+    }
+
+    override fun canLimitRoomSync(): Boolean {
+        return settingsStorage.isSlidingSyncEnabled() &&
+                homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseSimplifiedSlidingSync == true
     }
 
     @Synchronized
