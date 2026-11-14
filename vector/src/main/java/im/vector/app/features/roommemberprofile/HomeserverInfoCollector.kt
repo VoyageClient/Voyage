@@ -27,6 +27,7 @@ import org.json.JSONObject
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.cache.CacheStrategy
+import org.matrix.android.sdk.api.federation.ServerName.hostOf
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import java.text.DateFormat
@@ -79,8 +80,7 @@ class HomeserverInfoCollector @Inject constructor(
 
     private suspend fun collect(serverName: String): Map<String, String> = coroutineScope {
         val discovery = async { discoverClientApi(serverName) }
-        // SRV records are skipped: Android has no DNS SRV API, and nearly every server delegates by well-known.
-        val federationUrl = async { discoverFederationApi(serverName) }
+        val federationUrl = async { session.federationService().resolveFederationUrl(serverName) }
         val software = async { softwareRows(federationUrl.await(), discovery.await().url) }
         val keys = async { keysRows(federationUrl.await()) }
         val versions = async { versionsRows(discovery.await().url) }
@@ -126,17 +126,6 @@ class HomeserverInfoCollector @Inject constructor(
                 str(CommonStrings.homeserver_info_software) to (software?.optStringOrNull("name") ?: unavailable()),
                 str(CommonStrings.homeserver_info_version) to (software?.optStringOrNull("version") ?: unavailable()),
         )
-    }
-
-    private suspend fun discoverFederationApi(serverName: String): String {
-        if (hasExplicitPort(serverName)) return "https://$serverName"
-        val host = hostOf(serverName)
-        if (!isIpLiteral(host)) {
-            fetchJson("https://$host/.well-known/matrix/server")?.optStringOrNull("m.server")?.let { delegated ->
-                return if (hasExplicitPort(delegated)) "https://$delegated" else "https://$delegated:$FEDERATION_DEFAULT_PORT"
-            }
-        }
-        return "https://$serverName:$FEDERATION_DEFAULT_PORT"
     }
 
     private suspend fun versionsRows(clientUrl: String): List<Pair<String, String>> {
@@ -242,20 +231,6 @@ class HomeserverInfoCollector @Inject constructor(
             this?.let { array -> (0 until array.length()).mapNotNull { array.optString(it).takeIf { s -> s.isNotBlank() } } }.orEmpty()
 
     companion object {
-        private const val FEDERATION_DEFAULT_PORT = 8448
         private const val REQUEST_TIMEOUT_MS = 15_000L
-
-        /** The server name without its port, keeping an IPv6 literal's brackets. */
-        fun hostOf(serverName: String): String =
-                if (hasExplicitPort(serverName)) serverName.substringBeforeLast(':') else serverName
-
-        fun hasExplicitPort(serverName: String): Boolean {
-            val tail = serverName.substringAfterLast(':', missingDelimiterValue = "")
-            // In an IPv6 literal only a colon after the closing bracket starts a port.
-            return tail.isNotEmpty() && tail.all { it.isDigit() } &&
-                    (!serverName.startsWith("[") || serverName.substringBeforeLast(':').endsWith("]"))
-        }
-
-        private fun isIpLiteral(host: String) = host.startsWith("[") || host.all { it.isDigit() || it == '.' }
     }
 }

@@ -17,10 +17,13 @@
 
 package org.matrix.android.sdk.internal.federation
 
-import org.matrix.android.sdk.internal.network.NetworkConstants
 import retrofit2.http.GET
+import retrofit2.http.Url
 
 internal interface FederationAPI {
-    @GET(NetworkConstants.URI_FEDERATION_PATH + "version")
-    suspend fun getVersion(): FederationGetVersionResult
+    @GET
+    suspend fun getVersion(@Url url: String): FederationGetVersionResult
+
+    @GET
+    suspend fun getServerWellKnown(@Url url: String): ServerWellKnown
 }

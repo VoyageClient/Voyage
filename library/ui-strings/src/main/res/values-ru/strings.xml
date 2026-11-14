@@ -3898,4 +3898,5 @@
     <string name="option_yes">Да</string>
     <string name="option_no">Нет</string>
     <string name="ftue_auth_create_account_username_entry_footer">Другие пользователи могут найти вас как %s</string>
+    <string name="room_removed_unknown">Вы больше не участник %1$s</string>
 </resources>

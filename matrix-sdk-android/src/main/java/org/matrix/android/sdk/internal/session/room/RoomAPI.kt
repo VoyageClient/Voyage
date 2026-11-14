@@ -31,6 +31,7 @@ import org.matrix.android.sdk.internal.session.room.create.CreateRoomBody
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomResponse
 import org.matrix.android.sdk.internal.session.room.create.JoinRoomResponse
 import org.matrix.android.sdk.internal.session.room.membership.RoomMembersResponse
+import org.matrix.android.sdk.internal.session.room.membership.RoomSummaryMembership
 import org.matrix.android.sdk.internal.session.room.membership.admin.UserIdAndReason
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteBody
 import org.matrix.android.sdk.internal.session.room.membership.threepid.ThreePidInviteBody
@@ -270,6 +271,19 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Path("userId") userId: String,
     ): RoomMemberContent
+
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "rooms/{roomId}/state/m.room.member/{userId}")
+    suspend fun getRoomMemberEvent(
+            @Path("roomId") roomId: String,
+            @Path("userId") userId: String,
+            @Query("format") format: String = "event",
+    ): Event
+
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "room_summary/{roomIdOrAlias}")
+    suspend fun getRoomSummary(@Path("roomIdOrAlias") roomIdOrAlias: String): RoomSummaryMembership
+
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "im.nheko.summary/summary/{roomIdOrAlias}")
+    suspend fun getRoomSummaryUnstable(@Path("roomIdOrAlias") roomIdOrAlias: String): RoomSummaryMembership
 
     /**
      * Deprecated v1 room initialSync, still served by homeservers. It is the only way to fetch

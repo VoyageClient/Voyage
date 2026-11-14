@@ -3714,4 +3714,5 @@
     <string name="option_yes">Evet</string>
     <string name="option_no">Hayır</string>
     <string name="ftue_auth_create_account_username_entry_footer">Diğerleri sizi %s olarak bulabilir</string>
+    <string name="room_removed_unknown">Artık %1$s odasında değilsiniz</string>
 </resources>

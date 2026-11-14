@@ -2055,13 +2055,21 @@ private fun handleSelectStickerAttachment() {
             }
             if (summary.isRemovedFromRoom && !summary.membership.isActive()) {
                 val memberEvent = room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(session.myUserId))
+                val memberContent = memberEvent?.content?.toModel<RoomMemberContent>()
                 val senderId = memberEvent?.senderId?.takeIf { it != session.myUserId }
                 val senderName = senderId?.let {
                     val membershipService = room.membershipService()
                     membershipService.disambiguateDisplayName(it, membershipService.getRoomMember(it)?.displayName)
                 }
-                val reason = memberEvent?.content?.toModel<RoomMemberContent>()?.safeReason
-                setState { copy(removedFromRoomBy = senderName, removedFromRoomReason = reason) }
+                // A removal the server never showed us keeps our old join as the stored member event.
+                val causeUnknown = summary.membership == Membership.LEAVE && memberContent?.membership != Membership.LEAVE
+                setState {
+                    copy(
+                            removedFromRoomBy = senderName,
+                            removedFromRoomReason = memberContent?.safeReason,
+                            removalCauseUnknown = causeUnknown,
+                    )
+                }
             }
         }
     }

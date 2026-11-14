@@ -21,4 +21,7 @@ interface FederationService {
      * Get information about the homeserver.
      */
     suspend fun getFederationVersion(): FederationVersion
+
+    /** The federation API base URL of [serverName], per the server-server spec's server discovery. */
+    suspend fun resolveFederationUrl(serverName: String): String
 }

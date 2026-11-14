@@ -4176,6 +4176,7 @@
     <string name="room_forget_prompt_msg">Forgetting this room permanently removes your copy of its history. You won\'t see it again unless you rejoin.</string>
     <string name="room_removed_kicked_generic">You were removed from %1$s</string>
     <string name="room_removed_banned_generic">You were banned from %1$s</string>
+    <string name="room_removed_unknown">You\'re no longer in %1$s</string>
     <string name="room_removed_reason">Reason: %1$s</string>
     <string name="room_removed_rejoin">Rejoin</string>
     <string name="room_list_watching">Watching</string>

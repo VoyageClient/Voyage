@@ -3744,4 +3744,5 @@
     <string name="option_yes">Sí</string>
     <string name="option_no">No</string>
     <string name="ftue_auth_create_account_username_entry_footer">Otros pueden encontrarte como %s</string>
+    <string name="room_removed_unknown">Ya no estás en %1$s</string>
 </resources>

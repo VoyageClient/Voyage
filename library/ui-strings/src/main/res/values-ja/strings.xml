@@ -3681,4 +3681,5 @@
     <string name="option_yes">はい</string>
     <string name="option_no">いいえ</string>
     <string name="ftue_auth_create_account_username_entry_footer">他の人は %s であなたを見つけることができます</string>
+    <string name="room_removed_unknown">%1$sのメンバーではなくなりました</string>
 </resources>

@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.session.content.FailedMediaUploadRecovery
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomFromLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
+import org.matrix.android.sdk.internal.session.room.membership.NotInRoomReconciler
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.send.ShadowBanDetector
 import org.matrix.android.sdk.internal.task.Task
@@ -48,6 +49,7 @@ internal class DefaultSendEventTask @Inject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
         private val shadowBanDetector: ShadowBanDetector,
+        private val notInRoomReconciler: NotInRoomReconciler,
 ) : SendEventTask {
 
     override suspend fun execute(params: SendEventTask.Params): String {
@@ -91,6 +93,7 @@ internal class DefaultSendEventTask @Inject constructor(
         } catch (e: Throwable) {
 //            localEchoRepository.updateSendState(params.event.eventId!!, SendState.UNDELIVERED)
             Timber.w(e, "Unable to send the Event")
+            params.event.roomId?.takeUnless { params.event.isLocalRoomEvent }?.let { notInRoomReconciler.onSendFailed(it, e) }
             throw e
         }
     }

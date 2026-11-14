@@ -3947,4 +3947,5 @@
     <string name="option_yes">نعم</string>
     <string name="option_no">لا</string>
     <string name="ftue_auth_create_account_username_entry_footer">يمكن للآخرين العثور عليك باسم %s</string>
+    <string name="room_removed_unknown">لم تعد في %1$s</string>
 </resources>

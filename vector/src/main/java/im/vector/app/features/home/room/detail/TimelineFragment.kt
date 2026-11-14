@@ -1895,6 +1895,7 @@ class TimelineFragment :
             val prompt = buildString {
                 append(
                         when {
+                            kicked && mainState.removalCauseUnknown -> getString(CommonStrings.room_removed_unknown, summary.displayName)
                             kicked && by != null -> getString(CommonStrings.has_been_kicked, summary.displayName, by)
                             kicked -> getString(CommonStrings.room_removed_kicked_generic, summary.displayName)
                             by != null -> getString(CommonStrings.has_been_banned, summary.displayName, by)

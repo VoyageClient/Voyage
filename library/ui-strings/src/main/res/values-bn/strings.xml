@@ -3716,4 +3716,5 @@
     <string name="option_yes">হ্যাঁ</string>
     <string name="option_no">না</string>
     <string name="ftue_auth_create_account_username_entry_footer">অন্যরা আপনাকে %s নামে খুঁজে পেতে পারেন</string>
+    <string name="room_removed_unknown">আপনি আর %1$s-এ নেই</string>
 </resources>

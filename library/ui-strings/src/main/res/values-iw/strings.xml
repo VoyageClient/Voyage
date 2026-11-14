@@ -3867,4 +3867,5 @@
     <string name="option_yes">כן</string>
     <string name="option_no">לא</string>
     <string name="ftue_auth_create_account_username_entry_footer">אחרים יכולים למצוא אותך בתור %s</string>
+    <string name="room_removed_unknown">אינך נמצא עוד ב-%1$s</string>
 </resources>

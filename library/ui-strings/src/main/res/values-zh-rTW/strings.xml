@@ -3685,4 +3685,5 @@
     <string name="option_yes">是</string>
     <string name="option_no">否</string>
     <string name="ftue_auth_create_account_username_entry_footer">其他人可以透過 %s 找到您</string>
+    <string name="room_removed_unknown">您已不在 %1$s 中</string>
 </resources>

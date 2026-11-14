@@ -47,6 +47,8 @@ data class RoomDetailViewState(
         /** Display name of whoever kicked/banned us, when this room is a frozen removed room. */
         val removedFromRoomBy: String? = null,
         val removedFromRoomReason: String? = null,
+        /** No longer in the room, but whether by a kick or a leave elsewhere is unknown. */
+        val removalCauseUnknown: Boolean = false,
         /** True once the timeline snapshot is non-empty; gates the invite preview UI. */
         val timelineHasContent: Boolean = false,
         val roomId: String,

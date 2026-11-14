@@ -3683,4 +3683,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="option_yes">Ya</string>
     <string name="option_no">Tidak</string>
     <string name="ftue_auth_create_account_username_entry_footer">Orang lain dapat menemukan Anda sebagai %s</string>
+    <string name="room_removed_unknown">Anda tidak lagi berada di %1$s</string>
 </resources>

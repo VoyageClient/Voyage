@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.session.room.model.create.RoomPredecessors
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.membership.NotInRoomReconciler
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
@@ -43,7 +44,8 @@ internal class DefaultLeaveRoomTask @Inject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val stateEventDataSource: StateEventDataSource,
         private val roomSummaryDataSource: RoomSummaryDataSource,
-        private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource
+        private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
+        private val notInRoomReconciler: NotInRoomReconciler,
 ) : LeaveRoomTask {
 
     override suspend fun execute(params: LeaveRoomTask.Params) {
@@ -79,6 +81,7 @@ internal class DefaultLeaveRoomTask @Inject constructor(
                 roomAPI.leave(roomId, mapOf("reason" to reason))
             }
         } catch (failure: Throwable) {
+            if (notInRoomReconciler.onLeaveFailed(roomId, failure)) return
             roomChangeMembershipStateDataSource.updateState(roomId, ChangeMembershipState.FailedLeaving(failure))
             throw failure
         }

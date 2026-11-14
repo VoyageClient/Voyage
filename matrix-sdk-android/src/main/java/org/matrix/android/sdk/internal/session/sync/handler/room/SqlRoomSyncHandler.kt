@@ -454,6 +454,22 @@ internal class SqlRoomSyncHandler @Inject constructor(
     }
 
     /**
+     * Keeps a room we are no longer in as a removal when the server hides our member event, leaving no event for
+     * [handleLeftRoom] to apply. The stored member event stays as it was, so the cause shows as unknown unless
+     * [membership] is a confirmed [Membership.BAN].
+     */
+    fun markRemovedWithoutEvent(stores: SessionStores, roomId: String, membership: Membership, aggregator: SyncResponsePostTreatmentAggregator) {
+        aggregator.spaceHierarchyChanged = true
+        stores.roomMember.getByRoomAndUser(roomId, userId)?.let {
+            it.membership = membership
+            stores.roomMember.upsert(it)
+        }
+        stores.room.updateMembership(roomId, membership)
+        roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, membership)
+        roomSummaryUpdater.update(stores, roomId, membership, aggregator = aggregator, removedFromRoom = true)
+    }
+
+    /**
      * BAN, or LEAVE written by someone else (kick) — i.e. removed as opposed to leaving
      * voluntarily. Null when not removed.
      */
