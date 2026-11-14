@@ -88,8 +88,15 @@ class OwnMembershipProbeTest {
     }
 
     @Test
-    fun `other failures prove nothing`() {
+    fun `a 404 from a world-readable room is a departure of unknown cause`() {
         givenMemberEventFails(error(404, MatrixError.M_NOT_FOUND))
+        coEvery { roomAPI.getRoomSummary(ROOM) } returns RoomSummaryMembership("leave")
+        probe() shouldBeEqualTo OwnMembership.Departed(null, null)
+    }
+
+    @Test
+    fun `other failures prove nothing`() {
+        givenMemberEventFails(error(404, MatrixError.M_UNRECOGNIZED))
         probe() shouldBe OwnMembership.Unknown
         givenMemberEventFails(error(403, MatrixError.M_CONSENT_NOT_GIVEN))
         probe() shouldBe OwnMembership.Unknown

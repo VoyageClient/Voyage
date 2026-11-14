@@ -60,8 +60,9 @@ internal class OwnMembershipProbe @Inject constructor(
             throw e
         } catch (failure: Throwable) {
             // Synapse lets a joined user, and a departed one who has not forgotten the room, read their own member
-            // event. Everyone else gets this 403: banned, kicked or left and then forgotten, invited or knocking.
-            if (failure.isForbidden()) OwnMembership.Departed(null, null) else OwnMembership.Unknown
+            // event. Everyone else gets a 403: banned, kicked or left and then forgotten, invited or knocking. A
+            // world-readable room answers them as a guest: 404 when its state has no member event, as after a state reset.
+            if (failure.isForbidden() || failure.isNotFound()) OwnMembership.Departed(null, null) else OwnMembership.Unknown
         }
     }
 
@@ -89,6 +90,8 @@ internal class OwnMembershipProbe @Inject constructor(
 
     private fun Throwable.isUnrecognized() = this is Failure.ServerError && (httpCode == 404 || httpCode == 405) &&
             error.code == MatrixError.M_UNRECOGNIZED
+
+    private fun Throwable.isNotFound() = this is Failure.ServerError && httpCode == 404 && error.code == MatrixError.M_NOT_FOUND
 }
 
 internal fun Throwable.isForbidden() = this is Failure.ServerError && httpCode == 403 && error.code == MatrixError.M_FORBIDDEN
