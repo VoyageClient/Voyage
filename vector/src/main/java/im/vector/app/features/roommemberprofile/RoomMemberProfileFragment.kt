@@ -30,6 +30,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Success
@@ -153,6 +154,13 @@ class RoomMemberProfileFragment :
     private var coverActive = false
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
+    private val modelBuildListener = OnModelBuildFinishedListener {
+        if (pendingReveal) {
+            modelsBuilt = true
+            revealWhenReady()
+        }
+    }
+
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
     }
@@ -211,12 +219,7 @@ class RoomMemberProfileFragment :
         headerRevealed = false
         showLoadingCover()
         views.matrixProfileLoadingBackButton.debouncedClicks { vectorBaseActivity.onBackPressedDispatcher.onBackPressed() }
-        roomMemberProfileController.addModelBuildListener {
-            if (pendingReveal) {
-                modelsBuilt = true
-                revealWhenReady()
-            }
-        }
+        roomMemberProfileController.addModelBuildListener(modelBuildListener)
         viewModel.observeViewEvents {
             when (it) {
                 is RoomMemberProfileViewEvents.Loading -> showLoading(it.message)
@@ -300,6 +303,11 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        headerRevealed = true
+        pendingReveal = false
+        modelsBuilt = false
+        avatarSettled = true
+        roomMemberProfileController.removeModelBuildListener(modelBuildListener)
         views.matrixProfileLoadingView.animate().setListener(null).cancel()
         releaseScrollCapture?.invoke()
         releaseScrollCapture = null
@@ -307,7 +315,7 @@ class RoomMemberProfileFragment :
         nameColorAnimator = null
         nameColorTarget = null
         headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
-        views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
+        views.matrixProfileRecyclerView.removeCallbacks(revealHeaderRunnable)
         notesInputProxy?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 it.viewTreeObserver.removeOnGlobalLayoutListener(proxyKeyboardListener)
@@ -400,7 +408,7 @@ class RoomMemberProfileFragment :
                     pendingReveal = true
                     // Nothing may reveal the page if the models happen to come out identical, so the wait
                     // is bounded rather than trusting the build listener to fire.
-                    views.matrixProfileRecyclerView.postDelayed(revealTimeout, REVEAL_WAIT_MS)
+                    views.matrixProfileRecyclerView.postDelayed(revealHeaderRunnable, REVEAL_WAIT_MS)
                 }
                 headerViews.memberProfileStateView.state = StateView.State.Content
                 headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
@@ -456,8 +464,9 @@ class RoomMemberProfileFragment :
                         headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
                         headerViews.memberProfileAvatarView.postDelayed(avatarWaitTimeout, AVATAR_WAIT_MS)
                     }
+                    val avatarLifecycle = viewLifecycleOwner.lifecycle
                     avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView, crossfade = true) {
-                        if (waitsForAvatar) onAvatarSettled()
+                        if (waitsForAvatar && avatarLifecycle.currentState != Lifecycle.State.DESTROYED) onAvatarSettled()
                     }
                     avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView, crossfade = true)
                     // The Mention action below returns to the composer, so have the pill's avatar ready.
@@ -523,7 +532,7 @@ class RoomMemberProfileFragment :
 
     private val avatarWaitTimeout = Runnable { onAvatarSettled() }
 
-    private val revealTimeout = Runnable { revealHeader() }
+    private val revealHeaderRunnable = Runnable { revealHeader() }
 
     /** The avatar is there, or is taking too long to wait for; either way the page can show. */
     private fun onAvatarSettled() {
@@ -536,7 +545,7 @@ class RoomMemberProfileFragment :
     private fun revealWhenReady() {
         if (!pendingReveal || !modelsBuilt || !avatarSettled) return
         // One more frame so the recycler actually lays the new models out before the reveal
-        views.matrixProfileRecyclerView.post { revealHeader() }
+        views.matrixProfileRecyclerView.post(revealHeaderRunnable)
     }
 
     private fun revealHeader() {
@@ -553,7 +562,7 @@ class RoomMemberProfileFragment :
         pendingReveal = false
         modelsBuilt = false
         avatarSettled = true
-        views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
+        views.matrixProfileRecyclerView.removeCallbacks(revealHeaderRunnable)
         headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
         val cover = views.matrixProfileLoadingView
         if (cover.isVisible) {
