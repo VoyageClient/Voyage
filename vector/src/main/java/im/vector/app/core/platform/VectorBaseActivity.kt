@@ -946,6 +946,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     private var systemBarStripLayers: LayerDrawable? = null
 
     private companion object {
+        const val ROOT_BACKGROUND = 0
         const val STATUS_STRIP = 1
         const val NAVIGATION_STRIP = 2
         const val SCRIM = 3
@@ -1066,7 +1067,8 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             statusBarStripSource = TopBarColor.findTopToolbar(rootView, rootView.paddingTop)
         }
         val source = statusBarStripSource?.takeIf { it.isShown } ?: return null
-        return TopBarColor.resolve(source, rootView, windowBackgroundColor)
+        val rootBackground = systemBarStripLayers?.getDrawable(ROOT_BACKGROUND) ?: rootView.background
+        return TopBarColor.resolve(source, rootView, windowBackgroundColor, rootBackground)
     }
 
     // Searched once per layout; hidden ones included, so a cover appearing needs no new search

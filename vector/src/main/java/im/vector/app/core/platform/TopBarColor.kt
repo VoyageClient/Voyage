@@ -43,14 +43,15 @@ internal object TopBarColor {
     /**
      * What shows behind [toolbar]: its background and those of its parents up to the first opaque one
      * (or [stopAt]), with a collapsing layout's content scrim on the way, composited over [base].
+     * [stopAtBackground] stands in for [stopAt]'s own background, which the caller may have wrapped.
      */
     @ColorInt
-    fun resolve(toolbar: View, stopAt: View, @ColorInt base: Int): Int {
+    fun resolve(toolbar: View, stopAt: View, @ColorInt base: Int, stopAtBackground: Drawable? = stopAt.background): Int {
         val layers = mutableListOf<Int>()
         var view: View? = toolbar
         while (view != null) {
             if (view is CollapsingToolbarLayout) (view.contentScrim as? ColorDrawable)?.let { layers.add(it.effectiveColor()) }
-            val background = view.background?.solidColor()
+            val background = (if (view === stopAt) stopAtBackground else view.background)?.solidColor()
             if (background != null) {
                 layers.add(background)
                 if (Color.alpha(background) == 255) break

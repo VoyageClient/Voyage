@@ -14,6 +14,7 @@ import android.graphics.Color
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.view.ContextThemeWrapper
 import android.view.Menu
 import android.view.MenuItem
@@ -25,7 +26,9 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -91,6 +94,9 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private var activeToolContent: Int = Color.WHITE
     private lateinit var colorBar: EditorColorBar
 
+    // Pre-21 status bars are opaque and system-drawn, so there is nothing to draw under.
+    override val drawUnderSystemBars = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
     override fun getBinding() = ActivityImageEditorBinding.inflate(layoutInflater)
@@ -107,6 +113,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
             runCatching { AnimatedImageFormat.valueOf(name) }.getOrNull()
         }
 
+        applyInsets()
         setupToolbar(views.imageEditorToolbar).allowBack()
 
         val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(this)
@@ -232,6 +239,29 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
             ImageEditorView.Tool.CENSOR -> colorBar.setSelected(editor.censorColor)
             ImageEditorView.Tool.ROTATE -> views.imageEditorDial.value = editor.rotationAngle
             ImageEditorView.Tool.CROP -> Unit
+        }
+    }
+
+    /** The backdrop runs to the edges of the screen; the bars and the panels stay clear of the system bars. */
+    private fun applyInsets() {
+        if (!drawUnderSystemBars) return
+        val types = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        // On the views themselves rather than the root, whose listener belongs to the activity.
+        ViewCompat.setOnApplyWindowInsetsListener(views.imageEditorAppBar) { v, insets ->
+            val bars = insets.getInsets(types)
+            v.updatePadding(left = bars.left, top = bars.top, right = bars.right)
+            insets
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(views.imageEditorOptions) { v, insets ->
+            val bars = insets.getInsets(types)
+            v.updatePadding(left = bars.left, right = bars.right)
+            insets
+        }
+        val controlsPaddingBottom = views.imageEditorControls.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(views.imageEditorControls) { v, insets ->
+            val bars = insets.getInsets(types)
+            v.updatePadding(left = bars.left, right = bars.right, bottom = controlsPaddingBottom + bars.bottom)
+            insets
         }
     }
 
