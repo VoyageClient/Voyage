@@ -1,0 +1,9 @@
+• Replace screenshots with better ones
+• Paint the image editor's status bar black
+• Guard the log export picker result to KitKat
+• Group the whole room setup under the creation header
+• Add a setting to hide the edited and translated labels
+• Add an Export logs option to the home menu
+• Stop dehydrated devices from flagging verified users with a warning shield
+• Fix the video editor showing trimmed-off frames and the previewer freezing on its poster
+…and 91 more
