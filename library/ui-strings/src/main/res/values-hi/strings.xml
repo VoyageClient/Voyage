@@ -448,7 +448,6 @@
     <string name="room_permissions_invite_users">उपयोगकर्ताओं को आमंत्रित करें</string>
     <string name="room_permissions_change_settings">सेटिंग बदलें</string>
     <string name="room_permissions_ban_users">उपयोगकर्ताओं को प्रतिबंधित करें</string>
-    <string name="room_permissions_remove_messages_sent_by_others">दूसरों के भेजे मैसेज हटाएं</string>
     <string name="room_permissions_notify_everyone">सभी को सूचित करें</string>
     <string name="room_permissions_modify_widgets">विजेट में बदलाव करें</string>
     <string name="room_permissions_change_room_avatar">रूम का अवतार बदलें</string>
@@ -2050,8 +2049,6 @@
     <string name="end_poll_confirmation_approve_button">पोल खत्म करें</string>
     <string name="poll_response_room_list_preview">वोट डाला गया।</string>
     <string name="poll_end_room_list_preview">पोल खत्म हुआ।</string>
-    <string name="delete_poll_dialog_title">पोल हटाएं</string>
-    <string name="delete_poll_dialog_content">क्या आप वाकई यह पोल हटाना चाहते हैं? हटाने के बाद आप इसे वापस नहीं ला पाएंगे।</string>
     <string name="edit_poll_title">पोल संपादित करें</string>
     <string name="poll_type_title">पोल का प्रकार</string>
     <string name="open_poll_option_title">खुला पोल</string>
@@ -2977,7 +2974,6 @@
     <string name="message_reveal_failed_network">मूल सामग्री लोड करने के लिए सर्वर तक नहीं पहुंचा जा सका</string>
     <string name="settings_redactions">हटाए गए मैसेज</string>
     <string name="settings_redaction_preserve">हटाए गए मैसेज सुरक्षित रखें</string>
-    <string name="settings_redaction_preserve_summary">कोई मैसेज हटाए जाने पर सर्वर से मूल सामग्री मांगें, और हटाए जाने की सूचना की जगह उसे दिखाएं</string>
     <string name="settings_redaction_preserve_media">मीडिया सुरक्षित रखें</string>
     <string name="settings_redaction_max_media_size">डाउनलोड करने के लिए मीडिया का अधिकतम साइज़</string>
     <string name="settings_redaction_wifi_only">मीडिया केवल Wi-Fi पर सुरक्षित रखें</string>
@@ -3028,8 +3024,6 @@
     <string name="room_personalization_redaction_category">हटाए गए मैसेज</string>
     <string name="room_personalization_media_preview_show">दिखाएं</string>
     <string name="room_personalization_media_preview_hide">छिपाएं</string>
-    <string name="notice_state_event_redacted">%1$s का रूम बदलाव हटाया गया</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s का रूम बदलाव हटाया गया, कारण: %2$s</string>
     <string name="settings_homeserver_info_reloaded">होमसर्वर की जानकारी फिर से लोड हुई</string>
     <string name="settings_server_admin_yes">हां</string>
     <string name="settings_server_admin_no">नहीं</string>
@@ -3509,18 +3503,9 @@
         <item quantity="one">%d चुना गया</item>
         <item quantity="other">%d चुने गए</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">%d मैसेज हटाएं?</item>
-        <item quantity="other">%d मैसेज हटाएं?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">ये रूम में सभी के लिए हटा दिए जाएंगे।</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">%d मैसेज फ़ॉरवर्ड किया जा रहा है…</item>
         <item quantity="other">%d मैसेज फ़ॉरवर्ड किए जा रहे हैं…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">%d मैसेज हटाया जा रहा है…</item>
-        <item quantity="other">%d मैसेज हटाए जा रहे हैं…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (%2$d और कतार में)</item>
@@ -3528,15 +3513,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">फ़ॉरवर्ड करना बंद करें?</string>
     <string name="bulk_forward_cancel_confirmation_message">जो मैसेज अभी तक नहीं भेजे गए हैं, वे फ़ॉरवर्ड नहीं होंगे।</string>
-    <string name="bulk_delete_cancel_confirmation_title">हटाना बंद करें?</string>
-    <string name="bulk_delete_cancel_confirmation_message">जो मैसेज अभी तक नहीं हटाए गए हैं, वे बने रहेंगे।</string>
     <string name="bulk_forward_failed_title">फ़ॉरवर्ड करना रुका हुआ है</string>
     <string name="bulk_forward_failed">एक मैसेज फ़ॉरवर्ड नहीं हो सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</string>
-    <string name="bulk_delete_failed_title">कुछ मैसेज नहीं हटाए गए</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d मैसेज हटाया नहीं जा सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
-        <item quantity="other">%d मैसेज हटाए नहीं जा सके। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
-    </plurals>
     <string name="settings_backup_title">बैकअप और रीस्टोर</string>
     <string name="settings_backup_summary">अपनी सेटिंग या ऐप का पूरा डेटा बैकअप करें या रीस्टोर करें</string>
     <string name="settings_backup_database_category">डेटाबेस</string>
@@ -3641,4 +3619,26 @@
     <string name="settings_show_message_markers">संपादित और अनुवादित लेबल दिखाएं</string>
     <string name="settings_show_message_markers_summary">संदेश के बाद \"(संपादित)\" और मूल भाषा दिखाएं</string>
     <string name="room_personalization_timeline_reset_confirmation">इस रूम की टाइमलाइन सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">दूसरों के भेजे मैसेज हटाएं</string>
+    <string name="redact_poll_dialog_title">पोल हटाएं</string>
+    <string name="redact_poll_dialog_content">क्या आप वाकई यह पोल हटाना चाहते हैं? हटाने के बाद आप इसे वापस नहीं ला पाएंगे।</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">%d मैसेज हटाएं?</item>
+        <item quantity="other">%d मैसेज हटाएं?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">ये रूम में सभी के लिए हटा दिए जाएंगे।</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">%d मैसेज हटाया जा रहा है…</item>
+        <item quantity="other">%d मैसेज हटाए जा रहे हैं…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">हटाना बंद करें?</string>
+    <string name="bulk_redact_cancel_confirmation_message">जो मैसेज अभी तक नहीं हटाए गए हैं, वे बने रहेंगे।</string>
+    <string name="bulk_redact_failed_title">कुछ मैसेज नहीं हटाए गए</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d मैसेज नहीं हटाया जा सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+        <item quantity="other">%d मैसेज नहीं हटाए जा सके। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">कोई मैसेज हटाए जाने पर सर्वर से मूल मैसेज मांगें, और उसे हटाए जाने की सूचना की जगह दिखाएं</string>
+    <string name="notice_state_event_redacted">%1$s का रूम बदलाव हटाया गया</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s का रूम बदलाव हटाया गया, कारण: %2$s</string>
 </resources>

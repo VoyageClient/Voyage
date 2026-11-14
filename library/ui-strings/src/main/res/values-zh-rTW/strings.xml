@@ -1531,7 +1531,6 @@
     <string name="room_permissions_change_room_avatar">變更聊天室大頭照</string>
     <string name="room_permissions_modify_widgets">修改小工具</string>
     <string name="room_permissions_notify_everyone">通知每個人</string>
-    <string name="room_permissions_remove_messages_sent_by_others">移除其他人傳送的訊息</string>
     <string name="room_permissions_ban_users">封鎖使用者</string>
     <string name="room_permissions_change_settings">變更設定</string>
     <string name="room_permissions_invite_users">邀請使用者</string>
@@ -1829,8 +1828,6 @@
     <string name="identity_server_consent_dialog_content_question">您同意傳送此資訊嗎？</string>
     <string name="identity_server_consent_dialog_content_3">要探索現有聯絡人，您必須傳送聯絡人資訊（電子郵件地址與電話號碼）到您的身分伺服器。我們會在傳送前對您的資料進行雜湊處理以保護隱私。</string>
     <string name="action_not_now">現在不要</string>
-    <string name="delete_poll_dialog_content">您確定要移除此投票？移除後將無法復原。</string>
-    <string name="delete_poll_dialog_title">移除投票</string>
     <string name="poll_end_room_list_preview">投票已結束。</string>
     <string name="poll_response_room_list_preview">投票。</string>
     <string name="end_poll_confirmation_approve_button">結束投票</string>
@@ -3029,7 +3026,6 @@
     <string name="message_reveal_failed_network">無法連線到伺服器以載入原始內容</string>
     <string name="settings_redactions">已刪除的訊息</string>
     <string name="settings_redaction_preserve">保留已刪除的訊息</string>
-    <string name="settings_redaction_preserve_summary">訊息被刪除時向伺服器索取原始內容，並以其取代刪除通知顯示</string>
     <string name="settings_redaction_preserve_media">保留媒體</string>
     <string name="settings_redaction_max_media_size">下載的媒體大小上限</string>
     <string name="settings_redaction_wifi_only">僅在 Wi-Fi 下保留媒體</string>
@@ -3080,8 +3076,6 @@
     <string name="room_personalization_redaction_category">已刪除的訊息</string>
     <string name="room_personalization_media_preview_show">顯示</string>
     <string name="room_personalization_media_preview_hide">隱藏</string>
-    <string name="notice_state_event_redacted">%1$s 的聊天室變更已被移除</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s 的聊天室變更已被移除，理由：%2$s</string>
     <string name="settings_homeserver_info_reloaded">已重新載入家伺服器資訊</string>
     <string name="settings_server_admin_yes">是</string>
     <string name="settings_server_admin_no">否</string>
@@ -3555,29 +3549,16 @@
     <plurals name="timeline_selection_count">
         <item quantity="other">已選取 %d 則</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="other">要刪除 %d 則訊息嗎？</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">這些訊息將會為聊天室中的所有人刪除。</string>
     <plurals name="bulk_forwarding">
         <item quantity="other">正在轉傳 %d 則訊息…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="other">正在刪除 %d 則訊息…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="other">%1$s（還有 %2$d 項正在排隊）</item>
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">要停止轉傳嗎？</string>
     <string name="bulk_forward_cancel_confirmation_message">尚未傳送的訊息將不會轉傳。</string>
-    <string name="bulk_delete_cancel_confirmation_title">要停止刪除嗎？</string>
-    <string name="bulk_delete_cancel_confirmation_message">尚未刪除的訊息將會保留。</string>
     <string name="bulk_forward_failed_title">轉傳已暫停</string>
     <string name="bulk_forward_failed">有一則訊息無法轉傳。繼續即可重試。</string>
-    <string name="bulk_delete_failed_title">部分訊息未刪除</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="other">%d 則訊息無法刪除。繼續即可重試。</item>
-    </plurals>
     <string name="settings_backup_title">備份與還原</string>
     <string name="settings_backup_summary">備份或還原您的設定或所有應用程式資料</string>
     <string name="settings_backup_database_category">資料庫</string>
@@ -3682,4 +3663,23 @@
     <string name="settings_show_message_markers">顯示已編輯與已翻譯標記</string>
     <string name="settings_show_message_markers_summary">在訊息後顯示「（已編輯）」與原始語言</string>
     <string name="room_personalization_timeline_reset_confirmation">要將此聊天室的時間軸設定重設為帳號層級的設定嗎？</string>
+    <string name="room_permissions_redact_messages_sent_by_others">刪除他人傳送的訊息</string>
+    <string name="redact_poll_dialog_title">刪除投票</string>
+    <string name="redact_poll_dialog_content">您確定要刪除此投票嗎？刪除後將無法復原。</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="other">要刪除 %d 則訊息嗎？</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">這些訊息將會為聊天室中的所有人刪除。</string>
+    <plurals name="bulk_redacting">
+        <item quantity="other">正在刪除 %d 則訊息…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">要停止刪除嗎？</string>
+    <string name="bulk_redact_cancel_confirmation_message">尚未刪除的訊息將會保留。</string>
+    <string name="bulk_redact_failed_title">部分訊息未能刪除</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="other">有 %d 則訊息無法刪除。繼續即可重試。</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">訊息被刪除時向伺服器要求原始內容，並以其取代刪除通知顯示</string>
+    <string name="notice_state_event_redacted">%1$s 的聊天室變更已被刪除</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s 的聊天室變更已被刪除，原因：%2$s</string>
 </resources>

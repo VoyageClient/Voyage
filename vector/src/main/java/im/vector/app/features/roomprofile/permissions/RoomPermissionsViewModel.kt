@@ -112,7 +112,7 @@ class RoomPermissionsViewModel @AssistedInject constructor(
                         is EditablePermission.ChangeSettings -> currentPowerLevelsContent.copy(stateDefault = action.powerLevel.value)
                         is EditablePermission.KickUsers -> currentPowerLevelsContent.copy(kick = action.powerLevel.value)
                         is EditablePermission.BanUsers -> currentPowerLevelsContent.copy(ban = action.powerLevel.value)
-                        is EditablePermission.RemoveMessagesSentByOthers -> currentPowerLevelsContent.copy(redact = action.powerLevel.value)
+                        is EditablePermission.RedactMessagesSentByOthers -> currentPowerLevelsContent.copy(redact = action.powerLevel.value)
                         is EditablePermission.NotifyEveryone -> currentPowerLevelsContent.copy(
                                 notifications = currentPowerLevelsContent.notifications.orEmpty().toMutableMap().apply {
                                     put(PowerLevelsContent.NOTIFICATIONS_ROOM_KEY, action.powerLevel.value)

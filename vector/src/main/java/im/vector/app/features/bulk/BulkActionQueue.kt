@@ -56,7 +56,7 @@ import javax.inject.Singleton
 import kotlin.coroutines.coroutineContext
 
 /**
- * The one app-wide queue for long runs of sends and redactions: forwarding or deleting many messages, and
+ * The one app-wide queue for long runs of sends and redactions: forwarding or redacting many messages, and
  * [MassRedactionManager]'s jobs. Jobs run one at a time in the order they were asked for, so none competes
  * with another for the server's rate limit, and each keeps running when its room is closed. A forward is
  * sent straight to the server one message at a time, so nothing shows in a room until it has been sent.
@@ -129,9 +129,9 @@ class BulkActionQueue @Inject constructor(
         publish()
     }
 
-    fun enqueueDelete(roomId: String, eventIds: List<String>, reason: String?) {
+    fun enqueueRedact(roomId: String, eventIds: List<String>, reason: String?) {
         if (eventIds.isEmpty()) return
-        enqueue(BulkJob(id = newJobId(), kind = BulkJobKind.DELETE, roomIds = listOf(roomId), eventIds = eventIds, reason = reason))
+        enqueue(BulkJob(id = newJobId(), kind = BulkJobKind.REDACT, roomIds = listOf(roomId), eventIds = eventIds, reason = reason))
     }
 
     /**
@@ -241,7 +241,7 @@ class BulkActionQueue @Inject constructor(
                     )
                 }
                 BulkJobKind.FORWARD -> if (!runForward(session, job)) return
-                BulkJobKind.DELETE -> if (!runDelete(session, job)) return
+                BulkJobKind.REDACT -> if (!runRedact(session, job)) return
             }
         }
     }
@@ -280,17 +280,17 @@ class BulkActionQueue @Inject constructor(
         return true
     }
 
-    private suspend fun runDelete(session: Session, job: BulkJob): Boolean {
+    private suspend fun runRedact(session: Session, job: BulkJob): Boolean {
         val room = session.getRoom(job.roomIds.first())
         var progress = synchronized(this) { progressById[job.id] } ?: BulkJobProgress()
         while (progress.next < job.eventIds.size) {
             coroutineContext.ensureActive()
             publishRunning(job, progress, job.eventIds.size)
             val eventId = job.eventIds[progress.next]
-            val deleted = room != null && redactWithRelations(session, room, eventId, job.reason)
+            val redacted = room != null && redactWithRelations(session, room, eventId, job.reason)
             progress = progress.copy(
                     next = progress.next + 1,
-                    failedEventIds = if (deleted) progress.failedEventIds else progress.failedEventIds + eventId,
+                    failedEventIds = if (redacted) progress.failedEventIds else progress.failedEventIds + eventId,
             )
             saveProgress(job.id, progress)
             delay(COOLDOWN_MS)
@@ -306,8 +306,8 @@ class BulkActionQueue @Inject constructor(
             }
             pauseOnFailure(
                     job,
-                    stringProvider.getString(CommonStrings.bulk_delete_failed_title),
-                    stringProvider.getQuantityString(CommonPlurals.bulk_delete_failed, failed.size, failed.size),
+                    stringProvider.getString(CommonStrings.bulk_redact_failed_title),
+                    stringProvider.getQuantityString(CommonPlurals.bulk_redact_failed, failed.size, failed.size),
             )
             return false
         }
@@ -316,7 +316,7 @@ class BulkActionQueue @Inject constructor(
     }
 
     /**
-     * As a single delete does: edits and reactions are separate events the server keeps after the message
+     * As a single redaction does: edits and reactions are separate events the server keeps after the message
      * itself is redacted. They are gathered first, since redacting the message drops them from the local copy.
      */
     private suspend fun redactWithRelations(session: Session, room: Room, eventId: String, reason: String?): Boolean {
@@ -403,7 +403,7 @@ class BulkActionQueue @Inject constructor(
     private fun BulkJob.toProgress(progress: BulkJobProgress, total: Int): BulkActionProgress {
         val label = when (kind) {
             BulkJobKind.FORWARD -> stringProvider.getQuantityString(CommonPlurals.bulk_forwarding, forwards.size, forwards.size)
-            else -> stringProvider.getQuantityString(CommonPlurals.bulk_deleting, eventIds.size, eventIds.size)
+            else -> stringProvider.getQuantityString(CommonPlurals.bulk_redacting, eventIds.size, eventIds.size)
         }
         return BulkActionProgress(label, completed = progress.next, total = total, paused = paused, queued = 0)
     }

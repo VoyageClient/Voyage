@@ -47,7 +47,7 @@ object MassRedactionBannerBinder {
         val (title, message) = when (kind) {
             BulkJobKind.MASS_REDACTION -> CommonStrings.mass_redaction_cancel_confirmation_title to CommonStrings.mass_redaction_cancel_confirmation_message
             BulkJobKind.FORWARD -> CommonStrings.bulk_forward_cancel_confirmation_title to CommonStrings.bulk_forward_cancel_confirmation_message
-            BulkJobKind.DELETE -> CommonStrings.bulk_delete_cancel_confirmation_title to CommonStrings.bulk_delete_cancel_confirmation_message
+            BulkJobKind.REDACT -> CommonStrings.bulk_redact_cancel_confirmation_title to CommonStrings.bulk_redact_cancel_confirmation_message
         }
         MaterialAlertDialogBuilder(activity)
                 .setTitle(title)

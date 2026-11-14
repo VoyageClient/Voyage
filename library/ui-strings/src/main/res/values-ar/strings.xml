@@ -654,7 +654,6 @@
     <string name="room_permissions_change_room_avatar">غيّر الصورة الرمزية للغرفة</string>
     <string name="room_permissions_modify_widgets">عدّل الودجات</string>
     <string name="room_permissions_notify_everyone">نبّه الكل</string>
-    <string name="room_permissions_remove_messages_sent_by_others">أزل رسائل الآخرين</string>
     <string name="room_permissions_ban_users">احظر مستخدمين</string>
     <string name="room_permissions_change_settings">غيّر الإعدادات</string>
     <string name="room_permissions_invite_users">أدعوا مستخدمين</string>
@@ -2217,8 +2216,6 @@
     <string name="end_poll_confirmation_approve_button">أنهِ الاستطلاع</string>
     <string name="poll_response_room_list_preview">أُدلي بصوت.</string>
     <string name="poll_end_room_list_preview">انتهى الاستطلاع.</string>
-    <string name="delete_poll_dialog_title">أزِل الاستطلاع</string>
-    <string name="delete_poll_dialog_content">أمتأكّد من إزالة هذا الاستطلاع؟ لن تتمكّن من استعادته بعد إزالته.</string>
     <string name="edit_poll_title">حرّر الاستطلاع</string>
     <string name="open_poll_option_description">يرى المصوّتون النتائج فور تصويتهم</string>
     <string name="closed_poll_option_title">استطلاع مغلق</string>
@@ -3175,7 +3172,6 @@
     <string name="message_reveal_failed_network">تعذّر الوصول إلى الخادوم لتحميل المحتوى الأصلي</string>
     <string name="settings_redactions">الحذف</string>
     <string name="settings_redaction_preserve">احتفظ بالرسائل المحذوفة</string>
-    <string name="settings_redaction_preserve_summary">اطلب الأصل من الخادوم عند حذف رسالة، واعرضه مكان إشعار الحذف</string>
     <string name="settings_redaction_preserve_media">احتفظ بالوسائط</string>
     <string name="settings_redaction_max_media_size">الحجم الأقصى للوسائط المنزَّلة</string>
     <string name="settings_redaction_wifi_only">احتفظ بالوسائط عبر Wi-Fi فقط</string>
@@ -3226,8 +3222,6 @@
     <string name="room_personalization_redaction_category">الحذف</string>
     <string name="room_personalization_media_preview_show">اعرض</string>
     <string name="room_personalization_media_preview_hide">أخفِ</string>
-    <string name="notice_state_event_redacted">أُزيل تغيير الغرفة الذي أجراه %1$s</string>
-    <string name="notice_state_event_redacted_with_reason">أُزيل تغيير الغرفة الذي أجراه %1$s، السبب: %2$s</string>
     <string name="settings_homeserver_info_reloaded">أُعيد تحميل معلومات خادوم المنزل</string>
     <string name="settings_server_admin_yes">نعم</string>
     <string name="settings_server_admin_no">لا</string>
@@ -3792,15 +3786,6 @@
         <item quantity="many">حُدّدت %d رسالة</item>
         <item quantity="other">حُدّدت %d رسالة</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="zero">أتريد حذف %d رسالة؟</item>
-        <item quantity="one">أتريد حذف رسالة واحدة؟</item>
-        <item quantity="two">أتريد حذف رسالتين؟</item>
-        <item quantity="few">أتريد حذف %d رسائل؟</item>
-        <item quantity="many">أتريد حذف %d رسالة؟</item>
-        <item quantity="other">أتريد حذف %d رسالة؟</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">ستُحذف لدى كل أعضاء الغرفة.</string>
     <plurals name="bulk_forwarding">
         <item quantity="zero">جارٍ تمرير %d رسالة…</item>
         <item quantity="one">جارٍ تمرير رسالة واحدة…</item>
@@ -3808,14 +3793,6 @@
         <item quantity="few">جارٍ تمرير %d رسائل…</item>
         <item quantity="many">جارٍ تمرير %d رسالة…</item>
         <item quantity="other">جارٍ تمرير %d رسالة…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="zero">جارٍ حذف %d رسالة…</item>
-        <item quantity="one">جارٍ حذف رسالة واحدة…</item>
-        <item quantity="two">جارٍ حذف رسالتين…</item>
-        <item quantity="few">جارٍ حذف %d رسائل…</item>
-        <item quantity="many">جارٍ حذف %d رسالة…</item>
-        <item quantity="other">جارٍ حذف %d رسالة…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="zero">%1$s (%2$d في الانتظار)</item>
@@ -3827,19 +3804,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">أتريد إيقاف التمرير؟</string>
     <string name="bulk_forward_cancel_confirmation_message">لن تُمرَّر الرسائل التي لم تُرسَل بعد.</string>
-    <string name="bulk_delete_cancel_confirmation_title">أتريد إيقاف الحذف؟</string>
-    <string name="bulk_delete_cancel_confirmation_message">ستبقى الرسائل التي لم تُحذف بعد.</string>
     <string name="bulk_forward_failed_title">توقّف التمرير مؤقتًا</string>
     <string name="bulk_forward_failed">تعذّر تمرير رسالة. استأنف لإعادة المحاولة.</string>
-    <string name="bulk_delete_failed_title">لم تُحذف بعض الرسائل</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="zero">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
-        <item quantity="one">تعذّر حذف رسالة واحدة. استأنف لإعادة المحاولة.</item>
-        <item quantity="two">تعذّر حذف رسالتين. استأنف لإعادة المحاولة.</item>
-        <item quantity="few">تعذّر حذف %d رسائل. استأنف لإعادة المحاولة.</item>
-        <item quantity="many">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
-        <item quantity="other">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
-    </plurals>
     <string name="settings_backup_title">النسخ الاحتياطي والاستعادة</string>
     <string name="settings_backup_summary">انسخ إعداداتك أو كل بيانات التطبيق احتياطيًا أو استعدها</string>
     <string name="settings_backup_database_category">قاعدة البيانات</string>
@@ -3944,4 +3910,38 @@
     <string name="settings_show_message_markers">اعرض علامات التعديل والترجمة</string>
     <string name="settings_show_message_markers_summary">اعرض \"(معدّلة)\" واللغة الأصلية بعد الرسالة</string>
     <string name="room_personalization_timeline_reset_confirmation">أتريد إعادة إعدادات الخط الزمني لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="room_permissions_redact_messages_sent_by_others">حذف رسائل الآخرين</string>
+    <string name="redact_poll_dialog_title">احذف الاستطلاع</string>
+    <string name="redact_poll_dialog_content">أمتأكّد من أنك تريد حذف هذا الاستطلاع؟ لن تتمكن من استعادته بعد حذفه.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="zero">أتريد حذف %d رسالة؟</item>
+        <item quantity="one">أتريد حذف رسالة واحدة؟</item>
+        <item quantity="two">أتريد حذف رسالتين؟</item>
+        <item quantity="few">أتريد حذف %d رسائل؟</item>
+        <item quantity="many">أتريد حذف %d رسالة؟</item>
+        <item quantity="other">أتريد حذف %d رسالة؟</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">ستُحذف لدى الجميع في الغرفة.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="zero">يحذف %d رسالة…</item>
+        <item quantity="one">يحذف رسالة واحدة…</item>
+        <item quantity="two">يحذف رسالتين…</item>
+        <item quantity="few">يحذف %d رسائل…</item>
+        <item quantity="many">يحذف %d رسالة…</item>
+        <item quantity="other">يحذف %d رسالة…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">أتريد إيقاف الحذف؟</string>
+    <string name="bulk_redact_cancel_confirmation_message">ستبقى الرسائل التي لم تُحذف بعد.</string>
+    <string name="bulk_redact_failed_title">لم تُحذف بعض الرسائل</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="zero">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+        <item quantity="one">تعذّر حذف رسالة واحدة. استأنف لإعادة المحاولة.</item>
+        <item quantity="two">تعذّر حذف رسالتين. استأنف لإعادة المحاولة.</item>
+        <item quantity="few">تعذّر حذف %d رسائل. استأنف لإعادة المحاولة.</item>
+        <item quantity="many">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+        <item quantity="other">تعذّر حذف %d رسالة. استأنف لإعادة المحاولة.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">اطلب من الخادم النسخة الأصلية عند حذف رسالة، واعرضها بدلًا من إشعار الحذف</string>
+    <string name="notice_state_event_redacted">حُذف تغيير الغرفة الذي أجراه %1$s</string>
+    <string name="notice_state_event_redacted_with_reason">حُذف تغيير الغرفة الذي أجراه %1$s، السبب: %2$s</string>
 </resources>

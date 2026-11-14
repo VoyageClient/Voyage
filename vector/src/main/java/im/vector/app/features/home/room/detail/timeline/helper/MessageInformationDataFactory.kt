@@ -307,7 +307,7 @@ class MessageInformationDataFactory @Inject constructor(
             return E2EDecoration.NONE
         }
         // Redaction wiped the ciphertext, so the (stale) decryption result can't be re-attested and a
-        // "Message deleted" placeholder would permanently carry an authenticity warning.
+        // "Message redacted" placeholder would permanently carry an authenticity warning.
         // Restoring preserved content drops that marker and the m.room.encrypted wrapper with it, so
         // the event would otherwise read as one sent in the clear.
         if (event.isRedacted() || isRevealedRedaction) {

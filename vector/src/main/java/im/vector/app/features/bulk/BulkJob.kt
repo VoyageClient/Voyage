@@ -14,9 +14,9 @@ import com.squareup.moshi.JsonClass
 data class BulkJob(
         val id: String,
         val kind: BulkJobKind,
-        /** The rooms forwarded to, in order, or the one room deleted from / mass-redacted in. */
+        /** The rooms forwarded to, in order, or the one room redacted or mass-redacted in. */
         val roomIds: List<String>,
-        /** Messages to delete, in timeline order. */
+        /** Messages to redact, in timeline order. */
         val eventIds: List<String> = emptyList(),
         val reason: String? = null,
         /** Messages to forward, in timeline order; each is sent to every room in [roomIds]. */
@@ -25,7 +25,7 @@ data class BulkJob(
         val paused: Boolean = false,
 )
 
-enum class BulkJobKind { FORWARD, DELETE, MASS_REDACTION }
+enum class BulkJobKind { FORWARD, REDACT, MASS_REDACTION }
 
 @JsonClass(generateAdapter = true)
 data class BulkForward(
@@ -53,11 +53,11 @@ data class BulkMassRedaction(
  */
 @JsonClass(generateAdapter = true)
 data class BulkJobProgress(
-        /** Units done: messages deleted, or (room, message) sends completed in room-major order. */
+        /** Units done: messages redacted, or (room, message) sends completed in room-major order. */
         val next: Int = 0,
         /** Sent copies by "roomIndex:forwardIndex", for linking in-batch replies. */
         val sentEventIds: Map<String, String> = emptyMap(),
-        /** Deletions that failed every attempt; the job pauses on them for a retry. */
+        /** Redactions that failed every attempt; the job pauses on them for a retry. */
         val failedEventIds: List<String> = emptyList(),
 )
 

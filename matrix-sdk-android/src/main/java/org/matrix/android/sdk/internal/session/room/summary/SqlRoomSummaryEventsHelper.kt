@@ -94,7 +94,7 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         val domain = root.asDomain()
         // ignored senders' messages must not surface as the room-list preview
         if (domain.senderId != null && domain.senderId in ignored) return false
-        // A redacted message stays the preview, as the deleted-message placeholder: the timeline shows it as
+        // A redacted message stays the preview, as the redacted-message placeholder: the timeline shows it as
         // the room's last entry, so hiding it here made the room list disagree with the room — and disagree
         // with itself, since the stale pointer showed the placeholder until something recomputed. Redacting a
         // reaction is an undo rather than a deletion, so those still fall through to the last real message.

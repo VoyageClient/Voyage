@@ -214,7 +214,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
      */
     private fun Event.shortPreviewHtml(latestContent: MessageContent?, timelineEvent: TimelineEvent?, roomId: String): String? {
         return when {
-            // Redacted (deleted) target: show the muted "Message deleted" notice.
+            // Redacted target: show the muted "Message redacted" notice.
             isRedacted() ->
                 "<font color=\"${noticeColorHex()}\">" + escapeHtml(noticeEventFormatter.formatRedactedEvent(this)) + "</font>"
             isFileMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_file))

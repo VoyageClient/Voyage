@@ -480,7 +480,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_permissions_change_room_avatar">Mengubah avatar ruangan</string>
     <string name="room_permissions_modify_widgets">Mengubah widget</string>
     <string name="room_permissions_notify_everyone">Beri tahu semuanya</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Menghapus pesan yang dikirim dari yang lain</string>
     <string name="room_permissions_change_settings">Ubah pengaturan</string>
     <string name="room_permissions_default_role">Peran bawaan</string>
     <string name="room_permissions_notice_read_only">Anda tidak diizinkan untuk memperbarui peran yang diperlukan untuk mengubah berbagai bagian ruangan</string>
@@ -1831,8 +1830,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="identity_server_consent_dialog_content_question">Apakah Anda setuju untuk mengirimkan info ini\?</string>
     <string name="identity_server_consent_dialog_content_3">Untuk menemukan kontak yang sudah ada, Anda harus mengirim info kontak (email dan nomor telepon) ke server identitas Anda. Kami hash data Anda sebelum mengirim demi privasi.</string>
     <string name="action_not_now">Nanti</string>
-    <string name="delete_poll_dialog_content">Apakah Anda yakin untuk menghapus poll ini\? Anda tidak akan dapat memulihkannya setelah dihapus.</string>
-    <string name="delete_poll_dialog_title">Hapus poll</string>
     <string name="poll_end_room_list_preview">Poll berakhir.</string>
     <string name="poll_response_room_list_preview">Suara diberikan.</string>
     <string name="end_poll_confirmation_approve_button">Akhiri poll</string>
@@ -3026,7 +3023,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="message_reveal_failed_network">Tidak dapat menghubungi server untuk memuat konten aslinya</string>
     <string name="settings_redactions">Penghapusan</string>
     <string name="settings_redaction_preserve">Simpan pesan yang dihapus</string>
-    <string name="settings_redaction_preserve_summary">Minta konten asli dari server saat pesan dihapus, dan tampilkan sebagai ganti pemberitahuan penghapusan</string>
     <string name="settings_redaction_preserve_media">Simpan media</string>
     <string name="settings_redaction_max_media_size">Ukuran media maksimum untuk diunduh</string>
     <string name="settings_redaction_wifi_only">Simpan media hanya melalui Wi-Fi</string>
@@ -3077,8 +3073,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_personalization_redaction_category">Penghapusan</string>
     <string name="room_personalization_media_preview_show">Tampilkan</string>
     <string name="room_personalization_media_preview_hide">Sembunyikan</string>
-    <string name="notice_state_event_redacted">Perubahan ruangan oleh %1$s telah dihapus</string>
-    <string name="notice_state_event_redacted_with_reason">Perubahan ruangan oleh %1$s telah dihapus, alasan: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Info homeserver dimuat ulang</string>
     <string name="settings_server_admin_yes">Ya</string>
     <string name="settings_server_admin_no">Tidak</string>
@@ -3553,29 +3547,16 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="timeline_selection_count">
         <item quantity="other">%d dipilih</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="other">Hapus %d pesan?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Pesan akan dihapus untuk semua orang di ruangan.</string>
     <plurals name="bulk_forwarding">
         <item quantity="other">Meneruskan %d pesan…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="other">Menghapus %d pesan…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="other">%1$s (%2$d lagi dalam antrean)</item>
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Hentikan penerusan?</string>
     <string name="bulk_forward_cancel_confirmation_message">Pesan yang belum terkirim tidak akan diteruskan.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Hentikan penghapusan?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Pesan yang belum dihapus akan tetap ada.</string>
     <string name="bulk_forward_failed_title">Penerusan dijeda</string>
     <string name="bulk_forward_failed">Sebuah pesan tidak dapat diteruskan. Lanjutkan untuk mencoba lagi.</string>
-    <string name="bulk_delete_failed_title">Beberapa pesan tidak terhapus</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="other">%d pesan tidak dapat dihapus. Lanjutkan untuk mencoba lagi.</item>
-    </plurals>
     <string name="settings_backup_title">Pencadangan dan pemulihan</string>
     <string name="settings_backup_summary">Cadangkan atau pulihkan pengaturan Anda atau semua data aplikasi</string>
     <string name="settings_backup_database_category">Basis data</string>
@@ -3680,4 +3661,23 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_show_message_markers">Tampilkan label diedit dan diterjemahkan</string>
     <string name="settings_show_message_markers_summary">Tampilkan \"(diedit)\" dan bahasa asli setelah pesan</string>
     <string name="room_personalization_timeline_reset_confirmation">Setel ulang pengaturan lini masa ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Hapus pesan yang dikirim orang lain</string>
+    <string name="redact_poll_dialog_title">Hapus poll</string>
+    <string name="redact_poll_dialog_content">Apakah Anda yakin ingin menghapus poll ini? Poll tidak dapat dipulihkan setelah dihapus.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="other">Hapus %d pesan?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Pesan akan dihapus untuk semua orang di ruangan.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="other">Menghapus %d pesan…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Hentikan penghapusan?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Pesan yang belum dihapus akan tetap ada.</string>
+    <string name="bulk_redact_failed_title">Beberapa pesan tidak terhapus</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="other">%d pesan tidak dapat dihapus. Lanjutkan untuk mencoba lagi.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Minta versi asli ke server saat pesan dihapus, dan tampilkan sebagai ganti pemberitahuan penghapusan</string>
+    <string name="notice_state_event_redacted">Perubahan ruangan oleh %1$s dihapus</string>
+    <string name="notice_state_event_redacted_with_reason">Perubahan ruangan oleh %1$s dihapus, alasan: %2$s</string>
 </resources>

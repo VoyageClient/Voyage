@@ -553,8 +553,8 @@ class MessageActionsViewModel @AssistedInject constructor(
                         EventSharedAction.Redact(
                                 eventId,
                                 askForReason = informationData.senderId != session.myUserId,
-                                dialogTitleRes = if (isPoll) CommonStrings.delete_poll_dialog_title else CommonStrings.redact_event_dialog_title,
-                                dialogDescriptionRes = if (isPoll) CommonStrings.delete_poll_dialog_content else CommonStrings.redact_event_dialog_content
+                                dialogTitleRes = if (isPoll) CommonStrings.redact_poll_dialog_title else CommonStrings.redact_event_dialog_title,
+                                dialogDescriptionRes = if (isPoll) CommonStrings.redact_poll_dialog_content else CommonStrings.redact_event_dialog_content
                         )
                 )
             }

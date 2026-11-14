@@ -145,7 +145,7 @@ fun TextView.clearDrawables() {
     }
 }
 
-/** Wash a view in the deleted-message colour, marking content that a redaction took (or took back). */
+/** Wash a view in the redacted-message color, marking content that a redaction took (or took back). */
 fun View.setRedactedTint(tinted: Boolean) {
     setBackgroundColor(
             if (tinted) ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background) else Color.TRANSPARENT
@@ -153,7 +153,7 @@ fun View.setRedactedTint(tinted: Boolean) {
 }
 
 /**
- * Style the current text as a preview of a deleted message, like [R.layout.item_timeline_event_redacted_stub]
+ * Style the current text as a preview of a redacted message, like [R.layout.item_timeline_event_redacted_stub]
  * does in the timeline. Call it after setting the text: the icon is prefixed onto it.
  */
 fun TextView.setRedactedPreviewStyle() {

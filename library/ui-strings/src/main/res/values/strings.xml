@@ -634,7 +634,7 @@
     <string name="room_permissions_invite_users">Invite users</string>
     <string name="room_permissions_change_settings">Change settings</string>
     <string name="room_permissions_ban_users">Ban users</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Remove messages sent by others</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Redact messages sent by others</string>
     <string name="room_permissions_notify_everyone">Notify everyone</string>
     <string name="room_permissions_modify_widgets">Modify widgets</string>
     <string name="room_permissions_change_room_avatar">Change room avatar</string>
@@ -2909,8 +2909,8 @@
     <string name="end_poll_confirmation_approve_button">End poll</string>
     <string name="poll_response_room_list_preview">Vote cast.</string>
     <string name="poll_end_room_list_preview">Poll ended.</string>
-    <string name="delete_poll_dialog_title">Remove poll</string>
-    <string name="delete_poll_dialog_content">Are you sure you want to remove this poll? You won\'t be able to recover it once removed.</string>
+    <string name="redact_poll_dialog_title">Redact poll</string>
+    <string name="redact_poll_dialog_content">Are you sure you want to redact this poll? You won\'t be able to recover it once redacted.</string>
     <string name="edit_poll_title">Edit poll</string>
     <string name="poll_type_title">Poll type</string>
     <string name="open_poll_option_title">Open poll</string>
@@ -3166,11 +3166,11 @@
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">Delete %d message?</item>
-        <item quantity="other">Delete %d messages?</item>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">Redact %d message?</item>
+        <item quantity="other">Redact %d messages?</item>
     </plurals>
-    <string name="delete_messages_dialog_content">They will be removed for everyone in the room.</string>
+    <string name="redact_messages_dialog_content">They will be redacted for everyone in the room.</string>
     <string name="account_switcher_toggle_description">Switch account</string>
     <string name="account_switcher_add_account">Add account</string>
     <string name="account_switcher_server_unreachable_title">Server unreachable</string>
@@ -3565,9 +3565,9 @@
         <item quantity="one">Forwarding %d message…</item>
         <item quantity="other">Forwarding %d messages…</item>
     </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">Deleting %d message…</item>
-        <item quantity="other">Deleting %d messages…</item>
+    <plurals name="bulk_redacting">
+        <item quantity="one">Redacting %d message…</item>
+        <item quantity="other">Redacting %d messages…</item>
     </plurals>
     <!-- %1$s is what the running job is doing, %2$d how many jobs wait behind it. -->
     <plurals name="bulk_queued">
@@ -3576,14 +3576,14 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Stop forwarding?</string>
     <string name="bulk_forward_cancel_confirmation_message">The messages that haven\'t been sent yet won\'t be forwarded.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Stop deleting?</string>
-    <string name="bulk_delete_cancel_confirmation_message">The messages that haven\'t been deleted yet will be kept.</string>
+    <string name="bulk_redact_cancel_confirmation_title">Stop redacting?</string>
+    <string name="bulk_redact_cancel_confirmation_message">The messages that haven\'t been redacted yet will be kept.</string>
     <string name="bulk_forward_failed_title">Forwarding paused</string>
     <string name="bulk_forward_failed">A message couldn\'t be forwarded. Resume to try again.</string>
-    <string name="bulk_delete_failed_title">Some messages weren\'t deleted</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d message couldn\'t be deleted. Resume to try again.</item>
-        <item quantity="other">%d messages couldn\'t be deleted. Resume to try again.</item>
+    <string name="bulk_redact_failed_title">Some messages weren\'t redacted</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d message couldn\'t be redacted. Resume to try again.</item>
+        <item quantity="other">%d messages couldn\'t be redacted. Resume to try again.</item>
     </plurals>
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
@@ -4047,7 +4047,7 @@
     <string name="message_reveal_failed_network">Couldn\'t reach the server to load the original content</string>
     <string name="settings_redactions">Redactions</string>
     <string name="settings_redaction_preserve">Preserve redacted messages</string>
-    <string name="settings_redaction_preserve_summary">Ask the server for the original when a message is redacted, and show it in place of the deleted notice</string>
+    <string name="settings_redaction_preserve_summary">Ask the server for the original when a message is redacted, and show it in place of the redacted notice</string>
     <string name="settings_redaction_preserve_media">Preserve media</string>
     <string name="settings_redaction_max_media_size">Maximum media size to download</string>
     <string name="settings_redaction_wifi_only">Only preserve media on Wi-Fi</string>
@@ -4126,8 +4126,8 @@
     <string name="room_personalization_redaction_category">Redactions</string>
     <string name="room_personalization_media_preview_show">Show</string>
     <string name="room_personalization_media_preview_hide">Hide</string>
-    <string name="notice_state_event_redacted">%1$s\'s room change was removed</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s\'s room change was removed, reason: %2$s</string>
+    <string name="notice_state_event_redacted">%1$s\'s room change was redacted</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s\'s room change was redacted, reason: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Homeserver info reloaded</string>
     <string name="settings_server_admin_yes">Yes</string>
     <string name="settings_server_admin_no">No</string>

@@ -671,7 +671,6 @@
     <string name="room_permissions_change_room_avatar">Oda avatarını değiştir</string>
     <string name="room_permissions_modify_widgets">Widgetları ayarla</string>
     <string name="room_permissions_notify_everyone">Herkesi bilgilendir</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Başkaları tarafından gönderilen mesajları kaldır</string>
     <string name="room_permissions_ban_users">Kullanıcıları banla</string>
     <string name="room_permissions_change_settings">Ayarları değiştir</string>
     <string name="room_permissions_invite_users">Kullanıcı davet et</string>
@@ -2113,8 +2112,6 @@
     <string name="end_poll_confirmation_approve_button">Anketi bitir</string>
     <string name="poll_response_room_list_preview">Oy kullanıldı.</string>
     <string name="poll_end_room_list_preview">Anket bitti.</string>
-    <string name="delete_poll_dialog_title">Anketi kaldır</string>
-    <string name="delete_poll_dialog_content">Bu anketi kaldırmak istediğinizden emin misiniz? Kaldırıldıktan sonra geri getiremezsiniz.</string>
     <string name="edit_poll_title">Anketi düzenle</string>
     <string name="poll_type_title">Anket türü</string>
     <string name="open_poll_option_title">Açık anket</string>
@@ -3046,7 +3043,6 @@
     <string name="message_reveal_failed_network">Orijinal içeriği yüklemek için sunucuya ulaşılamadı</string>
     <string name="settings_redactions">Silinen mesajlar</string>
     <string name="settings_redaction_preserve">Silinen mesajları koru</string>
-    <string name="settings_redaction_preserve_summary">Bir mesaj silindiğinde orijinalini sunucudan iste ve silindi bildirimi yerine onu göster</string>
     <string name="settings_redaction_preserve_media">Medyayı koru</string>
     <string name="settings_redaction_max_media_size">İndirilecek en büyük medya boyutu</string>
     <string name="settings_redaction_wifi_only">Medyayı yalnızca Wi-Fi\'da koru</string>
@@ -3097,8 +3093,6 @@
     <string name="room_personalization_redaction_category">Silinen mesajlar</string>
     <string name="room_personalization_media_preview_show">Göster</string>
     <string name="room_personalization_media_preview_hide">Gizle</string>
-    <string name="notice_state_event_redacted">%1$s kullanıcısının oda değişikliği kaldırıldı</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s kullanıcısının oda değişikliği kaldırıldı, neden: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Ana sunucu bilgileri yeniden yüklendi</string>
     <string name="settings_server_admin_yes">Evet</string>
     <string name="settings_server_admin_no">Hayır</string>
@@ -3579,18 +3573,9 @@
         <item quantity="one">%d seçildi</item>
         <item quantity="other">%d seçildi</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">%d mesaj silinsin mi?</item>
-        <item quantity="other">%d mesaj silinsin mi?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Odadaki herkes için kaldırılacaklar.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">%d mesaj iletiliyor…</item>
         <item quantity="other">%d mesaj iletiliyor…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">%d mesaj siliniyor…</item>
-        <item quantity="other">%d mesaj siliniyor…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (%2$d tane daha sırada)</item>
@@ -3598,15 +3583,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">İletme durdurulsun mu?</string>
     <string name="bulk_forward_cancel_confirmation_message">Henüz gönderilmemiş mesajlar iletilmeyecek.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Silme durdurulsun mu?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Henüz silinmemiş mesajlar korunacak.</string>
     <string name="bulk_forward_failed_title">İletme duraklatıldı</string>
     <string name="bulk_forward_failed">Bir mesaj iletilemedi. Yeniden denemek için devam edin.</string>
-    <string name="bulk_delete_failed_title">Bazı mesajlar silinemedi</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
-        <item quantity="other">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
-    </plurals>
     <string name="settings_backup_title">Yedekleme ve geri yükleme</string>
     <string name="settings_backup_summary">Ayarlarınızı veya tüm uygulama verilerini yedekleyin ya da geri yükleyin</string>
     <string name="settings_backup_database_category">Veritabanı</string>
@@ -3711,4 +3689,26 @@
     <string name="settings_show_message_markers">Düzenlendi ve çevrildi etiketlerini göster</string>
     <string name="settings_show_message_markers_summary">Mesajdan sonra \"(düzenlendi)\" ve özgün dili göster</string>
     <string name="room_personalization_timeline_reset_confirmation">Bu odanın zaman akışı ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Başkalarının mesajlarını sil</string>
+    <string name="redact_poll_dialog_title">Anketi sil</string>
+    <string name="redact_poll_dialog_content">Bu anketi silmek istediğinizden emin misiniz? Silindikten sonra geri alamazsınız.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">%d mesaj silinsin mi?</item>
+        <item quantity="other">%d mesaj silinsin mi?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Odadaki herkes için silinecekler.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">%d mesaj siliniyor…</item>
+        <item quantity="other">%d mesaj siliniyor…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Silme durdurulsun mu?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Henüz silinmemiş mesajlar korunacak.</string>
+    <string name="bulk_redact_failed_title">Bazı mesajlar silinemedi</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
+        <item quantity="other">%d mesaj silinemedi. Yeniden denemek için devam edin.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Bir mesaj silindiğinde sunucudan orijinalini iste ve silindi bildirimi yerine onu göster</string>
+    <string name="notice_state_event_redacted">%1$s kullanıcısının oda değişikliği silindi</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s kullanıcısının oda değişikliği silindi, neden: %2$s</string>
 </resources>

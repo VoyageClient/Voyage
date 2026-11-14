@@ -1593,7 +1593,6 @@
     <string name="room_permissions_change_room_avatar">Changer l’avatar du salon</string>
     <string name="room_permissions_modify_widgets">Modifier les widgets</string>
     <string name="room_permissions_notify_everyone">Notifier tout le monde</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Supprimer les messages des autres</string>
     <string name="room_permissions_ban_users">Bannir des utilisateurs</string>
     <string name="room_permissions_change_settings">Mettre à jour les paramètres</string>
     <string name="room_permissions_invite_users">Inviter des utilisateurs</string>
@@ -1865,8 +1864,6 @@
     <string name="identity_server_consent_dialog_content_question">Êtes vous d’accord d’envoyer ces informations \?</string>
     <string name="identity_server_consent_dialog_content_3">Pour découvrir des contacts existants, il vous faut envoyer les informations de contact (adresses de courriel et numéros de téléphone) à votre serveur d’identité. Les données seront condensées avant l’envoi pour respecter la vie privée.</string>
     <string name="action_not_now">Pas maintenant</string>
-    <string name="delete_poll_dialog_content">Êtes-vous sûr de vouloir retirer ce sondage \? Vous ne pourrez plus le récupérer une fois supprimé.</string>
-    <string name="delete_poll_dialog_title">Supprimer le sondage</string>
     <string name="poll_end_room_list_preview">Sondage terminé.</string>
     <string name="poll_response_room_list_preview">Vote exprimé.</string>
     <string name="end_poll_confirmation_approve_button">Terminer le sondage</string>
@@ -3080,7 +3077,6 @@
     <string name="message_reveal_failed_network">Impossible de joindre le serveur pour charger le contenu d’origine</string>
     <string name="settings_redactions">Suppressions</string>
     <string name="settings_redaction_preserve">Conserver les messages supprimés</string>
-    <string name="settings_redaction_preserve_summary">Demander l’original au serveur lorsqu’un message est supprimé, et l’afficher à la place de l’avis de suppression</string>
     <string name="settings_redaction_preserve_media">Conserver les médias</string>
     <string name="settings_redaction_max_media_size">Taille maximale des médias à télécharger</string>
     <string name="settings_redaction_wifi_only">Conserver les médias uniquement en Wi-Fi</string>
@@ -3131,8 +3127,6 @@
     <string name="room_personalization_redaction_category">Suppressions</string>
     <string name="room_personalization_media_preview_show">Afficher</string>
     <string name="room_personalization_media_preview_hide">Masquer</string>
-    <string name="notice_state_event_redacted">La modification du salon par %1$s a été supprimée</string>
-    <string name="notice_state_event_redacted_with_reason">La modification du salon par %1$s a été supprimée, raison : %2$s</string>
     <string name="settings_homeserver_info_reloaded">Infos du serveur d’accueil rechargées</string>
     <string name="settings_server_admin_yes">Oui</string>
     <string name="settings_server_admin_no">Non</string>
@@ -3621,18 +3615,9 @@
         <item quantity="one">%d sélectionné</item>
         <item quantity="other">%d sélectionnés</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">Supprimer %d message ?</item>
-        <item quantity="other">Supprimer %d messages ?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Ils seront supprimés pour tous les membres du salon.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">Transfert de %d message…</item>
         <item quantity="other">Transfert de %d messages…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">Suppression de %d message…</item>
-        <item quantity="other">Suppression de %d messages…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (%2$d autre en attente)</item>
@@ -3640,15 +3625,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Arrêter le transfert ?</string>
     <string name="bulk_forward_cancel_confirmation_message">Les messages qui n\'ont pas encore été envoyés ne seront pas transférés.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Arrêter la suppression ?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Les messages qui n\'ont pas encore été supprimés seront conservés.</string>
     <string name="bulk_forward_failed_title">Transfert en pause</string>
     <string name="bulk_forward_failed">Un message n\'a pas pu être transféré. Reprenez pour réessayer.</string>
-    <string name="bulk_delete_failed_title">Certains messages n\'ont pas été supprimés</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d message n\'a pas pu être supprimé. Reprenez pour réessayer.</item>
-        <item quantity="other">%d messages n\'ont pas pu être supprimés. Reprenez pour réessayer.</item>
-    </plurals>
     <string name="settings_backup_title">Sauvegarde et restauration</string>
     <string name="settings_backup_summary">Sauvegarder ou restaurer vos paramètres ou toutes les données de l\'application</string>
     <string name="settings_backup_database_category">Base de données</string>
@@ -3753,4 +3731,26 @@
     <string name="settings_show_message_markers">Afficher les mentions modifié et traduit</string>
     <string name="settings_show_message_markers_summary">Afficher \"(modifié)\" et la langue d’origine après un message</string>
     <string name="room_personalization_timeline_reset_confirmation">Rétablir les paramètres du fil de discussion de ce salon sur ceux de votre compte ?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Supprimer les messages des autres</string>
+    <string name="redact_poll_dialog_title">Supprimer le sondage</string>
+    <string name="redact_poll_dialog_content">Voulez-vous vraiment supprimer ce sondage ? Vous ne pourrez pas le récupérer une fois supprimé.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">Supprimer %d message ?</item>
+        <item quantity="other">Supprimer %d messages ?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Ils seront supprimés pour tout le monde dans le salon.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">Suppression de %d message…</item>
+        <item quantity="other">Suppression de %d messages…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Arrêter la suppression ?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Les messages qui n\'ont pas encore été supprimés seront conservés.</string>
+    <string name="bulk_redact_failed_title">Certains messages n\'ont pas été supprimés</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d message n\'a pas pu être supprimé. Reprenez pour réessayer.</item>
+        <item quantity="other">%d messages n\'ont pas pu être supprimés. Reprenez pour réessayer.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Demander l\'original au serveur lorsqu\'un message est supprimé, et l\'afficher à la place de l\'avis de suppression</string>
+    <string name="notice_state_event_redacted">Le changement du salon effectué par %1$s a été supprimé</string>
+    <string name="notice_state_event_redacted_with_reason">Le changement du salon effectué par %1$s a été supprimé, raison : %2$s</string>
 </resources>

@@ -1013,7 +1013,6 @@
     <string name="room_permissions_change_room_avatar">שנה אוואטר חדר</string>
     <string name="room_permissions_modify_widgets">שנה יישומונים</string>
     <string name="room_permissions_notify_everyone">הודע לכולם</string>
-    <string name="room_permissions_remove_messages_sent_by_others">הסר הודעות שנשלחו על ידי אחרים</string>
     <string name="room_permissions_ban_users">נדה משתמשים</string>
     <string name="room_permissions_change_settings">שנה הגדרות</string>
     <string name="room_permissions_invite_users">הזמן משתמשם</string>
@@ -1531,8 +1530,6 @@
     <string name="open_poll_option_title">פתח סקר</string>
     <string name="poll_type_title">סוג סקר</string>
     <string name="edit_poll_title">ערוך סקר</string>
-    <string name="delete_poll_dialog_content">האם את/ה בטוח שברצונך להסיר את הסקר\? לא ניתן לשחזור לאחר הסרה.</string>
-    <string name="delete_poll_dialog_title">הסר סקר</string>
     <string name="poll_end_room_list_preview">הסקר הסתיים.</string>
     <string name="poll_response_room_list_preview">נא הצביעו.</string>
     <string name="tooltip_attachment_location">שתף מיקום</string>
@@ -3144,7 +3141,6 @@
     <string name="message_reveal_failed_network">לא ניתן היה להגיע לשרת כדי לטעון את התוכן המקורי</string>
     <string name="settings_redactions">מחיקות</string>
     <string name="settings_redaction_preserve">שמור הודעות שנמחקו</string>
-    <string name="settings_redaction_preserve_summary">בקש מהשרת את המקור כאשר הודעה נמחקת, והצג אותו במקום הודעת המחיקה</string>
     <string name="settings_redaction_preserve_media">שמור מדיה</string>
     <string name="settings_redaction_max_media_size">גודל מדיה מרבי להורדה</string>
     <string name="settings_redaction_wifi_only">שמור מדיה רק ב-Wi-Fi</string>
@@ -3195,8 +3191,6 @@
     <string name="room_personalization_redaction_category">מחיקות</string>
     <string name="room_personalization_media_preview_show">הצג</string>
     <string name="room_personalization_media_preview_hide">הסתר</string>
-    <string name="notice_state_event_redacted">שינוי החדר של %1$s הוסר</string>
-    <string name="notice_state_event_redacted_with_reason">שינוי החדר של %1$s הוסר, סיבה: %2$s</string>
     <string name="settings_homeserver_info_reloaded">פרטי שרת הבית נטענו מחדש</string>
     <string name="settings_server_admin_yes">כן</string>
     <string name="settings_server_admin_no">לא</string>
@@ -3722,24 +3716,11 @@
         <item quantity="many">%d נבחרו</item>
         <item quantity="other">%d נבחרו</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">למחוק הודעה %d?</item>
-        <item quantity="two">למחוק %d הודעות?</item>
-        <item quantity="many">למחוק %d הודעות?</item>
-        <item quantity="other">למחוק %d הודעות?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">הן יימחקו עבור כל החברים בחדר.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">מעביר הודעה %d…</item>
         <item quantity="two">מעביר %d הודעות…</item>
         <item quantity="many">מעביר %d הודעות…</item>
         <item quantity="other">מעביר %d הודעות…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">מוחק הודעה %d…</item>
-        <item quantity="two">מוחק %d הודעות…</item>
-        <item quantity="many">מוחק %d הודעות…</item>
-        <item quantity="other">מוחק %d הודעות…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (עוד %2$d בתור)</item>
@@ -3749,17 +3730,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">להפסיק את ההעברה?</string>
     <string name="bulk_forward_cancel_confirmation_message">הודעות שעדיין לא נשלחו לא יועברו.</string>
-    <string name="bulk_delete_cancel_confirmation_title">להפסיק את המחיקה?</string>
-    <string name="bulk_delete_cancel_confirmation_message">הודעות שעדיין לא נמחקו יישמרו.</string>
     <string name="bulk_forward_failed_title">ההעברה הושהתה</string>
     <string name="bulk_forward_failed">לא ניתן היה להעביר הודעה. יש להמשיך כדי לנסות שוב.</string>
-    <string name="bulk_delete_failed_title">חלק מההודעות לא נמחקו</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">לא ניתן היה למחוק הודעה %d. יש להמשיך כדי לנסות שוב.</item>
-        <item quantity="two">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
-        <item quantity="many">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
-        <item quantity="other">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
-    </plurals>
     <string name="settings_backup_title">גיבוי ושחזור</string>
     <string name="settings_backup_summary">גיבוי או שחזור של ההגדרות שלך או של כל נתוני האפליקציה</string>
     <string name="settings_backup_database_category">מסד נתונים</string>
@@ -3864,4 +3836,32 @@
     <string name="settings_show_message_markers">הצג תוויות של עריכה ותרגום</string>
     <string name="settings_show_message_markers_summary">הצג \"(נערך)\" ואת שפת המקור אחרי הודעה</string>
     <string name="room_personalization_timeline_reset_confirmation">לאפס את הגדרות ציר הזמן של חדר זה לאלה של החשבון כולו?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">מחיקת הודעות של אחרים</string>
+    <string name="redact_poll_dialog_title">מחק סקר</string>
+    <string name="redact_poll_dialog_content">האם אתה בטוח שברצונך למחוק סקר זה? לא תוכל לשחזר אותו לאחר המחיקה.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">למחוק הודעה אחת?</item>
+        <item quantity="two">למחוק שתי הודעות?</item>
+        <item quantity="many">למחוק %d הודעות?</item>
+        <item quantity="other">למחוק %d הודעות?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">הן יימחקו עבור כל המשתתפים בחדר.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">מוחק הודעה אחת…</item>
+        <item quantity="two">מוחק שתי הודעות…</item>
+        <item quantity="many">מוחק %d הודעות…</item>
+        <item quantity="other">מוחק %d הודעות…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">להפסיק את המחיקה?</string>
+    <string name="bulk_redact_cancel_confirmation_message">ההודעות שעדיין לא נמחקו יישמרו.</string>
+    <string name="bulk_redact_failed_title">חלק מההודעות לא נמחקו</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">לא ניתן היה למחוק הודעה אחת. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="two">לא ניתן היה למחוק שתי הודעות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="many">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="other">לא ניתן היה למחוק %d הודעות. יש להמשיך כדי לנסות שוב.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">לבקש מהשרת את המקור כאשר הודעה נמחקת, ולהציג אותו במקום הודעת המחיקה</string>
+    <string name="notice_state_event_redacted">שינוי החדר של %1$s נמחק</string>
+    <string name="notice_state_event_redacted_with_reason">שינוי החדר של %1$s נמחק, סיבה: %2$s</string>
 </resources>

@@ -598,7 +598,6 @@
     <string name="room_permissions_change_room_avatar">ルームのアバターの変更</string>
     <string name="room_permissions_modify_widgets">ウィジェットの変更</string>
     <string name="room_permissions_notify_everyone">全員への通知</string>
-    <string name="room_permissions_remove_messages_sent_by_others">他の人から送信されたメッセージの削除</string>
     <string name="room_permissions_ban_users">ユーザーのブロック</string>
     <string name="room_permissions_change_settings">設定の変更</string>
     <string name="room_permissions_invite_users">ユーザーの招待</string>
@@ -1266,7 +1265,6 @@
     <string name="uploads_media_title">メディア</string>
     <string name="poll_end_room_list_preview">アンケートが終了しました。</string>
     <string name="end_poll_confirmation_title">アンケートを終了しますか？</string>
-    <string name="delete_poll_dialog_title">アンケートを削除</string>
     <string name="create_space">スペースを作成</string>
     <string name="join_space">スペースに参加</string>
     <string name="leave_space">退出</string>
@@ -1491,7 +1489,6 @@
     <string name="a11y_recording_voice_message">音声メッセージを録音しています</string>
     <string name="a11y_delete_recorded_voice_message">録音を削除</string>
     <string name="error_voice_message_cannot_reply_or_edit">音声メッセージがアクティブの間は返信や編集はできません</string>
-    <string name="delete_poll_dialog_content">このアンケートを削除してよろしいですか？一度削除すると復元することはできません。</string>
     <string name="error_handling_incoming_share">共有データを取り扱えませんでした</string>
     <string name="space_explore_activity_title">ルームを探す</string>
     <string name="space_mark_as_suggested">おすすめに追加</string>
@@ -3026,7 +3023,6 @@
     <string name="message_reveal_failed_network">元の内容を読み込むためにサーバーに接続できませんでした</string>
     <string name="settings_redactions">削除されたメッセージ</string>
     <string name="settings_redaction_preserve">削除されたメッセージを保持</string>
-    <string name="settings_redaction_preserve_summary">メッセージが削除されたとき、サーバーに元の内容を問い合わせ、削除の通知の代わりに表示します</string>
     <string name="settings_redaction_preserve_media">メディアを保持</string>
     <string name="settings_redaction_max_media_size">ダウンロードするメディアの最大サイズ</string>
     <string name="settings_redaction_wifi_only">Wi-Fi接続時のみメディアを保持</string>
@@ -3077,8 +3073,6 @@
     <string name="room_personalization_redaction_category">削除されたメッセージ</string>
     <string name="room_personalization_media_preview_show">表示</string>
     <string name="room_personalization_media_preview_hide">非表示</string>
-    <string name="notice_state_event_redacted">%1$sによるルームの変更が削除されました</string>
-    <string name="notice_state_event_redacted_with_reason">%1$sによるルームの変更が削除されました。理由：%2$s</string>
     <string name="settings_homeserver_info_reloaded">ホームサーバーの情報を再読み込みしました</string>
     <string name="settings_server_admin_yes">はい</string>
     <string name="settings_server_admin_no">いいえ</string>
@@ -3551,29 +3545,16 @@
     <plurals name="timeline_selection_count">
         <item quantity="other">%d件を選択中</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="other">%d件のメッセージを削除しますか？</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">ルームの全員に対して削除されます。</string>
     <plurals name="bulk_forwarding">
         <item quantity="other">%d件のメッセージを転送中…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="other">%d件のメッセージを削除中…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="other">%1$s（ほかに%2$d件が待機中）</item>
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">転送を中止しますか？</string>
     <string name="bulk_forward_cancel_confirmation_message">まだ送信されていないメッセージは転送されません。</string>
-    <string name="bulk_delete_cancel_confirmation_title">削除を中止しますか？</string>
-    <string name="bulk_delete_cancel_confirmation_message">まだ削除されていないメッセージはそのまま残ります。</string>
     <string name="bulk_forward_failed_title">転送を一時停止しました</string>
     <string name="bulk_forward_failed">メッセージを転送できませんでした。再開して再試行してください。</string>
-    <string name="bulk_delete_failed_title">一部のメッセージを削除できませんでした</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="other">%d件のメッセージを削除できませんでした。再開して再試行してください。</item>
-    </plurals>
     <string name="settings_backup_title">バックアップと復元</string>
     <string name="settings_backup_summary">設定またはアプリの全データをバックアップ・復元</string>
     <string name="settings_backup_database_category">データベース</string>
@@ -3678,4 +3659,23 @@
     <string name="settings_show_message_markers">編集済み・翻訳済みラベルを表示</string>
     <string name="settings_show_message_markers_summary">メッセージの後に「（編集済）」と元の言語を表示</string>
     <string name="room_personalization_timeline_reset_confirmation">このルームのタイムライン設定を、アカウント全体のものにリセットしますか？</string>
+    <string name="room_permissions_redact_messages_sent_by_others">他のユーザーのメッセージを削除</string>
+    <string name="redact_poll_dialog_title">アンケートを削除</string>
+    <string name="redact_poll_dialog_content">このアンケートを削除してよろしいですか？削除すると復元できません。</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="other">%d件のメッセージを削除しますか？</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">ルームの全員に対して削除されます。</string>
+    <plurals name="bulk_redacting">
+        <item quantity="other">%d件のメッセージを削除しています…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">削除を中止しますか？</string>
+    <string name="bulk_redact_cancel_confirmation_message">まだ削除されていないメッセージはそのまま残ります。</string>
+    <string name="bulk_redact_failed_title">一部のメッセージを削除できませんでした</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="other">%d件のメッセージを削除できませんでした。再開して再試行してください。</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">メッセージが削除されたときにサーバーに元の内容を要求し、削除の通知の代わりに表示します</string>
+    <string name="notice_state_event_redacted">%1$sによるルームの変更が削除されました</string>
+    <string name="notice_state_event_redacted_with_reason">%1$sによるルームの変更が削除されました。理由：%2$s</string>
 </resources>

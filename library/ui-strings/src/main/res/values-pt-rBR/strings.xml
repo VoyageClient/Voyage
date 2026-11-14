@@ -1566,7 +1566,6 @@
     <string name="room_permissions_change_main_address_for_the_room">Mudar endereço principal para a sala</string>
     <string name="room_permissions_change_room_avatar">Mudar o avatar da sala</string>
     <string name="room_permissions_modify_widgets">Modificar widgets</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Remover mensagens enviadas pelos outros</string>
     <string name="room_permissions_ban_users">Banir usuários</string>
     <string name="room_permissions_change_settings">Mudar configurações</string>
     <string name="room_permissions_invite_users">Convidar usuários</string>
@@ -1865,8 +1864,6 @@
     <string name="identity_server_consent_dialog_content_question">Você concorda em enviar esta info\?</string>
     <string name="identity_server_consent_dialog_content_3">Para descobrir contatos existentes, você precisa enviar info de contato (endereços de email e números de telefone) para seu servidor de identidade. Nós hashamos seus dados antes de enviar por privacidade.</string>
     <string name="action_not_now">Não agora</string>
-    <string name="delete_poll_dialog_content">Você tem certeza que você quer remover esta enquete\? Você não vai ser capaz de recuperá-la uma vez removida.</string>
-    <string name="delete_poll_dialog_title">Remover enquete</string>
     <string name="poll_end_room_list_preview">Enquete terminada.</string>
     <string name="poll_response_room_list_preview">Voto lançado.</string>
     <string name="end_poll_confirmation_approve_button">Terminar enquete</string>
@@ -3080,7 +3077,6 @@
     <string name="message_reveal_failed_network">Não foi possível contatar o servidor para carregar o conteúdo original</string>
     <string name="settings_redactions">Remoções</string>
     <string name="settings_redaction_preserve">Preservar mensagens removidas</string>
-    <string name="settings_redaction_preserve_summary">Pedir o original ao servidor quando uma mensagem for removida e mostrá-lo no lugar do aviso de exclusão</string>
     <string name="settings_redaction_preserve_media">Preservar mídia</string>
     <string name="settings_redaction_max_media_size">Tamanho máximo de mídia para baixar</string>
     <string name="settings_redaction_wifi_only">Preservar mídia só no Wi-Fi</string>
@@ -3131,8 +3127,6 @@
     <string name="room_personalization_redaction_category">Remoções</string>
     <string name="room_personalization_media_preview_show">Mostrar</string>
     <string name="room_personalization_media_preview_hide">Ocultar</string>
-    <string name="notice_state_event_redacted">A mudança na sala feita por %1$s foi removida</string>
-    <string name="notice_state_event_redacted_with_reason">A mudança na sala feita por %1$s foi removida, razão: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Informações do servidorcasa recarregadas</string>
     <string name="settings_server_admin_yes">Sim</string>
     <string name="settings_server_admin_no">Não</string>
@@ -3621,18 +3615,9 @@
         <item quantity="one">%d selecionada</item>
         <item quantity="other">%d selecionadas</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">Deletar %d mensagem?</item>
-        <item quantity="other">Deletar %d mensagens?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Elas serão removidas para todos na sala.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">Encaminhando %d mensagem…</item>
         <item quantity="other">Encaminhando %d mensagens…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">Deletando %d mensagem…</item>
-        <item quantity="other">Deletando %d mensagens…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (mais %2$d na fila)</item>
@@ -3640,15 +3625,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Parar o encaminhamento?</string>
     <string name="bulk_forward_cancel_confirmation_message">As mensagens que ainda não foram enviadas não serão encaminhadas.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Parar a remoção?</string>
-    <string name="bulk_delete_cancel_confirmation_message">As mensagens que ainda não foram deletadas serão mantidas.</string>
     <string name="bulk_forward_failed_title">Encaminhamento pausado</string>
     <string name="bulk_forward_failed">Não foi possível encaminhar uma mensagem. Retome para tentar novamente.</string>
-    <string name="bulk_delete_failed_title">Algumas mensagens não foram deletadas</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">Não foi possível deletar %d mensagem. Retome para tentar novamente.</item>
-        <item quantity="other">Não foi possível deletar %d mensagens. Retome para tentar novamente.</item>
-    </plurals>
     <string name="settings_backup_title">Backup e restauração</string>
     <string name="settings_backup_summary">Faça backup ou restaure suas configurações ou todos os dados do app</string>
     <string name="settings_backup_database_category">Banco de dados</string>
@@ -3753,4 +3731,26 @@
     <string name="settings_show_message_markers">Mostrar rótulos de editada e traduzida</string>
     <string name="settings_show_message_markers_summary">Mostrar \"(editada)\" e o idioma original depois de uma mensagem</string>
     <string name="room_personalization_timeline_reset_confirmation">Redefinir as configurações da linha do tempo desta sala para as da sua conta?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Remover mensagens enviadas por outros</string>
+    <string name="redact_poll_dialog_title">Remover enquete</string>
+    <string name="redact_poll_dialog_content">Tem certeza de que deseja remover esta enquete? Não será possível recuperá-la depois de removida.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">Remover %d mensagem?</item>
+        <item quantity="other">Remover %d mensagens?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Elas serão removidas para todos na sala.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">Removendo %d mensagem…</item>
+        <item quantity="other">Removendo %d mensagens…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Parar a remoção?</string>
+    <string name="bulk_redact_cancel_confirmation_message">As mensagens que ainda não foram removidas serão mantidas.</string>
+    <string name="bulk_redact_failed_title">Algumas mensagens não foram removidas</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">Não foi possível remover %d mensagem. Retome para tentar novamente.</item>
+        <item quantity="other">Não foi possível remover %d mensagens. Retome para tentar novamente.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Pedir o original ao servidor quando uma mensagem for removida e mostrá-lo no lugar do aviso de remoção</string>
+    <string name="notice_state_event_redacted">A alteração na sala feita por %1$s foi removida</string>
+    <string name="notice_state_event_redacted_with_reason">A alteração na sala feita por %1$s foi removida, motivo: %2$s</string>
 </resources>

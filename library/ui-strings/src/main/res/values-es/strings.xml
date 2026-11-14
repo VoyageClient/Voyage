@@ -1524,7 +1524,6 @@
     <string name="room_permissions_change_room_avatar">Cambiar el avatar de la sala</string>
     <string name="room_permissions_modify_widgets">Modificar widgets</string>
     <string name="room_permissions_notify_everyone">Notificar a todos los participantes</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Eliminar mensajes enviados por otros usuarios</string>
     <string name="room_permissions_ban_users">Banear usuarios</string>
     <string name="room_permissions_change_settings">Modificar ajustes</string>
     <string name="room_permissions_invite_users">Invitar usuarios</string>
@@ -1957,8 +1956,6 @@
     <string name="open_poll_option_title">Encuesta abierta</string>
     <string name="poll_type_title">Tipo de encuesta</string>
     <string name="edit_poll_title">Editar encuesta</string>
-    <string name="delete_poll_dialog_content">¿Estás seguro de que quieres eliminar esta encuesta\? No podrás recuperarla cuando se elimine.</string>
-    <string name="delete_poll_dialog_title">Eliminar encuesta</string>
     <string name="poll_end_room_list_preview">Encuesta finalizada.</string>
     <string name="poll_response_room_list_preview">Voto enviado.</string>
     <string name="end_poll_confirmation_approve_button">Finalizar encuesta</string>
@@ -3068,7 +3065,6 @@
     <string name="message_reveal_failed_network">No se pudo contactar con el servidor para cargar el contenido original</string>
     <string name="settings_redactions">Borrados</string>
     <string name="settings_redaction_preserve">Conservar los mensajes borrados</string>
-    <string name="settings_redaction_preserve_summary">Pedir el original al servidor cuando se borra un mensaje y mostrarlo en lugar del aviso de eliminación</string>
     <string name="settings_redaction_preserve_media">Conservar multimedia</string>
     <string name="settings_redaction_max_media_size">Tamaño máximo de multimedia a descargar</string>
     <string name="settings_redaction_wifi_only">Conservar multimedia solo con Wi-Fi</string>
@@ -3119,8 +3115,6 @@
     <string name="room_personalization_redaction_category">Borrados</string>
     <string name="room_personalization_media_preview_show">Mostrar</string>
     <string name="room_personalization_media_preview_hide">Ocultar</string>
-    <string name="notice_state_event_redacted">Se eliminó el cambio de sala de %1$s</string>
-    <string name="notice_state_event_redacted_with_reason">Se eliminó el cambio de sala de %1$s, motivo: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Se recargó la información del servidor doméstico</string>
     <string name="settings_server_admin_yes">Sí</string>
     <string name="settings_server_admin_no">No</string>
@@ -3609,18 +3603,9 @@
         <item quantity="one">%d seleccionado</item>
         <item quantity="other">%d seleccionados</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">¿Eliminar %d mensaje?</item>
-        <item quantity="other">¿Eliminar %d mensajes?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Se eliminarán para todos en la sala.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">Reenviando %d mensaje…</item>
         <item quantity="other">Reenviando %d mensajes…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">Eliminando %d mensaje…</item>
-        <item quantity="other">Eliminando %d mensajes…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (%2$d más en cola)</item>
@@ -3628,15 +3613,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">¿Detener el reenvío?</string>
     <string name="bulk_forward_cancel_confirmation_message">Los mensajes que aún no se han enviado no se reenviarán.</string>
-    <string name="bulk_delete_cancel_confirmation_title">¿Detener el borrado?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Los mensajes que aún no se han eliminado se conservarán.</string>
     <string name="bulk_forward_failed_title">Reenvío en pausa</string>
     <string name="bulk_forward_failed">No se pudo reenviar un mensaje. Reanuda para volver a intentarlo.</string>
-    <string name="bulk_delete_failed_title">Algunos mensajes no se eliminaron</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">No se pudo eliminar %d mensaje. Reanuda para volver a intentarlo.</item>
-        <item quantity="other">No se pudieron eliminar %d mensajes. Reanuda para volver a intentarlo.</item>
-    </plurals>
     <string name="settings_backup_title">Copia de seguridad y restauración</string>
     <string name="settings_backup_summary">Haz una copia de seguridad de tus ajustes o de todos los datos de la aplicación, o restáuralos</string>
     <string name="settings_backup_database_category">Base de datos</string>
@@ -3741,4 +3719,26 @@
     <string name="settings_show_message_markers">Mostrar etiquetas de editado y traducido</string>
     <string name="settings_show_message_markers_summary">Mostrar \"(editado)\" y el idioma original después de un mensaje</string>
     <string name="room_personalization_timeline_reset_confirmation">¿Restablecer los ajustes de la línea de tiempo de esta sala a los de toda tu cuenta?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Borrar mensajes de otros</string>
+    <string name="redact_poll_dialog_title">Borrar encuesta</string>
+    <string name="redact_poll_dialog_content">¿Seguro que quieres borrar esta encuesta? No podrás recuperarla una vez borrada.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">¿Borrar %d mensaje?</item>
+        <item quantity="other">¿Borrar %d mensajes?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Se borrarán para todos en la sala.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">Borrando %d mensaje…</item>
+        <item quantity="other">Borrando %d mensajes…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">¿Detener el borrado?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Los mensajes que aún no se hayan borrado se conservarán.</string>
+    <string name="bulk_redact_failed_title">Algunos mensajes no se borraron</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">No se pudo borrar %d mensaje. Reanuda para volver a intentarlo.</item>
+        <item quantity="other">No se pudieron borrar %d mensajes. Reanuda para volver a intentarlo.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Pide al servidor el original cuando se borre un mensaje y muéstralo en lugar del aviso de borrado</string>
+    <string name="notice_state_event_redacted">Se borró el cambio en la sala de %1$s</string>
+    <string name="notice_state_event_redacted_with_reason">Se borró el cambio en la sala de %1$s, motivo: %2$s</string>
 </resources>

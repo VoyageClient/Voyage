@@ -44,7 +44,7 @@ class RedactedContentRestorer @Inject constructor(
 
     /**
      * Whether [event] is currently rendering restored content, so callers that branch on
-     * `isRedacted()` don't treat it as deleted. Free of the side effects of [restoreEvent] — no
+     * `isRedacted()` don't treat its content as gone. Free of the side effects of [restoreEvent] — no
      * fetch is started — so it is safe from grouping and visibility passes.
      */
     fun isShowingRestoredContent(event: TimelineEvent): Boolean {

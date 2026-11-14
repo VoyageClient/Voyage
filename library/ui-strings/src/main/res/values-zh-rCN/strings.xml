@@ -1477,7 +1477,6 @@
     <string name="room_permissions_change_room_avatar">更改房间头像</string>
     <string name="room_permissions_modify_widgets">修改小部件</string>
     <string name="room_permissions_notify_everyone">通知每个人</string>
-    <string name="room_permissions_remove_messages_sent_by_others">移除其他人发送的消息</string>
     <string name="room_permissions_ban_users">封禁用户</string>
     <string name="room_permissions_change_settings">更改设置</string>
     <string name="room_permissions_invite_users">邀请用户</string>
@@ -1827,8 +1826,6 @@
     <string name="identity_server_consent_dialog_content_question">你同意发送此信息吗？</string>
     <string name="identity_server_consent_dialog_content_3">要发现现有的联系人，你需要将联系人信息（电子邮件地址和电话号码）发送到你的身份服务器。出乎隐私考量，我们会在发送前对你的数据进行散列处理。</string>
     <string name="action_not_now">不是现在</string>
-    <string name="delete_poll_dialog_content">你确定要删除此投票吗？一旦移除，就无法恢复。</string>
-    <string name="delete_poll_dialog_title">删除投票</string>
     <string name="poll_end_room_list_preview">投票已结束。</string>
     <string name="poll_response_room_list_preview">投票。</string>
     <string name="end_poll_confirmation_approve_button">结束投票</string>
@@ -3027,7 +3024,6 @@
     <string name="message_reveal_failed_network">无法连接服务器以加载原始内容</string>
     <string name="settings_redactions">删除</string>
     <string name="settings_redaction_preserve">保留已删除的消息</string>
-    <string name="settings_redaction_preserve_summary">消息被删除时向服务器请求原始内容，并在删除提示处显示它</string>
     <string name="settings_redaction_preserve_media">保留媒体</string>
     <string name="settings_redaction_max_media_size">下载媒体的最大大小</string>
     <string name="settings_redaction_wifi_only">仅在 Wi-Fi 下保留媒体</string>
@@ -3078,8 +3074,6 @@
     <string name="room_personalization_redaction_category">删除</string>
     <string name="room_personalization_media_preview_show">显示</string>
     <string name="room_personalization_media_preview_hide">隐藏</string>
-    <string name="notice_state_event_redacted">%1$s 的房间更改已被移除</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s 的房间更改已被移除，理由：%2$s</string>
     <string name="settings_homeserver_info_reloaded">家服务器信息已重新加载</string>
     <string name="settings_server_admin_yes">是</string>
     <string name="settings_server_admin_no">否</string>
@@ -3553,29 +3547,16 @@
     <plurals name="timeline_selection_count">
         <item quantity="other">已选择 %d 条</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="other">删除 %d 条消息？</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">这些消息将为房间内的所有人删除。</string>
     <plurals name="bulk_forwarding">
         <item quantity="other">正在转发 %d 条消息…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="other">正在删除 %d 条消息…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="other">%1$s（还有 %2$d 项在排队）</item>
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">停止转发？</string>
     <string name="bulk_forward_cancel_confirmation_message">尚未发送的消息将不会被转发。</string>
-    <string name="bulk_delete_cancel_confirmation_title">停止删除？</string>
-    <string name="bulk_delete_cancel_confirmation_message">尚未删除的消息将会保留。</string>
     <string name="bulk_forward_failed_title">转发已暂停</string>
     <string name="bulk_forward_failed">有一条消息无法转发。继续即可重试。</string>
-    <string name="bulk_delete_failed_title">部分消息未被删除</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="other">%d 条消息无法删除。继续即可重试。</item>
-    </plurals>
     <string name="settings_backup_title">备份与恢复</string>
     <string name="settings_backup_summary">备份或恢复你的设置或全部应用数据</string>
     <string name="settings_backup_database_category">数据库</string>
@@ -3680,4 +3661,23 @@
     <string name="settings_show_message_markers">显示已编辑和已翻译标记</string>
     <string name="settings_show_message_markers_summary">在消息后显示“（已编辑）”和原始语言</string>
     <string name="room_personalization_timeline_reset_confirmation">将此房间的时间线设置重置为账户全局设置？</string>
+    <string name="room_permissions_redact_messages_sent_by_others">删除他人发送的消息</string>
+    <string name="redact_poll_dialog_title">删除投票</string>
+    <string name="redact_poll_dialog_content">你确定要删除此投票吗？删除后将无法恢复。</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="other">删除 %d 条消息？</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">这些消息将对房间内所有人删除。</string>
+    <plurals name="bulk_redacting">
+        <item quantity="other">正在删除 %d 条消息…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">停止删除？</string>
+    <string name="bulk_redact_cancel_confirmation_message">尚未删除的消息将会保留。</string>
+    <string name="bulk_redact_failed_title">部分消息未能删除</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="other">有 %d 条消息无法删除。继续即可重试。</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">消息被删除时向服务器请求原始内容，并用它替代删除提示显示</string>
+    <string name="notice_state_event_redacted">%1$s 的房间更改已被删除</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s 的房间更改已被删除，原因：%2$s</string>
 </resources>

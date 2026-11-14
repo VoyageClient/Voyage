@@ -1504,7 +1504,6 @@
     <string name="room_permissions_change_room_avatar">Изменить аватар комнаты</string>
     <string name="room_permissions_modify_widgets">Изменить виджеты</string>
     <string name="room_permissions_notify_everyone">Уведомить всех</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Удалить сообщения, отправленные другими</string>
     <string name="room_permissions_ban_users">Блокировка пользователей</string>
     <string name="room_permissions_change_settings">Изменить настройки</string>
     <string name="room_permissions_invite_users">Пригласить пользователей</string>
@@ -1801,8 +1800,6 @@
     <string name="open_poll_option_description">Проголосовавшие увидят результаты сразу после голосования</string>
     <string name="poll_type_title">Тип опроса</string>
     <string name="edit_poll_title">Редактировать опрос</string>
-    <string name="delete_poll_dialog_content">Вы уверены, что хотите удалить этот опрос\? Вы не сможете восстановить его после удаления.</string>
-    <string name="delete_poll_dialog_title">Удалить опрос</string>
     <string name="poll_end_room_list_preview">Опрос завершен.</string>
     <string name="poll_response_room_list_preview">Проголосовано.</string>
     <string name="end_poll_confirmation_approve_button">Завершить опрос</string>
@@ -3054,7 +3051,6 @@
     <string name="message_reveal_failed_network">Не удалось связаться с сервером для загрузки исходного содержимого</string>
     <string name="settings_redactions">Удалённые сообщения</string>
     <string name="settings_redaction_preserve">Сохранять удалённые сообщения</string>
-    <string name="settings_redaction_preserve_summary">Запрашивать у сервера оригинал при удалении сообщения и показывать его вместо уведомления об удалении</string>
     <string name="settings_redaction_preserve_media">Сохранять медиафайлы</string>
     <string name="settings_redaction_max_media_size">Максимальный размер скачиваемых медиафайлов</string>
     <string name="settings_redaction_wifi_only">Сохранять медиафайлы только через Wi-Fi</string>
@@ -3105,8 +3101,6 @@
     <string name="room_personalization_redaction_category">Удалённые сообщения</string>
     <string name="room_personalization_media_preview_show">Показывать</string>
     <string name="room_personalization_media_preview_hide">Скрывать</string>
-    <string name="notice_state_event_redacted">Изменение комнаты от %1$s удалено</string>
-    <string name="notice_state_event_redacted_with_reason">Изменение комнаты от %1$s удалено, причина: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Сведения о домашнем сервере обновлены</string>
     <string name="settings_server_admin_yes">Да</string>
     <string name="settings_server_admin_no">Нет</string>
@@ -3753,24 +3747,11 @@
         <item quantity="many">Выбрано: %d</item>
         <item quantity="other">Выбрано: %d</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">Удалить %d сообщение?</item>
-        <item quantity="few">Удалить %d сообщения?</item>
-        <item quantity="many">Удалить %d сообщений?</item>
-        <item quantity="other">Удалить %d сообщения?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Они будут удалены для всех участников комнаты.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">Пересылка %d сообщения…</item>
         <item quantity="few">Пересылка %d сообщений…</item>
         <item quantity="many">Пересылка %d сообщений…</item>
         <item quantity="other">Пересылка %d сообщения…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">Удаление %d сообщения…</item>
-        <item quantity="few">Удаление %d сообщений…</item>
-        <item quantity="many">Удаление %d сообщений…</item>
-        <item quantity="other">Удаление %d сообщения…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (ещё %2$d в очереди)</item>
@@ -3780,17 +3761,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Остановить пересылку?</string>
     <string name="bulk_forward_cancel_confirmation_message">Сообщения, которые ещё не отправлены, не будут пересланы.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Остановить удаление?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Сообщения, которые ещё не удалены, сохранятся.</string>
     <string name="bulk_forward_failed_title">Пересылка приостановлена</string>
     <string name="bulk_forward_failed">Не удалось переслать сообщение. Продолжите, чтобы повторить попытку.</string>
-    <string name="bulk_delete_failed_title">Некоторые сообщения не удалены</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">Не удалось удалить %d сообщение. Продолжите, чтобы повторить попытку.</item>
-        <item quantity="few">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
-        <item quantity="many">Не удалось удалить %d сообщений. Продолжите, чтобы повторить попытку.</item>
-        <item quantity="other">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
-    </plurals>
     <string name="settings_backup_title">Резервное копирование и восстановление</string>
     <string name="settings_backup_summary">Создание резервной копии или восстановление настроек либо всех данных приложения</string>
     <string name="settings_backup_database_category">База данных</string>
@@ -3895,4 +3867,32 @@
     <string name="settings_show_message_markers">Показывать пометки об изменении и переводе</string>
     <string name="settings_show_message_markers_summary">Показывать «(изменено)» и исходный язык после сообщения</string>
     <string name="room_personalization_timeline_reset_confirmation">Вернуть настройки ленты сообщений этой комнаты к настройкам вашей учётной записи?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Удаление сообщений других участников</string>
+    <string name="redact_poll_dialog_title">Удалить опрос</string>
+    <string name="redact_poll_dialog_content">Вы уверены, что хотите удалить этот опрос? После удаления его нельзя будет восстановить.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">Удалить %d сообщение?</item>
+        <item quantity="few">Удалить %d сообщения?</item>
+        <item quantity="many">Удалить %d сообщений?</item>
+        <item quantity="other">Удалить %d сообщения?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Они будут удалены для всех в комнате.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">Удаление %d сообщения…</item>
+        <item quantity="few">Удаление %d сообщений…</item>
+        <item quantity="many">Удаление %d сообщений…</item>
+        <item quantity="other">Удаление %d сообщения…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Остановить удаление?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Сообщения, которые ещё не удалены, останутся.</string>
+    <string name="bulk_redact_failed_title">Некоторые сообщения не удалены</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">Не удалось удалить %d сообщение. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="few">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="many">Не удалось удалить %d сообщений. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="other">Не удалось удалить %d сообщения. Продолжите, чтобы повторить попытку.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Запрашивать у сервера оригинал при удалении сообщения и показывать его вместо уведомления об удалении</string>
+    <string name="notice_state_event_redacted">Изменение комнаты от %1$s удалено</string>
+    <string name="notice_state_event_redacted_with_reason">Изменение комнаты от %1$s удалено, причина: %2$s</string>
 </resources>

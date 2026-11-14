@@ -97,7 +97,7 @@ sealed class EditablePermission(@StringRes val labelResId: Int, @StringRes val s
     class BanUsers : EditablePermission(CommonStrings.room_permissions_ban_users)
 
     // Updates `content.redact`
-    class RemoveMessagesSentByOthers : EditablePermission(CommonStrings.room_permissions_remove_messages_sent_by_others)
+    class RedactMessagesSentByOthers : EditablePermission(CommonStrings.room_permissions_redact_messages_sent_by_others)
 
     // Updates `content.notification.room`
     class NotifyEveryone : EditablePermission(CommonStrings.room_permissions_notify_everyone)

@@ -66,7 +66,7 @@ class RoomPermissionsController @Inject constructor(
 
             EditablePermission.SendMessages(),
 
-            EditablePermission.RemoveMessagesSentByOthers(),
+            EditablePermission.RedactMessagesSentByOthers(),
             EditablePermission.NotifyEveryone(),
 
             EditablePermission.ChangeSettings(),
@@ -87,7 +87,7 @@ class RoomPermissionsController @Inject constructor(
 
             EditablePermission.SendMessages(),
 
-            EditablePermission.RemoveMessagesSentByOthers(),
+            EditablePermission.RedactMessagesSentByOthers(),
             EditablePermission.NotifyEveryone(),
 
             EditablePermission.ChangeSettings(),
@@ -190,7 +190,7 @@ class RoomPermissionsController @Inject constructor(
             is EditablePermission.ChangeSettings -> content.stateDefaultOrDefault()
             is EditablePermission.KickUsers -> content.kickOrDefault()
             is EditablePermission.BanUsers -> content.banOrDefault()
-            is EditablePermission.RemoveMessagesSentByOthers -> content.redactOrDefault()
+            is EditablePermission.RedactMessagesSentByOthers -> content.redactOrDefault()
             is EditablePermission.NotifyEveryone -> content.notificationLevel(PowerLevelsContent.NOTIFICATIONS_ROOM_KEY)
         }
         return UserPowerLevel.Value(value)

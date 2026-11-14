@@ -116,7 +116,7 @@ class BulkActionQueueTest {
     }
 
     @Test
-    fun `a delete redacts each message and its own reactions`() {
+    fun `a bulk redaction redacts each message and its own reactions`() {
         val reaction = Event(eventId = "\$reaction", senderId = ME)
         val othersReaction = Event(eventId = "\$theirs", senderId = "@other:example.org")
         coEvery { room.relationService().fetchReactions("\$a") } returns listOf(reaction, othersReaction)
@@ -126,7 +126,7 @@ class BulkActionQueueTest {
         coEvery { room.relationService().redactEventNoEcho(any(), any()) } answers { redacted += firstArg<String>() }
         val queue = newQueue()
 
-        queue.enqueueDelete(ROOM, listOf("\$a", "\$b"), reason = null)
+        queue.enqueueRedact(ROOM, listOf("\$a", "\$b"), reason = null)
 
         waitUntil { redacted.size == 3 }
         redacted.toList() shouldBeEqualTo listOf("\$a", "\$reaction", "\$b")

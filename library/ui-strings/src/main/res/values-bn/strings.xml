@@ -884,7 +884,6 @@
     <string name="room_permissions_invite_users">ব্যবহারকারীদের আমন্ত্রণ</string>
     <string name="room_permissions_change_settings">সেটিংস পরিবর্তন</string>
     <string name="room_permissions_ban_users">ব্যবহারকারীদের নিষিদ্ধ করা</string>
-    <string name="room_permissions_remove_messages_sent_by_others">অন্যদের পাঠানো বার্তা সরানো</string>
     <string name="room_permissions_notify_everyone">সবাইকে বিজ্ঞপ্তি দেওয়া</string>
     <string name="room_permissions_modify_widgets">উইজেট পরিবর্তন</string>
     <string name="room_permissions_change_room_avatar">রুমের অবতার পরিবর্তন</string>
@@ -2110,8 +2109,6 @@
     <string name="end_poll_confirmation_approve_button">জরিপ শেষ করুন</string>
     <string name="poll_response_room_list_preview">ভোট দেওয়া হয়েছে।</string>
     <string name="poll_end_room_list_preview">জরিপ শেষ হয়েছে।</string>
-    <string name="delete_poll_dialog_title">জরিপ সরান</string>
-    <string name="delete_poll_dialog_content">আপনি কি নিশ্চিত যে এই জরিপটি সরাতে চান? একবার সরানো হলে আর এটি পুনরুদ্ধার করতে পারবেন না।</string>
     <string name="edit_poll_title">জরিপ সম্পাদনা করুন</string>
     <string name="poll_type_title">জরিপের ধরন</string>
     <string name="open_poll_option_title">উন্মুক্ত জরিপ</string>
@@ -3036,7 +3033,6 @@
     <string name="message_reveal_failed_network">মূল বিষয়বস্তু লোড করতে সার্ভারে পৌঁছানো যায়নি</string>
     <string name="settings_redactions">রিড্যাকশন</string>
     <string name="settings_redaction_preserve">রিড্যাক্ট করা বার্তা সংরক্ষণ করুন</string>
-    <string name="settings_redaction_preserve_summary">কোনো বার্তা রিড্যাক্ট করা হলে সার্ভারের কাছে মূলটি চান, এবং মুছে ফেলার বিজ্ঞপ্তির জায়গায় সেটি দেখান</string>
     <string name="settings_redaction_preserve_media">মিডিয়া সংরক্ষণ করুন</string>
     <string name="settings_redaction_max_media_size">ডাউনলোডের জন্য মিডিয়ার সর্বোচ্চ আকার</string>
     <string name="settings_redaction_wifi_only">শুধু Wi-Fi-তে মিডিয়া সংরক্ষণ করুন</string>
@@ -3087,8 +3083,6 @@
     <string name="room_personalization_redaction_category">রিড্যাকশন</string>
     <string name="room_personalization_media_preview_show">দেখান</string>
     <string name="room_personalization_media_preview_hide">লুকান</string>
-    <string name="notice_state_event_redacted">%1$s-এর রুম পরিবর্তনটি সরানো হয়েছে</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s-এর রুম পরিবর্তনটি সরানো হয়েছে, কারণ: %2$s</string>
     <string name="settings_homeserver_info_reloaded">হোমসার্ভারের তথ্য পুনরায় লোড করা হয়েছে</string>
     <string name="settings_server_admin_yes">হ্যাঁ</string>
     <string name="settings_server_admin_no">না</string>
@@ -3581,18 +3575,9 @@
         <item quantity="one">%dটি নির্বাচিত</item>
         <item quantity="other">%dটি নির্বাচিত</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">%dটি মেসেজ মুছবেন?</item>
-        <item quantity="other">%dটি মেসেজ মুছবেন?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">রুমের সবার জন্য এগুলি মুছে ফেলা হবে।</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">%dটি মেসেজ ফরোয়ার্ড করা হচ্ছে…</item>
         <item quantity="other">%dটি মেসেজ ফরোয়ার্ড করা হচ্ছে…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">%dটি মেসেজ মোছা হচ্ছে…</item>
-        <item quantity="other">%dটি মেসেজ মোছা হচ্ছে…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (আরও %2$dটি অপেক্ষায়)</item>
@@ -3600,15 +3585,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">ফরোয়ার্ড করা বন্ধ করবেন?</string>
     <string name="bulk_forward_cancel_confirmation_message">যে মেসেজগুলি এখনও পাঠানো হয়নি, সেগুলি ফরোয়ার্ড করা হবে না।</string>
-    <string name="bulk_delete_cancel_confirmation_title">মোছা বন্ধ করবেন?</string>
-    <string name="bulk_delete_cancel_confirmation_message">যে মেসেজগুলি এখনও মোছা হয়নি, সেগুলি থেকে যাবে।</string>
     <string name="bulk_forward_failed_title">ফরোয়ার্ড করা বিরতিতে আছে</string>
     <string name="bulk_forward_failed">একটি মেসেজ ফরোয়ার্ড করা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</string>
-    <string name="bulk_delete_failed_title">কিছু মেসেজ মোছা হয়নি</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%dটি মেসেজ মোছা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
-        <item quantity="other">%dটি মেসেজ মোছা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
-    </plurals>
     <string name="settings_backup_title">ব্যাকআপ ও পুনরুদ্ধার</string>
     <string name="settings_backup_summary">আপনার সেটিংস বা অ্যাপের সব ডেটা ব্যাকআপ করুন বা পুনরুদ্ধার করুন</string>
     <string name="settings_backup_database_category">ডেটাবেস</string>
@@ -3713,4 +3691,26 @@
     <string name="settings_show_message_markers">সম্পাদিত ও অনূদিত লেবেল দেখান</string>
     <string name="settings_show_message_markers_summary">বার্তার পরে \"(সম্পাদিত)\" ও মূল ভাষা দেখান</string>
     <string name="room_personalization_timeline_reset_confirmation">এই রুমের টাইমলাইন সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">অন্যদের পাঠানো বার্তা রিড্যাক্ট করুন</string>
+    <string name="redact_poll_dialog_title">জরিপ রিড্যাক্ট করুন</string>
+    <string name="redact_poll_dialog_content">আপনি কি নিশ্চিত যে এই জরিপটি রিড্যাক্ট করতে চান? রিড্যাক্ট করার পর এটি আর পুনরুদ্ধার করতে পারবেন না।</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">%dটি বার্তা রিড্যাক্ট করবেন?</item>
+        <item quantity="other">%dটি বার্তা রিড্যাক্ট করবেন?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">রুমের সবার জন্য এগুলো রিড্যাক্ট করা হবে।</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">%dটি বার্তা রিড্যাক্ট করা হচ্ছে…</item>
+        <item quantity="other">%dটি বার্তা রিড্যাক্ট করা হচ্ছে…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">রিড্যাক্ট করা বন্ধ করবেন?</string>
+    <string name="bulk_redact_cancel_confirmation_message">যে বার্তাগুলো এখনও রিড্যাক্ট করা হয়নি সেগুলো থেকে যাবে।</string>
+    <string name="bulk_redact_failed_title">কিছু বার্তা রিড্যাক্ট করা হয়নি</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%dটি বার্তা রিড্যাক্ট করা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
+        <item quantity="other">%dটি বার্তা রিড্যাক্ট করা যায়নি। আবার চেষ্টা করতে আবার শুরু করুন।</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">কোনো বার্তা রিড্যাক্ট করা হলে সার্ভার থেকে মূল বার্তাটি চেয়ে নিন এবং রিড্যাকশনের নোটিশের জায়গায় সেটি দেখান</string>
+    <string name="notice_state_event_redacted">%1$s-এর রুম পরিবর্তন রিড্যাক্ট করা হয়েছে</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s-এর রুম পরিবর্তন রিড্যাক্ট করা হয়েছে, কারণ: %2$s</string>
 </resources>

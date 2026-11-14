@@ -76,7 +76,7 @@ class RedactedContentRevealManager @Inject constructor(
     /**
      * Whether [eventId] in [roomId] should currently show its pre-redaction content.
      *
-     * [isOwnMessage] only suppresses the room's automatic default: deleting your own message is a
+     * [isOwnMessage] only suppresses the room's automatic default: redacting your own message is a
      * deliberate act, so a room-wide reveal shouldn't quietly undo it everywhere. An explicit
      * per-message Reveal still works on your own messages.
      */

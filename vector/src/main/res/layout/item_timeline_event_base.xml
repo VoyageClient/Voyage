@@ -7,7 +7,7 @@
     android:addStatesFromChildren="true"
     tools:viewBindingIgnore="true">
 
-    <!-- Carries the deleted-content marks (see RedactionTintDrawable). Under the highlight so a jump
+    <!-- Carries the redacted-content marks (see RedactionTintDrawable). Under the highlight so a jump
          reveals them as the flash fades, instead of them popping in after. -->
     <View
         android:id="@+id/messageRowTint"

@@ -66,7 +66,7 @@ class MessagePreviewContentBuilderTest {
         every { it.render(any(), any()) } answers { firstArg() }
     }
     private val noticeEventFormatter = mockk<NoticeEventFormatter>(relaxed = true).also {
-        every { it.formatRedactedEvent(any()) } returns "Message deleted"
+        every { it.formatRedactedEvent(any()) } returns "Message redacted"
         every { it.formatMalformedMessage() } returns "Malformed"
         every { it.formatLocationNotice(any(), any()) } returns "Alice shared a location"
         every { it.format(any<TimelineEvent>(), any()) } returns "Alice changed the topic"
@@ -356,7 +356,7 @@ class MessagePreviewContentBuilderTest {
         val event = eventOf(image, unsignedData = UnsignedData(age = null, redactedEvent = Event(type = EventType.REDACTION)))
         val preview = builder.build(event, options)
         preview.textStyle shouldBeEqualTo TextStyle.REDACTED
-        preview.text?.charSequence.toString() shouldBeEqualTo "Message deleted"
+        preview.text?.charSequence.toString() shouldBeEqualTo "Message redacted"
         preview.media shouldBe null
     }
 

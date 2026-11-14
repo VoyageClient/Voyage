@@ -36,7 +36,7 @@ data class MessageActionState(
         val informationData: MessageInformationData,
         val timelineEvent: Async<TimelineEvent> = Uninitialized,
         // Set only when a redaction's content was put back. [timelineEvent] stays the redacted original,
-        // because the sheet still has to know the message was deleted — which actions to offer, and how
+        // because the sheet still has to know the message was redacted — which actions to offer, and how
         // to mark the header.
         val restoredEvent: TimelineEvent? = null,
         val preview: MessagePreviewContent? = null,

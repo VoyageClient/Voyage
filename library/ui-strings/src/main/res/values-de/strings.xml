@@ -1555,7 +1555,6 @@
     <string name="room_permissions_change_room_avatar">Raumbild ändern</string>
     <string name="room_permissions_modify_widgets">Widgets ändern</string>
     <string name="room_permissions_notify_everyone">Jeden benachrichtigen</string>
-    <string name="room_permissions_remove_messages_sent_by_others">Von anderen gesendete Nachrichten entfernen</string>
     <string name="room_permissions_ban_users">Nutzer verbannen</string>
     <string name="room_permissions_change_settings">Einstellungen ändern</string>
     <string name="room_permissions_invite_users">Nutzer einladen</string>
@@ -1894,8 +1893,6 @@
     <string name="tooltip_attachment_file">Datei hochladen</string>
     <string name="tooltip_attachment_gallery">Verschicke Fotos und Videos</string>
     <string name="tooltip_attachment_photo">Kamera öffnen</string>
-    <string name="delete_poll_dialog_content">Willst du diese Umfrage wirklich entfernen\? Du wirst sie nicht wiederherstellen können.</string>
-    <string name="delete_poll_dialog_title">Umfrage entfernen</string>
     <string name="poll_end_room_list_preview">Umfrage beendet.</string>
     <string name="poll_response_room_list_preview">Stimme abgegeben.</string>
     <string name="end_poll_confirmation_approve_button">Umfrage beenden</string>
@@ -3079,7 +3076,6 @@
     <string name="message_reveal_failed_network">Der Server konnte nicht erreicht werden, um den ursprünglichen Inhalt zu laden</string>
     <string name="settings_redactions">Löschungen</string>
     <string name="settings_redaction_preserve">Gelöschte Nachrichten aufbewahren</string>
-    <string name="settings_redaction_preserve_summary">Beim Löschen einer Nachricht den Server nach dem Original fragen und es anstelle des Löschhinweises anzeigen</string>
     <string name="settings_redaction_preserve_media">Medien aufbewahren</string>
     <string name="settings_redaction_max_media_size">Maximale Mediengröße zum Herunterladen</string>
     <string name="settings_redaction_wifi_only">Medien nur im WLAN aufbewahren</string>
@@ -3130,8 +3126,6 @@
     <string name="room_personalization_redaction_category">Löschungen</string>
     <string name="room_personalization_media_preview_show">Anzeigen</string>
     <string name="room_personalization_media_preview_hide">Ausblenden</string>
-    <string name="notice_state_event_redacted">Die Raumänderung von %1$s wurde entfernt</string>
-    <string name="notice_state_event_redacted_with_reason">Die Raumänderung von %1$s wurde entfernt, Grund: %2$s</string>
     <string name="settings_homeserver_info_reloaded">Homeserver-Informationen neu geladen</string>
     <string name="settings_server_admin_yes">Ja</string>
     <string name="settings_server_admin_no">Nein</string>
@@ -3620,18 +3614,9 @@
         <item quantity="one">%d ausgewählt</item>
         <item quantity="other">%d ausgewählt</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">%d Nachricht löschen?</item>
-        <item quantity="other">%d Nachrichten löschen?</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">Sie werden für alle im Raum entfernt.</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">%d Nachricht wird weitergeleitet…</item>
         <item quantity="other">%d Nachrichten werden weitergeleitet…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">%d Nachricht wird gelöscht…</item>
-        <item quantity="other">%d Nachrichten werden gelöscht…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (%2$d weiterer in der Warteschlange)</item>
@@ -3639,15 +3624,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">Weiterleiten beenden?</string>
     <string name="bulk_forward_cancel_confirmation_message">Nachrichten, die noch nicht gesendet wurden, werden nicht weitergeleitet.</string>
-    <string name="bulk_delete_cancel_confirmation_title">Löschen beenden?</string>
-    <string name="bulk_delete_cancel_confirmation_message">Nachrichten, die noch nicht gelöscht wurden, bleiben erhalten.</string>
     <string name="bulk_forward_failed_title">Weiterleiten pausiert</string>
     <string name="bulk_forward_failed">Eine Nachricht konnte nicht weitergeleitet werden. Fortsetzen, um es erneut zu versuchen.</string>
-    <string name="bulk_delete_failed_title">Einige Nachrichten wurden nicht gelöscht</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d Nachricht konnte nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
-        <item quantity="other">%d Nachrichten konnten nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
-    </plurals>
     <string name="settings_backup_title">Sichern und wiederherstellen</string>
     <string name="settings_backup_summary">Deine Einstellungen oder alle App-Daten sichern oder wiederherstellen</string>
     <string name="settings_backup_database_category">Datenbank</string>
@@ -3752,4 +3730,26 @@
     <string name="settings_show_message_markers">Hinweise auf Bearbeitung und Übersetzung anzeigen</string>
     <string name="settings_show_message_markers_summary">\"(bearbeitet)\" und die Originalsprache hinter einer Nachricht anzeigen</string>
     <string name="room_personalization_timeline_reset_confirmation">Zeitleisten-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
+    <string name="room_permissions_redact_messages_sent_by_others">Nachrichten anderer löschen</string>
+    <string name="redact_poll_dialog_title">Umfrage löschen</string>
+    <string name="redact_poll_dialog_content">Möchtest du diese Umfrage wirklich löschen? Sie kann danach nicht wiederhergestellt werden.</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">%d Nachricht löschen?</item>
+        <item quantity="other">%d Nachrichten löschen?</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">Sie werden für alle im Raum gelöscht.</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">%d Nachricht wird gelöscht…</item>
+        <item quantity="other">%d Nachrichten werden gelöscht…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">Löschen beenden?</string>
+    <string name="bulk_redact_cancel_confirmation_message">Nachrichten, die noch nicht gelöscht wurden, bleiben erhalten.</string>
+    <string name="bulk_redact_failed_title">Einige Nachrichten wurden nicht gelöscht</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d Nachricht konnte nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
+        <item quantity="other">%d Nachrichten konnten nicht gelöscht werden. Fortsetzen, um es erneut zu versuchen.</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">Beim Löschen einer Nachricht den Server nach dem Original fragen und es anstelle des Löschhinweises anzeigen</string>
+    <string name="notice_state_event_redacted">Die Raumänderung von %1$s wurde gelöscht</string>
+    <string name="notice_state_event_redacted_with_reason">Die Raumänderung von %1$s wurde gelöscht, Grund: %2$s</string>
 </resources>

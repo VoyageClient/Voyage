@@ -1716,7 +1716,7 @@ class TimelineFragment :
                         is MessageLiveLocationStartItem,
                         is MessageLiveLocationInactiveItem,
                         is PollItem,
-                        // Deleted messages can still be replied to.
+                        // Redacted messages can still be replied to.
                         is RedactedMessageItem -> {
                             (model as AbsMessageItem).attributes.informationData.sendState == SendState.SYNCED
                         }
@@ -2598,7 +2598,7 @@ class TimelineFragment :
                 when (item.itemId) {
                     R.id.selection_copy -> copySelection()
                     R.id.selection_forward -> forwardSelection()
-                    R.id.selection_delete -> deleteSelection()
+                    R.id.selection_redact -> redactSelection()
                     else -> return@setOnMenuItemClickListener false
                 }
                 true
@@ -2655,7 +2655,7 @@ class TimelineFragment :
             views.selectionToolbar.menu.apply {
                 findItem(R.id.selection_copy)?.isVisible = abilities.any { it.copy }
                 findItem(R.id.selection_forward)?.isVisible = abilities.all { it.forward }
-                findItem(R.id.selection_delete)?.isVisible = selectionPermissions.canSendMessage && abilities.all { it.delete }
+                findItem(R.id.selection_redact)?.isVisible = selectionPermissions.canSendMessage && abilities.all { it.redact }
             }
         } else {
             selectionAbilities.clear()
@@ -2758,10 +2758,10 @@ class TimelineFragment :
     private fun selectedInTimelineOrder(): List<TimelineEvent> =
             TimelineSelection.inTimelineOrder(timelineViewModel.selection.selected.value.values)
 
-    // What the timeline is showing for [event]: the recovered content of a revealed deletion.
+    // What the timeline is showing for [event]: the recovered content of a revealed redaction.
     private fun shownContentOf(event: TimelineEvent): TimelineEvent = redactedContentRestorer.restoreEvent(event) ?: event
 
-    private class SelectionAbilities(val event: TimelineEvent, val copy: Boolean, val forward: Boolean, val delete: Boolean)
+    private class SelectionAbilities(val event: TimelineEvent, val copy: Boolean, val forward: Boolean, val redact: Boolean)
 
     // Each check parses the message's content, and the toolbar asks about every selected message on every
     // change, so the answers are kept per event until the selection's copy of it is replaced.
@@ -2774,8 +2774,8 @@ class TimelineFragment :
                 event = event,
                 copy = messageActionEligibility.canCopy(shown),
                 forward = messageActionEligibility.canForward(shown),
-                // A revealed deletion has nothing left to redact.
-                delete = !event.root.isRedacted() && messageActionEligibility.canRedact(event, selectionPermissions),
+                // A revealed message is already redacted.
+                redact = !event.root.isRedacted() && messageActionEligibility.canRedact(event, selectionPermissions),
         ).also { selectionAbilities[event.eventId] = it }
     }
 
@@ -2816,12 +2816,12 @@ class TimelineFragment :
         timelineViewModel.selection.clear()
     }
 
-    private fun deleteSelection() {
+    private fun redactSelection() {
         val events = selectedInTimelineOrder()
         if (events.isEmpty()) return
         val eventIds = events.map { it.eventId }
         val redact = { reason: String? ->
-            bulkActionQueue.enqueueDelete(timelineArgs.roomId, eventIds, reason)
+            bulkActionQueue.enqueueRedact(timelineArgs.roomId, eventIds, reason)
             timelineViewModel.selection.clear()
         }
         if (vectorPreferences.skipRedactionConfirmation()) {
@@ -2831,9 +2831,9 @@ class TimelineFragment :
         ConfirmationDialogBuilder.show(
                 activity = requireActivity(),
                 askForReason = events.any { it.root.senderId != session.myUserId },
-                title = resources.getQuantityString(CommonPlurals.delete_messages_dialog_title, events.size, events.size),
-                confirmationText = getString(CommonStrings.delete_messages_dialog_content),
-                positiveRes = CommonStrings.action_delete,
+                title = resources.getQuantityString(CommonPlurals.redact_messages_dialog_title, events.size, events.size),
+                confirmationText = getString(CommonStrings.redact_messages_dialog_content),
+                positiveRes = CommonStrings.action_redact,
                 reasonHintRes = CommonStrings.redact_event_dialog_reason_hint,
         ) { reason -> redact(reason) }
     }
@@ -2990,8 +2990,8 @@ class TimelineFragment :
         return EventSharedAction.Redact(
                 eventId,
                 askForReason = event.root.senderId != session.myUserId,
-                dialogTitleRes = if (isPoll) CommonStrings.delete_poll_dialog_title else CommonStrings.redact_event_dialog_title,
-                dialogDescriptionRes = if (isPoll) CommonStrings.delete_poll_dialog_content else CommonStrings.redact_event_dialog_content,
+                dialogTitleRes = if (isPoll) CommonStrings.redact_poll_dialog_title else CommonStrings.redact_event_dialog_title,
+                dialogDescriptionRes = if (isPoll) CommonStrings.redact_poll_dialog_content else CommonStrings.redact_event_dialog_content,
         )
     }
 

@@ -25,9 +25,9 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/selection_delete"
+        android:id="@+id/selection_redact"
         android:icon="@drawable/ic_recycle_bin"
-        android:title="@string/action_delete"
+        android:title="@string/action_redact"
         app:iconTint="?colorError"
         app:showAsAction="always" />
 

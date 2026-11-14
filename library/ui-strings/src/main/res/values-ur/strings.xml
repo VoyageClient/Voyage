@@ -471,7 +471,6 @@
     <string name="room_permissions_invite_users">صارفین کو مدعو کریں</string>
     <string name="room_permissions_change_settings">ترتیبات بدلیں</string>
     <string name="room_permissions_ban_users">صارفین پر پابندی لگائیں</string>
-    <string name="room_permissions_remove_messages_sent_by_others">دوسروں کے بھیجے گئے پیغامات ہٹائیں</string>
     <string name="room_permissions_notify_everyone">سب کو مطلع کریں</string>
     <string name="room_permissions_modify_widgets">وجیٹ میں ترمیم کریں</string>
     <string name="room_permissions_change_room_avatar">کمرے کا اوتار بدلیں</string>
@@ -2062,8 +2061,6 @@
     <string name="end_poll_confirmation_approve_button">رائے شماری ختم کریں</string>
     <string name="poll_response_room_list_preview">ووٹ ڈالا گیا۔</string>
     <string name="poll_end_room_list_preview">رائے شماری ختم ہو گئی۔</string>
-    <string name="delete_poll_dialog_title">رائے شماری ہٹائیں</string>
-    <string name="delete_poll_dialog_content">کیا آپ واقعی یہ رائے شماری ہٹانا چاہتے ہیں؟ ہٹانے کے بعد آپ اسے بحال نہیں کر سکیں گے۔</string>
     <string name="edit_poll_title">رائے شماری میں ترمیم کریں</string>
     <string name="poll_type_title">رائے شماری کی قسم</string>
     <string name="open_poll_option_title">کھلی رائے شماری</string>
@@ -2989,7 +2986,6 @@
     <string name="message_reveal_failed_network">اصل مواد لوڈ کرنے کے لیے سرور تک رسائی نہیں ہو سکی</string>
     <string name="settings_redactions">مٹائے گئے پیغامات</string>
     <string name="settings_redaction_preserve">مٹائے گئے پیغامات محفوظ رکھیں</string>
-    <string name="settings_redaction_preserve_summary">جب کوئی پیغام مٹایا جائے تو سرور سے اصل طلب کریں، اور اسے حذف شدہ نوٹس کی جگہ دکھائیں</string>
     <string name="settings_redaction_preserve_media">میڈیا محفوظ رکھیں</string>
     <string name="settings_redaction_max_media_size">ڈاؤن لوڈ کرنے کے لیے میڈیا کا زیادہ سے زیادہ سائز</string>
     <string name="settings_redaction_wifi_only">صرف Wi-Fi پر میڈیا محفوظ رکھیں</string>
@@ -3040,8 +3036,6 @@
     <string name="room_personalization_redaction_category">مٹائے گئے پیغامات</string>
     <string name="room_personalization_media_preview_show">دکھائیں</string>
     <string name="room_personalization_media_preview_hide">چھپائیں</string>
-    <string name="notice_state_event_redacted">%1$s کی کمرے میں کی گئی تبدیلی ہٹا دی گئی</string>
-    <string name="notice_state_event_redacted_with_reason">%1$s کی کمرے میں کی گئی تبدیلی ہٹا دی گئی، وجہ: %2$s</string>
     <string name="settings_homeserver_info_reloaded">منزلی خادم کی معلومات دوبارہ لوڈ ہو گئیں</string>
     <string name="settings_server_admin_yes">ہاں</string>
     <string name="settings_server_admin_no">نہیں</string>
@@ -3521,18 +3515,9 @@
         <item quantity="one">%d منتخب</item>
         <item quantity="other">%d منتخب</item>
     </plurals>
-    <plurals name="delete_messages_dialog_title">
-        <item quantity="one">%d پیغام حذف کریں؟</item>
-        <item quantity="other">%d پیغامات حذف کریں؟</item>
-    </plurals>
-    <string name="delete_messages_dialog_content">یہ کمرے میں سب کے لیے ہٹا دیے جائیں گے۔</string>
     <plurals name="bulk_forwarding">
         <item quantity="one">%d پیغام آگے بھیجا جا رہا ہے…</item>
         <item quantity="other">%d پیغامات آگے بھیجے جا رہے ہیں…</item>
-    </plurals>
-    <plurals name="bulk_deleting">
-        <item quantity="one">%d پیغام حذف کیا جا رہا ہے…</item>
-        <item quantity="other">%d پیغامات حذف کیے جا رہے ہیں…</item>
     </plurals>
     <plurals name="bulk_queued">
         <item quantity="one">%1$s (مزید %2$d قطار میں)</item>
@@ -3540,15 +3525,8 @@
     </plurals>
     <string name="bulk_forward_cancel_confirmation_title">آگے بھیجنا بند کریں؟</string>
     <string name="bulk_forward_cancel_confirmation_message">جو پیغامات ابھی نہیں بھیجے گئے، وہ آگے نہیں بھیجے جائیں گے۔</string>
-    <string name="bulk_delete_cancel_confirmation_title">حذف کرنا بند کریں؟</string>
-    <string name="bulk_delete_cancel_confirmation_message">جو پیغامات ابھی حذف نہیں ہوئے، وہ برقرار رہیں گے۔</string>
     <string name="bulk_forward_failed_title">آگے بھیجنا موقوف ہے</string>
     <string name="bulk_forward_failed">ایک پیغام آگے نہیں بھیجا جا سکا۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</string>
-    <string name="bulk_delete_failed_title">کچھ پیغامات حذف نہیں ہوئے</string>
-    <plurals name="bulk_delete_failed">
-        <item quantity="one">%d پیغام حذف نہیں ہو سکا۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
-        <item quantity="other">%d پیغامات حذف نہیں ہو سکے۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
-    </plurals>
     <string name="settings_backup_title">بیک اپ اور بحالی</string>
     <string name="settings_backup_summary">اپنی ترتیبات یا ایپ کے تمام ڈیٹا کا بیک اپ لیں یا اسے بحال کریں</string>
     <string name="settings_backup_database_category">ڈیٹا بیس</string>
@@ -3653,4 +3631,26 @@
     <string name="settings_show_message_markers">ترمیم اور ترجمے کے لیبل دکھائیں</string>
     <string name="settings_show_message_markers_summary">پیغام کے بعد \"(ترمیم شدہ)\" اور اصل زبان دکھائیں</string>
     <string name="room_personalization_timeline_reset_confirmation">اس کمرے کی ٹائم لائن ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
+    <string name="room_permissions_redact_messages_sent_by_others">دوسروں کے بھیجے گئے پیغامات مٹائیں</string>
+    <string name="redact_poll_dialog_title">رائے شماری مٹائیں</string>
+    <string name="redact_poll_dialog_content">کیا آپ واقعی یہ رائے شماری مٹانا چاہتے ہیں؟ مٹانے کے بعد آپ اسے بحال نہیں کر سکیں گے۔</string>
+    <plurals name="redact_messages_dialog_title">
+        <item quantity="one">%d پیغام مٹائیں؟</item>
+        <item quantity="other">%d پیغامات مٹائیں؟</item>
+    </plurals>
+    <string name="redact_messages_dialog_content">یہ کمرے میں سب کے لیے مٹا دیے جائیں گے۔</string>
+    <plurals name="bulk_redacting">
+        <item quantity="one">%d پیغام مٹایا جا رہا ہے…</item>
+        <item quantity="other">%d پیغامات مٹائے جا رہے ہیں…</item>
+    </plurals>
+    <string name="bulk_redact_cancel_confirmation_title">مٹانا بند کریں؟</string>
+    <string name="bulk_redact_cancel_confirmation_message">جو پیغامات ابھی تک نہیں مٹائے گئے وہ رکھے جائیں گے۔</string>
+    <string name="bulk_redact_failed_title">کچھ پیغامات نہیں مٹائے گئے</string>
+    <plurals name="bulk_redact_failed">
+        <item quantity="one">%d پیغام نہیں مٹایا جا سکا۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
+        <item quantity="other">%d پیغامات نہیں مٹائے جا سکے۔ دوبارہ کوشش کرنے کے لیے دوبارہ شروع کریں۔</item>
+    </plurals>
+    <string name="settings_redaction_preserve_summary">جب کوئی پیغام مٹایا جائے تو سرور سے اصل پیغام مانگیں، اور اسے مٹائے جانے کے نوٹس کی جگہ دکھائیں</string>
+    <string name="notice_state_event_redacted">%1$s کی کمرے کی تبدیلی مٹا دی گئی</string>
+    <string name="notice_state_event_redacted_with_reason">%1$s کی کمرے کی تبدیلی مٹا دی گئی، وجہ: %2$s</string>
 </resources>
