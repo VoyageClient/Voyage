@@ -33,6 +33,8 @@ import im.vector.app.features.redaction.preservation.RedactedContentRevealManage
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.settings.MessageSwipePreferenceBinder
+import im.vector.app.features.settings.MessageSwipeSlot
 import im.vector.app.features.settings.PrivacyMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsBaseFragment
@@ -146,6 +148,7 @@ class RoomPersonalizationSettingsFragment :
         setUpSyncOverride()
         setUpMediaOverrides()
         setUpTimelineOverrides()
+        setUpSwipeOverrides()
         setUpRedactionOverrides()
         setUpRoomRedactionCacheClear()
     }
@@ -392,6 +395,22 @@ class RoomPersonalizationSettingsFragment :
         }
         refreshTimelineResetState()
         updateTimelineDebugPreferences()
+    }
+
+    private fun setUpSwipeOverrides() {
+        val category = findPreference<VectorPreferenceCategoryWithAction>("SETTINGS_ROOM_SWIPE_CATEGORY_KEY")!!
+        val binder = MessageSwipePreferenceBinder(this, vectorPreferences, roomId) {
+            category.isActionEnabled = MessageSwipeSlot.values().any {
+                vectorPreferences.getRoomMessageSwipeActionOverride(roomId, it) != null
+            }
+        }
+        category.actionClickListener = {
+            confirmReset(CommonStrings.room_personalization_swipe_reset_confirmation) {
+                vectorPreferences.resetRoomMessageSwipeActions(roomId)
+                binder.refresh()
+            }
+        }
+        binder.bind()
     }
 
     override fun onResume() {

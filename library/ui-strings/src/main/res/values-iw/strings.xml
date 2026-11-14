@@ -960,7 +960,6 @@
     <string name="malformed_message">אירוע לקוי, לא יכול להופיע</string>
     <string name="reactions">תגובות</string>
     <string name="message_view_reaction">צפה בתגובות</string>
-    <string name="message_add_reaction">הוסף תגובה</string>
     <string name="action_agree">מסכים</string>
     <string name="title_activity_emoji_reaction_picker">תגובות</string>
     <string name="room_list_catchup_empty_body">אין לך יותר הודעות שלא נקראו</string>
@@ -2548,7 +2547,6 @@
     <string name="room_section_delete_warning">החדרים שבתוכו לא יימחקו. הם יחזרו לרשימה הראשית.</string>
     <string name="settings_quick_reactions">תגובות מהירות</string>
     <string name="settings_quick_reactions_summary">תגובות המוצגות בלחיצה ארוכה על הודעה.</string>
-    <string name="quick_reactions_add">הוסף תגובה</string>
     <string name="quick_reactions_empty">אין תגובות מהירות.</string>
     <string name="quick_reactions_unsaved_message">יש לך שינויים שלא נשמרו בתגובות המהירות. להחיל אותם?</string>
     <string name="quick_reactions_reset_confirmation">לאפס את התגובות המהירות לערכת ברירת המחדל?</string>
@@ -3912,4 +3910,17 @@
         <item quantity="many">לדחות את כל %d ההזמנות</item>
         <item quantity="other">לדחות את כל %d ההזמנות</item>
     </plurals>
+    <string name="message_add_reaction">הגב</string>
+    <string name="settings_swipe_actions">פעולות החלקה</string>
+    <string name="settings_swipe_actions_summary">הקצה פעולות למחוות החלקה על הודעות</string>
+    <string name="settings_swipe_left">החלקה שמאלה</string>
+    <string name="settings_swipe_right">החלקה ימינה</string>
+    <string name="settings_swipe_farther_left">החלקה ארוכה שמאלה</string>
+    <string name="settings_swipe_farther_right">החלקה ארוכה ימינה</string>
+    <string name="settings_swipe_short">החלקה</string>
+    <string name="settings_swipe_farther">החלקה ארוכה</string>
+    <string name="settings_swipe_choose_action">בחירת פעולה</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">לאפס את פעולות ההחלקה של חדר זה לאלה של החשבון כולו?</string>
+    <string name="quick_reactions_add">הגב</string>
 </resources>

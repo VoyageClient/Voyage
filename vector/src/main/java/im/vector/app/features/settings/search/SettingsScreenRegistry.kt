@@ -20,6 +20,7 @@ import im.vector.app.features.settings.VectorSettingsPreferencesFragment
 import im.vector.app.features.settings.VectorSettingsRoomsSpacesFragment
 import im.vector.app.features.settings.VectorSettingsRootFragment
 import im.vector.app.features.settings.VectorSettingsSecurityPrivacyFragment
+import im.vector.app.features.settings.VectorSettingsSwipeActionsFragment
 import im.vector.app.features.settings.VectorSettingsTimelineFragment
 import im.vector.app.features.settings.VectorSettingsTranslationFragment
 import im.vector.app.features.settings.backup.VectorSettingsBackupFragment
@@ -48,6 +49,7 @@ object SettingsScreenRegistry {
             VectorSettingsEmojiFragment::class.java.name to R.xml.vector_settings_emoji,
             VectorSettingsComposerFragment::class.java.name to R.xml.vector_settings_composer,
             VectorSettingsTimelineFragment::class.java.name to R.xml.vector_settings_timeline,
+            VectorSettingsSwipeActionsFragment::class.java.name to R.xml.vector_settings_swipe_actions,
             VectorSettingsActivityPresenceFragment::class.java.name to R.xml.vector_settings_activity_presence,
             VectorSettingsRoomsSpacesFragment::class.java.name to R.xml.vector_settings_rooms_spaces,
             VectorSettingsBackupFragment::class.java.name to R.xml.vector_settings_backup,

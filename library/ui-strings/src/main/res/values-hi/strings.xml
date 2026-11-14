@@ -1091,7 +1091,6 @@
     <string name="room_list_filter_favourites">पसंदीदा</string>
     <string name="room_list_filter_people">लोग</string>
     <string name="title_activity_emoji_reaction_picker">प्रतिक्रियाएं</string>
-    <string name="message_add_reaction">प्रतिक्रिया जोड़ें</string>
     <string name="message_view_reaction">प्रतिक्रियाएं देखें</string>
     <string name="reactions">प्रतिक्रियाएं</string>
     <string name="malformed_message">गलत फ़ॉर्मेट वाला इवेंट, दिखाया नहीं जा सकता</string>
@@ -2407,7 +2406,6 @@
     <string name="room_section_delete_warning">इसके अंदर के रूम नहीं हटेंगे। वे मुख्य सूची में वापस चले जाएंगे।</string>
     <string name="settings_quick_reactions">तुरंत प्रतिक्रियाएं</string>
     <string name="settings_quick_reactions_summary">किसी मैसेज को देर तक दबाने पर दिखने वाली प्रतिक्रियाएं।</string>
-    <string name="quick_reactions_add">प्रतिक्रिया जोड़ें</string>
     <string name="quick_reactions_empty">कोई तुरंत प्रतिक्रिया नहीं।</string>
     <string name="quick_reactions_unsaved_message">आपकी तुरंत प्रतिक्रियाओं में कुछ बदलाव सहेजे नहीं गए हैं। उन्हें लागू करें?</string>
     <string name="quick_reactions_reset_confirmation">अपनी तुरंत प्रतिक्रियाओं को डिफ़ॉल्ट सेट पर रीसेट करें?</string>
@@ -3677,4 +3675,17 @@
         <item quantity="one">%d आमंत्रण अस्वीकार करें</item>
         <item quantity="other">सभी %d आमंत्रण अस्वीकार करें</item>
     </plurals>
+    <string name="message_add_reaction">प्रतिक्रिया दें</string>
+    <string name="settings_swipe_actions">स्वाइप की कार्रवाइयाँ</string>
+    <string name="settings_swipe_actions_summary">संदेशों पर स्वाइप करने के इशारों के लिए कार्रवाइयाँ तय करें</string>
+    <string name="settings_swipe_left">बाएँ स्वाइप करें</string>
+    <string name="settings_swipe_right">दाएँ स्वाइप करें</string>
+    <string name="settings_swipe_farther_left">बाएँ और स्वाइप करें</string>
+    <string name="settings_swipe_farther_right">दाएँ और स्वाइप करें</string>
+    <string name="settings_swipe_short">स्वाइप करें</string>
+    <string name="settings_swipe_farther">और स्वाइप करें</string>
+    <string name="settings_swipe_choose_action">कार्रवाई चुनें</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">इस रूम की स्वाइप कार्रवाइयों को अपने खाते वाली पर रीसेट करें?</string>
+    <string name="quick_reactions_add">प्रतिक्रिया दें</string>
 </resources>

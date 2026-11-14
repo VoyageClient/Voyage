@@ -1112,7 +1112,6 @@
     <string name="room_list_filter_favourites">پسندیدہ</string>
     <string name="room_list_filter_people">لوگ</string>
     <string name="title_activity_emoji_reaction_picker">ردعمل</string>
-    <string name="message_add_reaction">ردعمل شامل کریں</string>
     <string name="message_view_reaction">ردعمل دیکھیں</string>
     <string name="reactions">ردعمل</string>
     <string name="malformed_message">خراب واقعہ، دکھایا نہیں جا سکتا</string>
@@ -2419,7 +2418,6 @@
     <string name="room_section_delete_warning">اس کے اندر موجود کمرے حذف نہیں ہوں گے۔ وہ مرکزی فہرست میں واپس چلے جائیں گے۔</string>
     <string name="settings_quick_reactions">فوری ردعمل</string>
     <string name="settings_quick_reactions_summary">پیغام پر دیر تک دبانے پر دکھائے جانے والے ردعمل۔</string>
-    <string name="quick_reactions_add">ردعمل شامل کریں</string>
     <string name="quick_reactions_empty">کوئی فوری ردعمل نہیں۔</string>
     <string name="quick_reactions_unsaved_message">آپ کے فوری ردعمل میں غیر محفوظ تبدیلیاں ہیں۔ انہیں لاگو کریں؟</string>
     <string name="quick_reactions_reset_confirmation">اپنے فوری ردعمل کو طے شدہ مجموعے پر واپس لائیں؟</string>
@@ -3689,4 +3687,17 @@
         <item quantity="one">%d دعوت مسترد کریں</item>
         <item quantity="other">تمام %d دعوتیں مسترد کریں</item>
     </plurals>
+    <string name="message_add_reaction">ردعمل دیں</string>
+    <string name="settings_swipe_actions">سوائپ کی کارروائیاں</string>
+    <string name="settings_swipe_actions_summary">پیغامات پر سوائپ کرنے کے اشاروں کے لیے کارروائیاں مقرر کریں</string>
+    <string name="settings_swipe_left">بائیں سوائپ کریں</string>
+    <string name="settings_swipe_right">دائیں سوائپ کریں</string>
+    <string name="settings_swipe_farther_left">بائیں مزید سوائپ کریں</string>
+    <string name="settings_swipe_farther_right">دائیں مزید سوائپ کریں</string>
+    <string name="settings_swipe_short">سوائپ کریں</string>
+    <string name="settings_swipe_farther">مزید سوائپ کریں</string>
+    <string name="settings_swipe_choose_action">کارروائی منتخب کریں</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">اس کمرے کی سوائپ کارروائیاں اپنے پورے کھاتے والی پر واپس لائیں؟</string>
+    <string name="quick_reactions_add">ردعمل دیں</string>
 </resources>

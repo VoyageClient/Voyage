@@ -1,0 +1,26 @@
+<!--
+  Copyright 2026 Voyage Client
+
+  SPDX-License-Identifier: AGPL-3.0-only
+  Please see LICENSE files in the repository root for full details.
+-->
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_swipe_left">
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_LEFT"
+            android:title="@string/settings_swipe_short" />
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_LEFT_FAR"
+            android:title="@string/settings_swipe_farther" />
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_swipe_right">
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_RIGHT"
+            android:title="@string/settings_swipe_short" />
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_RIGHT_FAR"
+            android:title="@string/settings_swipe_farther" />
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+</androidx.preference.PreferenceScreen>

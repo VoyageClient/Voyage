@@ -594,7 +594,6 @@
     <string name="room_list_catchup_empty_body">Hiç okunmamış mesajınız bulunmuyor</string>
     <string name="title_activity_emoji_reaction_picker">Tepkiler</string>
     <string name="action_agree">Onaylıyorum</string>
-    <string name="message_add_reaction">Bir Tepki Ekle</string>
     <string name="message_view_reaction">Tekpileri Görüntüle</string>
     <string name="reactions">Tepkiler</string>
     <string name="malformed_message">Hatalı etkinlik, görüntülenemiyor</string>
@@ -2467,7 +2466,6 @@
     <string name="room_section_delete_warning">İçindeki odalar silinmeyecek. Ana listeye geri dönecekler.</string>
     <string name="settings_quick_reactions">Hızlı tepkiler</string>
     <string name="settings_quick_reactions_summary">Bir mesaja uzun basıldığında gösterilen tepkiler.</string>
-    <string name="quick_reactions_add">Tepki Ekle</string>
     <string name="quick_reactions_empty">Hızlı tepki yok.</string>
     <string name="quick_reactions_unsaved_message">Hızlı tepkilerinizde kaydedilmemiş değişiklikler var. Uygulansın mı?</string>
     <string name="quick_reactions_reset_confirmation">Hızlı Tepkileriniz varsayılan kümeye sıfırlansın mı?</string>
@@ -3747,4 +3745,17 @@
         <item quantity="one">%d daveti reddet</item>
         <item quantity="other">%d davetin tümünü reddet</item>
     </plurals>
+    <string name="message_add_reaction">Tepki ver</string>
+    <string name="settings_swipe_actions">Kaydırma eylemleri</string>
+    <string name="settings_swipe_actions_summary">İleti kaydırma hareketlerine eylemler atayın</string>
+    <string name="settings_swipe_left">Sola kaydır</string>
+    <string name="settings_swipe_right">Sağa kaydır</string>
+    <string name="settings_swipe_farther_left">Daha fazla sola kaydır</string>
+    <string name="settings_swipe_farther_right">Daha fazla sağa kaydır</string>
+    <string name="settings_swipe_short">Kaydır</string>
+    <string name="settings_swipe_farther">Daha fazla kaydır</string>
+    <string name="settings_swipe_choose_action">Eylem seç</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Bu odanın kaydırma eylemleri hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="quick_reactions_add">Tepki ver</string>
 </resources>

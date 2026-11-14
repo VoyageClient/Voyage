@@ -717,7 +717,6 @@
     <string name="room_list_catchup_empty_body">У вас больше нет непрочитанных сообщений</string>
     <string name="title_activity_emoji_reaction_picker">Реакции</string>
     <string name="action_agree">Принять</string>
-    <string name="message_add_reaction">Отреагировать</string>
     <string name="message_view_reaction">Просмотреть реакции</string>
     <string name="settings_integration_manager">Менеджер интеграции</string>
     <string name="reactions">Реакции</string>
@@ -2476,7 +2475,6 @@
     <string name="room_section_delete_warning">Комнаты в нём не будут удалены. Они вернутся в основной список.</string>
     <string name="settings_quick_reactions">Быстрые реакции</string>
     <string name="settings_quick_reactions_summary">Реакции, показываемые при долгом нажатии на сообщение.</string>
-    <string name="quick_reactions_add">Добавить реакцию</string>
     <string name="quick_reactions_empty">Нет быстрых реакций.</string>
     <string name="quick_reactions_unsaved_message">У вас есть несохранённые изменения быстрых реакций. Применить их?</string>
     <string name="quick_reactions_reset_confirmation">Сбросить быстрые реакции к стандартному набору?</string>
@@ -3943,4 +3941,17 @@
         <item quantity="many">Отклонить все %d приглашений</item>
         <item quantity="other">Отклонить все %d приглашения</item>
     </plurals>
+    <string name="message_add_reaction">Отреагировать</string>
+    <string name="settings_swipe_actions">Действия при смахивании</string>
+    <string name="settings_swipe_actions_summary">Назначьте действия жестам смахивания сообщений</string>
+    <string name="settings_swipe_left">Смахнуть влево</string>
+    <string name="settings_swipe_right">Смахнуть вправо</string>
+    <string name="settings_swipe_farther_left">Смахнуть дальше влево</string>
+    <string name="settings_swipe_farther_right">Смахнуть дальше вправо</string>
+    <string name="settings_swipe_short">Смахнуть</string>
+    <string name="settings_swipe_farther">Смахнуть дальше</string>
+    <string name="settings_swipe_choose_action">Выбрать действие</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Вернуть действия при смахивании в этой комнате к настройкам вашей учётной записи?</string>
+    <string name="quick_reactions_add">Отреагировать</string>
 </resources>

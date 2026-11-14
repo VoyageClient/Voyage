@@ -691,7 +691,6 @@
     <string name="invited_by">由 %s 邀请</string>
     <string name="title_activity_emoji_reaction_picker">回应</string>
     <string name="action_agree">同意</string>
-    <string name="message_add_reaction">添加回应</string>
     <string name="message_view_reaction">查看回应</string>
     <string name="reactions">反应</string>
     <string name="create_new_room">创建新房间</string>
@@ -2461,7 +2460,6 @@
     <string name="room_section_delete_warning">其中的房间不会被删除，它们将回到主列表。</string>
     <string name="settings_quick_reactions">快速回应</string>
     <string name="settings_quick_reactions_summary">长按消息时显示的回应。</string>
-    <string name="quick_reactions_add">添加回应</string>
     <string name="quick_reactions_empty">没有快速回应。</string>
     <string name="quick_reactions_unsaved_message">你对快速回应的更改尚未保存。要应用这些更改吗？</string>
     <string name="quick_reactions_reset_confirmation">将快速回应重置为默认设置？</string>
@@ -3710,4 +3708,17 @@
     <plurals name="settings_reject_all_invites">
         <item quantity="other">拒绝全部 %d 个邀请</item>
     </plurals>
+    <string name="message_add_reaction">回应</string>
+    <string name="settings_swipe_actions">滑动操作</string>
+    <string name="settings_swipe_actions_summary">为消息滑动手势分配操作</string>
+    <string name="settings_swipe_left">向左滑动</string>
+    <string name="settings_swipe_right">向右滑动</string>
+    <string name="settings_swipe_farther_left">向左滑动更远</string>
+    <string name="settings_swipe_farther_right">向右滑动更远</string>
+    <string name="settings_swipe_short">滑动</string>
+    <string name="settings_swipe_farther">滑动更远</string>
+    <string name="settings_swipe_choose_action">选择操作</string>
+    <string name="settings_swipe_binding_description">%1$s：%2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">将此房间的滑动操作重置为账户全局设置？</string>
+    <string name="quick_reactions_add">回应</string>
 </resources>

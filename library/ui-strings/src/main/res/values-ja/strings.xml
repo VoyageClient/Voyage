@@ -1106,7 +1106,6 @@
     <string name="malformed_message">不正な形式のイベントです。表示できません</string>
     <string name="reactions">リアクション</string>
     <string name="message_view_reaction">リアクションを表示</string>
-    <string name="message_add_reaction">リアクションを追加</string>
     <string name="action_agree">同意</string>
     <string name="title_activity_emoji_reaction_picker">リアクション</string>
     <string name="room_list_catchup_empty_body">未読メッセージはありません</string>
@@ -2460,7 +2459,6 @@
     <string name="room_section_delete_warning">中のルームは削除されません。メインの一覧に戻ります。</string>
     <string name="settings_quick_reactions">クイックリアクション</string>
     <string name="settings_quick_reactions_summary">メッセージを長押ししたときに表示されるリアクション。</string>
-    <string name="quick_reactions_add">リアクションを追加</string>
     <string name="quick_reactions_empty">クイックリアクションはありません。</string>
     <string name="quick_reactions_unsaved_message">クイックリアクションに未保存の変更があります。適用しますか？</string>
     <string name="quick_reactions_reset_confirmation">クイックリアクションを既定のセットに戻しますか？</string>
@@ -3708,4 +3706,17 @@
     <plurals name="settings_reject_all_invites">
         <item quantity="other">%d件の招待をすべて拒否</item>
     </plurals>
+    <string name="message_add_reaction">リアクション</string>
+    <string name="settings_swipe_actions">スワイプ操作</string>
+    <string name="settings_swipe_actions_summary">メッセージのスワイプジェスチャーに操作を割り当てる</string>
+    <string name="settings_swipe_left">左にスワイプ</string>
+    <string name="settings_swipe_right">右にスワイプ</string>
+    <string name="settings_swipe_farther_left">左に大きくスワイプ</string>
+    <string name="settings_swipe_farther_right">右に大きくスワイプ</string>
+    <string name="settings_swipe_short">スワイプ</string>
+    <string name="settings_swipe_farther">大きくスワイプ</string>
+    <string name="settings_swipe_choose_action">操作を選択</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">このルームのスワイプ操作を、アカウント全体のものにリセットしますか？</string>
+    <string name="quick_reactions_add">リアクション</string>
 </resources>

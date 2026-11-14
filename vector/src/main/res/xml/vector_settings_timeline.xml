@@ -4,6 +4,12 @@
 
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_timeline_category_messages">
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_ACTIONS"
+            android:summary="@string/settings_swipe_actions_summary"
+            android:title="@string/settings_swipe_actions"
+            app:fragment="im.vector.app.features.settings.VectorSettingsSwipeActionsFragment" />
+
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="@bool/settings_timeline_show_live_sender_info_default"
             app:isPreferenceVisible="@bool/settings_timeline_show_live_sender_info_visible"

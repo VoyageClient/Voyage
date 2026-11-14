@@ -55,7 +55,6 @@ class QuickReactionsController @Inject constructor(
             }
         }
 
-        // "Add reaction" button; the '+' is an icon, not part of the label.
         genericButtonItem {
             id("add_reaction")
             text(host.stringProvider.getString(CommonStrings.quick_reactions_add))

@@ -1164,7 +1164,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="malformed_message">Peristiwa salah, tidak dapat ditampilkan</string>
     <string name="reactions">Reaksi</string>
     <string name="message_view_reaction">Tampilkan Reaksi</string>
-    <string name="message_add_reaction">Tambah Reaksi</string>
     <string name="action_agree">Setuju</string>
     <string name="title_activity_emoji_reaction_picker">Reaksi</string>
     <string name="room_list_catchup_empty_body">Anda tidak mempunyai pesan yang belum dibaca</string>
@@ -2460,7 +2459,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_section_delete_warning">Ruangan di dalamnya tidak akan dihapus. Ruangan tersebut akan kembali ke daftar utama.</string>
     <string name="settings_quick_reactions">Reaksi cepat</string>
     <string name="settings_quick_reactions_summary">Reaksi yang ditampilkan saat menekan lama sebuah pesan.</string>
-    <string name="quick_reactions_add">Tambah Reaksi</string>
     <string name="quick_reactions_empty">Tidak ada reaksi cepat.</string>
     <string name="quick_reactions_unsaved_message">Ada perubahan reaksi cepat yang belum disimpan. Terapkan?</string>
     <string name="quick_reactions_reset_confirmation">Kembalikan Reaksi Cepat Anda ke set bawaan?</string>
@@ -3710,4 +3708,17 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="settings_reject_all_invites">
         <item quantity="other">Tolak semua %d undangan</item>
     </plurals>
+    <string name="message_add_reaction">Beri reaksi</string>
+    <string name="settings_swipe_actions">Tindakan geser</string>
+    <string name="settings_swipe_actions_summary">Tetapkan tindakan untuk gestur menggeser pesan</string>
+    <string name="settings_swipe_left">Geser ke kiri</string>
+    <string name="settings_swipe_right">Geser ke kanan</string>
+    <string name="settings_swipe_farther_left">Geser lebih jauh ke kiri</string>
+    <string name="settings_swipe_farther_right">Geser lebih jauh ke kanan</string>
+    <string name="settings_swipe_short">Geser</string>
+    <string name="settings_swipe_farther">Geser lebih jauh</string>
+    <string name="settings_swipe_choose_action">Pilih tindakan</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Setel ulang tindakan geser ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="quick_reactions_add">Beri reaksi</string>
 </resources>

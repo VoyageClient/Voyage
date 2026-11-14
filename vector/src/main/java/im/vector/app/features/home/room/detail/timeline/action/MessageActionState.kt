@@ -27,7 +27,8 @@ data class ActionPermissions(
         val canSendMessage: Boolean = false,
         val canReact: Boolean = false,
         val canRedact: Boolean = false,
-        val canPinUnpin: Boolean = false
+        val canPinUnpin: Boolean = false,
+        val canSendRedaction: Boolean = false,
 )
 
 data class MessageActionState(

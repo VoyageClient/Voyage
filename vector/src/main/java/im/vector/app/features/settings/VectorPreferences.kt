@@ -558,8 +558,36 @@ class VectorPreferences @Inject constructor(
         return timelineVisibility(TimelineVisibilityRule.HIDDEN_THREAD_EVENTS, roomId)
     }
 
-    fun swipeToReplyIsEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_SWIPE_TO_REPLY, true)
+    fun messageSwipeBindings(roomId: String? = null): MessageSwipeBindings {
+        val legacyReplyEnabled = defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_SWIPE_TO_REPLY, true)
+        return MessageSwipeBindings(MessageSwipeSlot.values().associateWith { slot ->
+            val fallback = if (!legacyReplyEnabled && slot in listOf(MessageSwipeSlot.LEFT, MessageSwipeSlot.LEFT_FAR)) {
+                MessageSwipeAction.NONE
+            } else slot.defaultAction
+            val stored = defaultPrefs.getString(slot.preferenceKey, null)
+            roomId?.let { getRoomMessageSwipeActionOverride(it, slot) }
+                    ?: MessageSwipeAction.values().firstOrNull { it.name == stored } ?: fallback
+        })
+    }
+
+    fun setMessageSwipeAction(slot: MessageSwipeSlot, action: MessageSwipeAction) {
+        defaultPrefs.edit { putString(slot.preferenceKey, action.name) }
+    }
+
+    fun getRoomMessageSwipeActionOverride(roomId: String, slot: MessageSwipeSlot): MessageSwipeAction? {
+        val stored = defaultPrefs.getString("${slot.preferenceKey}_$roomId", null)
+        return MessageSwipeAction.values().firstOrNull { it.name == stored }
+    }
+
+    fun setRoomMessageSwipeActionOverride(roomId: String, slot: MessageSwipeSlot, action: MessageSwipeAction?) {
+        defaultPrefs.edit {
+            val key = "${slot.preferenceKey}_$roomId"
+            if (action == null) remove(key) else putString(key, action.name)
+        }
+    }
+
+    fun resetRoomMessageSwipeActions(roomId: String) {
+        defaultPrefs.edit { MessageSwipeSlot.values().forEach { remove("${it.preferenceKey}_$roomId") } }
     }
 
     fun labShowCompleteHistoryInEncryptedRoom(): Boolean {

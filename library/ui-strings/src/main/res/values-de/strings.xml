@@ -757,7 +757,6 @@
     <string name="room_list_catchup_empty_body">Du hast keine weiteren, ungelesenen Nachrichten</string>
     <string name="title_activity_emoji_reaction_picker">Reaktionen</string>
     <string name="action_agree">Zustimmen</string>
-    <string name="message_add_reaction">Reaktion hinzufügen</string>
     <string name="message_view_reaction">Reaktionen ansehen</string>
     <string name="reactions">Reaktionen</string>
     <string name="create_new_room">Neuen Raum erstellen</string>
@@ -2509,7 +2508,6 @@
     <string name="room_section_delete_warning">Die enthaltenen Räume werden nicht gelöscht. Sie kehren in die Hauptliste zurück.</string>
     <string name="settings_quick_reactions">Schnellreaktionen</string>
     <string name="settings_quick_reactions_summary">Reaktionen, die beim langen Drücken auf eine Nachricht angezeigt werden.</string>
-    <string name="quick_reactions_add">Reaktion hinzufügen</string>
     <string name="quick_reactions_empty">Keine Schnellreaktionen.</string>
     <string name="quick_reactions_unsaved_message">Du hast ungespeicherte Änderungen an deinen Schnellreaktionen. Übernehmen?</string>
     <string name="quick_reactions_reset_confirmation">Schnellreaktionen auf die Standardauswahl zurücksetzen?</string>
@@ -3788,4 +3786,17 @@
         <item quantity="one">%d Einladung ablehnen</item>
         <item quantity="other">Alle %d Einladungen ablehnen</item>
     </plurals>
+    <string name="message_add_reaction">Reagieren</string>
+    <string name="settings_swipe_actions">Wischaktionen</string>
+    <string name="settings_swipe_actions_summary">Aktionen für Wischgesten auf Nachrichten festlegen</string>
+    <string name="settings_swipe_left">Nach links wischen</string>
+    <string name="settings_swipe_right">Nach rechts wischen</string>
+    <string name="settings_swipe_farther_left">Weiter nach links wischen</string>
+    <string name="settings_swipe_farther_right">Weiter nach rechts wischen</string>
+    <string name="settings_swipe_short">Wischen</string>
+    <string name="settings_swipe_farther">Weiter wischen</string>
+    <string name="settings_swipe_choose_action">Aktion auswählen</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Wischaktionen dieses Raums auf die kontoweiten Einstellungen zurücksetzen?</string>
+    <string name="quick_reactions_add">Reagieren</string>
 </resources>

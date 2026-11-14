@@ -1148,7 +1148,6 @@
     <string name="room_list_filter_favourites">প্রিয়</string>
     <string name="room_list_filter_people">মানুষ</string>
     <string name="title_activity_emoji_reaction_picker">প্রতিক্রিয়া</string>
-    <string name="message_add_reaction">প্রতিক্রিয়া যোগ করুন</string>
     <string name="message_view_reaction">প্রতিক্রিয়া দেখুন</string>
     <string name="reactions">প্রতিক্রিয়া</string>
     <string name="malformed_message">ত্রুটিপূর্ণ ইভেন্ট, দেখানো যাচ্ছে না</string>
@@ -2466,7 +2465,6 @@
     <string name="room_section_delete_warning">ভেতরের রুমগুলি মুছে ফেলা হবে না। সেগুলি মূল তালিকায় ফিরে যাবে।</string>
     <string name="settings_quick_reactions">দ্রুত প্রতিক্রিয়া</string>
     <string name="settings_quick_reactions_summary">কোনো বার্তায় দীর্ঘক্ষণ চাপলে যে প্রতিক্রিয়াগুলি দেখানো হয়।</string>
-    <string name="quick_reactions_add">প্রতিক্রিয়া যোগ করুন</string>
     <string name="quick_reactions_empty">কোনো দ্রুত প্রতিক্রিয়া নেই।</string>
     <string name="quick_reactions_unsaved_message">আপনার দ্রুত প্রতিক্রিয়ায় অসংরক্ষিত পরিবর্তন আছে। সেগুলি প্রয়োগ করবেন?</string>
     <string name="quick_reactions_reset_confirmation">আপনার দ্রুত প্রতিক্রিয়াগুলি ডিফল্ট সেটে ফিরিয়ে আনবেন?</string>
@@ -3749,4 +3747,17 @@
         <item quantity="one">%dটি আমন্ত্রণ প্রত্যাখ্যান করুন</item>
         <item quantity="other">সব %dটি আমন্ত্রণ প্রত্যাখ্যান করুন</item>
     </plurals>
+    <string name="message_add_reaction">প্রতিক্রিয়া দিন</string>
+    <string name="settings_swipe_actions">সোয়াইপের কাজ</string>
+    <string name="settings_swipe_actions_summary">বার্তা সোয়াইপের অঙ্গভঙ্গির জন্য কাজ নির্ধারণ করুন</string>
+    <string name="settings_swipe_left">বাঁয়ে সোয়াইপ</string>
+    <string name="settings_swipe_right">ডানে সোয়াইপ</string>
+    <string name="settings_swipe_farther_left">বাঁয়ে আরও সোয়াইপ</string>
+    <string name="settings_swipe_farther_right">ডানে আরও সোয়াইপ</string>
+    <string name="settings_swipe_short">সোয়াইপ</string>
+    <string name="settings_swipe_farther">আরও সোয়াইপ</string>
+    <string name="settings_swipe_choose_action">কাজ বেছে নিন</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">এই রুমের সোয়াইপের কাজগুলো আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
+    <string name="quick_reactions_add">প্রতিক্রিয়া দিন</string>
 </resources>

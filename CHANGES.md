@@ -68,6 +68,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Selecting multiple messages**: select several messages to copy, forward or delete them at once.
 
+- **Swipe actions**: configurable message swipes let you easily reply, edit, copy, react and more. Choose actions for swipes and longer swipes in either direction, globally or per room.
+
 - **Polls**: create polls in the stable MSC3381 format, read both formats, and match votes, closure and edits to the original poll's format. Tap your selected answer to retract your votes; tallies update when responses are redacted.
 
 - **Poll voters**: long-press a poll answer to see who voted for it.
@@ -133,8 +135,6 @@ New features, improvements, and notable removals in this fork.
 - **Captions in the attachment preview**: write a caption for what you are sending from the preview screen itself, one per attachment, or a single caption for the ones going out as a gallery.
 
 - **Edit the media in a message**: replace the photo, video, file or sticker you sent, or give a message media it never had. Every version stays in the message's edit history, where each can be opened and saved.
-
-- **Swipe to edit**: swipe one of your own messages further than for a reply to start editing it.
 
 - **Image editor before sending**: crop, rotate to any angle, draw on, and cover parts of a photo with colored boxes from the attachment preview, with pinch-zoom, panning, and undo and redo. Censor boxes are drawn onto the image itself, so nothing recoverable is left behind. Edits are remembered per attachment, so reopening the editor adjusts what you did rather than starting again from the flattened result. The crop, or a selected censor box, can be locked to an aspect ratio, freeform by default, and either can snap to the image's center lines.
 

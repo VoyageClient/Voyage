@@ -21,14 +21,11 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.PerfTrace
-import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
-import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
 import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackUsageFilter
-import im.vector.app.features.media.FailedMediaTracker
 import im.vector.app.features.pgp.PgpResult
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pgp.PgpUtils
@@ -62,7 +59,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -72,19 +68,15 @@ import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
-import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
@@ -95,7 +87,6 @@ import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.room.timeline.isSticker
-import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -109,9 +100,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val errorFormatter: ErrorFormatter,
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
-        private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val eligibility: MessageActionEligibility,
-        private val failedMediaTracker: FailedMediaTracker,
         private val pgpServiceManager: PgpServiceManager,
         private val imagePackProvider: ImagePackProvider,
         private val quickReactionsDataSource: QuickReactionsDataSource,
@@ -121,7 +110,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val redactedContentRestorer: RedactedContentRestorer,
         private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
         private val messageTranslationStore: MessageTranslationStore,
-        private val translationSettings: im.vector.app.features.translation.TranslationSettings,
         private val previewBuilder: MessagePreviewContentBuilder,
         private val dimensionConverter: DimensionConverter,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
@@ -212,19 +200,11 @@ class MessageActionsViewModel @AssistedInject constructor(
     }
 
     private fun readPermissions(): ActionPermissions {
-        val powerLevels = room?.stateService()?.getRoomPowerLevels() ?: return ActionPermissions()
-        return permissionsFrom(powerLevels)
+        return eligibility.roomPermissions(initialState.roomId)
     }
 
-    private fun permissionsFrom(powerLevels: RoomPowerLevels): ActionPermissions {
-        val isJoined = room?.roomSummary()?.membership == Membership.JOIN
-        return ActionPermissions(
-                canSendMessage = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
-                canReact = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
-                canRedact = isJoined && powerLevels.isUserAbleToRedact(session.myUserId),
-                canPinUnpin = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
-        )
-    }
+    private fun permissionsFrom(powerLevels: RoomPowerLevels): ActionPermissions =
+            eligibility.roomPermissions(initialState.roomId, powerLevels)
 
     private fun observeEvent() {
         if (room == null) return
@@ -417,24 +397,6 @@ class MessageActionsViewModel @AssistedInject constructor(
     private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent, mentionsAsIds: Boolean = false): String =
             eligibility.copyBody(timelineEvent, messageContent, mentionsAsIds)
 
-    // The formatted body to feed HTML-aware translation; null for a PGP body (only its decrypted plaintext is translatable).
-    private suspend fun translatableFormattedBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String? {
-        if (computePgpDecryptedBody(timelineEvent) != null) return null
-        val profile = timelineEvent.renderPerMessageProfile(
-                timelineEvent.senderInfo.disambiguatedDisplayName,
-                vectorPreferences.arePerMessageProfilesEnabled()
-        )
-        val formatted = (messageContent as? MessageContentWithFormattedBody)
-                ?.matrixFormattedBody
-                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
-                ?: return null
-        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
-            ContentUtils.extractUsefulTextFromHtmlReply(formatted)
-        } else {
-            formatted
-        }
-    }
-
     private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent, restoredEvent: TimelineEvent? = null) {
         // A revealed redaction shows the recovered content, not the pruned {}; hidden again, it goes
         // back to the redacted form.
@@ -510,7 +472,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                     if (restoredEvent != null && canCopy(restoredMessageContent?.msgType, restoredMessageContent)) {
                         add(EventSharedAction.Copy(pgpCopyBody(restoredEvent, restoredMessageContent!!, mentionsAsIds = true)))
                     }
-                    if (restoredEvent != null) addTranslateAction(eventId, restoredEvent, restoredMessageContent)
+                    if (restoredEvent != null) addTranslateAction(restoredEvent)
                     if (restoredEvent != null && canForward(restoredEvent, restoredMessageContent?.msgType)) {
                         add(EventSharedAction.Forward(eventId, restoredEvent.root.getClearType(), restoredEvent.forwardPayload()))
                     }
@@ -559,7 +521,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 )
             }
 
-            addTranslateAction(eventId, timelineEvent, messageContent)
+            addTranslateAction(timelineEvent)
 
             if (timelineEvent.hasBeenEdited()) {
                 add(EventSharedAction.ViewEditHistory(informationData))
@@ -591,11 +553,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
 
             if (actionPermissions.canPinUnpin && canPin(timelineEvent)) {
-                if (eventId in getPinnedEventIds()) {
-                    add(EventSharedAction.Unpin(eventId))
-                } else {
-                    add(EventSharedAction.Pin(eventId))
-                }
+                add(eligibility.pinAction(initialState.roomId, eventId))
             }
         }
 
@@ -629,19 +587,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun ArrayList<EventSharedAction>.addTranslateAction(eventId: String, event: TimelineEvent, messageContent: MessageContent?) {
-        if (messageContent == null || !canTranslate(messageContent.msgType, messageContent)) return
-        when {
-            messageTranslationStore.isTranslated(event) -> add(EventSharedAction.Untranslate(eventId))
-            !messageTranslationStore.isTranslating(eventId) -> add(
-                    EventSharedAction.Translate(
-                            eventId,
-                            MessageTranslationStore.sourceOf(event),
-                            pgpCopyBody(event, messageContent),
-                            translatableFormattedBody(event, messageContent),
-                    )
-            )
-        }
+    private suspend fun ArrayList<EventSharedAction>.addTranslateAction(event: TimelineEvent) {
+        eligibility.translationAction(event)?.let { add(it) }
     }
 
     private suspend fun ArrayList<EventSharedAction>.addActionsForGalleryItem(
@@ -654,49 +601,18 @@ class MessageActionsViewModel @AssistedInject constructor(
         add(EventSharedAction.Save(timelineEvent.eventId, item))
         add(EventSharedAction.Share(timelineEvent.eventId, item))
         // The caption belongs to the whole gallery, but a tile is where most long presses land.
-        addTranslateAction(timelineEvent.eventId, timelineEvent, messageContent)
+        addTranslateAction(timelineEvent)
         val itemContent = item.toAttachmentContentDict() ?: return
         val origin = session.forwardOrigin(timelineEvent.root)
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, messageForwardPayload(itemContent, origin)))
     }
 
     private fun canReply(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
-        return checkIfCanReplyEventUseCase.execute(event, messageContent, actionPermissions)
+        return eligibility.canReply(event, messageContent, actionPermissions)
     }
 
-    /**
-     * Determine whether or not the Reply In Thread bottom sheet action will be visible
-     * to the user.
-     */
-    private fun canReplyInThread(
-            event: TimelineEvent,
-            messageContent: MessageContent?,
-            actionPermissions: ActionPermissions
-    ): Boolean {
-        if (initialState.isFromThreadTimeline) return false
-        if (event.root.isThread()) return false
-        if (event.root.getClearType() != EventType.MESSAGE &&
-                !event.isSticker() && !event.isPoll()) return false
-        if (!actionPermissions.canSendMessage) return false
-        // Last, as the only check here that reads the database. Threads stay offered while disabled (the
-        // beta prompt), unless the homeserver cannot do them at all.
-        if (!vectorPreferences.areThreadMessagesEnabled() &&
-                !session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseThreading) return false
-        return when (messageContent?.msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_NOTICE,
-            MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_IMAGE,
-            MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_AUDIO,
-            MessageType.MSGTYPE_FILE,
-            MessageType.MSGTYPE_GALLERY,
-            MessageType.MSGTYPE_GALLERY_STABLE,
-            MessageType.MSGTYPE_POLL_START,
-            MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
-        }
-    }
+    private fun canReplyInThread(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean =
+            eligibility.canReplyInThread(event, messageContent, actionPermissions.canSendMessage, initialState.isFromThreadTimeline)
 
     /**
      * Determine whether or not the view in room action will be available for the current event.
@@ -762,45 +678,15 @@ class MessageActionsViewModel @AssistedInject constructor(
     private fun canEdit(event: TimelineEvent, myUserId: String, actionPermissions: ActionPermissions): Boolean =
             event.canBeEditedBy(myUserId, actionPermissions.canSendMessage)
 
-    private fun canTranslate(msgType: String?, messageContent: MessageContent?): Boolean =
-            (translationSettings.engine != null || translationSettings.backupEngine != null) &&
-                    msgType != MessageType.MSGTYPE_LOCATION && canCopy(msgType, messageContent) && messageContent?.body?.isNotBlank() == true
-
     private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean = eligibility.canCopy(msgType, messageContent)
 
     private fun TimelineEvent.forwardPayload(): Map<String, Any?> = eligibility.forwardPayload(this)
 
     private fun canForward(event: TimelineEvent, msgType: String?): Boolean = eligibility.canForward(event, msgType)
 
-    // Nothing to hand to another app, and no bytes to write to storage. A format we downloaded but
-    // cannot decode is a different case: it failed to *display*, while the file itself is right
-    // there and worth keeping, so the actions stay.
-    private fun isFailedMedia(messageContent: MessageContent?): Boolean {
-        val content = messageContent as? MessageWithAttachmentContent ?: return false
-        if (!failedMediaTracker.isFailed(content.getFileUrl())) return false
-        val downloaded = session.fileService().getLocalFileFor(
-                mxcUrl = content.getFileUrl(),
-                fileName = content.body,
-                mimeType = content.mimeType,
-                isEncrypted = content.encryptedFileInfo != null
-        )
-        return downloaded == null
-    }
+    private fun isFailedMedia(messageContent: MessageContent?): Boolean = eligibility.isFailedMedia(messageContent)
 
-    private fun canShare(msgType: String?): Boolean {
-        return when (msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_NOTICE,
-            MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_LOCATION,
-            MessageType.MSGTYPE_IMAGE,
-            MessageType.MSGTYPE_AUDIO,
-            MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_FILE,
-            MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
-        }
-    }
+    private fun canShare(msgType: String?): Boolean = eligibility.canShare(msgType)
 
     private fun canSave(msgType: String?): Boolean {
         return when (msgType) {
@@ -813,19 +699,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private fun canPin(event: TimelineEvent): Boolean {
-        if (event.root.isRedacted()) return false
-        return event.root.getClearType() in listOf(EventType.MESSAGE, EventType.STICKER) + EventType.POLL_START.values
-    }
-
-    private fun getPinnedEventIds(): List<String> {
-        return room?.stateService()
-                ?.getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.IsEmpty)
-                ?.content
-                .toModel<RoomPinnedEventsContent>()
-                ?.pinned
-                .orEmpty()
-    }
+    private fun canPin(event: TimelineEvent): Boolean = eligibility.canPin(event)
 
     private fun canEndPoll(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
         return event.root.getClearType() in EventType.POLL_START.values &&

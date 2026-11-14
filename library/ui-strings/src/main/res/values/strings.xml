@@ -1508,7 +1508,7 @@
     <string name="room_list_filter_people">People</string>
 
     <string name="title_activity_emoji_reaction_picker">Reactions</string>
-    <string name="message_add_reaction">Add Reaction</string>
+    <string name="message_add_reaction">React</string>
     <string name="message_view_reaction">View Reactions</string>
     <string name="reactions">Reactions</string>
 
@@ -3292,6 +3292,17 @@
     <string name="room_member_power_level_custom_in">Custom (%1$d) in %2$s</string>
     <!--  WIP -->
     <string name="location_map_view_copyright">© MapTiler © OpenStreetMap contributors</string>
+    <string name="settings_swipe_actions">Swipe actions</string>
+    <string name="settings_swipe_actions_summary">Assign actions to message swipe gestures</string>
+    <string name="settings_swipe_left">Swipe left</string>
+    <string name="settings_swipe_right">Swipe right</string>
+    <string name="settings_swipe_farther_left">Swipe farther left</string>
+    <string name="settings_swipe_farther_right">Swipe farther right</string>
+    <string name="settings_swipe_short">Swipe</string>
+    <string name="settings_swipe_farther">Swipe farther</string>
+    <string name="settings_swipe_choose_action">Choose action</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Reset this room\'s swipe actions to your account-wide ones?</string>
     <string name="settings_timeline_line_wrap">Line wrapping</string>
     <string name="settings_timeline_line_wrap_summary">Wrap long lines in tables and code blocks. When off, they scroll horizontally instead.</string>
     <string name="settings_code_palette">Code block color palette</string>
@@ -3373,7 +3384,7 @@
     <string name="room_section_delete_warning">The rooms inside won\'t be deleted. They\'ll go back to the main list.</string>
     <string name="settings_quick_reactions">Quick reactions</string>
     <string name="settings_quick_reactions_summary">Reactions shown when long-pressing a message.</string>
-    <string name="quick_reactions_add">Add Reaction</string>
+    <string name="quick_reactions_add">React</string>
     <string name="quick_reactions_empty">No quick reactions.</string>
     <string name="quick_reactions_unsaved_message">You have unsaved changes to your quick reactions. Apply them?</string>
     <string name="quick_reactions_reset_confirmation">Reset your Quick Reactions back to the default set?</string>

@@ -753,7 +753,6 @@
     <string name="room_list_catchup_empty_body">No tienes más mensajes sin leer</string>
     <string name="title_activity_emoji_reaction_picker">Reacciones</string>
     <string name="action_agree">De acuerdo</string>
-    <string name="message_add_reaction">Añadir reacción</string>
     <string name="message_view_reaction">Ver reacciones</string>
     <string name="reactions">Reacciones</string>
     <string name="malformed_message">Evento con error, no se puede mostrar</string>
@@ -2498,7 +2497,6 @@
     <string name="room_section_delete_warning">Las salas que contiene no se eliminarán. Volverán a la lista principal.</string>
     <string name="settings_quick_reactions">Reacciones rápidas</string>
     <string name="settings_quick_reactions_summary">Reacciones que se muestran al mantener pulsado un mensaje.</string>
-    <string name="quick_reactions_add">Añadir reacción</string>
     <string name="quick_reactions_empty">No hay reacciones rápidas.</string>
     <string name="quick_reactions_unsaved_message">Tienes cambios sin guardar en tus reacciones rápidas. ¿Quieres aplicarlos?</string>
     <string name="quick_reactions_reset_confirmation">¿Restablecer las reacciones rápidas al conjunto predeterminado?</string>
@@ -3777,4 +3775,17 @@
         <item quantity="one">Rechazar %d invitación</item>
         <item quantity="other">Rechazar las %d invitaciones</item>
     </plurals>
+    <string name="message_add_reaction">Reaccionar</string>
+    <string name="settings_swipe_actions">Acciones al deslizar</string>
+    <string name="settings_swipe_actions_summary">Asigna acciones a los gestos de deslizar mensajes</string>
+    <string name="settings_swipe_left">Deslizar a la izquierda</string>
+    <string name="settings_swipe_right">Deslizar a la derecha</string>
+    <string name="settings_swipe_farther_left">Deslizar más a la izquierda</string>
+    <string name="settings_swipe_farther_right">Deslizar más a la derecha</string>
+    <string name="settings_swipe_short">Deslizar</string>
+    <string name="settings_swipe_farther">Deslizar más</string>
+    <string name="settings_swipe_choose_action">Elegir acción</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">¿Restablecer las acciones al deslizar de esta sala a las de toda tu cuenta?</string>
+    <string name="quick_reactions_add">Reaccionar</string>
 </resources>

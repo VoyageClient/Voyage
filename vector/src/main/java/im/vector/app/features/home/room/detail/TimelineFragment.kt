@@ -53,7 +53,6 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.ChangeBounds
@@ -145,7 +144,6 @@ import im.vector.app.features.home.room.detail.composer.CanSendStatus
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
 import im.vector.app.features.home.room.detail.composer.MessageComposerFragment
 import im.vector.app.features.home.room.detail.composer.MessageComposerViewModel
-import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.action.ActionPermissions
@@ -162,23 +160,16 @@ import im.vector.app.features.home.room.detail.timeline.helper.FloatingDateHeade
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ReactionsSummaryFactory
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
-import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
-import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationInactiveItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationStartItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageLocationItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
-import im.vector.app.features.home.room.detail.timeline.item.NoticeItem
-import im.vector.app.features.home.room.detail.timeline.item.PollItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
-import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.readreceipts.DisplayReadReceiptsBottomSheet
@@ -224,6 +215,7 @@ import im.vector.app.features.redaction.preservation.RevealFailure
 import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.settings.MessageSwipeAction
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.ForwardItem
@@ -287,6 +279,7 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
+import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
@@ -1689,9 +1682,8 @@ class TimelineFragment :
             })
         }
 
-        val swipeToReplyEnabled = vectorPreferences.swipeToReplyIsEnabled()
         run {
-            val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
+            val swipeHandler = object : RoomMessageTouchHelperCallback.Handler {
                 private fun eventIdOf(model: EpoxyModel<*>): String? =
                         (model as? AbsMessageItem)?.attributes?.informationData?.eventId
                                 ?: (model as? ItemWithEvents)?.getEventIds()?.firstOrNull()
@@ -1701,71 +1693,90 @@ class TimelineFragment :
                     return timelineViewModel.timeline?.getSnapshot()?.firstOrNull { it.eventId == eventId }
                 }
 
-                override fun performQuickReplyOnHolder(model: EpoxyModel<*>) {
-                    eventIdOf(model)?.let { messageComposerViewModel.handle(MessageComposerAction.EnterReplyMode(it)) }
+                override fun performAction(model: EpoxyModel<*>, action: MessageSwipeAction) {
+                    if (action !in availableActions(model, setOf(action))) return
+                    val event = timelineEventOf(model) ?: return
+                    val eventId = event.eventId
+                    when (action) {
+                        MessageSwipeAction.NONE -> Unit
+                        MessageSwipeAction.REPLY -> handleActions(EventSharedAction.Reply(eventId))
+                        MessageSwipeAction.SELECT -> toggleSelection(eventId)
+                        MessageSwipeAction.COPY -> {
+                            val shown = shownContentOf(event)
+                            val content = shown.getVectorLastMessageContent() ?: return
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                val body = messageActionEligibility.copyBody(shown, content, mentionsAsIds = true)
+                                handleActions(EventSharedAction.Copy(body))
+                            }
+                        }
+                        MessageSwipeAction.REACT -> handleActions(EventSharedAction.AddReaction(eventId))
+                        MessageSwipeAction.TRANSLATE -> {
+                            val shown = shownContentOf(event)
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                messageActionEligibility.translationAction(shown)?.let { handleActions(it) }
+                            }
+                        }
+                        MessageSwipeAction.REPLY_IN_THREAD -> handleActions(EventSharedAction.ReplyInThread(eventId, startsThread = !event.isRootThread()))
+                        MessageSwipeAction.SHARE -> {
+                            shownContentOf(event).getVectorLastMessageContent()?.let { handleActions(EventSharedAction.Share(eventId, it)) }
+                        }
+                        MessageSwipeAction.EDIT -> handleActions(EventSharedAction.Edit(eventId, event.root.getClearType()))
+                        MessageSwipeAction.PERMALINK -> handleActions(EventSharedAction.CopyPermalink(eventId))
+                        MessageSwipeAction.PIN -> handleActions(messageActionEligibility.pinAction(timelineArgs.roomId, eventId))
+                        MessageSwipeAction.REDACT -> handleActions(redactAction(eventId, event))
+                        MessageSwipeAction.FORWARD -> {
+                            val shown = shownContentOf(event)
+                            handleActions(EventSharedAction.Forward(eventId, shown.root.getClearType(), messageActionEligibility.forwardPayload(shown)))
+                        }
+                    }
                 }
 
-                override fun performQuickEditOnHolder(model: EpoxyModel<*>) {
-                    timelineEventOf(model)?.let { handleActions(EventSharedAction.Edit(it.eventId, it.root.getClearType())) }
+                override fun availableActions(model: EpoxyModel<*>, candidates: Set<MessageSwipeAction>): Set<MessageSwipeAction> {
+                    if (timelineViewModel.selection.isActive) return emptySet()
+                    val event = timelineEventOf(model) ?: return emptySet()
+                    val permissions by lazy { messageActionEligibility.roomPermissions(timelineArgs.roomId) }
+                    val writable = !withState(timelineViewModel) { it.isReadOnlyTimeline() }
+                    val shown by lazy { shownContentOf(event) }
+                    return candidates.filterTo(mutableSetOf()) { action ->
+                        when {
+                            action == MessageSwipeAction.NONE -> false
+                            action == MessageSwipeAction.SELECT -> selectableEventIdOf(model) != null
+                            event.root.sendState != SendState.SYNCED -> false
+                            else -> when (action) {
+                                MessageSwipeAction.NONE, MessageSwipeAction.SELECT -> false
+                                MessageSwipeAction.PERMALINK -> true
+                                MessageSwipeAction.COPY -> messageActionEligibility.canCopy(shown)
+                                MessageSwipeAction.REACT -> writable && permissions.canReact
+                                MessageSwipeAction.TRANSLATE -> messageActionEligibility.canTranslate(shown)
+                                MessageSwipeAction.REPLY_IN_THREAD -> messageActionEligibility.canReplyInThread(
+                                        event, event.getVectorLastMessageContent(), writable && permissions.canSendMessage, isThreadTimeLine(),
+                                )
+                                MessageSwipeAction.SHARE -> {
+                                    val content = shown.getVectorLastMessageContent()
+                                    messageActionEligibility.canShare(content?.msgType) && !messageActionEligibility.isFailedMedia(content)
+                                }
+                                MessageSwipeAction.FORWARD -> messageActionEligibility.canForward(shown)
+                                MessageSwipeAction.REPLY -> writable && messageActionEligibility.canReply(
+                                        event, event.getVectorLastMessageContent(), permissions,
+                                )
+                                MessageSwipeAction.EDIT -> writable && !event.root.isRedacted() &&
+                                        event.canBeEditedBy(session.myUserId, permissions.canSendMessage)
+                                MessageSwipeAction.REDACT -> writable && !event.root.isRedacted() && messageActionEligibility.canRedact(event, permissions)
+                                MessageSwipeAction.PIN -> writable && permissions.canPinUnpin && messageActionEligibility.canPin(event)
+                            }
+                        }
+                    }
                 }
-
-                override fun canEditModel(model: EpoxyModel<*>): Boolean {
-                    if (model !is AbsMessageItem<*> || model.attributes.informationData.sendState != SendState.SYNCED) return false
-                    return timelineEventOf(model)?.canBeEditedBy(session.myUserId, canSendMessage = true) == true
-                }
-
-                override fun performSelectOnHolder(model: EpoxyModel<*>) {
-                    selectableEventIdOf(model)?.let { toggleSelection(it) }
-                }
-
-                override fun canSelectModel(model: EpoxyModel<*>): Boolean =
-                        !timelineViewModel.selection.isActive && selectableEventIdOf(model) != null
 
                 // Its hold timer would otherwise fire mid-swipe and read the swipe as a hold.
                 override fun onSwipeStarted() {
                     selectionTouchListener?.cancelGesture()
                 }
-
-                override fun canSwipeModel(model: EpoxyModel<*>): Boolean {
-                    if (!swipeToReplyEnabled || timelineViewModel.selection.isActive) return false
-                    if (withState(timelineViewModel) { it.isReadOnlyTimeline() }) {
-                        return false
-                    }
-                    val canSendMessage = withState(messageComposerViewModel) {
-                        it.canSendMessage
-                    }
-                    if (!canSendMessage.boolean()) {
-                        return false
-                    }
-                    return when (model) {
-                        is MessageFileItem,
-                        is MessageAudioItem,
-                        is MessageVoiceItem,
-                        is MessageImageVideoItem,
-                        is MessageGalleryItem,
-                        is MessageTextItem,
-                        is MessageLocationItem,
-                        is MessageLiveLocationItem,
-                        is MessageLiveLocationStartItem,
-                        is MessageLiveLocationInactiveItem,
-                        is PollItem,
-                        // Redacted messages can still be replied to.
-                        is RedactedMessageItem -> {
-                            (model as AbsMessageItem).attributes.informationData.sendState == SendState.SYNCED
-                        }
-                        // Non-message events (membership changes, reactions, state events, …):
-                        // these come from sync and are always synced, so they're swipe-replyable.
-                        is NoticeItem,
-                        is DefaultItem -> true
-                        else -> false
-                    }
-                }
             }
             val swipeCallback = RoomMessageTouchHelperCallback(
-                    requireContext(), R.drawable.ic_reply, R.drawable.ic_edit, R.drawable.ic_select_message, quickReplyHandler, clock
+                    requireContext(), swipeHandler, clock, { vectorPreferences.messageSwipeBindings(timelineArgs.roomId) }
             )
-            val touchHelper = ItemTouchHelper(swipeCallback)
-            touchHelper.attachToRecyclerView(views.timelineRecyclerView)
+            swipeCallback.attachToRecyclerView(views.timelineRecyclerView)
         }
         views.timelineRecyclerView.addGlidePreloader(
                 epoxyController = timelineEventController,
@@ -2693,7 +2704,7 @@ class TimelineFragment :
             views.selectionToolbar.menu.apply {
                 findItem(R.id.selection_copy)?.isVisible = abilities.any { it.copy }
                 findItem(R.id.selection_forward)?.isVisible = abilities.all { it.forward }
-                findItem(R.id.selection_redact)?.isVisible = selectionPermissions.canSendMessage && abilities.all { it.redact }
+                findItem(R.id.selection_redact)?.isVisible = selectionPermissions.canSendRedaction && abilities.all { it.redact }
             }
         } else {
             selectionAbilities.clear()
@@ -2786,16 +2797,7 @@ class TimelineFragment :
         }
     }
 
-    // canSendMessage stands in for "may send a redaction at all", which even our own messages need.
-    private fun readSelectionPermissions(): ActionPermissions {
-        val room = session.getRoom(timelineArgs.roomId) ?: return ActionPermissions()
-        if (room.roomSummary()?.membership != Membership.JOIN) return ActionPermissions()
-        val powerLevels = room.stateService().getRoomPowerLevels()
-        return ActionPermissions(
-                canSendMessage = powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REDACTION),
-                canRedact = powerLevels.isUserAbleToRedact(session.myUserId),
-        )
-    }
+    private fun readSelectionPermissions(): ActionPermissions = messageActionEligibility.roomPermissions(timelineArgs.roomId)
 
     private fun selectedInTimelineOrder(): List<TimelineEvent> =
             TimelineSelection.inTimelineOrder(timelineViewModel.selection.selected.value.values)
@@ -3050,7 +3052,6 @@ class TimelineFragment :
                         .show(requireActivity().supportFragmentManager, "DISPLAY_REACTIONS")
             }
             is EventSharedAction.Copy -> {
-                // I need info about the current selected message :/
                 copyToClipboard(requireContext(), action.content, false)
                 showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
             }

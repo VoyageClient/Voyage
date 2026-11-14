@@ -737,7 +737,6 @@
     <string name="room_list_catchup_empty_body">您已經沒有未讀的訊息了</string>
     <string name="title_activity_emoji_reaction_picker">反應</string>
     <string name="action_agree">同意</string>
-    <string name="message_add_reaction">新增反應</string>
     <string name="message_view_reaction">檢視反應</string>
     <string name="reactions">反應</string>
     <string name="malformed_message">事件格式錯誤，無法顯示</string>
@@ -2463,7 +2462,6 @@
     <string name="room_section_delete_warning">其中的聊天室不會被刪除，而會回到主清單。</string>
     <string name="settings_quick_reactions">快速反應</string>
     <string name="settings_quick_reactions_summary">長按訊息時顯示的反應。</string>
-    <string name="quick_reactions_add">新增反應</string>
     <string name="quick_reactions_empty">沒有快速反應。</string>
     <string name="quick_reactions_unsaved_message">您的快速反應有尚未儲存的變更。要套用嗎？</string>
     <string name="quick_reactions_reset_confirmation">要將您的快速反應重設為預設組合嗎？</string>
@@ -3712,4 +3710,17 @@
     <plurals name="settings_reject_all_invites">
         <item quantity="other">拒絕全部 %d 個邀請</item>
     </plurals>
+    <string name="message_add_reaction">反應</string>
+    <string name="settings_swipe_actions">滑動操作</string>
+    <string name="settings_swipe_actions_summary">為訊息滑動手勢指派操作</string>
+    <string name="settings_swipe_left">向左滑動</string>
+    <string name="settings_swipe_right">向右滑動</string>
+    <string name="settings_swipe_farther_left">向左滑動更遠</string>
+    <string name="settings_swipe_farther_right">向右滑動更遠</string>
+    <string name="settings_swipe_short">滑動</string>
+    <string name="settings_swipe_farther">滑動更遠</string>
+    <string name="settings_swipe_choose_action">選擇操作</string>
+    <string name="settings_swipe_binding_description">%1$s：%2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">要將此聊天室的滑動操作重設為帳號層級的設定嗎？</string>
+    <string name="quick_reactions_add">反應</string>
 </resources>

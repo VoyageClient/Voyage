@@ -133,6 +133,28 @@
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_ROOM_SWIPE_CATEGORY_KEY"
+        android:title="@string/settings_swipe_actions">
+
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_LEFT"
+            android:title="@string/settings_swipe_left" />
+
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_LEFT_FAR"
+            android:title="@string/settings_swipe_farther_left" />
+
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_RIGHT"
+            android:title="@string/settings_swipe_right" />
+
+        <im.vector.app.features.settings.SwipeActionPreference
+            android:key="SETTINGS_MESSAGE_SWIPE_RIGHT_FAR"
+            android:title="@string/settings_swipe_farther_right" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
         android:key="SETTINGS_ROOM_ROOM_LIST_CATEGORY_KEY"
         android:title="@string/settings_rooms_spaces_category_room_list">
 

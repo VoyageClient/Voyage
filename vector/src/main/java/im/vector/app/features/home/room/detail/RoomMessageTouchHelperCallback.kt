@@ -9,108 +9,135 @@ package im.vector.app.features.home.room.detail
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
-import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
-import androidx.annotation.DrawableRes
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyTouchHelperCallback
 import com.airbnb.epoxy.EpoxyViewHolder
-import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.settings.MessageSwipeBindings
+import im.vector.app.features.settings.MessageSwipeSlot
 import im.vector.lib.core.utils.timer.Clock
 import timber.log.Timber
+import java.util.WeakHashMap
 import kotlin.math.abs
-import kotlin.math.min
+import im.vector.app.features.settings.MessageSwipeAction as SwipeAction
 
 class RoomMessageTouchHelperCallback(
-        private val context: Context,
-        @DrawableRes replyIcon: Int,
-        @DrawableRes editIcon: Int,
-        @DrawableRes selectIcon: Int,
-        private val handler: QuickReplayHandler,
+        context: Context,
+        private val handler: Handler,
         private val clock: Clock,
+        private val readBindings: () -> MessageSwipeBindings,
 ) : EpoxyTouchHelperCallback() {
 
-    interface QuickReplayHandler {
-        fun performQuickReplyOnHolder(model: EpoxyModel<*>)
-        fun performQuickEditOnHolder(model: EpoxyModel<*>)
-        fun performSelectOnHolder(model: EpoxyModel<*>)
-        fun canSwipeModel(model: EpoxyModel<*>): Boolean
-        fun canEditModel(model: EpoxyModel<*>): Boolean
-        fun canSelectModel(model: EpoxyModel<*>): Boolean
-
-        /** The swipe has taken over the gesture; other touch listeners won't see the rest of it. */
+    interface Handler {
+        fun performAction(model: EpoxyModel<*>, action: SwipeAction)
+        fun availableActions(model: EpoxyModel<*>, candidates: Set<SwipeAction>): Set<SwipeAction>
         fun onSwipeStarted()
+    }
+
+    private class SwipeState(
+            val model: EpoxyModel<*>,
+            val bindings: MessageSwipeBindings,
+            val availableActions: Set<SwipeAction>,
+    ) {
+        var distance = 0f
+        var lastTouchX: Float? = null
+        var originX: Float? = null
+        var action = SwipeAction.NONE
+        var releasedAction = SwipeAction.NONE
+        var drawnAction = SwipeAction.NONE
+        var iconProgress = 0f
+        var lastFrameTime = 0L
+        var cancelled = false
+
+        fun resolve(distanceDp: Float) = bindings.resolve(distanceDp) { it in availableActions }
+    }
+
+    private val swipes = WeakHashMap<View, SwipeState>()
+    private var activeHolder: EpoxyViewHolder? = null
+    private val icons = SwipeAction.values().associateWith { it.drawable(context) }
+    private val density = context.resources.displayMetrics.density
+    private val minShowDistance = 20 * density
+    private val iconSize = 24 * density
+    private val maxTranslation = (MessageSwipeBindings.FARTHER_DISTANCE_DP + 20) * density
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun attachToRecyclerView(recyclerView: RecyclerView) {
+        recyclerView.setOnTouchListener { _, event ->
+            val state = activeHolder?.itemView?.let { swipes[it] }
+            when (event.actionMasked) {
+                MotionEvent.ACTION_MOVE -> state?.lastTouchX = event.x
+                MotionEvent.ACTION_POINTER_DOWN -> state?.cancelled = true
+                MotionEvent.ACTION_UP -> finishSwipe(event.x)
+                MotionEvent.ACTION_CANCEL -> {
+                    state?.cancelled = true
+                    activeHolder = null
+                }
+            }
+            false
+        }
+        ItemTouchHelper(this).attachToRecyclerView(recyclerView)
     }
 
     override fun onSelectedChanged(viewHolder: EpoxyViewHolder?, actionState: Int) {
         super.onSelectedChanged(viewHolder, actionState)
-        if (actionState == ACTION_STATE_SWIPE) handler.onSwipeStarted()
+        activeHolder = null
+        if (actionState != ACTION_STATE_SWIPE || viewHolder == null) return
+        val model = modelOf(viewHolder) ?: return
+        swipes[viewHolder.itemView] = newSwipe(model)
+        activeHolder = viewHolder
+        handler.onSwipeStarted()
     }
 
-    private enum class SwipeAction { NONE, REPLY, EDIT, SELECT }
-
-    private var activeDx = 0f
-    private var startTracking = false
-    private var hapticAction = SwipeAction.NONE
-
-    private var swipedModel: EpoxyModel<*>? = null
-    private var swipedModelEditable = false
-    private var swipeAction = SwipeAction.NONE
-    private var touchListenerAttached = false
-
-    private var replyButtonProgress: Float = 0F
-    private var lastReplyButtonAnimationTime: Long = 0
-    private var drawnIcon: Drawable? = null
-
-    private val replyDrawable = tintedIcon(replyIcon)
-    private val editDrawable = tintedIcon(editIcon)
-    private val selectDrawable = tintedIcon(selectIcon)
-
-    private val triggerDistance = convertToPx(100)
-    private val editTriggerDistance = convertToPx(180)
-    private val minShowDistance = convertToPx(20)
-    private val triggerDelta = convertToPx(20)
-
-    // Leftward swipes reach the edit threshold; rightward ones only ever select.
-    private fun maxTranslation(dX: Float): Float =
-            (if (dX < 0 && swipedModelEditable) editTriggerDistance else triggerDistance) + triggerDelta
-
-    override fun onSwiped(viewHolder: EpoxyViewHolder, direction: Int) {
+    private fun modelOf(holder: EpoxyViewHolder): EpoxyModel<*>? = try {
+        holder.model
+    } catch (failure: IllegalStateException) {
+        Timber.e(failure)
+        null
     }
 
-    override fun onMove(recyclerView: RecyclerView, viewHolder: EpoxyViewHolder, target: EpoxyViewHolder): Boolean {
-        return false
+    private fun newSwipe(model: EpoxyModel<*>): SwipeState {
+        val bindings = readBindings()
+        return SwipeState(model, bindings, availableActionsFor(model, bindings))
     }
+
+    private fun availableActionsFor(model: EpoxyModel<*>, bindings: MessageSwipeBindings): Set<SwipeAction> {
+        val candidates = MessageSwipeSlot.values().filter { bindings.isEnabled(it) }.map { bindings[it] }
+                .filter { it != SwipeAction.NONE }.toSet()
+        return if (candidates.isEmpty()) emptySet() else handler.availableActions(model, candidates)
+    }
+
+    override fun onSwiped(viewHolder: EpoxyViewHolder, direction: Int) = Unit
+
+    override fun onMove(recyclerView: RecyclerView, viewHolder: EpoxyViewHolder, target: EpoxyViewHolder) = false
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: EpoxyViewHolder): Int {
-        val model = viewHolder.model
+        val model = modelOf(viewHolder) ?: return 0
+        val bindings = readBindings()
+        val availableActions = availableActionsFor(model, bindings)
         var flags = 0
-        if (handler.canSwipeModel(model)) flags = flags or ItemTouchHelper.START
-        if (handler.canSelectModel(model)) flags = flags or ItemTouchHelper.END
+        if (listOf(MessageSwipeSlot.LEFT, MessageSwipeSlot.LEFT_FAR).any { bindings.isEnabled(it) && bindings[it] in availableActions }) {
+            flags = flags or ItemTouchHelper.LEFT
+        }
+        if (listOf(MessageSwipeSlot.RIGHT, MessageSwipeSlot.RIGHT_FAR).any { bindings.isEnabled(it) && bindings[it] in availableActions }) {
+            flags = flags or ItemTouchHelper.RIGHT
+        }
         return ItemTouchHelper.Callback.makeMovementFlags(0, flags)
     }
 
-    // Unreachable thresholds: a released item must always animate back, never fly out.
-    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float = Float.MAX_VALUE
+    // Items must animate back rather than being dismissed by ItemTouchHelper.
+    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder) = Float.MAX_VALUE
 
-    override fun getSwipeEscapeVelocity(defaultValue: Float): Float = Float.MAX_VALUE
+    override fun getSwipeEscapeVelocity(defaultValue: Float) = Float.MAX_VALUE
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
-        endSwipe()
-        swipedModelEditable = false
-        startTracking = false
-        hapticAction = SwipeAction.NONE
-        replyButtonProgress = 0f
-        drawnIcon = null
+        swipes.remove(viewHolder.itemView)
+        if (activeHolder === viewHolder) activeHolder = null
     }
 
     override fun onChildDraw(
@@ -120,168 +147,84 @@ class RoomMessageTouchHelperCallback(
             dX: Float,
             dY: Float,
             actionState: Int,
-            isCurrentlyActive: Boolean
+            isCurrentlyActive: Boolean,
     ) {
-        if (actionState == ACTION_STATE_SWIPE) {
-            attachTouchListener(recyclerView)
-            if (isCurrentlyActive) {
-                val model = try {
-                    viewHolder.model
-                } catch (e: IllegalStateException) {
-                    Timber.e(e)
-                    null
-                }
-                if (model !== swipedModel) {
-                    swipedModelEditable = model != null && handler.canEditModel(model)
-                }
-                swipedModel = model
-                swipeAction = actionFor(dX)
-            }
+        val view = viewHolder.itemView
+        val state = swipes[view]
+        if (actionState != ACTION_STATE_SWIPE || state == null) {
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            return
+        }
+        if (isCurrentlyActive) {
+            if (modelOf(viewHolder)?.id() != state.model.id()) state.cancelled = true
+            state.distance = dX
+            if (state.originX == null) state.lastTouchX?.let { state.originX = it - dX }
+            val action = if (state.cancelled) SwipeAction.NONE else state.resolve(dX / density)
+            if (action != state.action && action != SwipeAction.NONE) view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            state.action = action
         }
         val drawDx = if (isCurrentlyActive) {
-            activeDx = dX
-            startTracking = true
-            val max = maxTranslation(dX)
-            dX.coerceIn(-max, max)
+            dX.coerceIn(-maxTranslation, maxTranslation)
         } else {
-            // Scale the release animation down to the clamped position the item was left at.
-            val overshoot = abs(activeDx)
-            val max = maxTranslation(activeDx)
-            if (overshoot > max) dX * (max / overshoot) else dX
+            // ItemTouchHelper animates its unclamped distance; preserve the position shown at release.
+            val overshoot = abs(state.distance)
+            if (overshoot > maxTranslation) dX * (maxTranslation / overshoot) else dX
         }
         super.onChildDraw(c, recyclerView, viewHolder, drawDx, dY, actionState, isCurrentlyActive)
-        drawReplyButton(c, viewHolder.itemView, isCurrentlyActive)
+        drawSwipeIcon(c, view, state, isCurrentlyActive)
     }
 
-    private fun actionFor(dX: Float): SwipeAction = when {
-        dX > 0 -> if (dX >= triggerDistance) SwipeAction.SELECT else SwipeAction.NONE
-        swipedModelEditable && -dX >= editTriggerDistance -> SwipeAction.EDIT
-        -dX >= triggerDistance -> SwipeAction.REPLY
-        else -> SwipeAction.NONE
+    private fun finishSwipe(releaseX: Float) {
+        val holder = activeHolder ?: return
+        activeHolder = null
+        val state = swipes[holder.itemView] ?: return
+        if (state.cancelled || modelOf(holder)?.id() != state.model.id()) return
+        // A release event can arrive before the next draw updates the armed action.
+        val distance = releaseX - (state.originX ?: return)
+        val available = availableActionsFor(state.model, state.bindings)
+        val action = state.bindings.resolve(distance / density) { it in available }
+        state.releasedAction = action
+        state.drawnAction = action
+        if (action != SwipeAction.NONE) handler.performAction(state.model, action)
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun attachTouchListener(recyclerView: RecyclerView) {
-        if (touchListenerAttached) return
-        touchListenerAttached = true
-        recyclerView.setOnTouchListener { _, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_UP -> {
-                    swipedModel?.let {
-                        when (swipeAction) {
-                            SwipeAction.REPLY -> handler.performQuickReplyOnHolder(it)
-                            SwipeAction.EDIT -> handler.performQuickEditOnHolder(it)
-                            SwipeAction.SELECT -> handler.performSelectOnHolder(it)
-                            SwipeAction.NONE -> Unit
-                        }
-                    }
-                    endSwipe()
-                }
-                MotionEvent.ACTION_CANCEL -> endSwipe()
-            }
-            false
+    private fun drawSwipeIcon(canvas: Canvas, view: View, state: SwipeState, active: Boolean) {
+        // Selection replaces the released swipe icon with its check circles.
+        if (!active && state.releasedAction == SwipeAction.SELECT) return
+        val action = if (active) {
+            if (state.cancelled) SwipeAction.NONE else state.bindings.hint(state.distance / density) { it in state.availableActions }
+        } else state.drawnAction
+        if (action == SwipeAction.NONE) {
+            state.drawnAction = SwipeAction.NONE
+            state.iconProgress = 0f
+            return
         }
-    }
-
-    private fun endSwipe() {
-        swipedModel = null
-        swipeAction = SwipeAction.NONE
-    }
-
-    private fun drawReplyButton(canvas: Canvas, itemView: View, isCurrentlyActive: Boolean) {
-        val signedTranslationX = itemView.translationX
-        // A released select swipe hands that side to the selection gutter's check circles.
-        if (!isCurrentlyActive && signedTranslationX > 0) return
-        val translationX = abs(signedTranslationX)
-        val newTime = clock.epochMillis()
-        val dt = min(17, newTime - lastReplyButtonAnimationTime)
-        lastReplyButtonAnimationTime = newTime
-        val showing = translationX >= minShowDistance
-        // Once released, keep the chosen action's icon while the item slides back past the thresholds.
-        val icon = when {
-            !isCurrentlyActive -> drawnIcon ?: if (signedTranslationX > 0) selectDrawable else replyDrawable
-            signedTranslationX > 0 -> selectDrawable
-            actionFor(signedTranslationX) == SwipeAction.EDIT -> editDrawable
-            else -> replyDrawable
-        }
-        if (showing && drawnIcon != null && icon !== drawnIcon) {
-            // Replay the pop-in so the switch to the other action is noticeable.
-            replyButtonProgress = 0f
-        }
-        drawnIcon = icon
-        if (showing) {
-            if (replyButtonProgress < 1.0f) {
-                replyButtonProgress += dt / 180.0f
-                if (replyButtonProgress > 1.0f) {
-                    replyButtonProgress = 1.0f
-                } else {
-                    itemView.invalidate()
-                }
-            }
-        } else if (translationX <= 0.0f) {
-            replyButtonProgress = 0f
-            startTracking = false
-            hapticAction = SwipeAction.NONE
+        val now = clock.epochMillis()
+        val dt = (now - state.lastFrameTime).coerceIn(0L, 17L)
+        state.lastFrameTime = now
+        val distance = abs(view.translationX)
+        val showing = distance >= minShowDistance
+        if (showing && state.drawnAction != SwipeAction.NONE && state.drawnAction != action) state.iconProgress = 0f
+        state.drawnAction = action
+        state.iconProgress = if (showing) {
+            (state.iconProgress + dt / 180f).coerceAtMost(1f)
         } else {
-            if (replyButtonProgress > 0.0f) {
-                replyButtonProgress -= dt / 180.0f
-                if (replyButtonProgress < 0.1f) {
-                    replyButtonProgress = 0f
-                } else {
-                    itemView.invalidate()
-                }
-            }
+            (state.iconProgress - dt / 180f).coerceAtLeast(0f)
         }
-        val alpha: Int
-        val scale: Float
-        if (showing) {
-            scale = if (replyButtonProgress <= 0.8f) {
-                1.2f * (replyButtonProgress / 0.8f)
-            } else {
-                1.2f - 0.2f * ((replyButtonProgress - 0.8f) / 0.2f)
-            }
-            alpha = min(255f, 255 * (replyButtonProgress / 0.8f)).toInt()
-        } else {
-            scale = replyButtonProgress
-            alpha = min(255f, 255 * replyButtonProgress).toInt()
+        if (state.iconProgress > 0f && state.iconProgress < 1f) view.invalidate()
+        val progress = state.iconProgress
+        val scale = when {
+            !showing -> progress
+            progress <= .8f -> 1.2f * progress / .8f
+            else -> 1.2f - .2f * (progress - .8f) / .2f
         }
-
-        icon.alpha = alpha
-        if (startTracking && isCurrentlyActive) {
-            val action = actionFor(signedTranslationX)
-            if (action != hapticAction) {
-                if (action != SwipeAction.NONE) {
-                    itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                }
-                hapticAction = action
-            }
-        }
-
-        val x: Int = if (signedTranslationX > 0) (translationX / 2).toInt() else itemView.width - (translationX / 2).toInt()
-        val y = (itemView.top + itemView.measuredHeight / 2).toFloat()
-        val hw = icon.intrinsicWidth / 2f
-        val hh = icon.intrinsicHeight / 2f
-        icon.setBounds(
-                (x - hw * scale).toInt(),
-                (y - hh * scale).toInt(),
-                (x + hw * scale).toInt(),
-                (y + hh * scale).toInt()
-        )
+        val icon = icons.getValue(action)
+        icon.alpha = (255 * if (showing) (progress / .8f).coerceAtMost(1f) else progress).toInt()
+        val x = if (view.translationX > 0) distance / 2 else view.width - distance / 2
+        val y = view.top + view.measuredHeight / 2f
+        val halfSize = iconSize * scale / 2
+        icon.setBounds((x - halfSize).toInt(), (y - halfSize).toInt(), (x + halfSize).toInt(), (y + halfSize).toInt())
         icon.draw(canvas)
         icon.alpha = 255
-    }
-
-    // AppCompatResources, not ContextCompat: both icons are <vector>, which the framework can't inflate before API 21.
-    private fun tintedIcon(@DrawableRes res: Int): Drawable =
-            DrawableCompat.wrap(AppCompatResources.getDrawable(context, res)!!.mutate()).also {
-                DrawableCompat.setTint(it, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-            }
-
-    private fun convertToPx(dp: Int): Float {
-        return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dp.toFloat(),
-                context.resources.displayMetrics
-        )
     }
 }

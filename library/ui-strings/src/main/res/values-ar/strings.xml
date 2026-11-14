@@ -709,7 +709,6 @@
     <string name="create_new_room">أنشئ غرفة جديدة</string>
     <string name="reactions">الانفعالات</string>
     <string name="message_view_reaction">اعرض الانفعالات</string>
-    <string name="message_add_reaction">أضف انفعالًا</string>
     <string name="title_activity_emoji_reaction_picker">الانفعالات</string>
     <string name="decide_who_can_find_and_join">اختر من يمكنهم العثور على الغرفة والانضمام إليها.</string>
     <string name="tap_to_edit_spaces">اضغط لتعديل الفضاءات</string>
@@ -2589,7 +2588,6 @@
     <string name="room_section_delete_warning">لن تُحذف الغرف التي بداخله، بل ستعود إلى القائمة الرئيسية.</string>
     <string name="settings_quick_reactions">الانفعالات السريعة</string>
     <string name="settings_quick_reactions_summary">الانفعالات المعروضة عند الضغط المطوّل على رسالة.</string>
-    <string name="quick_reactions_add">أضف انفعالًا</string>
     <string name="quick_reactions_empty">لا انفعالات سريعة.</string>
     <string name="quick_reactions_unsaved_message">لديك تغييرات غير محفوظة على انفعالاتك السريعة. أتريد تطبيقها؟</string>
     <string name="quick_reactions_reset_confirmation">أتريد إعادة انفعالاتك السريعة إلى المجموعة المبدئية؟</string>
@@ -4004,4 +4002,17 @@
         <item quantity="many">رفض جميع الدعوات (%d)</item>
         <item quantity="other">رفض جميع الدعوات (%d)</item>
     </plurals>
+    <string name="message_add_reaction">تفاعل</string>
+    <string name="settings_swipe_actions">إجراءات السحب</string>
+    <string name="settings_swipe_actions_summary">عيّن إجراءات لإيماءات السحب على الرسائل</string>
+    <string name="settings_swipe_left">اسحب لليسار</string>
+    <string name="settings_swipe_right">اسحب لليمين</string>
+    <string name="settings_swipe_farther_left">اسحب أكثر لليسار</string>
+    <string name="settings_swipe_farther_right">اسحب أكثر لليمين</string>
+    <string name="settings_swipe_short">اسحب</string>
+    <string name="settings_swipe_farther">اسحب أكثر</string>
+    <string name="settings_swipe_choose_action">اختر إجراءً</string>
+    <string name="settings_swipe_binding_description">%1$s: %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">أتريد إعادة إجراءات السحب لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="quick_reactions_add">تفاعل</string>
 </resources>

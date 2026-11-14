@@ -738,7 +738,6 @@
     <string name="keys_backup_setup_override_backup_prompt_description">On dirait que vous avez déjà configuré une sauvegarde de clé depuis une autre session. Voulez-vous la remplacer par celle que vous êtes en train de créer \?</string>
     <string name="title_activity_emoji_reaction_picker">Réactions</string>
     <string name="action_agree">D’accord</string>
-    <string name="message_add_reaction">Ajouter une réaction</string>
     <string name="message_view_reaction">Voir les réactions</string>
     <string name="reactions">Réactions</string>
     <string name="malformed_message">Évènement malformé, affichage impossible</string>
@@ -2510,7 +2509,6 @@
     <string name="room_section_delete_warning">Les salons qu’elle contient ne seront pas supprimés. Ils retourneront dans la liste principale.</string>
     <string name="settings_quick_reactions">Réactions rapides</string>
     <string name="settings_quick_reactions_summary">Réactions affichées lors d’un appui long sur un message.</string>
-    <string name="quick_reactions_add">Ajouter une réaction</string>
     <string name="quick_reactions_empty">Aucune réaction rapide.</string>
     <string name="quick_reactions_unsaved_message">Vos réactions rapides comportent des modifications non enregistrées. Les appliquer ?</string>
     <string name="quick_reactions_reset_confirmation">Rétablir les réactions rapides par défaut ?</string>
@@ -3789,4 +3787,17 @@
         <item quantity="one">Rejeter %d invitation</item>
         <item quantity="other">Rejeter les %d invitations</item>
     </plurals>
+    <string name="message_add_reaction">Réagir</string>
+    <string name="settings_swipe_actions">Actions par balayage</string>
+    <string name="settings_swipe_actions_summary">Attribuez des actions aux gestes de balayage sur les messages</string>
+    <string name="settings_swipe_left">Balayer vers la gauche</string>
+    <string name="settings_swipe_right">Balayer vers la droite</string>
+    <string name="settings_swipe_farther_left">Balayer plus loin vers la gauche</string>
+    <string name="settings_swipe_farther_right">Balayer plus loin vers la droite</string>
+    <string name="settings_swipe_short">Balayer</string>
+    <string name="settings_swipe_farther">Balayer plus loin</string>
+    <string name="settings_swipe_choose_action">Choisir une action</string>
+    <string name="settings_swipe_binding_description">%1$s : %2$s</string>
+    <string name="room_personalization_swipe_reset_confirmation">Rétablir les actions par balayage de ce salon sur celles de votre compte ?</string>
+    <string name="quick_reactions_add">Réagir</string>
 </resources>
