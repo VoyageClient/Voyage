@@ -3,6 +3,7 @@
 
     <attr name="vctr_jump_to_unread_style" format="reference" />
     <attr name="vctr_floating_date_background" format="color" />
+    <attr name="vctr_floating_date_text_color" format="color" />
 
     <style name="Widget.Vector.JumpToUnread.Base" parent="Widget.MaterialComponents.Chip.Action">
         <item name="android:textAppearance">@style/TextAppearance.Vector.Body.Medium</item>

@@ -392,6 +392,9 @@ class TimelineFragment :
 
     override fun getMenuRes() = R.menu.menu_timeline
 
+    // The translucent media viewer pauses the timeline while its toolbar is still visible.
+    override fun menuLifecycleState() = Lifecycle.State.STARTED
+
     private lateinit var sharedActionViewModel: MessageSharedActionViewModel
     private lateinit var sharedActivityActionViewModel: RoomDetailSharedActionViewModel
 
@@ -1814,7 +1817,8 @@ class TimelineFragment :
     }
 
     override fun invalidate() = withState(timelineViewModel, messageComposerViewModel) { mainState, messageComposerState ->
-        invalidateOptionsMenu()
+        // Rebuilding the action bar discards the thread action view during media transitions.
+        views.roomToolbar.menu.takeIf { it.findItem(R.id.menu_timeline_thread_list) != null }?.let(::handlePrepareMenu)
         if (timelineHasContent != mainState.timelineHasContent) {
             timelineHasContent = mainState.timelineHasContent
             if (::jumpToBottomViewVisibilityManager.isInitialized) {

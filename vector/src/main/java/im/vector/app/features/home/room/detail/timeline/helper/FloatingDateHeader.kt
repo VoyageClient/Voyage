@@ -13,6 +13,7 @@ import android.animation.ValueAnimator
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -43,7 +44,12 @@ class FloatingDateHeader(
         // Theme attributes in drawable XML need API 21.
         view.backgroundCompat = GradientDrawable().apply {
             cornerRadius = density * CORNER_RADIUS_DP
-            setColor(MaterialColors.getColor(view, im.vector.lib.ui.styles.R.attr.vctr_floating_date_background))
+            setColor(
+                    ColorUtils.compositeColors(
+                            MaterialColors.getColor(view, im.vector.lib.ui.styles.R.attr.vctr_floating_date_background),
+                            MaterialColors.getColor(view, android.R.attr.colorBackground)
+                    )
+            )
         }
         render()
     }

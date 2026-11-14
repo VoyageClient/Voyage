@@ -472,8 +472,9 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     }
 
     private fun setupMenu() {
-        // Always add a MenuProvider to handle the back action from the Toolbar
         val vectorMenuProvider = this as? VectorMenuProvider
+        // Removing the back-only provider on pause rebuilds the visible fragment's menu.
+        val menuState = vectorMenuProvider?.menuLifecycleState() ?: Lifecycle.State.STARTED
         addMenuProvider(
                 object : MenuProvider {
                     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -493,7 +494,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                     }
                 },
                 this,
-                Lifecycle.State.RESUMED
+                menuState
         )
     }
 

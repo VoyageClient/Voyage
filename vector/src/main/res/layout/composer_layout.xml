@@ -126,21 +126,21 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/composer_min_height">
 
         <ImageButton
             android:id="@+id/attachmentButton"
             android:layout_width="@dimen/composer_attachment_size"
             android:layout_height="@dimen/composer_attachment_size"
             android:layout_margin="@dimen/composer_attachment_margin"
+            android:layout_marginBottom="2dp"
             android:background="@null"
             android:contentDescription="@string/option_send_files"
             app:srcCompat="@drawable/ic_attachment"
-            app:layout_constraintBottom_toBottomOf="@id/sendButton"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/composerEditTextOuterBorder"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/sendButton"
-            app:layout_goneMarginBottom="57dp"
             tools:ignore="MissingPrefix" />
 
         <!-- Only the classic composer shows this; kept here so both layouts share ComposerLayoutBinding. -->

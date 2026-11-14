@@ -203,7 +203,7 @@
             android:paddingEnd="10dp"
             android:paddingRight="10dp"
             android:paddingBottom="4dp"
-            android:textColor="?vctr_content_secondary"
+            android:textColor="?vctr_floating_date_text_color"
             android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
