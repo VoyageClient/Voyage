@@ -62,7 +62,8 @@ class SpaceStateHandlerImpl @Inject constructor(
         val activeSession = session ?: activeSessionHolder.getSafeActiveSession() ?: return
         val spaceToLeave = selectedSpaceDataSource.currentValue?.orNull()
         val spaceToSet = spaceId?.let { activeSession.getRoomSummary(spaceId) }
-        val sameSpaceSelected = spaceId == spaceToLeave?.roomId
+        // Until the first post the flow has nothing to replay, so "All chats" must still be emitted then.
+        val sameSpaceSelected = selectedSpaceDataSource.currentValue != null && spaceId == spaceToLeave?.roomId
 
         if (persistNow) {
             uiStateRepository.storeSelectedSpace(spaceToSet?.roomId, activeSession.sessionId)

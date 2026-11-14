@@ -15,10 +15,12 @@ import im.vector.app.test.fakes.FakeVectorPreferences
 import im.vector.app.test.fixtures.RoomSummaryFixture.aRoomSummary
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Before
 import org.junit.Test
+import org.matrix.android.sdk.api.util.Optional
 
 internal class SpaceStateHandlerImplTest {
 
@@ -110,6 +112,15 @@ internal class SpaceStateHandlerImplTest {
         val currentSpace = spaceStateHandler.getSelectedSpaceFlow().first().orNull()
 
         currentSpace shouldBeEqualTo spaceSummary
+    }
+
+    @Test
+    fun `given nothing selected yet, when setCurrentSpace to all chats, then empty selection is emitted to selectedSpaceFlow`() = runTest {
+        spaceStateHandler.setCurrentSpace(null, session)
+
+        val emitted = withTimeoutOrNull(1_000) { spaceStateHandler.getSelectedSpaceFlow().first() }
+
+        emitted shouldBeEqualTo Optional.empty()
     }
 
     @Test
