@@ -86,12 +86,8 @@ class RedactedContentRestorer @Inject constructor(
             return null
         }
 
-        // copyAll (not copy): Event's decryption result, crypto error and thread details are transient
-        // vars outside the constructor, so a data-class copy would silently drop them.
-        //
-        // The type has to be restored too. A redacted encrypted event stays m.room.encrypted with its
-        // decryption result nulled, so getClearType()/getClearContent() would keep reporting it as
-        // undecryptable and route it to the encrypted renderer whatever content we put back.
+        // copyAll retains transient crypto and thread fields omitted by copy().
+        // Drop the pruned crypto payload so the restored content takes precedence.
         val restoredRoot = root.copyAll(
                 type = preserved.clearType?.takeIf { it.isNotEmpty() } ?: root.type,
                 content = preserved.content,

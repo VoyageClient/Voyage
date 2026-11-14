@@ -11,6 +11,7 @@ import android.view.Gravity
 import android.view.inputmethod.EditorInfo
 import com.airbnb.epoxy.EpoxyController
 import im.vector.app.R
+import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.ItemStyle
@@ -29,6 +30,7 @@ class CreatePollController @Inject constructor(
 ) : EpoxyController() {
 
     private var state: CreatePollViewState? = null
+    private var pendingFocusOption: Int? = null
     var callback: Callback? = null
 
     fun setData(state: CreatePollViewState) {
@@ -101,6 +103,16 @@ class CreatePollController @Inject constructor(
                 onDeleteClicked {
                     host.callback?.onDeleteOption(index)
                 }
+                onBind { _, holder, _ ->
+                    if (host.pendingFocusOption == index) {
+                        holder.textInputEditText.post {
+                            if (host.pendingFocusOption == index) {
+                                host.pendingFocusOption = null
+                                holder.textInputEditText.showKeyboard(andRequestFocus = true)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -113,6 +125,7 @@ class CreatePollController @Inject constructor(
                 bold(true)
                 highlight(false)
                 buttonClickAction {
+                    host.pendingFocusOption = host.state?.options?.size
                     host.callback?.onAddOption()
                 }
             }

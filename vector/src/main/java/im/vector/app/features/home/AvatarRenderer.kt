@@ -359,7 +359,7 @@ class AvatarRenderer @Inject constructor(
             decodeSize?.let { imageView.resources.getDimensionPixelSize(it) }
 
     // Spaces always render as rounded squares, regardless of the avatar-shape setting.
-    private fun shapeFor(matrixItem: MatrixItem): AvatarShape =
+    internal fun shapeFor(matrixItem: MatrixItem): AvatarShape =
             if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
 
     private fun avatarTransform(matrixItem: MatrixItem): Transformation<Bitmap> = when (val shape = shapeFor(matrixItem)) {

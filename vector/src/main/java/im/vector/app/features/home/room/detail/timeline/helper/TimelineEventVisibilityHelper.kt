@@ -137,10 +137,9 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     private fun TimelineEvent.shouldBeHidden(rootThreadEventId: String?, isFromThreadTimeline: Boolean, threadRootId: String?): Boolean {
-        // A revealed message is showing real content, so the "hide deleted messages" rules below
-        // must not apply to it — they would make revealing appear to do nothing at all. Unless what
-        // it reveals is an edit or reaction: their content shows applied on the target message, so
-        // the raw event hides like its unredacted self (visible only through show-hidden-events).
+        if (root.isRedacted() && root.isDebugOnlyType()) return true
+
+        // Restored messages bypass deletion filters; edits and reactions remain hidden.
         if (redactedContentRestorer.isShowingRestoredContent(this)) {
             return redactedContentRestorer.isRevealedHiddenEvent(this)
         }
@@ -191,7 +190,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     private fun TimelineEvent.isHiddenByVisibilityRules(): Boolean {
-        if (root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(this) &&
+        if (root.isRedacted() && !root.isDebugOnlyType() && !redactedContentRestorer.isShowingRestoredContent(this) &&
                 !userPreferencesProvider.shouldShowRedactedMessages(roomId) && root.threadDetails?.isRootThread == false) {
             return true
         }

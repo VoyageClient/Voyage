@@ -339,16 +339,10 @@ class ImageEditorView @JvmOverloads constructor(
     val canRedo get() = history.canRedo
 
     private fun beginPinch(event: MotionEvent) {
-        // The first finger already staked out a zero-size censor; abandoning the drag here would
-        // otherwise strand it in the list, invisible but enough to count as an edit.
+        // An unfinished box can count as an edit even when it has no visible area.
         if (dragMode == DragMode.CENSOR_CREATE) discardPendingCensor()
         abandonStroke()
         clearSnapGuides()
-        // A pinch is navigation: leave censor mode so the next one-finger drag pans, not paints.
-        if (tool == Tool.CENSOR) {
-            tool = Tool.CROP
-            onToolChanged?.invoke(Tool.CROP)
-        }
         if (tool == Tool.ROTATE) {
             twist.begin(event)
             twistNeedsBaseline = false

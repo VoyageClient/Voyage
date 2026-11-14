@@ -8,9 +8,14 @@
 package im.vector.app.core.ui.views
 
 import android.view.View
+import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import im.vector.app.features.home.avatar.AvatarShapes
+import im.vector.app.features.settings.AvatarShape
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import kotlin.math.roundToInt
 
 data class RoomBadgeConfig(
         val showEncryption: Boolean,
@@ -37,7 +42,6 @@ fun ShieldImageView.renderRoomShieldBadge(config: RoomBadgeConfig, summary: Room
     render(summary.badgeTrustLevel().takeIf { shouldShowRoomShield(config, it != null, publicShown) })
 }
 
-/** Returns whether the shield is shown. */
 fun renderRoomAvatarBadges(
         config: RoomBadgeConfig,
         trustLevel: RoomEncryptionTrustLevel?,
@@ -46,7 +50,19 @@ fun renderRoomAvatarBadges(
         isDirect: Boolean,
         avatarShield: ShieldImageView,
         publicBadge: View,
+        avatarView: ImageView,
+        avatarShape: AvatarShape,
 ): Boolean {
+    val size = minOf(avatarView.layoutParams.width, avatarView.layoutParams.height)
+    val radius = (size * AvatarShapes.badgeRadiusFraction(avatarShape) - avatarView.resources.displayMetrics.density)
+            .roundToInt().coerceAtLeast(0)
+    listOf(avatarShield, publicBadge).forEach { badge ->
+        val params = badge.layoutParams as ConstraintLayout.LayoutParams
+        if (params.circleRadius != radius) {
+            params.circleRadius = radius
+            badge.layoutParams = params
+        }
+    }
     val publicShown = config.showsPublic(isPublic, isDirect)
     publicBadge.isVisible = publicShown
     val shieldShown = shouldShowRoomShield(config, trustLevel != null || isPgp, publicShown)

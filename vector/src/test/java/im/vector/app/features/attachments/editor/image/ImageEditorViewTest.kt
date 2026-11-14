@@ -39,6 +39,60 @@ class ImageEditorViewTest {
         view.draw(Canvas(Bitmap.createBitmap(VIEW_SIZE, VIEW_SIZE, Bitmap.Config.ARGB_8888)))
     }
 
+    private fun pinch(fromSpan: Float, toSpan: Float) {
+        fun send(action: Int, span: Float) {
+            val pointers = Array(2) { index ->
+                MotionEvent.PointerProperties().apply {
+                    id = index
+                    toolType = MotionEvent.TOOL_TYPE_FINGER
+                }
+            }
+            val coordinates = Array(2) { index ->
+                MotionEvent.PointerCoords().apply {
+                    x = VIEW_SIZE / 2f + if (index == 0) -span / 2 else span / 2
+                    y = VIEW_SIZE / 2f
+                    pressure = 1f
+                    size = 1f
+                }
+            }
+            val event = MotionEvent.obtain(0, 10, action, 2, pointers, coordinates, 0, 0, 1f, 1f, 0, 0, 0, 0)
+            view.onTouchEvent(event)
+            event.recycle()
+        }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, VIEW_SIZE / 2f - fromSpan / 2, VIEW_SIZE / 2f, 0)
+        view.onTouchEvent(down)
+        down.recycle()
+        send(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), fromSpan)
+        send(MotionEvent.ACTION_MOVE, toSpan)
+        send(MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), toSpan)
+        val up = MotionEvent.obtain(0, 20, MotionEvent.ACTION_UP, VIEW_SIZE / 2f - toSpan / 2, VIEW_SIZE / 2f, 0)
+        view.onTouchEvent(up)
+        up.recycle()
+        view.draw(Canvas(Bitmap.createBitmap(VIEW_SIZE, VIEW_SIZE, Bitmap.Config.ARGB_8888)))
+    }
+
+    @Test
+    fun `pinching in and out keeps censor active without leaving a pending box`() {
+        givenImage()
+        view.tool = ImageEditorView.Tool.CENSOR
+
+        pinch(400f, 600f)
+
+        view.tool shouldBeEqualTo ImageEditorView.Tool.CENSOR
+        view.currentEdits().hasChanges shouldBeEqualTo false
+        drag(400f, 450f, 600f, 550f)
+        val zoomedInWidth = view.currentEdits().censors.single().rect.width()
+        view.deleteSelectedCensor()
+
+        pinch(600f, 400f)
+
+        view.tool shouldBeEqualTo ImageEditorView.Tool.CENSOR
+        view.currentEdits().censors.size shouldBeEqualTo 0
+        drag(400f, 450f, 600f, 550f)
+        val zoomedOutWidth = view.currentEdits().censors.single().rect.width()
+        (abs(zoomedOutWidth / zoomedInWidth - 1.5f) < 0.01f) shouldBeEqualTo true
+    }
+
     private fun drag(fromX: Float, fromY: Float, toX: Float, toY: Float) {
         dragBySteps(fromX, fromY, listOf(toX to toY))
     }

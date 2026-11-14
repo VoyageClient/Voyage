@@ -182,6 +182,58 @@ class EventSqlStoreTest {
     }
 
     @Test
+    fun `pruning encrypted poll responses keeps only their type and removes all decrypted content`() {
+        EventType.POLL_RESPONSE.values.forEachIndexed { index, type ->
+            val eventId = "\$response$index"
+            val id = store.insert(event(eventId, roomId = "!room:example.org", type = EventType.ENCRYPTED))
+            store.applyDecryptionResult(
+                    Event(eventId = eventId, roomId = "!room:example.org", type = EventType.ENCRYPTED),
+                    MXEventDecryptionResult(
+                            clearEvent = mapOf("type" to type, "content" to mapOf("answers" to listOf("option-a"))),
+                            senderCurve25519Key = "curveKey",
+                    )
+            )
+
+            store.updatePruned(id, "{}", """{"redacted_by":"${'$'}withdrawal"}""")
+
+            val pruned = store.getById(id)!!.asDomain()
+            pruned.isRedacted() shouldBeEqualTo true
+            pruned.type shouldBeEqualTo EventType.ENCRYPTED
+            pruned.getClearType() shouldBeEqualTo type
+            pruned.getClearContent() shouldBeEqualTo emptyMap<String, Any>()
+            pruned.mxDecryptionResult?.payload?.keys shouldBeEqualTo setOf("type", "content")
+            pruned.mxDecryptionResult?.wireContent.shouldBeNull()
+            pruned.mxDecryptionResult?.senderKey.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `pruning a decrypted membership event retains its allowed membership content`() {
+        val eventId = "\$membership"
+        val id = store.insert(event(eventId, roomId = "!room:example.org", type = EventType.ENCRYPTED).also {
+            it.stateKey = "m.room.member:@alice:example.org"
+        })
+        store.applyDecryptionResult(
+                Event(eventId = eventId, roomId = "!room:example.org", type = EventType.ENCRYPTED, stateKey = "m.room.member:@alice:example.org"),
+                MXEventDecryptionResult(
+                        clearEvent = mapOf(
+                                "type" to EventType.STATE_ROOM_MEMBER,
+                                "state_key" to "@alice:example.org",
+                                "content" to mapOf("membership" to "join", "displayname" to "Alice"),
+                        ),
+                        senderCurve25519Key = "curveKey",
+                )
+        )
+
+        store.updatePruned(id, """{"membership":"join"}""", """{"redacted_by":"${'$'}redaction"}""")
+
+        val pruned = store.getById(id)!!.asDomain()
+        pruned.getClearType() shouldBeEqualTo EventType.STATE_ROOM_MEMBER
+        pruned.getClearContent() shouldBeEqualTo mapOf("membership" to "join")
+        pruned.mxDecryptionResult.shouldBeNull()
+    }
+
+    @Test
     fun `applyDecryptionError records the failure`() {
         store.insert(event("\$enc", type = EventType.ENCRYPTED))
 

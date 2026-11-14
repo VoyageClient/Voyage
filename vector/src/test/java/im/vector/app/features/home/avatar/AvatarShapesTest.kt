@@ -18,6 +18,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -25,6 +27,26 @@ import org.robolectric.annotation.GraphicsMode
 class AvatarShapesTest {
 
     private val bounds = RectF(0f, 0f, 100f, 100f)
+
+    @Test
+    fun `badge anchors follow the lower right outline rather than a circle`() {
+        mapOf(
+                AvatarShape.CIRCLE to 0.5f,
+                AvatarShape.SQUARE to sqrt(0.5f),
+                AvatarShape.ROUNDED to (0.3f * sqrt(2f) + 0.2f),
+                AvatarShape.RHOMBUS to (0.25f * sqrt(2f)),
+                AvatarShape.OVAL to (sqrt(2f) / sqrt(1f / (0.36f * 0.36f) + 4f)),
+        ).forEach { (shape, expected) ->
+            withClue(shape) { (abs(AvatarShapes.badgeRadiusFraction(shape) - expected) < 0.002f).shouldBeTrue() }
+        }
+    }
+
+    @Test
+    fun `every badge anchor stays within the avatar bounds`() {
+        AvatarShape.values().forEach { shape ->
+            withClue(shape) { (AvatarShapes.badgeRadiusFraction(shape) in 0.2f..sqrt(0.5f)).shouldBeTrue() }
+        }
+    }
 
     @Test
     fun `every shape fills its bounds without escaping them`() {

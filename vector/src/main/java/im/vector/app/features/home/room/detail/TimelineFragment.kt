@@ -2048,6 +2048,8 @@ class TimelineFragment :
                             isDirect = roomSummary.isDirect,
                             avatarShield = views.includeRoomToolbar.roomToolbarAvatarShield,
                             publicBadge = views.includeRoomToolbar.roomToolbarPublicImageView,
+                            avatarView = views.includeRoomToolbar.roomToolbarAvatarImageView,
+                            avatarShape = avatarRenderer.shapeFor(toolbarMatrixItem),
                     )
                     views.includeRoomToolbar.roomToolbarPublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
                 }

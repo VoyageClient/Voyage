@@ -353,6 +353,8 @@ class RoomProfileFragment :
                         isDirect = it.isDirect,
                         avatarShield = headerViews.roomProfileAvatarShieldImageView,
                         publicBadge = headerViews.roomProfilePublicImageView,
+                        avatarView = headerViews.roomProfileAvatarView,
+                        avatarShape = avatarRenderer.shapeFor(matrixItem),
                 )
                 views.matrixProfileDecorationToolbarAvatarImageView.renderRoomShield(trustLevel.takeIf { shieldShown }, isPgp && shieldShown)
                 headerViews.roomProfilePublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)

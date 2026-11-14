@@ -8,11 +8,16 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+
+fun Event.isDebugOnlyType(): Boolean =
+        getClearType() !in TimelineDisplayableEvents.DISPLAYABLE_TYPES || getClearType() in EventType.BEACON_LOCATION_DATA.values
 
 /**
  * Whether the timeline draws this message as a "Debug" notice rather than its content: an edit event,

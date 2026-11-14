@@ -15,6 +15,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MergedTimelineEventVisibilityStateChangedListener
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
+import im.vector.app.features.home.room.detail.timeline.helper.isDebugOnlyType
 import im.vector.app.features.home.room.detail.timeline.helper.timelineMergeGroupType
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedCollapseFooterItem_
@@ -234,10 +235,9 @@ class MergedHeaderItemFactory @Inject constructor(
             rootThreadId: String?,
     ): Classification {
         // A revealed message is showing real content, so it must not be folded into the deleted summary.
-        val redacted = event.root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(event)
+        val redacted = event.root.isRedacted() && !event.root.isDebugOnlyType() && !redactedContentRestorer.isShowingRestoredContent(event)
         if (redacted) {
-            // A shown redaction groups into the redacted summary; a hidden one (e.g. a redacted reaction) is
-            // transparent so it neither fragments a surrounding run nor renders on its own.
+            // Hidden deleted messages stay transparent so they do not fragment surrounding runs.
             return if (shown) Classification.Run(RunKind.REDACTED, null) else Classification.Skip
         }
         if (timelineEventVisibilityHelper.isHiddenEvent(event, rootThreadId, isThread)) {

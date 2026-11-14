@@ -352,6 +352,22 @@ class MessagePreviewContentBuilderTest {
     }
 
     @Test
+    fun `redacted debug events retain their event type in previews without any message content`() {
+        val types = EventType.POLL_RESPONSE.values + EventType.BEACON_LOCATION_DATA.values + listOf(
+                EventType.KEY_VERIFICATION_KEY, EventType.CALL_CANDIDATES, EventType.REDACTION, EventType.REACTION, "com.example.debug",
+        )
+        every { noticeEventFormatter.formatDebugOrUnhandled(any()) } answers { "Debug ${firstArg<Event>().getClearType()}" }
+        types.forEach { type ->
+            val event = eventOf(emptyMap(), type, unsignedData = UnsignedData(age = null, redactedBy = "\$redaction"))
+            val preview = builder.build(event, options)
+            preview.textStyle shouldBeEqualTo TextStyle.NOTICE
+            preview.text?.charSequence.toString() shouldBeEqualTo "Debug $type"
+            preview.media shouldBe null
+            preview.poll shouldBe null
+        }
+    }
+
+    @Test
     fun `a redacted message previews the placeholder and no media`() {
         val event = eventOf(image, unsignedData = UnsignedData(age = null, redactedEvent = Event(type = EventType.REDACTION)))
         val preview = builder.build(event, options)

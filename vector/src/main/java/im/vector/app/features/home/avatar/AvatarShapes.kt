@@ -9,14 +9,34 @@ package im.vector.app.features.home.avatar
 
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Region
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.settings.AvatarShape
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
-/** The outline every avatar is drawn in, as a [Path], for whichever shape the user picked. */
 object AvatarShapes {
+
+    private val badgeRadii by lazy {
+        AvatarShape.STATIC.associateWith { shape ->
+            val extent = 2048
+            val region = Region().apply {
+                setPath(path(shape, RectF(0f, 0f, extent.toFloat(), extent.toFloat())), Region(0, 0, extent, extent))
+            }
+            var inside = extent / 2
+            var outside = extent
+            while (outside - inside > 1) {
+                val middle = (inside + outside) / 2
+                if (region.contains(middle, middle)) inside = middle else outside = middle
+            }
+            (outside.toFloat() / extent - 0.5f) * sqrt(2f)
+        }
+    }
+
+    // Keep badges stationary while animated avatars move.
+    fun badgeRadiusFraction(shape: AvatarShape): Float = if (shape.isAnimated) 0.5f else badgeRadii.getValue(shape)
 
     fun path(shape: AvatarShape, bounds: RectF, into: Path = Path()): Path {
         into.reset()
@@ -37,14 +57,13 @@ object AvatarShapes {
             AvatarShape.OCTAGON -> polygon(bounds, into, 8, ROTATION_POINT_UP)
             AvatarShape.NONAGON -> polygon(bounds, into, 9, ROTATION_POINT_UP)
             AvatarShape.DECAGON -> polygon(bounds, into, 10, ROTATION_POINT_UP)
-            // An animated shape carries its own silhouette; a caller that still needs an outline
-            // (a stroke ring, a preview cell) gets the square the frame is rendered into.
+            // Animated shapes have no fixed outline.
             else -> into.addRect(bounds, Path.Direction.CW)
         }
         return into
     }
 
-    // Narrower than the bounds, or in the square an avatar view always is it would be a circle.
+    // Reduce the width so oval avatars differ visibly from circles.
     private fun ovalBounds(bounds: RectF): RectF {
         val inset = bounds.width() * (1f - OVAL_WIDTH_FRACTION) / 2f
         return RectF(bounds.left + inset, bounds.top, bounds.right - inset, bounds.bottom)
@@ -56,14 +75,7 @@ object AvatarShapes {
         into.close()
     }
 
-    /**
-     * A regular [sides]-gon, scaled so its own bounding box fits [bounds] rather than the circle it
-     * is inscribed in — a triangle inscribed in the avatar's circle reads as much smaller than the
-     * other shapes at the same view size.
-     *
-     * The scale is uniform so the polygon stays regular. A hexagon's box is a sixth narrower than
-     * it is tall, and stretching it to fill a square deforms it visibly.
-     */
+    // Fit the polygon's bounding box without stretching its proportions.
     private fun polygon(bounds: RectF, into: Path, sides: Int, rotationRad: Float) {
         val step = 2.0 * PI / sides
         var minX = Float.MAX_VALUE

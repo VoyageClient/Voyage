@@ -104,6 +104,7 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         renderRoomAvatarBadges(
                 badgeConfig, encryptionTrustLevel, izPgp, izPublic, izDirect,
                 holder.roomAvatarDecorationImageView, holder.roomAvatarPublicDecorationImageView,
+                holder.avatarImageView, avatarRenderer.shapeFor(matrixItem),
         )
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending

@@ -6,8 +6,8 @@
 -->
 <!-- The globe sits on a padded background circle, so its box is larger than the shield's for the same visual size. -->
 <resources>
-    <dimen name="room_badge_list_shield_size">16dp</dimen>
-    <dimen name="room_badge_list_globe_size">18dp</dimen>
+    <dimen name="room_badge_list_shield_size">18dp</dimen>
+    <dimen name="room_badge_list_globe_size">20dp</dimen>
     <dimen name="room_badge_list_globe_padding">1dp</dimen>
 
     <dimen name="room_badge_toolbar_shield_size">16dp</dimen>

@@ -20,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -127,6 +128,46 @@ class TimelineVisibilityPreferencesTest {
 
         preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.PROFILE_CHANGES, false)
         isShown(changed) shouldBeEqualTo false
+    }
+
+    @Test
+    fun `withdrawn poll responses stay hidden while redaction events follow hidden events`() {
+        storage.edit().putBoolean("SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY", true).apply()
+        preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.REDACTED, true)
+        EventType.POLL_RESPONSE.values.forEach { type ->
+            val response = event(type).let {
+                it.copy(root = it.root.copy(stateKey = null, unsignedData = UnsignedData(age = null, redactedBy = "\$withdrawal")))
+            }
+            val redaction = event(EventType.REDACTION)
+            preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.HIDDEN_EVENTS, false)
+            isShown(response) shouldBeEqualTo false
+            isShown(redaction) shouldBeEqualTo false
+
+            preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.HIDDEN_EVENTS, true)
+            isShown(response) shouldBeEqualTo true
+            isShown(redaction) shouldBeEqualTo true
+            visibility.isHiddenEvent(response, null, false) shouldBeEqualTo true
+            visibility.isHiddenEvent(redaction, null, false) shouldBeEqualTo true
+        }
+    }
+
+    @Test
+    fun `redacted debug events follow hidden events even when deleted messages are hidden`() {
+        storage.edit().putBoolean("SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY", true).apply()
+        preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.REDACTED, false)
+        val types = EventType.POLL_RESPONSE.values + EventType.BEACON_LOCATION_DATA.values + listOf(
+                EventType.KEY_VERIFICATION_KEY, EventType.CALL_CANDIDATES, EventType.REDACTION, "com.example.debug",
+        )
+        types.forEach { type ->
+            val debug = event(type).let {
+                it.copy(root = it.root.copy(stateKey = null, unsignedData = UnsignedData(age = null, redactedBy = "\$redaction")))
+            }
+            preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.HIDDEN_EVENTS, false)
+            isShown(debug) shouldBeEqualTo false
+            preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.HIDDEN_EVENTS, true)
+            isShown(debug) shouldBeEqualTo true
+            visibility.isHiddenEvent(debug, null, false) shouldBeEqualTo true
+        }
     }
 
     @Test

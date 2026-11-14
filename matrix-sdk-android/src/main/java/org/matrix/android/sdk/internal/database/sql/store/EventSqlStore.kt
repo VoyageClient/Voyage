@@ -328,7 +328,14 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun applyDecryptionError(eventId: String, errorCode: String?, errorReason: String?) =
             queries.updateDecryptionErrorByEventId(errorCode, errorReason, eventId)
 
-    fun updatePruned(id: Long, content: String?, unsignedData: String?) = queries.updatePrunedById(content, unsignedData, id)
+    fun updatePruned(id: Long, content: String?, unsignedData: String?) {
+        // Keep the type so redacted encrypted relations still obey their timeline visibility rules.
+        val clearType = getById(id)?.takeIf { it.type == EventType.ENCRYPTED && it.stateKey == null }?.asDomain()?.getDecryptedType()
+        val prunedResult = clearType?.let {
+            OlmDecryptionResult(payload = mapOf("type" to it, "content" to emptyMap<String, Any>()))
+        }
+        queries.updatePrunedById(content, unsignedData, prunedResult?.let { resultAdapter.toJson(it) }, id)
+    }
 
     fun updateUnsignedData(id: Long, unsignedData: String?) = queries.updateUnsignedDataById(unsignedData, id)
 

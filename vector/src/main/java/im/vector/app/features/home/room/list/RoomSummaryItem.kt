@@ -143,6 +143,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         renderRoomAvatarBadges(
                 badgeConfig, encryptionTrustLevel, izPgp, izPublic, izDirect,
                 holder.roomAvatarDecorationImageView, holder.roomAvatarPublicDecorationImageView,
+                holder.avatarImageView, avatarRenderer.shapeFor(matrixItem),
         )
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending

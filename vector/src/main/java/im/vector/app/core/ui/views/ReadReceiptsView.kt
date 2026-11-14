@@ -14,10 +14,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.databinding.ViewReadReceiptsBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.avatar.AvatarShapeBackgroundDrawable
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.toMatrixItem
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -50,8 +53,15 @@ class ReadReceiptsView @JvmOverloads constructor(
         receiptAvatars.forEach { it.isVisible = false }
 
         readReceipts.take(MAX_RECEIPT_DISPLAYED).forEachIndexed { index, receiptData ->
-            receiptAvatars[index].isVisible = true
-            avatarRenderer.render(receiptData.toMatrixItem(), receiptAvatars[index])
+            val avatar = receiptAvatars[index]
+            val matrixItem = receiptData.toMatrixItem()
+            val shape = avatarRenderer.shapeFor(matrixItem)
+            avatar.isVisible = true
+            // Animated avatars have no fixed outline to use as a backing.
+            avatar.backgroundCompat = if (shape.isAnimated) null else AvatarShapeBackgroundDrawable(
+                    shape, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_header_background)
+            )
+            avatarRenderer.render(matrixItem, avatar)
         }
 
         val displayNames = readReceipts

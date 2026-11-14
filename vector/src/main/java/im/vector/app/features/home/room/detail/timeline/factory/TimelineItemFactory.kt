@@ -15,6 +15,7 @@ import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
+import im.vector.app.features.home.room.detail.timeline.helper.isDebugOnlyType
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -78,8 +79,9 @@ class TimelineItemFactory @Inject constructor(
                 )
             }
 
-            // The per-type factories below assume content that redaction has already stripped.
-            if (event.root.isRedacted()) {
+            if (event.root.isRedacted() && event.root.isDebugOnlyType()) {
+                defaultItemFactory.create(params)
+            } else if (event.root.isRedacted()) {
                 if (event.root.isStateEvent()) {
                     noticeItemFactory.create(params)
                 } else {

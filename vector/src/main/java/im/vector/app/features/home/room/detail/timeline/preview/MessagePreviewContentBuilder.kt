@@ -20,6 +20,7 @@ import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormat
 import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.helper.MessageSuffixFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.PollResponseDataFactory
+import im.vector.app.features.home.room.detail.timeline.helper.isDebugOnlyType
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
@@ -127,6 +128,9 @@ class MessagePreviewContentBuilder @Inject constructor(
         val event = redactedContentRestorer.restoreEvent(rawEvent) ?: rawEvent
         val base = empty(event)
         if (event.root.isRedacted()) {
+            if (event.root.isDebugOnlyType()) {
+                return base.notice(noticeEventFormatter.formatDebugOrUnhandled(event.root))
+            }
             return base.copy(text = noticeEventFormatter.formatRedactedEvent(event.root).toEpoxyCharSequence(), textStyle = TextStyle.REDACTED)
         }
         if (event.root.getClearType() == EventType.ENCRYPTED) {
