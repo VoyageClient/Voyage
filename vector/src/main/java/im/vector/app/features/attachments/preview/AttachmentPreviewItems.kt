@@ -411,6 +411,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private var listener: VideoPlaybackListener? = null
         private val ticker = Runnable { onTick() }
 
+        private fun isVideoShowing() = videoUri != null && videoView.isVisible && videoView.alpha == 1f && !waitingForFirstFrame
+
         fun setGenericFile(name: String?) {
             fileNameView.isVisible = name != null
             if (name != null) {
@@ -492,7 +494,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             // The screen behind holds the blurred cover; a black page would hide all of it.
             view.setBackgroundColor(if (uri == null) Color.BLACK else Color.TRANSPARENT)
             // Nothing to show behind a waveform: the icon the file branch puts up is not the page.
-            bigImageView.isVisible = uri == null
+            // Nor over a playing video, which a rebind would otherwise cover for good.
+            bigImageView.isVisible = uri == null && !isVideoShowing()
             if (uri == null) {
                 view.setOnTouchListener(null)
                 showDetails(null)
@@ -719,6 +722,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                         player.seekToPrecise(0)
                         lastReportedPositionMs = 0
                     }
+                    // Whatever left the poster over a live player, the next frame takes it down.
+                    if (videoUri != null && bigImageView.isVisible) {
+                        waitingForFirstFrame = true
+                        videoView.isVisible = true
+                    }
                     player.start()
                     startTicking()
                 }
@@ -834,8 +842,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             if (videoUri != null && activeSurface == null) return
             if (videoUri != null) AttachmentViewerActivity.dismissPictureInPicture()
             releasePlayer()
-            // A rebind lays the poster back over the video and only surface-destroyed re-arms the
-            // reveal — a quick trip through another activity can keep the surface alive, so arm here.
+            // Only surface-destroyed re-arms the reveal, and a quick trip through another activity can
+            // keep the surface alive, so a poster that is up is armed here.
             if (videoUri != null && bigImageView.isVisible) waitingForFirstFrame = true
             try {
                 mediaPlayer = MediaPlayer().apply {
@@ -850,7 +858,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     setOnPreparedListener {
                         isPrepared = true
                         if (endFrameMs < 0) {
-                            Thread({ endFrameMs = VideoLastFrame.probeMs(view.context, uri.toString()) }, "video-end-probe").start()
+                            Thread({
+                                val probedMs = VideoLastFrame.probeMs(view.context, uri.toString())
+                                // The holder may have moved on to another clip, whose end this is not.
+                                view.post { if ((videoUri ?: audioUri) == uri) endFrameMs = probedMs }
+                            }, "video-end-probe").start()
                         }
                         videoView.setVideoSize(this@Holder.videoWidth, this@Holder.videoHeight)
                         val resuming = resumePositionMs > 0

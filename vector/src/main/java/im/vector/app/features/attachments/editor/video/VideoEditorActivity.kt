@@ -672,10 +672,20 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             views.videoEditorTimeline.setTrim(startUs, endUs)
             updateScrubberRange()
             updateDurationLabel()
+            player?.let { applyTrimToOpenPlayer(it) }
             sourceInfo = info
             invalidateOptionsMenu()
             startHistory()
             extractThumbnails()
+        }
+    }
+
+    /** The surface can open the player before the probe lands, on the first frame rather than the trim. */
+    private fun applyTrimToOpenPlayer(player: EditorPreviewPlayer) {
+        if (player.isPlaying) {
+            player.setPlaybackRange(startUs, endUs.takeIf { it > startUs } ?: durationUs)
+        } else if (player.positionUs !in startUs..endUs) {
+            seekTo(startUs)
         }
     }
 

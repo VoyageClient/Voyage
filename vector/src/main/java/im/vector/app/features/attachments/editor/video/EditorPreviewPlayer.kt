@@ -15,6 +15,8 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.Surface
 import androidx.annotation.RequiresApi
@@ -126,6 +128,17 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
     private var pendingPrecise = true
     private var preciseSeeks = true
 
+    /** False while the picture is only the keyframe an imprecise seek landed on, short of its target. */
+    private var positionExact = true
+
+    private val handler = Handler(Looper.getMainLooper())
+
+    // ExoPlayer drops a seek that resolves to its current position without rendering, stranding the queued one.
+    private val flushStalledSeek = Runnable {
+        seekInFlightAt = 0
+        pendingSeekUs?.let { issueSeek(it) }
+    }
+
     // Whether playback is *meant* to be running, not whether frames are moving this instant: a press is
     // followed by buffering, and reading the live state there left the play/pause button showing "play"
     // on a clip that had just been restarted.
@@ -168,6 +181,7 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
         // Frame-exact, for a per-frame view whose whole point is landing on one.
         exo.setSeekParameters(SeekParameters.EXACT)
         preciseSeeks = true
+        positionExact = true
         exo.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
@@ -182,6 +196,7 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
 
             override fun onRenderedFirstFrame() {
                 // A seek renders a frame, which is the only honest signal that it finished.
+                handler.removeCallbacks(flushStalledSeek)
                 seekInFlightAt = 0
                 pendingSeekUs?.let { issueSeek(it) }
             }
@@ -220,8 +235,10 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
                 )
             }
         }.build()
+        handler.removeCallbacks(flushStalledSeek)
         seekInFlightAt = 0
         pendingSeekUs = null
+        positionExact = true
         rangeStartUs = if (ranged) startUs else 0L
         rangeEndUs = if (ranged) endUs else 0L
         this.ranged = ranged
@@ -231,6 +248,8 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
     }
 
     override fun play() {
+        // Playing decodes every frame, so the picture catches up with the position.
+        positionExact = true
         player?.play()
     }
 
@@ -247,8 +266,11 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
     override fun seekTo(us: Long, precise: Boolean) {
         if (player == null) return
         pendingPrecise = precise
-        if (seekInFlightAt != 0L && SystemClock.uptimeMillis() - seekInFlightAt < SEEK_STALL_MS) {
+        val inFlightMs = SystemClock.uptimeMillis() - seekInFlightAt
+        if (seekInFlightAt != 0L && inFlightMs < SEEK_STALL_MS) {
             pendingSeekUs = us
+            handler.removeCallbacks(flushStalledSeek)
+            handler.postDelayed(flushStalledSeek, SEEK_STALL_MS - inFlightMs)
             return
         }
         issueSeek(us)
@@ -256,13 +278,15 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
 
     private fun issueSeek(us: Long) {
         val exo = player ?: return
+        handler.removeCallbacks(flushStalledSeek)
         pendingSeekUs = null
-        // A seek onto the frame already shown renders nothing, so nothing would report it finished.
-        if (exo.currentPosition == msIn(us)) return
+        // A seek onto the frame already shown renders nothing — unless that is only a keyframe short of it.
+        if (exo.currentPosition == msIn(us) && (positionExact || !pendingPrecise)) return
         if (preciseSeeks != pendingPrecise) {
             preciseSeeks = pendingPrecise
             exo.setSeekParameters(if (preciseSeeks) SeekParameters.EXACT else SeekParameters.CLOSEST_SYNC)
         }
+        positionExact = pendingPrecise
         seekInFlightAt = SystemClock.uptimeMillis()
         exo.seekTo(msIn(us))
     }
@@ -279,6 +303,7 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
     }
 
     override fun release() {
+        handler.removeCallbacks(flushStalledSeek)
         player?.release()
         player = null
         listener = null

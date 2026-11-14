@@ -143,8 +143,9 @@ Never put literal `\n` or `\n\n` in a quoted `-m` argument; the shell passes tho
 
 Never include test or lint pass results, test counts, or routine validation summaries in commit messages. Report those results in the conversation instead. This restriction does not apply when the commit itself changes tests or fixes lint issues.
 
-`CHANGES.md` is a separate, curated highlights list — NOT a per-commit log. When you land a change worth surfacing to users, add it there too:
+`CHANGES.md` is a separate, curated highlights list — NOT a per-commit log. Never add a `CHANGES.md` entry unless the user explicitly asks for one. When asked:
 
+- Keep each entry to 1-2 sentences saying what the change is, not how it works.
 - Include new **features**, user-facing **improvements**, notable **feature removals**, and **significant bugfixes** (crashes, freezes, data loss, can't-log-in / can't-send). Do NOT list routine bugfixes, and do NOT list a fix for a regression we introduced ourselves (fixing our own not-yet-released breakage is not a changelog-worthy bugfix).
 - Group related entries by area and place your new entry next to similar ones; within that, lead with the most impactful. User-facing entries come first (under `## Features & improvements`, with `### Removals` / `### Branding` subsections), then technical/under-the-hood changes (`## Under the hood`), then `## Significant bugfixes`.
 - Do not mention specific app version numbers or upstream-sync versions.
