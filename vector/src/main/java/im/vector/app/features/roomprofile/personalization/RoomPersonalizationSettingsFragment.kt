@@ -280,6 +280,9 @@ class RoomPersonalizationSettingsFragment :
         }
     }
 
+    private val timelineCategory
+        get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_TIMELINE_CATEGORY_KEY)
+
     private fun setUpTimelineOverrides() {
         VectorPreferences.TimelineVisibilityRule.values().forEach { rule ->
             bindTriState(rule.roomPreferenceKey, vectorPreferences.getRoomTimelineVisibilityOverride(roomId, rule)) {
@@ -287,8 +290,33 @@ class RoomPersonalizationSettingsFragment :
                 if (rule == VectorPreferences.TimelineVisibilityRule.HIDDEN_EVENTS) {
                     updateTimelineDebugPreferences()
                 }
+                refreshTimelineResetState()
             }
         }
+        timelineCategory?.actionClickListener = {
+            AlertDialog.Builder(requireContext())
+                    .setTitle(CommonStrings.action_reset)
+                    .setMessage(CommonStrings.room_personalization_timeline_reset_confirmation)
+                    .setPositiveButton(CommonStrings.action_reset) { _, _ -> resetTimelineOverrides() }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
+        refreshTimelineResetState()
+        updateTimelineDebugPreferences()
+    }
+
+    private fun refreshTimelineResetState() {
+        timelineCategory?.isActionEnabled = VectorPreferences.TimelineVisibilityRule.values().any {
+            vectorPreferences.getRoomTimelineVisibilityOverride(roomId, it) != null
+        }
+    }
+
+    private fun resetTimelineOverrides() {
+        VectorPreferences.TimelineVisibilityRule.values().forEach { rule ->
+            vectorPreferences.setRoomTimelineVisibilityOverride(roomId, rule, null)
+            findPreference<VectorListPreference>(rule.roomPreferenceKey)?.value = INHERIT
+        }
+        refreshTimelineResetState()
         updateTimelineDebugPreferences()
     }
 
@@ -633,6 +661,7 @@ class RoomPersonalizationSettingsFragment :
         // Selected when a room defers to the account-wide value; never persisted as an override.
         private const val INHERIT = "inherit"
 
+        private const val SETTINGS_ROOM_TIMELINE_CATEGORY_KEY = "SETTINGS_ROOM_TIMELINE_CATEGORY_KEY"
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
         private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"
         private const val SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY = "SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"

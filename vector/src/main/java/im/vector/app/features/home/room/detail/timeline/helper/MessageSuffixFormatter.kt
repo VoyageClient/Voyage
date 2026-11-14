@@ -17,6 +17,7 @@ import android.view.View
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.app.features.translation.TranslationLanguages
 import im.vector.lib.strings.CommonStrings
@@ -27,6 +28,7 @@ class MessageSuffixFormatter @Inject constructor(
         private val stringProvider: StringProvider,
         private val colorProvider: ColorProvider,
         private val dimensionConverter: DimensionConverter,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     /** [body] followed by each marker that applies; [onEditedClick] makes "(edited)" tappable. */
@@ -34,9 +36,11 @@ class MessageSuffixFormatter @Inject constructor(
             body: CharSequence,
             edited: Boolean,
             translation: MessageTranslationStore.Translation?,
+            roomId: String?,
             onEditedClick: (() -> Unit)? = null,
     ): CharSequence {
         if (!edited && translation == null) return body
+        if (!vectorPreferences.showMessageMarkers(roomId)) return body
         val text = SpannableStringBuilder(body)
         if (edited) appendSuffix(text, stringProvider.getString(CommonStrings.edited_suffix), onEditedClick)
         if (translation != null) appendSuffix(text, translatedSuffix(translation), null)
@@ -44,8 +48,13 @@ class MessageSuffixFormatter @Inject constructor(
     }
 
     /** The markers alone, for a body drawn elsewhere (a table or code block); null when none apply. */
-    fun footer(edited: Boolean, translation: MessageTranslationStore.Translation?, onEditedClick: (() -> Unit)? = null): CharSequence? {
-        val annotated = annotate("", edited, translation, onEditedClick)
+    fun footer(
+            edited: Boolean,
+            translation: MessageTranslationStore.Translation?,
+            roomId: String?,
+            onEditedClick: (() -> Unit)? = null,
+    ): CharSequence? {
+        val annotated = annotate("", edited, translation, roomId, onEditedClick)
         return annotated.takeIf { it.isNotEmpty() }?.subSequence(1, annotated.length)
     }
 

@@ -28,6 +28,7 @@ import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.withoutTrailingLineBreak
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
 import io.mockk.every
@@ -79,6 +80,10 @@ class MessagePreviewContentBuilderTest {
     private val activeSessionHolder = mockk<ActiveSessionHolder>().also {
         every { it.getSafeActiveSession() } returns null
     }
+    private var showMarkers = true
+    private val markerPreferences = mockk<VectorPreferences>().also {
+        every { it.showMessageMarkers(any()) } answers { showMarkers }
+    }
 
     private val builder = MessagePreviewContentBuilder(
             activeSessionHolder = activeSessionHolder,
@@ -104,6 +109,7 @@ class MessagePreviewContentBuilderTest {
                     },
                     ColorProvider(context),
                     DimensionConverter(context.resources),
+                    markerPreferences,
             ),
             eventDetailsFormatter = EventDetailsFormatter(context),
             pollItemViewStateFactory = PollItemViewStateFactory(
@@ -406,6 +412,18 @@ class MessagePreviewContentBuilderTest {
         val preview = build(html("t", "<table><tr><td>a</td></tr></table>"), edited = true)
         preview.richSegments shouldNotBe null
         preview.richFooter?.charSequence.toString() shouldBeEqualTo "(edited) (translated)"
+    }
+
+    @Test
+    fun `hiding markers drops both the edited and translated labels`() {
+        showMarkers = false
+        build(mapOf("msgtype" to "m.text", "body" to "hello"), edited = true).text?.charSequence.toString() shouldBeEqualTo "hello"
+
+        every { translationStore.get(any<TimelineEvent>()) } returns
+                MessageTranslationStore.Translation("t", null, "es", formatted = "<table><tr><td>b</td></tr></table>")
+        val preview = build(html("t", "<table><tr><td>a</td></tr></table>"), edited = true)
+        preview.richSegments shouldNotBe null
+        preview.richFooter shouldBe null
     }
 
     @Test

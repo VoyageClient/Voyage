@@ -3650,4 +3650,7 @@
     <string name="home_export_logs">لاگز برآمد کریں</string>
     <string name="home_export_logs_done">لاگز محفوظ ہو گئے</string>
     <string name="home_export_logs_failed">لاگز برآمد نہیں ہو سکے</string>
+    <string name="settings_show_message_markers">ترمیم اور ترجمے کے لیبل دکھائیں</string>
+    <string name="settings_show_message_markers_summary">پیغام کے بعد \"(ترمیم شدہ)\" اور اصل زبان دکھائیں</string>
+    <string name="room_personalization_timeline_reset_confirmation">اس کمرے کی ٹائم لائن ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
 </resources>

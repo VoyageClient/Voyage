@@ -3749,4 +3749,7 @@
     <string name="home_export_logs">Logs exportieren</string>
     <string name="home_export_logs_done">Logs gespeichert</string>
     <string name="home_export_logs_failed">Die Logs konnten nicht exportiert werden</string>
+    <string name="settings_show_message_markers">Hinweise auf Bearbeitung und Übersetzung anzeigen</string>
+    <string name="settings_show_message_markers_summary">\"(bearbeitet)\" und die Originalsprache hinter einer Nachricht anzeigen</string>
+    <string name="room_personalization_timeline_reset_confirmation">Zeitleisten-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
 </resources>

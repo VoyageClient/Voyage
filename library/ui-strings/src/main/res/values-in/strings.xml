@@ -3677,4 +3677,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="home_export_logs">Ekspor catatan</string>
     <string name="home_export_logs_done">Catatan disimpan</string>
     <string name="home_export_logs_failed">Tidak dapat mengekspor catatan</string>
+    <string name="settings_show_message_markers">Tampilkan label diedit dan diterjemahkan</string>
+    <string name="settings_show_message_markers_summary">Tampilkan \"(diedit)\" dan bahasa asli setelah pesan</string>
+    <string name="room_personalization_timeline_reset_confirmation">Setel ulang pengaturan lini masa ruangan ini ke yang berlaku di seluruh akun?</string>
 </resources>

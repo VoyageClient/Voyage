@@ -3677,4 +3677,7 @@
     <string name="home_export_logs">导出日志</string>
     <string name="home_export_logs_done">日志已保存</string>
     <string name="home_export_logs_failed">无法导出日志</string>
+    <string name="settings_show_message_markers">显示已编辑和已翻译标记</string>
+    <string name="settings_show_message_markers_summary">在消息后显示“（已编辑）”和原始语言</string>
+    <string name="room_personalization_timeline_reset_confirmation">将此房间的时间线设置重置为账户全局设置？</string>
 </resources>

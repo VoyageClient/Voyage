@@ -3679,4 +3679,7 @@
     <string name="home_export_logs">匯出紀錄</string>
     <string name="home_export_logs_done">已儲存紀錄</string>
     <string name="home_export_logs_failed">無法匯出紀錄</string>
+    <string name="settings_show_message_markers">顯示已編輯與已翻譯標記</string>
+    <string name="settings_show_message_markers_summary">在訊息後顯示「（已編輯）」與原始語言</string>
+    <string name="room_personalization_timeline_reset_confirmation">要將此聊天室的時間軸設定重設為帳號層級的設定嗎？</string>
 </resources>

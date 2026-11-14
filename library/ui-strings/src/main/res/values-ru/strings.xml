@@ -3892,4 +3892,7 @@
     <string name="home_export_logs">Экспорт логов</string>
     <string name="home_export_logs_done">Логи сохранены</string>
     <string name="home_export_logs_failed">Не удалось экспортировать логи</string>
+    <string name="settings_show_message_markers">Показывать пометки об изменении и переводе</string>
+    <string name="settings_show_message_markers_summary">Показывать «(изменено)» и исходный язык после сообщения</string>
+    <string name="room_personalization_timeline_reset_confirmation">Вернуть настройки ленты сообщений этой комнаты к настройкам вашей учётной записи?</string>
 </resources>

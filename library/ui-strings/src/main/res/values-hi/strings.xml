@@ -3638,4 +3638,7 @@
     <string name="home_export_logs">लॉग एक्सपोर्ट करें</string>
     <string name="home_export_logs_done">लॉग सहेजे गए</string>
     <string name="home_export_logs_failed">लॉग एक्सपोर्ट नहीं हो सके</string>
+    <string name="settings_show_message_markers">संपादित और अनुवादित लेबल दिखाएं</string>
+    <string name="settings_show_message_markers_summary">संदेश के बाद \"(संपादित)\" और मूल भाषा दिखाएं</string>
+    <string name="room_personalization_timeline_reset_confirmation">इस रूम की टाइमलाइन सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
 </resources>

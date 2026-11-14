@@ -3941,4 +3941,7 @@
     <string name="home_export_logs">صدّر السجلات</string>
     <string name="home_export_logs_done">حُفظت السجلات</string>
     <string name="home_export_logs_failed">تعذّر تصدير السجلات</string>
+    <string name="settings_show_message_markers">اعرض علامات التعديل والترجمة</string>
+    <string name="settings_show_message_markers_summary">اعرض \"(معدّلة)\" واللغة الأصلية بعد الرسالة</string>
+    <string name="room_personalization_timeline_reset_confirmation">أتريد إعادة إعدادات الخط الزمني لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
 </resources>

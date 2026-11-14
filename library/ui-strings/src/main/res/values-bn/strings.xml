@@ -3710,4 +3710,7 @@
     <string name="home_export_logs">লগ এক্সপোর্ট</string>
     <string name="home_export_logs_done">লগ সংরক্ষিত হয়েছে</string>
     <string name="home_export_logs_failed">লগ এক্সপোর্ট করা যায়নি</string>
+    <string name="settings_show_message_markers">সম্পাদিত ও অনূদিত লেবেল দেখান</string>
+    <string name="settings_show_message_markers_summary">বার্তার পরে \"(সম্পাদিত)\" ও মূল ভাষা দেখান</string>
+    <string name="room_personalization_timeline_reset_confirmation">এই রুমের টাইমলাইন সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
 </resources>

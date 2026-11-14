@@ -225,6 +225,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_ACL_EVENTS_KEY = "SETTINGS_SHOW_ACL_EVENTS_KEY"
         private const val SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY = "SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY"
         private const val SETTINGS_SHOW_REACTIONS_KEY = "SETTINGS_SHOW_REACTIONS_KEY"
+        private const val SETTINGS_SHOW_MESSAGE_MARKERS_KEY = "SETTINGS_SHOW_MESSAGE_MARKERS_KEY"
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
@@ -415,6 +416,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY,
                 SETTINGS_SHOW_ACL_EVENTS_KEY,
                 SETTINGS_SHOW_REACTIONS_KEY,
+                SETTINGS_SHOW_MESSAGE_MARKERS_KEY,
                 SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY,
                 SETTINGS_SEND_MESSAGE_WITH_ENTER,
                 SETTINGS_SHOW_EMOJI_KEYBOARD,
@@ -780,6 +782,7 @@ class VectorPreferences @Inject constructor(
         PROFILE_CHANGES(SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY, true),
         ACL(SETTINGS_SHOW_ACL_EVENTS_KEY, false),
         REACTIONS(SETTINGS_SHOW_REACTIONS_KEY, false),
+        MESSAGE_MARKERS(SETTINGS_SHOW_MESSAGE_MARKERS_KEY, true),
         HIDDEN_EVENTS(SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY, false),
         HIDDEN_THREAD_EVENTS(SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY, false);
 
@@ -826,6 +829,11 @@ class VectorPreferences @Inject constructor(
 
     fun showReactions(roomId: String? = null): Boolean {
         return timelineVisibility(TimelineVisibilityRule.REACTIONS, roomId)
+    }
+
+    /** Whether "(edited)" and the translation-language label follow message bodies. */
+    fun showMessageMarkers(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.MESSAGE_MARKERS, roomId)
     }
 
     /**

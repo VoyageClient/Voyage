@@ -1225,7 +1225,7 @@ class MessageItemFactory @Inject constructor(
                         richBodyRenderer(richMessageBodyRenderer)
                         htmlPostProcessors(arrayOf(pillsPostProcessor.forEvent(informationData.originServerTs)))
                         richReplyHeader(richReplyHeader)
-                        messageSuffixFormatter.footer(informationData.hasBeenEdited, translation) {
+                        messageSuffixFormatter.footer(informationData.hasBeenEdited, translation, roomId) {
                             callback?.onEditedDecorationClicked(informationData)
                         }?.let { richFooter(it) }
                         urlClickCallback(callback)
@@ -1273,7 +1273,7 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             informationData: MessageInformationData,
             translation: im.vector.app.features.translation.MessageTranslationStore.Translation?,
-    ): CharSequence = messageSuffixFormatter.annotate(body, informationData.hasBeenEdited, translation) {
+    ): CharSequence = messageSuffixFormatter.annotate(body, informationData.hasBeenEdited, translation, roomId) {
         callback?.onEditedDecorationClicked(informationData)
     }
 
@@ -1281,7 +1281,7 @@ class MessageItemFactory @Inject constructor(
             linkifiedBody: CharSequence,
             callback: TimelineEventController.Callback?,
             informationData: MessageInformationData,
-    ): CharSequence = messageSuffixFormatter.annotate(linkifiedBody, edited = true, translation = null) {
+    ): CharSequence = messageSuffixFormatter.annotate(linkifiedBody, edited = true, translation = null, roomId = roomId) {
         callback?.onEditedDecorationClicked(informationData)
     }
 

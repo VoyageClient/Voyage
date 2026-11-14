@@ -3861,4 +3861,7 @@
     <string name="home_export_logs">ייצוא יומנים</string>
     <string name="home_export_logs_done">היומנים נשמרו</string>
     <string name="home_export_logs_failed">לא ניתן היה לייצא את היומנים</string>
+    <string name="settings_show_message_markers">הצג תוויות של עריכה ותרגום</string>
+    <string name="settings_show_message_markers_summary">הצג \"(נערך)\" ואת שפת המקור אחרי הודעה</string>
+    <string name="room_personalization_timeline_reset_confirmation">לאפס את הגדרות ציר הזמן של חדר זה לאלה של החשבון כולו?</string>
 </resources>

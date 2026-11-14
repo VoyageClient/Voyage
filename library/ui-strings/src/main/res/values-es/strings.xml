@@ -3738,4 +3738,7 @@
     <string name="home_export_logs">Exportar registros</string>
     <string name="home_export_logs_done">Registros guardados</string>
     <string name="home_export_logs_failed">No se pudieron exportar los registros</string>
+    <string name="settings_show_message_markers">Mostrar etiquetas de editado y traducido</string>
+    <string name="settings_show_message_markers_summary">Mostrar \"(editado)\" y el idioma original después de un mensaje</string>
+    <string name="room_personalization_timeline_reset_confirmation">¿Restablecer los ajustes de la línea de tiempo de esta sala a los de toda tu cuenta?</string>
 </resources>

@@ -3708,4 +3708,7 @@
     <string name="home_export_logs">Günlükleri dışa aktar</string>
     <string name="home_export_logs_done">Günlükler kaydedildi</string>
     <string name="home_export_logs_failed">Günlükler dışa aktarılamadı</string>
+    <string name="settings_show_message_markers">Düzenlendi ve çevrildi etiketlerini göster</string>
+    <string name="settings_show_message_markers_summary">Mesajdan sonra \"(düzenlendi)\" ve özgün dili göster</string>
+    <string name="room_personalization_timeline_reset_confirmation">Bu odanın zaman akışı ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
 </resources>

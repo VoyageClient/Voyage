@@ -234,7 +234,7 @@ class MessagePreviewContentBuilder @Inject constructor(
         }
         // As the timeline marks it: uncaptioned media carries no markers, having no text to put them after.
         val edited = event.hasBeenEdited()
-        val shown = if (emote.isEmpty()) emote else suffixFormatter.annotate(emote, edited, translation)
+        val shown = if (emote.isEmpty()) emote else suffixFormatter.annotate(emote, edited, translation, event.roomId)
         return withMedia.copy(
                 text = when {
                     !options.framesForwards -> shown
@@ -244,7 +244,7 @@ class MessagePreviewContentBuilder @Inject constructor(
                 captionlessText = media?.let { (if (options.framesForwards) forwardedMessages.framedTail(event, "") else "").toEpoxyCharSequence() },
                 textStyle = if (isNoticeMessage) TextStyle.NOTICE else TextStyle.NORMAL,
                 richSegments = richSegments,
-                richFooter = richSegments?.let { suffixFormatter.footer(edited, translation)?.toEpoxyCharSequence() },
+                richFooter = richSegments?.let { suffixFormatter.footer(edited, translation, event.roomId)?.toEpoxyCharSequence() },
                 forwardFrame = media?.takeIf { options.framesForwards }?.let { forwardedMessages.previewFrame(event) },
         )
     }
@@ -295,7 +295,7 @@ class MessagePreviewContentBuilder @Inject constructor(
                 isSent = event.root.sendState.isSent(),
         )
         return MessagePreviewContent.Poll(
-                question = suffixFormatter.annotate(viewState.question, pollEvent.hasBeenEdited(), null).toEpoxyCharSequence(),
+                question = suffixFormatter.annotate(viewState.question, pollEvent.hasBeenEdited(), null, event.roomId).toEpoxyCharSequence(),
                 options = viewState.optionViewStates.orEmpty(),
                 votesStatus = viewState.votesStatus.takeIf { it.isNotEmpty() },
                 ended = content is MessageEndPollContent,

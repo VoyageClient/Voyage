@@ -3675,4 +3675,7 @@
     <string name="home_export_logs">ログをエクスポート</string>
     <string name="home_export_logs_done">ログを保存しました</string>
     <string name="home_export_logs_failed">ログをエクスポートできませんでした</string>
+    <string name="settings_show_message_markers">編集済み・翻訳済みラベルを表示</string>
+    <string name="settings_show_message_markers_summary">メッセージの後に「（編集済）」と元の言語を表示</string>
+    <string name="room_personalization_timeline_reset_confirmation">このルームのタイムライン設定を、アカウント全体のものにリセットしますか？</string>
 </resources>

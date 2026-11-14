@@ -3619,6 +3619,8 @@
     <string name="settings_show_acl_events_summary">Show ACL list changes in the timeline.</string>
     <string name="settings_show_reactions">Show reactions</string>
     <string name="settings_show_reactions_summary">Show reactions in the timeline.</string>
+    <string name="settings_show_message_markers">Show edited and translated labels</string>
+    <string name="settings_show_message_markers_summary">Show \"(edited)\" and the original language after a message</string>
     <string name="crash_report_copy_prompt">The application has crashed last time. Would you like to copy the crash report?</string>
     <string name="action_redact">Redact</string>
     <string name="message_action_item_redact">Redact…</string>
@@ -3741,6 +3743,7 @@
     <string name="room_personalization_reset_confirmation">Reset your display name and avatar in this room to your account-wide ones?</string>
     <string name="room_personalization_room_override_title">Room name &amp; avatar</string>
     <string name="room_personalization_room_override_reset_confirmation">Remove your personal name and avatar for this room?</string>
+    <string name="room_personalization_timeline_reset_confirmation">Reset this room\'s timeline settings to your account-wide ones?</string>
     <string name="user_personalization_section">Personalization</string>
     <string name="user_personalization_reset_confirmation">Remove your personal overrides for this user?</string>
     <string name="notice_avatar_removed">%1$s removed their avatar</string>
