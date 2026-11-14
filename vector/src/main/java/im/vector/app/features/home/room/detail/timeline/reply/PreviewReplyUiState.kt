@@ -41,5 +41,7 @@ sealed class PreviewReplyUiState {
             override val repliedToEventId: String,
             val event: TimelineEvent,
             val senderName: String,
+            /** The quoted forward reads as the original message, by its original sender, without the forward frame. */
+            val showsForwardAsOriginal: Boolean = false,
     ) : PreviewReplyUiState()
 }

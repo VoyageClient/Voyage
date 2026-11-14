@@ -1432,7 +1432,9 @@ class TimelineFragment :
             return
         }
         if (pendingProfileUsers.isNotEmpty()) {
-            timelineEventController.invalidateForwardsFrom(pendingProfileUsers.toSet())
+            val users = pendingProfileUsers.toSet()
+            timelineEventController.invalidateForwardsFrom(users)
+            timelineViewModel.replyPreviewRetriever.onForwardedSendersResolved(users)
             pendingProfileUsers.clear()
         }
         if (pendingProfileOverrideUsers.isEmpty() && pendingProfileColorUsers.isEmpty() && pendingPronounUsers.isEmpty()) return

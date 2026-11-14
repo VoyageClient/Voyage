@@ -43,11 +43,13 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
@@ -254,14 +256,15 @@ class ReplyPreviewRetriever(
                     }
                 }.fold(
                         {
+                            val asOriginal = it != null && quotesForwardAsOriginal(event.root.getClearContent(), it.root.getClearContent())
                             // Pre-render the reply body here (off the main thread) so the view's bind is a cache hit.
-                            if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it)
+                            if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it, asOriginal)
                             synchronized(data) {
                                 updateState(eventId, eventIdToRetrieve,
                                         when {
                                             it == null -> PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
                                             it.root.senderId in ignoredUserIds -> PreviewReplyUiState.Error(IgnoredAuthorException, eventIdToRetrieve)
-                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, replySenderName(it))
+                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, replySenderName(it, asOriginal), asOriginal)
                                         }
                                 )
                             }
@@ -299,10 +302,9 @@ class ReplyPreviewRetriever(
         }
     }
 
-    // A reply to a forward quotes the original message, so it is attributed to the original sender
-    // ("Sender" when the forward doesn't say), never to whoever forwarded it.
-    private fun replySenderName(event: TimelineEvent): String {
-        displayableEventFormatter.forwardedMessages.origin(event)?.let { return it.name }
+    // "Sender" when the forward doesn't say who sent the original.
+    private fun replySenderName(event: TimelineEvent, asOriginal: Boolean): String {
+        if (asOriginal) displayableEventFormatter.forwardedMessages.origin(event)?.let { return it.name }
         val userId = event.senderInfo.userId
         return event.renderPerMessageProfile(
                 currentReplySenderName(userId, event.senderInfo.disambiguatedDisplayName),
@@ -353,7 +355,7 @@ class ReplyPreviewRetriever(
         val affected = synchronized(data) {
             data.mapNotNull { (key, cached) ->
                 val preview = cached.previewReplyUiState as? PreviewReplyUiState.InReplyTo ?: return@mapNotNull null
-                if (preview.event.senderInfo.userId in userIds) Triple(key, cached, preview) else null
+                if (!preview.showsForwardAsOriginal && preview.event.senderInfo.userId in userIds) Triple(key, cached, preview) else null
             }
         }
         val names = affected.map { it.third.event.senderInfo.userId to it.third.event.senderInfo.disambiguatedDisplayName }
@@ -366,6 +368,37 @@ class ReplyPreviewRetriever(
                 val updatedName = preview.event.renderPerMessageProfile(baseName, vectorPreferences.arePerMessageProfilesEnabled()).senderName
                 if (updatedName != preview.senderName) {
                     data[key] = cached.copy(previewReplyUiState = preview.copy(senderName = updatedName))
+                }
+            }
+        }
+    }
+
+    /** A forward's original sender may only get a name once their profile arrives, after the quote was resolved. */
+    fun onForwardedSendersResolved(userIds: Set<String>) {
+        if (userIds.isEmpty()) return
+        coroutineScope.launch(Dispatchers.IO) {
+            val affected = synchronized(data) {
+                data.mapNotNull { (key, cached) ->
+                    val preview = cached.previewReplyUiState as? PreviewReplyUiState.InReplyTo ?: return@mapNotNull null
+                    val sender = preview.event.root.getClearContent().getForwardedInfo()?.sender
+                    if (sender in userIds) Triple(key, cached, preview) else null
+                }
+            }
+            if (affected.isEmpty()) return@launch
+            val updated = affected.map { (key, cached, preview) ->
+                val name = replySenderName(preview.event, preview.showsForwardAsOriginal)
+                Triple(key, cached, if (name == preview.senderName) preview else preview.copy(senderName = name))
+            }
+            updated.forEach { (_, _, preview) -> warmReplyBodyCache(preview.event, preview.showsForwardAsOriginal) }
+            synchronized(data) {
+                updated.forEach { (key, cached, preview) ->
+                    if (data[key] === cached) data[key] = cached.copy(previewReplyUiState = preview)
+                }
+            }
+            launch(Dispatchers.Main) {
+                // Forced: a framed quote names the original sender in its body, outside the state.
+                updated.forEach { (key, _, preview) ->
+                    listeners[key].orEmpty().forEach { it.onStateUpdated(preview, force = true) }
                 }
             }
         }
@@ -416,12 +449,14 @@ class ReplyPreviewRetriever(
 
     private val roomForColors by lazy { session.getRoom(roomId) }
 
-    fun getMemberNameColor(event: TimelineEvent): Int {
-        displayableEventFormatter.forwardedMessages.origin(event)?.let { origin ->
-            return origin.user?.let { messageColorProvider.getMemberNameTextColor(it) }
-                    ?: messageColorProvider.getMessageTextColor(SendState.SYNCED)
+    fun getMemberNameColor(state: PreviewReplyUiState.InReplyTo): Int {
+        if (state.showsForwardAsOriginal) {
+            displayableEventFormatter.forwardedMessages.origin(state.event)?.let { origin ->
+                return origin.user?.let { messageColorProvider.getMemberNameTextColor(it) }
+                        ?: messageColorProvider.getMessageTextColor(SendState.SYNCED)
+            }
         }
-        return messageColorProvider.getMemberNameTextColor(senderMatrixItem(event))
+        return messageColorProvider.getMemberNameTextColor(senderMatrixItem(state.event))
     }
 
     // The cached event's senderInfo snapshots the color at retrieval time; resolve the current
@@ -449,20 +484,19 @@ class ReplyPreviewRetriever(
                 galleryMaxWidth = maxWidth,
                 galleryMaxHeight = maxHeight,
                 isThreadTimeline = isThreadTimeline,
-                framesForwards = false,
         )
     }
 
     /** The preview of [event], building (and caching) it on the calling thread on a miss.
      *  Warmed off-main by the retrieval coroutine, so [InReplyToView] normally just reads the cache. */
-    fun preview(event: TimelineEvent): MessagePreviewContent {
+    fun preview(event: TimelineEvent, asOriginal: Boolean): MessagePreviewContent {
         val translation = messageTranslationStore.get(event)
         // A forward's original sender resolves to a name later than the body itself does.
         val forwardedFrom = displayableEventFormatter.forwardedMessages.origin(event)?.name
         val pgpPlain = (event.getLastMessageContent() as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
-        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom:${pgpPlain?.hashCode() ?: 0}"
+        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom:$asOriginal:${pgpPlain?.hashCode() ?: 0}"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
-        val built = previewBuilder.build(event, previewOptions.copy(senderItem = senderMatrixItem(event)))
+        val built = previewBuilder.build(event, previewOptions.copy(senderItem = senderMatrixItem(event), framesForwards = !asOriginal))
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
             replyBodyCache[key] = built
@@ -470,7 +504,16 @@ class ReplyPreviewRetriever(
         return built
     }
 
-    private fun warmReplyBodyCache(event: TimelineEvent) {
-        runCatching { preview(redactedContentRestorer.restoreEvent(event) ?: event) }
+    private fun warmReplyBodyCache(event: TimelineEvent, asOriginal: Boolean) {
+        runCatching { preview(redactedContentRestorer.restoreEvent(event) ?: event, asOriginal) }
     }
+}
+
+/**
+ * A forward replying to a forward from the same room carries over a conversation, so its quote reads as
+ * the original message. Any other reply quotes the forward as it was posted here.
+ */
+internal fun quotesForwardAsOriginal(reply: Content?, quoted: Content?): Boolean {
+    val originRoomId = reply.getForwardedInfo()?.roomId ?: return false
+    return quoted.getForwardedInfo()?.roomId == originRoomId
 }

@@ -114,7 +114,7 @@ class InReplyToView @JvmOverloads constructor(
                 translation == renderedTranslation && !force) {
             // The sender's color can change under an otherwise identical state (override, palette).
             (effectiveState as? PreviewReplyUiState.InReplyTo)?.let {
-                applySenderColor(retriever.getMemberNameColor(it.event), retriever.isMemberNameColored())
+                applySenderColor(retriever.getMemberNameColor(it), retriever.isMemberNameColored())
             }
             return
         }
@@ -128,7 +128,7 @@ class InReplyToView @JvmOverloads constructor(
             if (previousReply.senderName != nextReply.senderName) {
                 views.replyMemberNameView.text = nextReply.senderName.prepareForDisplay()
             }
-            applySenderColor(retriever.getMemberNameColor(nextReply.event), retriever.isMemberNameColored())
+            applySenderColor(retriever.getMemberNameColor(nextReply), retriever.isMemberNameColored())
             return
         }
 
@@ -251,7 +251,7 @@ class InReplyToView @JvmOverloads constructor(
         isVisible = true
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
-        applySenderColor(retriever.getMemberNameColor(state.event), retriever.isMemberNameColored())
+        applySenderColor(retriever.getMemberNameColor(state), retriever.isMemberNameColored())
         views.replyPreview.style = MessagePreviewView.Style(
                 fillWidth = false,
                 mediaMarginTop = (REPLY_MEDIA_MARGIN_TOP_DP * resources.displayMetrics.density).toInt(),
@@ -266,7 +266,7 @@ class InReplyToView @JvmOverloads constructor(
         )
         views.replyPreview.onRichLongClick = { itemLongClickListener?.onLongClick(it) ?: false }
         views.replyPreview.bind(
-                retriever.preview(state.event),
+                retriever.preview(state.event, state.showsForwardAsOriginal),
                 hidden = retriever.isMediaHidden(state.event),
                 hiddenAsSolidColor = retriever.useSolidColorForHiddenMedia,
                 renderers = MessagePreviewView.Renderers(
