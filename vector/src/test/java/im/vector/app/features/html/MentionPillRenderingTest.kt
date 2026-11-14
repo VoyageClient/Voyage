@@ -21,6 +21,7 @@ import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventF
 import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.render.RoomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.VectorPreferences
@@ -199,6 +200,42 @@ class MentionPillRenderingTest {
     }
 
     @Test
+    fun `given a mention of someone with no name or avatar then, when rendering in a room, then the pill stays without them`() {
+        val mentionedAt = 1_000L
+        every { session.roomService().getRoomMember(knownUser, roomId) } returns
+                RoomMemberSummary(Membership.JOIN, knownUser, displayName = "Alice Now", avatarUrl = "mxc://example.org/now")
+        every { session.roomService().getRoomMemberAt(knownUser, roomId, mentionedAt) } returns RoomMemberSummary(Membership.JOIN, knownUser)
+        val laterMessage = SenderInfo(knownUser, "Alice Now", true, "mxc://example.org/now")
+
+        val rendered = render("""<a href="https://matrix.to/#/$knownUser">alice</a>""", roomId, mentionedAt, senders = listOf(laterMessage))
+        TextView(context).apply {
+            text = rendered
+            bindPillImageSpans()
+        }
+
+        rendered.pills().map { it.getBestName() to it.avatarUrl } shouldBeEqualTo listOf("alice" to null)
+        verify(exactly = 0) { resolver.resolve(any(), any()) }
+    }
+
+    @Test
+    fun `given a plain-text mention of someone with no name or avatar then, when rendering in a room, then the pill is not looked up`() {
+        val mentionedAt = 1_000L
+        every { session.roomService().getRoomMember(knownUser, roomId) } returns
+                RoomMemberSummary(Membership.JOIN, knownUser, displayName = "Alice Now", avatarUrl = "mxc://example.org/now")
+        every { session.roomService().getRoomMemberAt(knownUser, roomId, mentionedAt) } returns RoomMemberSummary(Membership.JOIN, knownUser)
+        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), mockk(relaxed = true), resolver)
+
+        val rendered = textRenderer.render("hi https://matrix.to/#/$knownUser", RoomMentionSource(null, false, mentionedAt)) as Spanned
+        TextView(context).apply {
+            text = rendered
+            bindPillImageSpans()
+        }
+
+        rendered.pills().map { it.getBestName() to it.avatarUrl } shouldBeEqualTo listOf(knownUser to null)
+        verify(exactly = 0) { resolver.resolve(any(), any()) }
+    }
+
+    @Test
     fun `given a mention nothing local knows, when rendering in a room, then only that pill is looked up`() {
         val nobody = "@nobody:example.org"
         val html = """<a href="https://matrix.to/#/$knownUser">Alice</a> """ +
@@ -273,9 +310,16 @@ class MentionPillRenderingTest {
 
     private fun renderAsBio(html: String): Spanned = render(html, null)
 
-    private fun render(html: String, roomId: String?, mentionedAt: Long? = null, showLatestProfile: Boolean = false): Spanned {
+    private fun render(
+            html: String,
+            roomId: String?,
+            mentionedAt: Long? = null,
+            showLatestProfile: Boolean = false,
+            senders: List<SenderInfo> = emptyList(),
+    ): Spanned {
         val preferences = mockk<VectorPreferences>(relaxed = true).also { every { it.showLiveSenderInfo() } returns showLatestProfile }
         val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, resolver, preferences)
+        pills.rememberSenders(senders)
         val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences, resolver)
         val rendered = renderer.render(html, pills.forEvent(mentionedAt)) as Spanned
         val textView = TextView(context)

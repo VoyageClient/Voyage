@@ -135,7 +135,9 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private data class PillPlacement(val item: MatrixItem, val start: Int, val end: Int, val url: String)
+    private data class PillTarget(val item: MatrixItem, val lookUp: Boolean = false)
+
+    private data class PillPlacement(val target: PillTarget, val start: Int, val end: Int, val url: String)
 
     private fun addPermalinksSpans(text: Spannable, mentionedAt: Long?) {
         val placements = mutableListOf<PillPlacement>()
@@ -154,8 +156,8 @@ class EventTextRenderer @AssistedInject constructor(
             if (start < 0 || end < 0) continue
             if (keepVerbatim(start, end)) continue
             if (existingPills.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }) continue
-            val item = permalinkToMatrixItem(span.url, mentionedAt) ?: continue
-            placements.add(PillPlacement(item, start, end, span.url))
+            val target = permalinkToPillTarget(span.url, mentionedAt) ?: continue
+            placements.add(PillPlacement(target, start, end, span.url))
         }
         // Bare permalink URLs that appear as plain visible text (no <a> wrapper), skipping ranges
         // already covered above.
@@ -167,12 +169,12 @@ class EventTextRenderer @AssistedInject constructor(
             if (keepVerbatim(start, end)) continue
             if (placements.any { it.start < end && start < it.end }) continue
             val url = text.substring(start, end)
-            val item = permalinkToMatrixItem(url, mentionedAt) ?: continue
-            placements.add(PillPlacement(item, start, end, url))
+            val target = permalinkToPillTarget(url, mentionedAt) ?: continue
+            placements.add(PillPlacement(target, start, end, url))
         }
         // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier ranges.
         placements.sortedByDescending { it.start }.forEach {
-            addPillSpan(text, createPillImageSpan(it.item), it.start, it.end)
+            addPillSpan(text, createPillImageSpan(it.target.item, it.target.lookUp), it.start, it.end)
             // setPillSpan collapsed the link text to a single placeholder char, dropping any underlying
             // URLSpan — re-add one over the pill so the movement method still routes taps to onUrlClicked
             // (otherwise a "Message in …" / permalink pill renders but is inert).
@@ -180,12 +182,12 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private fun permalinkToMatrixItem(url: String, mentionedAt: Long?): MatrixItem? {
+    private fun permalinkToPillTarget(url: String, mentionedAt: Long?): PillTarget? {
         val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
         if (!isPermalinkSupported) return null
         return when (val permalinkData = PermalinkParser.parse(url)) {
-            is PermalinkData.UserLink -> permalinkData.toMatrixItem(mentionedAt)
-            is PermalinkData.RoomLink -> permalinkData.toMatrixItem()
+            is PermalinkData.UserLink -> permalinkData.toPillTarget(mentionedAt)
+            is PermalinkData.RoomLink -> PillTarget(permalinkData.toMatrixItem())
             else -> null
         }
     }
@@ -196,16 +198,13 @@ class EventTextRenderer @AssistedInject constructor(
         return e
     }
 
-    // A user nothing local has a name or avatar for would otherwise stay a bare id.
-    private fun createPillImageSpan(matrixItem: MatrixItem) =
+    private fun createPillImageSpan(matrixItem: MatrixItem, lookUp: Boolean = false) =
             PillImageSpan(
                     GlideApp.with(context),
                     avatarRenderer,
                     context,
                     matrixItem,
-                    itemResolver = pillItemResolver.takeIf {
-                        matrixItem is MatrixItem.UserItem && matrixItem.displayName.isNullOrBlank() && matrixItem.avatarUrl.isNullOrBlank()
-                    },
+                    itemResolver = pillItemResolver.takeIf { lookUp },
                     roomId = roomId,
             )
 
@@ -218,12 +217,15 @@ class EventTextRenderer @AssistedInject constructor(
         renderedText.setPillSpan(pillSpan, startSpan, endSpan)
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(mentionedAt: Long?): MatrixItem? {
+    // A member lacking a name or avatar lacked it then; only a user with no member event here is looked up.
+    private fun PermalinkData.UserLink.toPillTarget(mentionedAt: Long?): PillTarget? {
         val session = sessionHolder.getSafeActiveSession() ?: return null
-        return roomId?.let { roomId ->
-            (mentionedAt?.let { session.roomService().getRoomMemberAt(userId, roomId, it) } ?: session.roomService().getRoomMember(userId, roomId))
-                    ?.toMatrixItem()
-        } ?: session.getUserOrDefault(userId).toMatrixItem()
+        val member = roomId?.let { roomId ->
+            mentionedAt?.let { session.roomService().getRoomMemberAt(userId, roomId, it) } ?: session.roomService().getRoomMember(userId, roomId)
+        }
+        if (member != null) return PillTarget(member.toMatrixItem())
+        val user = session.getUserOrDefault(userId).toMatrixItem()
+        return PillTarget(user, lookUp = user.displayName.isNullOrBlank() && user.avatarUrl.isNullOrBlank())
     }
 
     private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem {

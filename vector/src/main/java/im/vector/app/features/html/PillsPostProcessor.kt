@@ -168,14 +168,17 @@ class PillsPostProcessor @AssistedInject constructor(
             null
         }
         val member = memberThen ?: roomId?.let { session.roomService().getRoomMember(userId, it) }
-        val known = synchronized(knownSenders) { knownSenders[userId] }
-        if (member != null || known != null) {
+        // A name or avatar the member event lacks, the user lacked then: don't fill it in from their other messages.
+        if (member != null) {
             return PillTarget(
-                    MatrixItem.UserItem(
-                            userId,
-                            member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName?.takeUnless { it.isBlank() } ?: label,
-                            member?.avatarUrl?.takeUnless { it.isBlank() } ?: known?.avatarUrl,
-                    ),
+                    MatrixItem.UserItem(userId, member.displayName?.takeUnless { it.isBlank() } ?: label, member.avatarUrl?.takeUnless { it.isBlank() }),
+                    isLocallyKnown = true,
+            )
+        }
+        val known = synchronized(knownSenders) { knownSenders[userId] }
+        if (known != null) {
+            return PillTarget(
+                    MatrixItem.UserItem(userId, known.displayName?.takeUnless { it.isBlank() } ?: label, known.avatarUrl),
                     isLocallyKnown = true,
             )
         }
