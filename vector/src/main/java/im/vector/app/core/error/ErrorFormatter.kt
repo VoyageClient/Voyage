@@ -60,6 +60,9 @@ class DefaultErrorFormatter @Inject constructor(
                         // Special case for terms and conditions
                         stringProvider.getString(CommonStrings.error_terms_not_accepted)
                     }
+                    throwable.error.code == MatrixError.CLIENT_SHADOW_BANNED -> {
+                        stringProvider.getString(CommonStrings.account_shadow_banned)
+                    }
                     throwable.isPolicyServerRejection() -> {
                         stringProvider.getString(CommonStrings.error_rejected_by_policy_server)
                     }

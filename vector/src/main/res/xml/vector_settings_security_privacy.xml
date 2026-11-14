@@ -329,6 +329,12 @@
             android:summary="@string/settings_security_prevent_screenshots_summary"
             android:title="@string/settings_security_prevent_screenshots_title" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHADOW_BAN_DETECTION_KEY"
+            android:summary="@string/settings_shadow_ban_detection_summary"
+            android:title="@string/settings_shadow_ban_detection_title" />
+
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_USER_AGENT_KEY"
             android:persistent="false"

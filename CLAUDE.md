@@ -121,6 +121,8 @@ While debugging, if you are unsure of what could be causing a particular problem
 
 NEVER remove temporary debug-related logging until either the problem has been resolved, and/or you were asked to review the changes.
 
+NEVER reuse genuine data observed on a device or server (event/room/user IDs, local echo IDs, server names, message text, tokens, anything pulled from logcat, logs or a database) as example values, placeholders, test fixtures or comments. Invent values of the same shape instead (`!room:example.org`, `@alice:example.org`, a made-up 43-letter event ID).
+
 # Reviewing changes
 
 When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently Ice Cream Sandwich / API 14) — verify it genuinely runs there, not just that it compiles. If the diff touches a layout, style or drawable, run the vector-drawable audit above — resources compile fine and blow up at inflation time on device. Don't only report problems: if you spot improvements worth making to the changed code, make them.

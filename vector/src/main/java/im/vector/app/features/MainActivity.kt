@@ -48,6 +48,7 @@ import im.vector.app.features.pin.lockscreen.pincode.PinCodeHelper
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
+import im.vector.app.features.session.ShadowBanState
 import im.vector.app.features.session.VectorSessionStore
 import im.vector.app.features.settings.useragent.data.UaDataRepository
 import im.vector.app.features.signout.hard.SignedOutActivity
@@ -173,6 +174,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var redactionCacheCleaner: RedactionCacheCleaner
     @Inject lateinit var redactionPreservationService: RedactionPreservationService
+    @Inject lateinit var shadowBanState: ShadowBanState
     @Inject lateinit var lockScreenKeyRepository: LockScreenKeyRepository
     @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
@@ -377,6 +379,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                     Timber.w("Account deactivated, start app")
                     // Preserved media lives in filesDir, which doLocalCleanup does not touch.
                     redactionPreservationService.clearForSignedOutUser(session.myUserId)
+                    shadowBanState.setSuspected(session.myUserId, false)
                     activeSessionHolder.clearActiveSession()
                     doLocalCleanup(clearPreferences = true, onboardingStore)
                     startNextActivityAndFinish()
@@ -451,6 +454,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 }
             }
             redactionPreservationService.clearForSignedOutUser(session.myUserId)
+            shadowBanState.setSuspected(session.myUserId, false)
             activeSessionHolder.clearActiveSession()
             accountInfoCache.delete(signedOutSessionId)
             val remaining = authenticationService.getAllSessionParams()

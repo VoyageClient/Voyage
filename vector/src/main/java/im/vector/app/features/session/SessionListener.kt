@@ -19,7 +19,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionListener @Inject constructor() : Session.Listener {
+class SessionListener @Inject constructor(
+        private val shadowBanState: ShadowBanState,
+) : Session.Listener {
 
     private val _globalErrorLiveData = MutableLiveData<LiveEvent<GlobalError>>()
     val globalErrorLiveData: LiveData<LiveEvent<GlobalError>>
@@ -27,6 +29,10 @@ class SessionListener @Inject constructor() : Session.Listener {
 
     override fun onGlobalError(session: Session, globalError: GlobalError) {
         _globalErrorLiveData.postLiveEvent(globalError)
+    }
+
+    override fun onShadowBanSuspicionChanged(session: Session, suspected: Boolean) {
+        shadowBanState.setSuspected(session.myUserId, suspected)
     }
 
     override fun onStatisticsEvent(session: Session, statisticEvent: StatisticEvent) {

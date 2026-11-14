@@ -352,6 +352,12 @@ interface Session {
          * See [GlobalError] for all the possible cases.
          */
         fun onGlobalError(session: Session, globalError: GlobalError) = Unit
+
+        /**
+         * [suspected] is true once the homeserver is caught faking success for a sent event (a shadow-ban),
+         * and false once a send is genuinely accepted again.
+         */
+        fun onShadowBanSuspicionChanged(session: Session, suspected: Boolean) = Unit
     }
 
     fun getUiaSsoFallbackUrl(authenticationSessionId: String): String

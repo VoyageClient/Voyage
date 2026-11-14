@@ -22,6 +22,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Historical rooms**: being kicked or banned no longer wipes the conversation. The room stays open read-only with a banner saying who removed you and why, and moves to a "Historical" entry in the sidebar drawer instead of vanishing from All Chats. History stays readable and searchable up to the moment you were removed, survives re-login, and can be forgotten for good with a long-press.
 
+- **Shadow-ban detection**: when your account is shadow-banned, Voyage alerts you.
+
 - **Upgraded rooms stay in your list**: when a room is upgraded to a new version, the old room is no longer hidden. It keeps the history that never moved across, and stays reachable from the room list.
 
 - **Hidden history notice**: when a room's earlier messages are hidden from you, the top of the timeline says so, and why when it's because of when you joined or were invited.

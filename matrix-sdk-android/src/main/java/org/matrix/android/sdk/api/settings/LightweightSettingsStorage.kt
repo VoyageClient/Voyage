@@ -31,6 +31,9 @@ interface LightweightSettingsStorage {
     /** Whether to sync over MSC4525 / MSC4186 when the homeserver offers them, instead of sync v2. */
     fun isSlidingSyncEnabled(): Boolean
 
+    /** Whether sends are checked for a homeserver faking their success, i.e. a shadow-banned account. */
+    fun isShadowBanDetectionEnabled(): Boolean
+
     /** Who generates link previews for [userId] in the given room; the room's own override wins over the account-wide one. */
     fun getLinkPreviewSource(userId: String, roomId: String, isEncrypted: Boolean): LinkPreviewSource
 }

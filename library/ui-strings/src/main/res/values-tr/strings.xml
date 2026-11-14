@@ -1758,8 +1758,6 @@
     <string name="encryption_enabled_tile_description">Bu odadaki mesajlar uçtan uca şifrelidir. Daha fazla bilgi edinin ve kullanıcıları profillerinden doğrulayın.</string>
     <string name="direct_room_encryption_enabled_tile_description">Bu sohbetteki mesajlar uçtan uca şifrelidir.</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Bu sohbetteki mesajlar uçtan uca şifrelenecek.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Kullanıcıların ${app_name} uygulamasına katılması bekleniyor</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Davet edilen kullanıcılar ${app_name} uygulamasına katıldığında sohbet edebileceksiniz ve oda uçtan uca şifrelenecek</string>
     <string name="encryption_not_enabled">Şifreleme etkin değil</string>
     <string name="encryption_misconfigured">Şifreleme yanlış yapılandırılmış</string>
     <string name="encryption_unknown_algorithm_tile_description">Bu odanın kullandığı şifreleme desteklenmiyor</string>
@@ -3718,4 +3716,7 @@
     <string name="gateway_error_bad_request">Ağ geçidi isteği kabul etmedi.</string>
     <string name="gateway_error_http">Ağ geçidi beklenmeyen bir hatayla yanıt verdi (HTTP %1$d).</string>
     <string name="gateway_error_unknown">Ağ geçidi bir hata bildirdi (%1$s).</string>
+    <string name="account_shadow_banned">Hesabınız gölge yasaklı</string>
+    <string name="settings_shadow_ban_detection_title">Gölge yasak tespiti</string>
+    <string name="settings_shadow_ban_detection_summary">Hesabınız gölge yasaklandığında sizi uyarır</string>
 </resources>

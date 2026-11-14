@@ -2222,8 +2222,6 @@
     <string name="verification_request_was_sent">Se ha enviado una solicitud de verificación. Abre una de tus otras sesiones para aceptarla e iniciar la verificación.</string>
     <string name="_resume">Reanudar</string>
     <string name="verification_not_found">No se encontró la solicitud de verificación. Puede que se haya cancelado o que la haya gestionado otra sesión.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Esperando a que los usuarios se unan a ${app_name}</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Cuando los usuarios invitados se hayan unido a ${app_name}, podrás chatear y la sala estará cifrada de extremo a extremo</string>
     <string name="settings_security_incognito_keyboard_title">Teclado de incógnito</string>
     <string name="settings_security_incognito_keyboard_summary">Solicitar que el teclado no actualice datos personalizados, como el historial de escritura y el diccionario, en función de lo que escribes en las conversaciones. Ten en cuenta que algunos teclados pueden no respetar este ajuste.</string>
     <string name="secure_backup_reset_all_no_other_devices_long">El restablecimiento de tus claves de verificación no se puede deshacer. Después de restablecerlas, no tendrás acceso a los mensajes cifrados antiguos, y los amigos que te hayan verificado verán advertencias de seguridad hasta que vuelvas a verificarte con ellos.</string>
@@ -3748,4 +3746,7 @@
     <string name="gateway_error_bad_request">La pasarela no aceptó la solicitud.</string>
     <string name="gateway_error_http">La pasarela respondió con un error inesperado (HTTP %1$d).</string>
     <string name="gateway_error_unknown">La pasarela informó de un error (%1$s).</string>
+    <string name="account_shadow_banned">Tu cuenta tiene un shadowban</string>
+    <string name="settings_shadow_ban_detection_title">Detección de shadowban</string>
+    <string name="settings_shadow_ban_detection_summary">Te avisa cuando tu cuenta tiene un shadowban</string>
 </resources>

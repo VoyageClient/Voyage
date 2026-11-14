@@ -1735,8 +1735,6 @@
     <string name="encryption_enabled_tile_description">এই রুমের বার্তাগুলি এন্ড-টু-এন্ড এনক্রিপ্ট করা। আরও জানুন ও ব্যবহারকারীদের প্রোফাইলে তাঁদের যাচাই করুন।</string>
     <string name="direct_room_encryption_enabled_tile_description">এই চ্যাটের বার্তাগুলি এন্ড-টু-এন্ড এনক্রিপ্ট করা।</string>
     <string name="direct_room_encryption_enabled_tile_description_future">এই চ্যাটের বার্তাগুলি এন্ড-টু-এন্ড এনক্রিপ্ট করা হবে।</string>
-    <string name="direct_room_encryption_enabled_waiting_users">ব্যবহারকারীদের ${app_name}-এ যোগ দেওয়ার অপেক্ষা</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">আমন্ত্রিত ব্যবহারকারীরা ${app_name}-এ যোগ দিলে আপনি চ্যাট করতে পারবেন এবং রুমটি এন্ড-টু-এন্ড এনক্রিপ্ট করা হবে</string>
     <string name="encryption_not_enabled">এনক্রিপশন চালু নেই</string>
     <string name="encryption_misconfigured">এনক্রিপশন ভুলভাবে কনফিগার করা</string>
     <string name="encryption_unknown_algorithm_tile_description">এই রুমে ব্যবহৃত এনক্রিপশন সমর্থিত নয়</string>
@@ -3720,4 +3718,7 @@
     <string name="gateway_error_bad_request">গেটওয়ে অনুরোধটি গ্রহণ করেনি।</string>
     <string name="gateway_error_http">গেটওয়ে একটি অপ্রত্যাশিত ত্রুটি দিয়ে সাড়া দিয়েছে (HTTP %1$d)।</string>
     <string name="gateway_error_unknown">গেটওয়ে একটি ত্রুটি জানিয়েছে (%1$s)।</string>
+    <string name="account_shadow_banned">আপনার অ্যাকাউন্ট শ্যাডো-ব্যান করা হয়েছে</string>
+    <string name="settings_shadow_ban_detection_title">শ্যাডো-ব্যান শনাক্তকরণ</string>
+    <string name="settings_shadow_ban_detection_summary">আপনার অ্যাকাউন্ট শ্যাডো-ব্যান হলে আপনাকে সতর্ক করে</string>
 </resources>

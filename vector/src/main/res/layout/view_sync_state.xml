@@ -89,4 +89,27 @@
 
     </FrameLayout>
 
+    <FrameLayout
+        android:id="@+id/syncStateShadowBanned"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?colorError"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            style="@style/Widget.Vector.TextView.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="4dp"
+            android:gravity="center"
+            android:text="@string/account_shadow_banned"
+            android:textColor="@color/palette_white"
+            app:drawableStartCompat="@drawable/ic_alert_triangle_16dp"
+            app:drawableLeftCompat="@drawable/ic_alert_triangle_16dp"
+            app:drawableTint="@color/palette_white" />
+
+    </FrameLayout>
+
 </merge>

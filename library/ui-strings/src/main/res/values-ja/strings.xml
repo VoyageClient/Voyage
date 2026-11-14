@@ -2275,8 +2275,6 @@
     <string name="verification_request_was_sent">認証リクエストを送信しました。他のセッションのいずれかを開いて、リクエストを承認し認証を開始してください。</string>
     <string name="_resume">再開</string>
     <string name="verification_not_found">認証リクエストが見つかりません。キャンセルされたか、別のセッションで処理された可能性があります。</string>
-    <string name="direct_room_encryption_enabled_waiting_users">ユーザーが${app_name}に参加するのを待っています</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">招待したユーザーが${app_name}に参加すると、チャットできるようになり、ルームはエンドツーエンドで暗号化されます</string>
     <string name="secure_backup_reset_all_no_other_devices_long">認証鍵のリセットは取り消せません。リセット後は過去の暗号化されたメッセージにアクセスできなくなり、以前あなたを認証した友達には、再認証するまでセキュリティー警告が表示されます。</string>
     <string name="secure_backup_reset_danger_warning">他の全ての端末とセキュリティーキーを失ったことが確実な場合にのみ続行してください。</string>
     <string name="encrypted_by_deleted">削除された端末によって暗号化されています</string>
@@ -3685,4 +3683,7 @@
     <string name="gateway_error_bad_request">ゲートウェイがリクエストを受け付けませんでした。</string>
     <string name="gateway_error_http">ゲートウェイが予期しないエラーを返しました（HTTP %1$d）。</string>
     <string name="gateway_error_unknown">ゲートウェイがエラーを報告しました（%1$s）。</string>
+    <string name="account_shadow_banned">アカウントがシャドウバンされています</string>
+    <string name="settings_shadow_ban_detection_title">シャドウバン検出</string>
+    <string name="settings_shadow_ban_detection_summary">アカウントがシャドウバンされたときに通知します</string>
 </resources>

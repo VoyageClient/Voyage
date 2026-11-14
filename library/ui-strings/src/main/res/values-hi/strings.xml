@@ -1682,8 +1682,6 @@
     <string name="encryption_enabled_tile_description">इस रूम के मैसेज एंड-टू-एंड एन्क्रिप्टेड हैं। और जानें &amp; उपयोगकर्ताओं को उनकी प्रोफ़ाइल में सत्यापित करें।</string>
     <string name="direct_room_encryption_enabled_tile_description">इस चैट के मैसेज एंड-टू-एंड एन्क्रिप्टेड हैं।</string>
     <string name="direct_room_encryption_enabled_tile_description_future">इस चैट के मैसेज एंड-टू-एंड एन्क्रिप्टेड होंगे।</string>
-    <string name="direct_room_encryption_enabled_waiting_users">उपयोगकर्ताओं के ${app_name} में शामिल होने की प्रतीक्षा की जा रही है</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">आमंत्रित उपयोगकर्ताओं के ${app_name} में शामिल होते ही आप चैट कर पाएंगे और रूम एंड-टू-एंड एन्क्रिप्टेड होगा</string>
     <string name="encryption_not_enabled">एन्क्रिप्शन चालू नहीं है</string>
     <string name="encryption_misconfigured">एन्क्रिप्शन गलत तरीके से कॉन्फ़िगर है</string>
     <string name="encryption_unknown_algorithm_tile_description">इस रूम में उपयोग किया गया एन्क्रिप्शन समर्थित नहीं है</string>
@@ -3648,4 +3646,7 @@
     <string name="gateway_error_bad_request">गेटवे ने अनुरोध स्वीकार नहीं किया।</string>
     <string name="gateway_error_http">गेटवे ने एक अनपेक्षित त्रुटि के साथ जवाब दिया (HTTP %1$d)।</string>
     <string name="gateway_error_unknown">गेटवे ने एक त्रुटि बताई (%1$s)।</string>
+    <string name="account_shadow_banned">आपके खाते पर शैडो-बैन लगा है</string>
+    <string name="settings_shadow_ban_detection_title">शैडो-बैन पहचान</string>
+    <string name="settings_shadow_ban_detection_summary">आपके खाते पर शैडो-बैन लगने पर आपको सूचित करता है</string>
 </resources>

@@ -229,6 +229,11 @@ internal class LocalEchoRepository @Inject constructor(
         }
     }
 
+    suspend fun isRemoteEventStored(roomId: String, remoteEventId: String): Boolean =
+            database.awaitDbTransaction(dispatcher) {
+                stores.timelineEvent.getByRoomAndEventId(roomId, remoteEventId) != null
+            }
+
     /** Drop a stuck local echo whose remote copy has arrived. Caller must already be on the DB dispatcher. */
     fun deleteSentEcho(roomId: String, remoteEventId: String): Boolean {
         val localEchoId = sentEchoesByRemoteId[remoteEventId] ?: return false

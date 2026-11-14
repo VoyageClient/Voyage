@@ -2229,7 +2229,6 @@
     <string name="avatar_of_space">空间%1$s的头像</string>
     <string name="avatar_of_room">房间%1$s的头像</string>
     <string name="settings_acceptable_use_policy">可接受的使用政策</string>
-    <string name="direct_room_encryption_enabled_waiting_users">正在等待用户加入${app_name}</string>
     <string name="verification_request_waiting_for_recovery">正从安全密钥或短语验证……</string>
     <string name="room_profile_section_more_polls">投票历史</string>
     <string name="crosssigning_verify_after_update">应用已更新</string>
@@ -2255,7 +2254,6 @@
     <string name="room_polls_wait_for_display">显示投票</string>
     <string name="verification_request_was_sent">已发送验证请求。打开一个你的其他会话以接受并开始验证。</string>
     <string name="verification_not_found">未找到验证请求。它可能已取消，或由另一个会话处理了。</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">受邀用户一旦加入${app_name}，你们就能聊天，并且房间会端到端加密</string>
     <string name="secure_backup_reset_all_no_other_devices_long">重置你的验证密钥是无法撤销的。重置后，你将无法存取旧的加密消息，并且之前任何验证过你的朋友都会看到安全警告，直到你与他们重新验证。</string>
     <string name="room_polls_active_no_item">此房间无正在进行的投票</string>
     <string name="confirm_your_identity_after_update">最新更新改进了安全消息传递。 请重新验证你的设备。</string>
@@ -3687,4 +3685,7 @@
     <string name="gateway_error_bad_request">网关不接受该请求。</string>
     <string name="gateway_error_http">网关返回了意外错误（HTTP %1$d）。</string>
     <string name="gateway_error_unknown">网关报告了一个错误（%1$s）。</string>
+    <string name="account_shadow_banned">你的账户已被影子封禁</string>
+    <string name="settings_shadow_ban_detection_title">影子封禁检测</string>
+    <string name="settings_shadow_ban_detection_summary">在你的账户被影子封禁时提醒你</string>
 </resources>

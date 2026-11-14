@@ -43,6 +43,7 @@ import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.qrcode.QrCodeScannerActivity
 import im.vector.app.features.redaction.MassRedactionBannerBinder
+import im.vector.app.features.session.ShadowBanState
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity.Companion.EXTRA_DIRECT_ACCESS_SECURITY_PRIVACY_MANAGE_SESSIONS
 import im.vector.app.features.workers.signout.BannerState
@@ -51,6 +52,7 @@ import im.vector.app.features.workers.signout.ServerBackupStatusViewModel
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.onEach
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -71,6 +73,8 @@ class NewHomeDetailFragment :
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var bulkActionQueue: BulkActionQueue
+    @Inject lateinit var shadowBanState: ShadowBanState
+    @Inject lateinit var session: Session
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
@@ -122,6 +126,7 @@ class NewHomeDetailFragment :
         setupFabs()
         MassRedactionBannerBinder.bind(views.massRedactionBanner, this, bulkActionQueue)
         AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
+        views.syncStateView.bindShadowBanSuspected(viewLifecycleOwner, shadowBanState.isSuspected(session.myUserId))
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)

@@ -1855,8 +1855,6 @@
     <string name="encryption_enabled_tile_description">الرسائل في هذه الغرفة معمّاة بين الطرفين. اعرف المزيد وتحقّق من المستخدمين في ملفاتهم الشخصية.</string>
     <string name="direct_room_encryption_enabled_tile_description">الرسائل في هذه المحادثة معمّاة بين الطرفين.</string>
     <string name="direct_room_encryption_enabled_tile_description_future">ستكون الرسائل في هذه المحادثة معمّاة بين الطرفين.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">بانتظار انضمام المستخدمين إلى ${app_name}</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">بعد انضمام المستخدمين المدعوّين إلى ${app_name}، ستتمكّن من المحادثة وستكون الغرفة معمّاة بين الطرفين</string>
     <string name="encryption_not_enabled">التعمية غير مفعّلة</string>
     <string name="encryption_misconfigured">التعمية مضبوطة ضبطًا خاطئًا</string>
     <string name="encryption_unknown_algorithm_tile_description">التعمية التي تستخدمها هذه الغرفة غير مدعومة</string>
@@ -3951,4 +3949,7 @@
     <string name="gateway_error_bad_request">لم تقبل البوابة الطلب.</string>
     <string name="gateway_error_http">ردّت البوابة بخطأ غير متوقع (HTTP %1$d).</string>
     <string name="gateway_error_unknown">أبلغت البوابة عن خطأ (%1$s).</string>
+    <string name="account_shadow_banned">حسابك محظور حظرًا خفيًا</string>
+    <string name="settings_shadow_ban_detection_title">كشف الحظر الخفي</string>
+    <string name="settings_shadow_ban_detection_summary">تنبيهك عند فرض حظر خفي على حسابك</string>
 </resources>

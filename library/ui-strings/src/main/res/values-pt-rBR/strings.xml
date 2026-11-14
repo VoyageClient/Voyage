@@ -2293,8 +2293,6 @@
     <string name="ended_poll_indicator">Votação encerrada.</string>
     <string name="room_polls_ended">Votações anteriores</string>
     <string name="pill_message_unknown_room_or_space">Sala/Espaço</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Aguardando os usuários entrarem no ${app_name}</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Assim que os usuários convidados entrarem no ${app_name}, vocês poderão conversar e a sala terá criptografia de ponta a ponta</string>
     <string name="room_polls_active_no_item">Não há votação ativa nesta sala</string>
     <string name="room_polls_ended_no_item">Não há votações anteriores nesta sala</string>
     <string name="message_reply_to_ended_poll_preview">Votação encerrada</string>
@@ -3760,4 +3758,7 @@
     <string name="gateway_error_bad_request">O gateway não aceitou a solicitação.</string>
     <string name="gateway_error_http">O gateway respondeu com um erro inesperado (HTTP %1$d).</string>
     <string name="gateway_error_unknown">O gateway relatou um erro (%1$s).</string>
+    <string name="account_shadow_banned">Sua conta está com shadowban</string>
+    <string name="settings_shadow_ban_detection_title">Detecção de shadowban</string>
+    <string name="settings_shadow_ban_detection_summary">Avisa você quando sua conta estiver com shadowban</string>
 </resources>

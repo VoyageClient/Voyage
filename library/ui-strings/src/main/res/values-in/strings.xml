@@ -2248,8 +2248,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_external_account_management">Detail akun Anda dikelola secara terpisah di %1$s.</string>
     <string name="settings_external_account_management_title">Akun</string>
     <string name="settings_notification_error_on_update">Terjadi kesalahan saat memperbarui preferensi notifikasi Anda. Silakan coba lagi.</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Ketika pengguna yang diundang trlah bergabung ${app_name}, Anda akan dapat mengobrol dan ruangannya akan terenkripsi secara ujung ke ujung</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Menunggu pengguna untuk bergabung ${app_name}</string>
     <string name="direct_room_user_list_only_invite_one_email">Amda hanya dapat mengundang satu surel satu-satu</string>
     <string name="pill_message_unknown_room_or_space">Ruangan/Space</string>
     <string name="pill_message_in_unknown_room">Pesan di ruangan</string>
@@ -3687,4 +3685,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="gateway_error_bad_request">Gateway tidak menerima permintaan.</string>
     <string name="gateway_error_http">Gateway merespons dengan kesalahan yang tidak terduga (HTTP %1$d).</string>
     <string name="gateway_error_unknown">Gateway melaporkan kesalahan (%1$s).</string>
+    <string name="account_shadow_banned">Akun Anda terkena shadowban</string>
+    <string name="settings_shadow_ban_detection_title">Deteksi shadowban</string>
+    <string name="settings_shadow_ban_detection_summary">Memberi tahu Anda saat akun Anda terkena shadowban</string>
 </resources>

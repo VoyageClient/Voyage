@@ -74,6 +74,11 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(SETTINGS_LABS_SLIDING_SYNC, true)
     }
 
+    // Backed by the app's "Security & privacy" toggle (shared default prefs); defaults to on.
+    override fun isShadowBanDetectionEnabled(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_SHADOW_BAN_DETECTION, true)
+    }
+
     // Backed by the app's per-account "Link previews" settings (shared default prefs).
     override fun getLinkPreviewSource(userId: String, roomId: String, isEncrypted: Boolean): LinkPreviewSource {
         LinkPreviewSource.fromValue(sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_SOURCE}_${userId}_$roomId", null))?.let { return it }
@@ -114,6 +119,7 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         private const val SETTINGS_SHOW_HIDDEN_THREAD_EVENTS = "SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
+        private const val SETTINGS_SHADOW_BAN_DETECTION = "SETTINGS_SHADOW_BAN_DETECTION_KEY"
         private const val SETTINGS_LINK_PREVIEW_ENCRYPTED = "SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY"
         private const val SETTINGS_LINK_PREVIEW_UNENCRYPTED = "SETTINGS_LINK_PREVIEW_UNENCRYPTED_KEY"
         private const val SETTINGS_LINK_PREVIEW_SOURCE = "SETTINGS_LINK_PREVIEW_SOURCE_KEY"

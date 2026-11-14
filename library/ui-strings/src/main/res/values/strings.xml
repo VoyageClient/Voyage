@@ -2432,8 +2432,6 @@
     <string name="encryption_enabled_tile_description">Messages in this room are end-to-end encrypted. Learn more &amp; verify users in their profile.</string>
     <string name="direct_room_encryption_enabled_tile_description">Messages in this chat are end-to-end encrypted.</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Messages in this chat will be end-to-end encrypted.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Waiting for users to join ${app_name}</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Once invited users have joined ${app_name}, you will be able to chat and the room will be end-to-end encrypted</string>
     <string name="encryption_not_enabled">Encryption not enabled</string>
     <string name="encryption_misconfigured">Encryption is misconfigured</string>
     <string name="encryption_unknown_algorithm_tile_description">The encryption used by this room is not supported</string>
@@ -4452,4 +4450,7 @@
     <string name="gateway_error_http">The gateway answered with an unexpected error (HTTP %1$d).</string>
     <!-- %1$s is a gateway error code, shown only when the gateway gives no description -->
     <string name="gateway_error_unknown">The gateway reported an error (%1$s).</string>
+    <string name="account_shadow_banned">Your account is shadow-banned</string>
+    <string name="settings_shadow_ban_detection_title">Shadow-ban detection</string>
+    <string name="settings_shadow_ban_detection_summary">Alert you when your account is shadow-banned</string>
 </resources>

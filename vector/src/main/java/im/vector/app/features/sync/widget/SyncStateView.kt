@@ -12,9 +12,15 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import im.vector.app.R
 import im.vector.app.core.utils.isAirplaneModeOn
 import im.vector.app.databinding.ViewSyncStateBinding
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.SyncState
 
@@ -52,6 +58,14 @@ class SyncStateView @JvmOverloads constructor(context: Context, attrs: Attribute
         } else {
             views.syncStateNoNetwork.isVisible = false
             views.syncStateNoNetworkAirplane.isVisible = false
+        }
+    }
+
+    fun bindShadowBanSuspected(lifecycleOwner: LifecycleOwner, suspected: Flow<Boolean>) {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                suspected.collect { views.syncStateShadowBanned.isVisible = it }
+            }
         }
     }
 

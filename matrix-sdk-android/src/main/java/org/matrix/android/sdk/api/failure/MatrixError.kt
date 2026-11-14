@@ -236,5 +236,8 @@ data class MatrixError(
          * More documentation can be found in the dedicated Synapse plugin module repository: https://github.com/matrix-org/synapse-email-account-validity
          */
         const val ORG_MATRIX_EXPIRED_ACCOUNT = "ORG_MATRIX_EXPIRED_ACCOUNT"
+
+        /** Never sent by a server: stored on a send the homeserver faked accepting, because the account is shadow-banned. */
+        const val CLIENT_SHADOW_BANNED = "IM.VOYAGE.SHADOW_BANNED"
     }
 }

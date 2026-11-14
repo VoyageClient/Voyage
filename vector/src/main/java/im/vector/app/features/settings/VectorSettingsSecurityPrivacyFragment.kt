@@ -69,6 +69,7 @@ import im.vector.app.features.redaction.preservation.RedactionPreservationSettin
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_MEDIA_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_WIFI_ONLY_KEY
+import im.vector.app.features.session.ShadowBanState
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.useragent.VectorSettingsUserAgentFragment
 import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
@@ -105,6 +106,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var mediaPreviewConfigDataSource: MediaPreviewConfigDataSource
+    @Inject lateinit var shadowBanState: ShadowBanState
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var pgpServiceManager: PgpServiceManager
     @Inject lateinit var redactionSettings: RedactionPreservationSettings
@@ -320,6 +322,7 @@ class VectorSettingsSecurityPrivacyFragment :
         setUpMetadataStripping()
         setUpBlockInvites()
         setUpRedactions()
+        setUpShadowBanDetection()
 
         // Pin code
         openPinCodeSettingsPref.setOnPreferenceClickListener {
@@ -562,6 +565,14 @@ class VectorSettingsSecurityPrivacyFragment :
                 ?.setOnPreferenceChangeListener { _, newValue ->
                     lifecycleScope.launch { mediaCache.clearThumbnails() }
                     mediaPreviewConfigDataSource.onLocalChange(hideInviteAvatars = newValue as? Boolean)
+                    true
+                }
+    }
+
+    private fun setUpShadowBanDetection() {
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHADOW_BAN_DETECTION_KEY)
+                ?.setOnPreferenceChangeListener { _, newValue ->
+                    if (newValue == false) shadowBanState.clearAll()
                     true
                 }
     }

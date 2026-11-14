@@ -2202,8 +2202,6 @@
     <string name="verification_not_found">בקשת האימות לא נמצאה. ייתכן שהיא בוטלה או טופלה על ידי מושב אחר.</string>
     <string name="verify_invalid_qr_notice">נראה שקוד ה-QR הזה פגום. אנא נסה לאמת בשיטה אחרת.</string>
     <string name="direct_room_encryption_enabled_tile_description_future">ההודעות בצ\'אט זה יוצפנו מקצה לקצה.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">ממתין שמשתמשים יצטרפו ל-${app_name}</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">לאחר שהמשתמשים המוזמנים יצטרפו ל-${app_name}, תוכל לשוחח והחדר יוצפן מקצה לקצה</string>
     <string name="send_your_first_msg_to_invite">שלח את ההודעה הראשונה שלך כדי להזמין את %s לצ\'אט</string>
     <string name="settings_security_incognito_keyboard_title">מקלדת בגלישה בסתר</string>
     <string name="settings_security_incognito_keyboard_summary">בקש מהמקלדת לא לעדכן נתונים מותאמים אישית כגון היסטוריית הקלדה ומילון על סמך מה שהקלדת בשיחות. שים לב שחלק מהמקלדות עשויות שלא לכבד הגדרה זו.</string>
@@ -3871,4 +3869,7 @@
     <string name="gateway_error_bad_request">השער לא קיבל את הבקשה.</string>
     <string name="gateway_error_http">השער הגיב בשגיאה לא צפויה (HTTP %1$d).</string>
     <string name="gateway_error_unknown">השער דיווח על שגיאה (%1$s).</string>
+    <string name="account_shadow_banned">החשבון שלך חסום בחסימת צל</string>
+    <string name="settings_shadow_ban_detection_title">זיהוי חסימת צל</string>
+    <string name="settings_shadow_ban_detection_summary">התראה כשהחשבון שלך חסום בחסימת צל</string>
 </resources>

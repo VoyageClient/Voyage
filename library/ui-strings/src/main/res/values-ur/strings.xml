@@ -1687,8 +1687,6 @@
     <string name="encryption_enabled_tile_description">اس کمرے کے پیغامات آخر تا آخر مرموز ہیں۔ مزید جانیں اور صارفین کی ان کے پروفائل میں تصدیق کریں۔</string>
     <string name="direct_room_encryption_enabled_tile_description">اس گفتگو کے پیغامات آخر تا آخر مرموز ہیں۔</string>
     <string name="direct_room_encryption_enabled_tile_description_future">اس گفتگو کے پیغامات آخر تا آخر مرموز ہوں گے۔</string>
-    <string name="direct_room_encryption_enabled_waiting_users">صارفین کے ${app_name} میں شامل ہونے کا انتظار</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">مدعو صارفین کے ${app_name} میں شامل ہونے کے بعد آپ بات کر سکیں گے اور کمرہ آخر تا آخر مرموز ہوگا</string>
     <string name="encryption_not_enabled">مرموزکاری فعال نہیں</string>
     <string name="encryption_misconfigured">مرموزکاری غلط ترتیب دی گئی ہے</string>
     <string name="encryption_unknown_algorithm_tile_description">اس کمرے میں استعمال ہونے والی مرموزکاری قابلِ استعمال نہیں</string>
@@ -3660,4 +3658,7 @@
     <string name="gateway_error_bad_request">گیٹ وے نے درخواست قبول نہیں کی۔</string>
     <string name="gateway_error_http">گیٹ وے نے غیر متوقع خرابی کے ساتھ جواب دیا (HTTP %1$d)۔</string>
     <string name="gateway_error_unknown">گیٹ وے نے ایک خرابی کی اطلاع دی (%1$s)۔</string>
+    <string name="account_shadow_banned">آپ کے اکاؤنٹ پر شیڈو بین لگا ہے</string>
+    <string name="settings_shadow_ban_detection_title">شیڈو بین کی شناخت</string>
+    <string name="settings_shadow_ban_detection_summary">آپ کے اکاؤنٹ پر شیڈو بین لگنے پر آپ کو خبردار کرتا ہے</string>
 </resources>

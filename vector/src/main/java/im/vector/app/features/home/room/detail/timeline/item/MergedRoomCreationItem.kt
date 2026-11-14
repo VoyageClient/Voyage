@@ -32,7 +32,6 @@ import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
@@ -121,17 +120,11 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
     private fun renderE2ESecureTile(holder: Holder) {
         val (title, description, drawable) = when {
             isDirectRoom -> {
-                val isWaitingUser = roomSummary?.isEncrypted.orFalse() && roomSummary?.joinedMembersCount == 1 && roomSummary?.invitedMembersCount == 0
                 when {
                     attributes.isLocalRoom -> Triple(
                             CommonStrings.encryption_enabled,
                             CommonStrings.direct_room_encryption_enabled_tile_description_future,
                             R.drawable.ic_shield_black
-                    )
-                    isWaitingUser -> Triple(
-                            CommonStrings.direct_room_encryption_enabled_waiting_users,
-                            CommonStrings.direct_room_encryption_enabled_waiting_users_tile_description,
-                            R.drawable.ic_room_profile_member_list
                     )
                     else -> Triple(
                             CommonStrings.encryption_enabled,

@@ -2297,8 +2297,6 @@
     <string name="settings_external_account_management_title">Konto</string>
     <string name="settings_external_account_management">Deine Kontodetails werden separat verwaltet bei %1$s.</string>
     <string name="settings_notification_error_on_update">Ein Fehler ist während der Aktualisierung deiner Benachrichtigungseinstellungen aufgetreten. Bitte versuche es erneut.</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Sobald eingeladene Benutzer ${app_name} beigetreten sind, werdet ihr euch unterhalten können und der Raum Ende-zu-Ende-verschlüsselt sein</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Warte darauf, dass Benutzer ${app_name} beitreten</string>
     <string name="direct_room_user_list_only_invite_one_email">Du kannst E-Mail-Einladung nur nacheinander verschicken</string>
     <string name="action_proceed_to_reset">Mit Zurücksetzen fortfahren</string>
     <string name="pill_message_unknown_room_or_space">Raum/Space</string>
@@ -3759,4 +3757,7 @@
     <string name="gateway_error_bad_request">Das Gateway hat die Anfrage nicht akzeptiert.</string>
     <string name="gateway_error_http">Das Gateway hat mit einem unerwarteten Fehler geantwortet (HTTP %1$d).</string>
     <string name="gateway_error_unknown">Das Gateway hat einen Fehler gemeldet (%1$s).</string>
+    <string name="account_shadow_banned">Dein Konto ist per Shadowban gesperrt</string>
+    <string name="settings_shadow_ban_detection_title">Shadowban-Erkennung</string>
+    <string name="settings_shadow_ban_detection_summary">Warnt dich, wenn dein Konto per Shadowban gesperrt ist</string>
 </resources>

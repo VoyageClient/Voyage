@@ -51,17 +51,11 @@ class EncryptionItemFactory @Inject constructor(
             val isDirect = roomSummary?.isDirect.orFalse()
             val (resTitle, resDescription, resShield) = when {
                 isDirect -> {
-                    val isWaitingUser = roomSummary?.isEncrypted.orFalse() && roomSummary?.joinedMembersCount == 1 && roomSummary.invitedMembersCount == 0
                     when {
                         RoomLocalEcho.isLocalEchoId(event.root.roomId.orEmpty()) -> Triple(
                                 CommonStrings.encryption_enabled,
                                 CommonStrings.direct_room_encryption_enabled_tile_description_future,
                                 StatusTileTimelineItem.ShieldUIState.BLACK
-                        )
-                        isWaitingUser -> Triple(
-                                CommonStrings.direct_room_encryption_enabled_waiting_users,
-                                CommonStrings.direct_room_encryption_enabled_waiting_users_tile_description,
-                                StatusTileTimelineItem.ShieldUIState.WAITING
                         )
                         else -> Triple(
                                 CommonStrings.encryption_enabled,

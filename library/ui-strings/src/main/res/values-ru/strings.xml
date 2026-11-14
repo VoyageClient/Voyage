@@ -2276,9 +2276,7 @@
     <string name="verification_request_waiting_for_recovery">Верификация секретной фразы или ключа…</string>
     <string name="verification_verify_identity">Подтвердите ваш сеанс для доступа к зашифрованным сообщениям и верификации для других пользователей.</string>
     <string name="sign_out_failed_dialog_message">Не удается подключиться к серверу. Если вы подтвердите выход сейчас, это устройство не будет удалено из списка активных сеансов. Удалить этот сеанс можно будет с другого устройства.</string>
-    <string name="direct_room_encryption_enabled_waiting_users">Ожидание подключения пользователей к ${app_name}</string>
     <string name="settings_notification_error_on_update">При изменении настроек уведомлений произошла ошибка. Попробуйте ещё раз.</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Когда приглашенные пользователи присоединятся к ${app_name}, вы сможете писать им с использованием сквозного шифрования</string>
     <string name="secure_backup_reset_all_no_other_devices_long">Сброс ваших ключей верификации не может быть отменен. После сброса, вы не будете иметь доступа к старым зашифрованным сообщениям, а все ваши контакты, верифицировавшие вас ранее, увидят предупреждение о повторной верификации.</string>
     <string name="encrypted_by_deleted">Зашифровано прерванным сеансом</string>
     <string name="confirm_your_identity_after_update">В последнем обновлении улучшили защищённую переписку. Пожалуйста, перезаверьте свой сеанс.</string>
@@ -3902,4 +3900,7 @@
     <string name="gateway_error_bad_request">Шлюз не принял запрос.</string>
     <string name="gateway_error_http">Шлюз ответил неожиданной ошибкой (HTTP %1$d).</string>
     <string name="gateway_error_unknown">Шлюз сообщил об ошибке (%1$s).</string>
+    <string name="account_shadow_banned">Ваша учётная запись получила теневой бан</string>
+    <string name="settings_shadow_ban_detection_title">Обнаружение теневого бана</string>
+    <string name="settings_shadow_ban_detection_summary">Предупреждать, когда ваша учётная запись получает теневой бан</string>
 </resources>

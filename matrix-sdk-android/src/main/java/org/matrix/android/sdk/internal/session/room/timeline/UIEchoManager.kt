@@ -175,9 +175,10 @@ internal class UIEchoManager(
     }
 
     fun updateSentStateWithUiEcho(timelineEvent: TimelineEvent): TimelineEvent {
-        if (timelineEvent.root.sendState.isSent()) return timelineEvent
         val inMemory = inMemorySendingStates[timelineEvent.eventId] ?: return timelineEvent
         val root = timelineEvent.root
+        // Only a stale in-progress state is dropped: a failure after SENT (a faked send) is what the DB holds too.
+        if (root.sendState.isSent() && !inMemory.sendState.hasFailed()) return timelineEvent
         if (root.sendState == inMemory.sendState && root.sendStateDetails == inMemory.details) return timelineEvent
         return timelineEvent.copy(root = root.copyAll(sendState = inMemory.sendState, sendStateDetails = inMemory.details))
     }

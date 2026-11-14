@@ -27,6 +27,7 @@ import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomFromLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
+import org.matrix.android.sdk.internal.session.room.send.ShadowBanDetector
 import org.matrix.android.sdk.internal.task.Task
 import timber.log.Timber
 import javax.inject.Inject
@@ -46,6 +47,7 @@ internal class DefaultSendEventTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val failedMediaUploadRecovery: FailedMediaUploadRecovery,
+        private val shadowBanDetector: ShadowBanDetector,
 ) : SendEventTask {
 
     override suspend fun execute(params: SendEventTask.Params): String {
@@ -82,6 +84,7 @@ internal class DefaultSendEventTask @Inject constructor(
             localEchoRepository.updateSendState(localId, params.event.roomId, SendState.SENT)
             localEchoRepository.onEventSent(event.roomId ?: "", localId, response.eventId)
             failedMediaUploadRecovery.onEventSent(localId, response.eventId)
+            shadowBanDetector.onEventSent(event.roomId ?: "", localId, response.eventId)
             return response.eventId.also {
                 Timber.d("Event: $it just sent in ${params.event.roomId}")
             }

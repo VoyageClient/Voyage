@@ -2298,8 +2298,6 @@
     <string name="settings_external_account_management">Les détails de votre compte sont gérés séparément sur %1$s.</string>
     <string name="settings_external_account_management_title">Compte</string>
     <string name="settings_notification_error_on_update">Nous avons rencontré une erreur lors de la mise-à-jour de vos préférences de notification. Veuillez réessayer.</string>
-    <string name="direct_room_encryption_enabled_waiting_users_tile_description">Une fois que les utilisateurs invités seront connectés sur ${app_name}, vous pourrez discuter et le salon sera chiffré de bout en bout</string>
-    <string name="direct_room_encryption_enabled_waiting_users">En attente de la connexion des utilisateurs sur ${app_name}</string>
     <string name="direct_room_user_list_only_invite_one_email">Vous ne pouvez envoyer qu’une seule invitation par courriel à la fois</string>
     <string name="pill_message_unknown_room_or_space">Salon/Espace</string>
     <string name="pill_message_in_unknown_room">Message dans le salon</string>
@@ -3760,4 +3758,7 @@
     <string name="gateway_error_bad_request">La passerelle n’a pas accepté la requête.</string>
     <string name="gateway_error_http">La passerelle a répondu par une erreur inattendue (HTTP %1$d).</string>
     <string name="gateway_error_unknown">La passerelle a signalé une erreur (%1$s).</string>
+    <string name="account_shadow_banned">Votre compte est victime d\'un shadowban</string>
+    <string name="settings_shadow_ban_detection_title">Détection du shadowban</string>
+    <string name="settings_shadow_ban_detection_summary">Vous alerte lorsque votre compte est victime d\'un shadowban</string>
 </resources>

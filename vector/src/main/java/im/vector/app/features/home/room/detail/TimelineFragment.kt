@@ -306,6 +306,7 @@ class TimelineFragment :
     @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var messageActionEligibility: MessageActionEligibility
     @Inject lateinit var bulkActionQueue: BulkActionQueue
+    @Inject lateinit var shadowBanState: im.vector.app.features.session.ShadowBanState
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -449,6 +450,7 @@ class TimelineFragment :
         setupJumpToBottomView()
         setupPinnedMessagesBanner()
         setupMassRedactionBanner()
+        views.syncStateView.bindShadowBanSuspected(viewLifecycleOwner, shadowBanState.isSuspected(session.myUserId))
         AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController) { openAfterKeyboardDismissal(open = it) }
         setupUserIdentityWarning()
         setupLiveLocationIndicator()
@@ -1798,7 +1800,11 @@ class TimelineFragment :
         renderPinnedMessagesBanner(mainState)
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.bulkActionProgress)
-        val showFailedSending = if (mainState.failedSendingFromTimeline) mainState.failedSendingText != null else mainState.hasFailedSending
+        val showFailedSending = when (mainState.failedSendingFromTimeline) {
+            null -> false
+            true -> mainState.failedSendingText != null
+            false -> mainState.hasFailedSending
+        }
         if (showFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.apply {
                 render(mainState.failedSendingText)

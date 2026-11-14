@@ -50,7 +50,6 @@ abstract class StatusTileTimelineItem : AbsBaseMessageItem<StatusTileTimelineIte
             ShieldUIState.GREEN -> R.drawable.ic_shield_trusted
             ShieldUIState.BLACK -> R.drawable.ic_shield_black
             ShieldUIState.RED -> R.drawable.ic_shield_warning
-            ShieldUIState.WAITING -> R.drawable.ic_room_profile_member_list
             ShieldUIState.ERROR -> R.drawable.ic_warning_badge
         }
 
@@ -95,7 +94,6 @@ abstract class StatusTileTimelineItem : AbsBaseMessageItem<StatusTileTimelineIte
         BLACK,
         RED,
         GREEN,
-        WAITING,
         ERROR
     }
 }
