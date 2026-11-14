@@ -2366,7 +2366,6 @@
     <string name="settings_media_preview_solid_title">Utiliser une couleur unie pour les médias masqués</string>
     <string name="settings_media_preview_solid_summary">Afficher une couleur unie au lieu d’un aperçu flouté jusqu’à ce que le média soit révélé</string>
     <string name="settings_hide_avatars_title">Masquer les avatars là où les médias sont masqués</string>
-    <string name="settings_hide_avatars_summary">Afficher aussi l’avatar par défaut dans la chronologie, la liste des membres et les profils des membres des salons où les médias sont masqués</string>
     <string name="settings_hide_invite_avatars_title">Masquer les avatars des invitations</string>
     <string name="settings_hide_invite_avatars_summary">Afficher l’avatar par défaut pour les invitations reçues à des salons et à des messages directs dans vos listes de salons et d’espaces</string>
     <string name="settings_auto_dismiss_jump_to_unread_summary">Masquer la bannière « Aller au non lu ». Marquer le salon comme lu lorsqu’il s’ouvre en bas ou lorsque vous faites défiler jusqu’à la fin.</string>
@@ -3755,4 +3754,5 @@
     <string name="notice_state_event_redacted_with_reason">Le changement du salon effectué par %1$s a été supprimé, raison : %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Rétablir les paramètres de sécurité et de vie privée de ce salon sur ceux de votre compte ?</string>
     <string name="room_personalization_redaction_reset_confirmation">Rétablir les paramètres de suppression de ce salon sur ceux de votre compte ?</string>
+    <string name="settings_hide_avatars_summary">Afficher l’avatar par défaut pour les salons et espaces où les médias sont masqués, ainsi que pour les personnes qui s’y trouvent</string>
 </resources>

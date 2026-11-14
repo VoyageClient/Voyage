@@ -64,6 +64,7 @@ class AvatarThumbnailVariantsTest {
     }
     private val vectorPreferences = mockk<VectorPreferences> {
         every { avatarShape() } returns AvatarShape.CIRCLE
+        every { hideAvatarsInHiddenMediaRooms() } returns false
     }
     private val thumbnailVariants = ThumbnailVariants()
 

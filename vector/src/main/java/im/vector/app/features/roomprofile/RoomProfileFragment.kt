@@ -333,7 +333,7 @@ class RoomProfileFragment :
                 views.matrixProfileToolbarTitleView.text = it.displayName.prepareForDisplay()
                 headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias?.neutralizeDirectionOverrides())
                 headerViews.roomProfileAliasView.setCopySource(it.canonicalAlias)
-                val matrixItem = it.toDisplayMatrixItem()
+                val matrixItem = avatarRenderer.displayedItem(it)
                 // Only re-issue when the drawn avatar actually changes: this screen invalidates on
                 // every state emission, and re-rendering replays the placeholder each time.
                 val avatarKey = listOf(matrixItem.avatarUrl, matrixItem.getBestName())

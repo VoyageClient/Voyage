@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -128,7 +127,7 @@ class RoomAliasFragment :
     private fun renderRoomSummary(state: RoomAliasViewState) {
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(avatarRenderer.displayedItem(it), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }

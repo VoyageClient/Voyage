@@ -288,7 +288,6 @@ import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.RoomOpenTrace
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.util.UUID
@@ -975,7 +974,7 @@ class TimelineFragment :
             return
         }
         views.userIdentityWarningView.isVisible = true
-        views.userIdentityWarningView.render(prompt, avatarRenderer)
+        views.userIdentityWarningView.render(prompt, avatarRenderer, timelineArgs.roomId)
     }
 
     private fun setupPinnedMessagesBanner() {
@@ -1997,7 +1996,7 @@ class TimelineFragment :
                     views.includeRoomToolbar.roomToolbarContentView.isClickable =
                             roomSummary.membership == Membership.JOIN || isRoomPreview || roomSummary.isRemovedFromRoom
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName.prepareForDisplay()
-                    val toolbarMatrixItem = roomSummary.toDisplayMatrixItem().let {
+                    val toolbarMatrixItem = avatarRenderer.displayedItem(roomSummary).let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
                     }
                     avatarRenderer.render(

@@ -66,6 +66,8 @@ import im.vector.app.features.home.avatar.DefaultAvatarFactory
 import im.vector.app.features.home.avatar.effect.AvatarEffectDrawables
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.shouldHideAvatars
+import im.vector.app.features.media.withAvatarHiddenIn
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
@@ -74,7 +76,9 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import java.util.WeakHashMap
 import javax.inject.Inject
 
@@ -214,6 +218,7 @@ class AvatarRenderer @Inject constructor(
      * @param onSettled called once this render has landed, or failed — for a screen holding itself back
      * until the avatar is really there instead of revealing the letter placeholder and fading over it.
      * Fires inline when the avatar is already cached, and not at all when the request is superseded.
+     * @param roomId the room a user item is shown in, so its avatar follows that room's avatar hiding.
      */
     @UiThread
     fun render(
@@ -221,9 +226,27 @@ class AvatarRenderer @Inject constructor(
             imageView: ImageView,
             @DimenRes decodeSize: Int? = null,
             crossfade: Boolean = true,
+            roomId: String? = null,
             onSettled: (() -> Unit)? = null,
     ) {
-        renderAt(matrixItem, imageView, decodeSizePx(imageView, decodeSize), crossfade, onSettled)
+        renderAt(displayedItem(matrixItem, roomId), imageView, decodeSizePx(imageView, decodeSize), crossfade, onSettled)
+    }
+
+    /**
+     * [matrixItem] as drawn: without its avatar where "hide avatars where media is hidden" covers it. Rooms and
+     * spaces are resolved by every render here; a user item only when given the [roomId] it is shown in.
+     */
+    fun displayedItem(matrixItem: MatrixItem, roomId: String? = null): MatrixItem {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return matrixItem
+        return matrixItem.withAvatarHiddenIn(roomId, session, vectorPreferences)
+    }
+
+    /**
+     * [summary]'s display item as drawn. A DM's display item is the other user's, which [displayedItem]
+     * can't tie back to the room, so anything drawn from a summary goes through here.
+     */
+    fun displayedItem(summary: RoomSummary, matrixItem: MatrixItem = summary.toDisplayMatrixItem()): MatrixItem {
+        return if (shouldHideAvatars(summary, vectorPreferences)) matrixItem.updateAvatar(null) else matrixItem
     }
 
     /**
@@ -233,7 +256,7 @@ class AvatarRenderer @Inject constructor(
      */
     @UiThread
     fun renderAtSize(matrixItem: MatrixItem, imageView: ImageView, sizePx: Int, crossfade: Boolean = true) {
-        renderAt(matrixItem, imageView, sizePx.takeIf { it > 0 }, crossfade, onSettled = null)
+        renderAt(displayedItem(matrixItem), imageView, sizePx.takeIf { it > 0 }, crossfade, onSettled = null)
     }
 
     private fun renderAt(
@@ -434,8 +457,9 @@ class AvatarRenderer @Inject constructor(
             matrixItem: MatrixItem,
             target: Target<Drawable>,
             forceCircle: Boolean = false,
+            roomId: String? = null,
     ) {
-        glideRequests.loadAvatar(matrixItem, forceCircle = forceCircle).into(target)
+        glideRequests.loadAvatar(displayedItem(matrixItem, roomId), forceCircle = forceCircle).into(target)
     }
 
     @AnyThread
@@ -443,7 +467,7 @@ class AvatarRenderer @Inject constructor(
     fun shortcutDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem, iconSize: Int): Bitmap {
         return glideRequests
                 .asBitmap()
-                .avatarOrText(matrixItem, iconSize)
+                .avatarOrText(displayedItem(matrixItem), iconSize)
                 .apply(RequestOptions.centerCropTransform())
                 .submit(iconSize, iconSize)
                 .get()
@@ -466,7 +490,7 @@ class AvatarRenderer @Inject constructor(
     ): Bitmap {
         return glideRequests
                 .asBitmap()
-                .avatarOrText(matrixItem, iconSize)
+                .avatarOrText(displayedItem(matrixItem), iconSize)
                 .transform(CenterCrop(), AdaptiveIconTransformation(adaptiveIconSize, adaptiveIconOuterSides))
                 .signature(ObjectKey("adaptive-icon-${defaultAvatarFactory.styleFor(matrixItem).name}"))
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -503,7 +527,7 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun preloadAvatar(glideRequests: GlideRequests, matrixItem: MatrixItem) {
         if (preloadedAvatars.put("${matrixItem.id}|${matrixItem.avatarUrl}", Unit) != null) return
-        glideRequests.loadAvatar(matrixItem, forceCircle = true).preload()
+        glideRequests.loadAvatar(displayedItem(matrixItem), forceCircle = true).preload()
     }
 
     @UiThread
@@ -520,15 +544,15 @@ class AvatarRenderer @Inject constructor(
     fun preloadAvatarAtSize(matrixItem: MatrixItem, view: View, sizePx: Int) {
         if (sizePx <= 0) return
         if (preloadedAvatars.put("${matrixItem.id}|${matrixItem.avatarUrl}|$sizePx", Unit) != null) return
-        GlideApp.with(view).loadAvatar(matrixItem, decodeSizePx = sizePx).preload(sizePx, sizePx)
+        GlideApp.with(view).loadAvatar(displayedItem(matrixItem), decodeSizePx = sizePx).preload(sizePx, sizePx)
     }
 
     /** Whether animated avatars should play, for callers that drive an animation themselves. */
     fun animatesAvatars(): Boolean = vectorPreferences.autoplayAnimatedImages()
 
     @AnyThread
-    fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
-        return glideRequests.loadAvatar(matrixItem, cacheOnly = true, forceCircle = forceCircle)
+    fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem, forceCircle: Boolean = false, roomId: String? = null): Drawable {
+        return glideRequests.loadAvatar(displayedItem(matrixItem, roomId), cacheOnly = true, forceCircle = forceCircle)
                 .submit()
                 .get()
     }

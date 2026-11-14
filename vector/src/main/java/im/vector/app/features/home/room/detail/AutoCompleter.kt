@@ -372,7 +372,7 @@ class AutoCompleter @AssistedInject constructor(
     private fun insertPill(editable: Editable, matrixItem: MatrixItem, start: Int, length: Int, bodyText: String?): PillImageSpan? {
         val editText = editText ?: return null
         if (sendsLiteralText(editable)) return null
-        val span = PillImageSpan(glideRequests, avatarRenderer, editText.context, matrixItem, bodyText = bodyText)
+        val span = PillImageSpan(glideRequests, avatarRenderer, editText.context, matrixItem, bodyText = bodyText, roomId = roomId)
         span.bind(editText)
         editable.setPillSpan(span, start, start + length)
         return span
@@ -402,7 +402,7 @@ class AutoCompleter @AssistedInject constructor(
             if (start < 0 || end <= start) return@launch
             editable.removeSpan(placeholder)
             val resolved = PillImageSpan(
-                    glideRequests, avatarRenderer, editText.context, item, bodyText = bodyName
+                    glideRequests, avatarRenderer, editText.context, item, bodyText = bodyName, roomId = roomId
             )
             resolved.bind(editText)
             editable.setSpan(resolved, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -459,7 +459,8 @@ class AutoCompleter @AssistedInject constructor(
                 avatarRenderer,
                 editText.context,
                 matrixItem,
-                bodyText = displayName
+                bodyText = displayName,
+                roomId = roomId,
         )
         span.bind(editText)
 

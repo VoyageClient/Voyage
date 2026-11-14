@@ -16,7 +16,6 @@ import im.vector.app.core.ui.list.genericLoaderItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
@@ -54,8 +53,8 @@ class MentionsController @Inject constructor(
             mentionItem {
                 id(event.eventId)
                 avatarRenderer(host.avatarRenderer)
-                senderItem(event.senderInfo.toMatrixItem())
-                roomItem(item.roomSummary.toDisplayMatrixItem())
+                senderItem(host.avatarRenderer.displayedItem(event.senderInfo.toMatrixItem(), item.roomSummary.roomId))
+                roomItem(host.avatarRenderer.displayedItem(item.roomSummary))
                 senderName(item.senderName.toEpoxyCharSequence())
                 roomName(item.roomName.toEpoxyCharSequence())
                 body(item.body.toEpoxyCharSequence())

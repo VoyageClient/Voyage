@@ -64,7 +64,7 @@ class ThreadListController @Inject constructor(
                         id(timelineEvent.eventId)
                         avatarRenderer(host.avatarRenderer)
                         matrixItemColorProvider(host.matrixItemColorProvider)
-                        matrixItem(timelineEvent.senderInfo.toMatrixItem())
+                        matrixItem(host.avatarRenderer.displayedItem(timelineEvent.senderInfo.toMatrixItem(), timelineEvent.roomId))
                         title(timelineEvent.senderInfo.disambiguatedDisplayName)
                         date(date)
                         rootMessageDeleted(timelineEvent.root.isRedacted())
@@ -72,7 +72,10 @@ class ThreadListController @Inject constructor(
                         rootMessage(rootMessageFormatted.toEpoxyCharSequence())
                         lastMessage(lastMessageFormatted.toEpoxyCharSequence())
                         lastMessageCounter(timelineEvent.root.threadDetails?.numberOfThreads.toString())
-                        lastMessageMatrixItem(timelineEvent.root.threadDetails?.threadSummarySenderInfo?.toMatrixItem())
+                        lastMessageMatrixItem(
+                                timelineEvent.root.threadDetails?.threadSummarySenderInfo?.toMatrixItem()
+                                        ?.let { host.avatarRenderer.displayedItem(it, timelineEvent.roomId) }
+                        )
                         itemClickListener {
                             host.listener?.onThreadListClicked(timelineEvent)
                         }

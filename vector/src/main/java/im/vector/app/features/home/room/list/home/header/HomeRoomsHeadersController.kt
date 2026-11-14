@@ -116,7 +116,7 @@ class HomeRoomsHeadersController @Inject constructor(
                 RecentRoomItem_()
                         .id(roomSummary.roomId)
                         .avatarRenderer(host.avatarRenderer)
-                        .matrixItem(roomSummary.toMatrixItem())
+                        .matrixItem(host.avatarRenderer.displayedItem(roomSummary, roomSummary.toMatrixItem()))
                         .unreadNotificationCount(roomSummary.notificationCount)
                         .showHighlighted(roomSummary.highlightCount > 0)
                         .itemLongClickListener { _ -> onLongClick?.invoke(roomSummary) ?: false }

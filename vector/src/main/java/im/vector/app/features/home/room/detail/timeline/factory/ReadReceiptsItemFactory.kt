@@ -37,15 +37,15 @@ class ReadReceiptsItemFactory @Inject constructor(
         val hideAvatars = shouldHideAvatars(roomId, session, vectorPreferences)
         val readReceiptsData = readReceipts
                 .map {
-                    val avatarUrl = it.roomMember.avatarUrl.takeUnless { hideAvatars }
+                    val hideAvatar = hideAvatars && it.roomMember.userId != session.myUserId
                     ReadReceiptData(
                             it.roomMember.userId,
-                            avatarUrl,
+                            it.roomMember.avatarUrl.takeUnless { hideAvatar },
                             it.roomMember.displayName,
                             it.originServerTs,
                             colorOnLight = it.roomMember.colorPreference?.onLight,
                             colorOnDark = it.roomMember.colorPreference?.onDark,
-                            avatarDecryption = it.roomMember.avatarDecryption,
+                            avatarDecryption = it.roomMember.avatarDecryption.takeUnless { hideAvatar },
                     )
                 }
                 .sortedByDescending { it.timestamp }

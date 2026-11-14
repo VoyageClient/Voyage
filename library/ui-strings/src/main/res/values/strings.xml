@@ -3211,7 +3211,7 @@
     <string name="settings_media_preview_solid_title">Use solid color for hidden media</string>
     <string name="settings_media_preview_solid_summary">Show a flat color instead of a blurred preview until media is revealed</string>
     <string name="settings_hide_avatars_title">Hide avatars where media is hidden</string>
-    <string name="settings_hide_avatars_summary">Also show the default avatar in the timeline, member list and member profiles of rooms where media is hidden</string>
+    <string name="settings_hide_avatars_summary">Show the default avatar for rooms and spaces where media is hidden, and for the people in them</string>
     <string name="settings_hide_invite_avatars_title">Hide avatars on invites</string>
     <string name="settings_hide_invite_avatars_summary">Show the default avatar for incoming room and direct message invites in your room and space lists</string>
     <string name="settings_auto_dismiss_jump_to_unread">Hide "Jump to unread"</string>

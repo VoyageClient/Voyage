@@ -689,6 +689,7 @@ class TimelineEventController @Inject constructor(
         if (!showingForwardLoader) {
             val typingUsers = partialState.roomSummary?.typingUsers.orEmpty()
             val typingItem = TypingItem_().id("typing_view").avatarRenderer(avatarRenderer).users(typingUsers)
+                    .roomId(partialState.roomSummary?.roomId)
             add(typingItem)
         }
         add(timelineModels)

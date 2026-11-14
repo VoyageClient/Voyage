@@ -59,7 +59,7 @@ class RoomBannedMemberListController @Inject constructor(
                                 val actionInProgress = data.onGoingModerationAction.contains(roomMember.userId)
                                 profileMatrixItemWithProgress {
                                     id(roomMember.userId)
-                                    matrixItem(roomMember.toMatrixItem())
+                                    matrixItem(host.avatarRenderer.displayedItem(roomMember.toMatrixItem(), data.roomId))
                                     avatarRenderer(host.avatarRenderer)
                                     apply {
                                         if (actionInProgress) {

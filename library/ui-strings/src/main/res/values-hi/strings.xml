@@ -2262,7 +2262,6 @@
     <string name="settings_media_preview_solid_title">छिपे मीडिया के लिए सादा रंग इस्तेमाल करें</string>
     <string name="settings_media_preview_solid_summary">मीडिया दिखाए जाने तक धुंधले प्रीव्यू के बजाय सादा रंग दिखाएं</string>
     <string name="settings_hide_avatars_title">जहां मीडिया छिपा है वहां अवतार छिपाएं</string>
-    <string name="settings_hide_avatars_summary">जिन रूम में मीडिया छिपा है, उनकी टाइमलाइन, सदस्य सूची और सदस्य प्रोफ़ाइल में भी डिफ़ॉल्ट अवतार दिखाएं</string>
     <string name="settings_hide_invite_avatars_title">आमंत्रणों पर अवतार छिपाएं</string>
     <string name="settings_hide_invite_avatars_summary">अपनी रूम और स्पेस सूचियों में आने वाले रूम और डायरेक्ट मैसेज आमंत्रणों के लिए डिफ़ॉल्ट अवतार दिखाएं</string>
     <string name="settings_auto_dismiss_jump_to_unread">“अपठित पर जाएं” छिपाएं</string>
@@ -3643,4 +3642,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$s का रूम बदलाव हटाया गया, कारण: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">इस रूम की सुरक्षा और गोपनीयता सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
     <string name="room_personalization_redaction_reset_confirmation">इस रूम की हटाए गए मैसेज वाली सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
+    <string name="settings_hide_avatars_summary">जिन रूम और स्पेस में मीडिया छिपा है, उनके और उनमें मौजूद लोगों के लिए डिफ़ॉल्ट अवतार दिखाएं</string>
 </resources>

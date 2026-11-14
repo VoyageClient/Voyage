@@ -32,6 +32,9 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
     @EpoxyAttribute
     var users: List<SenderInfo> = emptyList()
 
+    @EpoxyAttribute
+    var roomId: String? = null
+
     override fun getDefaultLayout(): Int = R.layout.item_typing_users
 
     override fun bind(holder: TypingHolder) {
@@ -53,7 +56,7 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
 
                 translationY = height.toFloat()
                 alpha = 0f
-                render(typingUsers, avatarRenderer)
+                render(typingUsers, avatarRenderer, roomId)
                 animate().translationY(0f)
                         .alpha(1f)
                         .setDuration(duration)

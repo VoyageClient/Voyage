@@ -2366,7 +2366,6 @@
     <string name="settings_media_preview_solid_title">Usar cor sólida para mídia escondida</string>
     <string name="settings_media_preview_solid_summary">Mostrar uma cor lisa em vez de uma prévia desfocada até a mídia ser revelada</string>
     <string name="settings_hide_avatars_title">Esconder avatares onde a mídia está escondida</string>
-    <string name="settings_hide_avatars_summary">Mostrar também o avatar padrão na timeline, na lista de membros e nos perfis de membros de salas onde a mídia está escondida</string>
     <string name="settings_hide_invite_avatars_title">Esconder avatares em convites</string>
     <string name="settings_hide_invite_avatars_summary">Mostrar o avatar padrão para convites recebidos de salas e mensagens diretas nas suas listas de salas e espaços</string>
     <string name="settings_auto_dismiss_jump_to_unread">Esconder "Pular para não lidas"</string>
@@ -3755,4 +3754,5 @@
     <string name="notice_state_event_redacted_with_reason">A alteração na sala feita por %1$s foi removida, motivo: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Redefinir as configurações de segurança e privacidade desta sala para as da sua conta?</string>
     <string name="room_personalization_redaction_reset_confirmation">Redefinir as configurações de remoções desta sala para as da sua conta?</string>
+    <string name="settings_hide_avatars_summary">Mostrar o avatar padrão para salas e espaços onde a mídia está escondida e para as pessoas neles</string>
 </resources>

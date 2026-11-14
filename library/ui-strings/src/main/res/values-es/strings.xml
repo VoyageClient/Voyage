@@ -2354,7 +2354,6 @@
     <string name="settings_media_preview_solid_title">Usar color sólido para multimedia oculto</string>
     <string name="settings_media_preview_solid_summary">Mostrar un color plano en lugar de una vista previa difuminada hasta que se revele el contenido</string>
     <string name="settings_hide_avatars_title">Ocultar avatares donde se oculta el contenido multimedia</string>
-    <string name="settings_hide_avatars_summary">Mostrar también el avatar predeterminado en la cronología, la lista de miembros y los perfiles de miembros de las salas donde el contenido multimedia está oculto</string>
     <string name="settings_hide_invite_avatars_title">Ocultar avatares en invitaciones</string>
     <string name="settings_hide_invite_avatars_summary">Mostrar el avatar predeterminado en las invitaciones recibidas a salas y mensajes directos en tus listas de salas y espacios</string>
     <string name="settings_auto_dismiss_jump_to_unread">Ocultar "Ir a no leídos"</string>
@@ -3743,4 +3742,5 @@
     <string name="notice_state_event_redacted_with_reason">Se borró el cambio en la sala de %1$s, motivo: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">¿Restablecer los ajustes de seguridad y privacidad de esta sala a los de toda tu cuenta?</string>
     <string name="room_personalization_redaction_reset_confirmation">¿Restablecer los ajustes de borrados de esta sala a los de toda tu cuenta?</string>
+    <string name="settings_hide_avatars_summary">Mostrar el avatar predeterminado para las salas y espacios donde se oculta el contenido multimedia, y para las personas que hay en ellos</string>
 </resources>

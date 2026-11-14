@@ -12,10 +12,12 @@ import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
+import org.matrix.android.sdk.api.util.MatrixItem
 
 const val MSC4193_SPOILER_KEY = "page.codeberg.everypizza.msc4193.spoiler"
 private const val MSC4193_STABLE_SPOILER_KEY = "m.spoiler"
@@ -78,19 +80,47 @@ fun isMediaHiddenInRoom(
 
 /**
  * Whether avatars should be forced to the default placeholder in [roomId]: the "hide avatars" toggle is on
- * and media is hidden there. Drives the timeline, member list and the member profile opened from the room.
+ * and media is hidden there. Covers the room's own avatar and every other user's avatar shown in it.
+ * Invites are left to the separate "hide avatars on invites" toggle.
  */
 fun shouldHideAvatars(
         roomId: String?,
         session: Session,
         vectorPreferences: VectorPreferences,
 ): Boolean {
-    return vectorPreferences.hideAvatarsInHiddenMediaRooms() && isMediaHiddenInRoom(roomId, session, vectorPreferences)
+    if (!vectorPreferences.hideAvatarsInHiddenMediaRooms()) return false
+    roomId ?: return false
+    if (vectorPreferences.getMediaPreviewMode(roomId) == MediaPreviewMode.ALWAYS_SHOW) return false
+    return hidesAvatars(session.getRoomSummary(roomId), vectorPreferences)
 }
 
 fun shouldHideAvatars(
         summary: RoomSummary?,
         vectorPreferences: VectorPreferences,
 ): Boolean {
-    return vectorPreferences.hideAvatarsInHiddenMediaRooms() && isMediaHiddenInRoom(summary, vectorPreferences)
+    return vectorPreferences.hideAvatarsInHiddenMediaRooms() && hidesAvatars(summary, vectorPreferences)
+}
+
+private fun hidesAvatars(summary: RoomSummary?, vectorPreferences: VectorPreferences): Boolean {
+    return summary?.membership != Membership.INVITE && isMediaHiddenInRoom(summary, vectorPreferences)
+}
+
+/**
+ * [matrixItem] without its avatar when [shouldHideAvatars] applies to it: a room, space or @room item in its own
+ * room, or a user other than us shown in [roomId].
+ */
+fun MatrixItem.withAvatarHiddenIn(
+        roomId: String?,
+        session: Session,
+        vectorPreferences: VectorPreferences,
+): MatrixItem {
+    if (avatarUrl.isNullOrEmpty() && avatarDecryption == null) return this
+    if (!vectorPreferences.hideAvatarsInHiddenMediaRooms()) return this
+    val hidden = when (this) {
+        is MatrixItem.RoomItem, is MatrixItem.SpaceItem, is MatrixItem.EveryoneInRoomItem -> shouldHideAvatars(id, session, vectorPreferences)
+        is MatrixItem.RoomAliasItem -> shouldHideAvatars(session.getRoomSummary(id), vectorPreferences)
+        is MatrixItem.UserItem -> id != session.myUserId && shouldHideAvatars(roomId, session, vectorPreferences)
+        else -> false
+    }
+    return if (hidden) updateAvatar(null) else this
 }

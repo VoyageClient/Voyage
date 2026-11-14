@@ -70,7 +70,7 @@ class SpaceCardRenderer @Inject constructor(
 
             inCard.matrixToCardDescText.isVisible = showDescription
 
-            renderPeopleYouKnow(inCard, peopleYouKnow.map { it.toMatrixItem() }, hideAvatar)
+            renderPeopleYouKnow(inCard, peopleYouKnow.map { it.toMatrixItem() }, spaceSummary.roomId, hideAvatar)
         }
         inCard.matrixToCardDescText.movementMethod = createLinkMovementMethod(object : TimelineEventController.UrlClickCallback {
             override fun onUrlClicked(url: String, title: String): Boolean {
@@ -118,11 +118,16 @@ class SpaceCardRenderer @Inject constructor(
                 inCard.matrixToMemberPills.isVisible = false
             }
 
-            renderPeopleYouKnow(inCard, peopleYouKnow.map { it.toMatrixItem() })
+            renderPeopleYouKnow(inCard, peopleYouKnow.map { it.toMatrixItem() }, spaceChildInfo.childRoomId)
         }
     }
 
-    fun renderPeopleYouKnow(inCard: FragmentMatrixToRoomSpaceCardBinding, peopleYouKnow: List<MatrixItem.UserItem>, hideAvatar: Boolean = false) {
+    fun renderPeopleYouKnow(
+            inCard: FragmentMatrixToRoomSpaceCardBinding,
+            peopleYouKnow: List<MatrixItem.UserItem>,
+            roomId: String?,
+            hideAvatar: Boolean = false,
+    ) {
         val images = listOf(
                 inCard.knownMember1,
                 inCard.knownMember2,
@@ -136,7 +141,7 @@ class SpaceCardRenderer @Inject constructor(
         } else {
             peopleYouKnow.forEachIndexed { index, item ->
                 images[index].isVisible = true
-                avatarRenderer.render(item.let { if (hideAvatar) it.updateAvatar(null) else it }, images[index])
+                avatarRenderer.render(item.let { if (hideAvatar) it.updateAvatar(null) else it }, images[index], roomId = roomId)
             }
             inCard.peopleYouMayKnowText.setTextOrHide(
                     stringProvider.getQuantityString(

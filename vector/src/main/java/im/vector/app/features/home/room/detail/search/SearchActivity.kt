@@ -59,6 +59,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
 
     private lateinit var suggestionAdapter: SearchSuggestionAdapter
     private var members: List<RoomMemberSummary> = emptyList()
+    private var suggestionsRoomId: String? = null
     private var heightAnimator: ValueAnimator? = null
     private lateinit var keyboardStateUtils: KeyboardStateUtils
 
@@ -126,6 +127,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
     }
 
     private fun setupSuggestions(roomId: String) {
+        suggestionsRoomId = roomId
         suggestionAdapter = SearchSuggestionAdapter(avatarRenderer, ::applySuggestion)
         views.searchSuggestions.layoutManager = LinearLayoutManager(this)
         // The list animates its height; item animations can leave detached holders during rapid query changes.
@@ -184,6 +186,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
 
     private fun renderSuggestions(term: String?) {
         val suggestions = term?.let { SearchFilterSuggestions.suggestionsFor(it, members) }.orEmpty()
+                .map { suggestion -> suggestion.copy(avatar = suggestion.avatar?.let { avatarRenderer.displayedItem(it, suggestionsRoomId) }) }
         suggestionAdapter.submitList(suggestions) { animateToContentHeight(suggestions.isNotEmpty()) }
     }
 

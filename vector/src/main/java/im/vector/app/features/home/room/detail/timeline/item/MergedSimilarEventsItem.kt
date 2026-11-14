@@ -37,7 +37,7 @@ abstract class MergedSimilarEventsItem : BasedMergedItem<MergedSimilarEventsItem
                 val data = distinctMergeData.getOrNull(index)
                 if (data != null && view is ImageView) {
                     view.visibility = View.VISIBLE
-                    attributes.avatarRenderer.render(data.toMatrixItem(), view)
+                    attributes.avatarRenderer.render(data.toMatrixItem(), view, roomId = data.roomId)
                 } else {
                     view.visibility = View.GONE
                 }

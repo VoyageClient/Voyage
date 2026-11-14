@@ -19,6 +19,6 @@ class FakeLocationPinProvider {
     val instance = mockk<LocationPinProvider>(relaxed = true)
 
     fun givenCreateForMatrixItem(matrixItem: MatrixItem, expectedDrawable: Drawable) {
-        every { instance.create(matrixItem, captureLambda()) } answers { lambda<(Drawable) -> Unit>().invoke(expectedDrawable) }
+        every { instance.create(matrixItem, any(), captureLambda()) } answers { lambda<(Drawable) -> Unit>().invoke(expectedDrawable) }
     }
 }

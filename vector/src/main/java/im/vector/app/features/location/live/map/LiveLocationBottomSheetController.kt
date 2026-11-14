@@ -33,6 +33,8 @@ class LiveLocationBottomSheetController @Inject constructor(
     private var userLocations: List<UserLiveLocationViewState>? = null
     var callback: Callback? = null
 
+    var roomId: String? = null
+
     fun setData(userLocations: List<UserLiveLocationViewState>) {
         this.userLocations = userLocations
         requestModelBuild()
@@ -57,7 +59,7 @@ class LiveLocationBottomSheetController @Inject constructor(
             liveLocationUserItem {
                 id(liveLocationViewState.matrixItem.id)
                 callback(userItemCallback)
-                matrixItem(liveLocationViewState.matrixItem)
+                matrixItem(host.avatarRenderer.displayedItem(liveLocationViewState.matrixItem, host.roomId))
                 stringProvider(host.stringProvider)
                 clock(host.clock)
                 avatarRenderer(host.avatarRenderer)

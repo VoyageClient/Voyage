@@ -76,6 +76,8 @@ class PillImageSpan(
         override val bodyText: String? = null,
         // Only set where nothing local has the name and avatar (see [PillItemResolver]).
         private val itemResolver: PillItemResolver? = null,
+        // The room the pill is shown in, so a user's avatar follows that room's avatar hiding.
+        private val roomId: String? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
 
     override var matrixItem: MatrixItem = matrixItem
@@ -143,7 +145,7 @@ class PillImageSpan(
         if (avatarRenderer.animatesAvatars()) rawIcon?.restartAnimation()
         resolveItemIfNeeded(withAvatar = true)
         if (useGenericIcon || hasCachedAvatar) return
-        avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true)
+        avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true, roomId = roomId)
     }
 
     fun limitWidthTo(width: Int): Boolean {
@@ -185,7 +187,7 @@ class PillImageSpan(
         fittedCap = -1
         if (loadAvatar) pillDrawable.callback = chipCallback
         val textView = tv?.get() ?: return
-        if (loadAvatar && !useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
+        if (loadAvatar && !useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true, roomId = roomId)
         textView.repaintSpan(this)
     }
 
@@ -501,7 +503,7 @@ class PillImageSpan(
             }
             else -> {
                 try {
-                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, item, forceCircle = true))
+                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, item, forceCircle = true, roomId = roomId))
                             .also { hasCachedAvatar = true }
                 } catch (exception: Exception) {
                     avatarRenderer.getPlaceholderDrawable(item, forceCircle = true)

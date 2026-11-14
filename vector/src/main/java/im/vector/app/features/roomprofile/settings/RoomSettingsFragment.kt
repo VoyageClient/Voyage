@@ -190,7 +190,7 @@ class RoomSettingsFragment :
 
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            val item = it.toDisplayMatrixItem().updateAvatar(state.currentRoomAvatarUrl)
+            val item = avatarRenderer.displayedItem(it, it.toDisplayMatrixItem().updateAvatar(state.currentRoomAvatarUrl))
             val preview = state.avatarPreviewUri
             val imageView = views.roomSettingsToolbarAvatarImageView
             val retained = toolbarAvatarPreview ?: RetainedAvatarPreview(imageView).also { toolbarAvatarPreview = it }

@@ -2323,7 +2323,6 @@
     <string name="settings_media_preview_solid_title">Gizli medya için düz renk kullan</string>
     <string name="settings_media_preview_solid_summary">Medya gösterilene kadar bulanık önizleme yerine düz bir renk göster</string>
     <string name="settings_hide_avatars_title">Medyanın gizlendiği yerlerde avatarları gizle</string>
-    <string name="settings_hide_avatars_summary">Medyanın gizlendiği odaların zaman akışında, üye listesinde ve üye profillerinde de varsayılan avatarı göster</string>
     <string name="settings_hide_invite_avatars_title">Davetlerde avatarları gizle</string>
     <string name="settings_hide_invite_avatars_summary">Oda ve alan listelerinizde gelen oda ve doğrudan mesaj davetleri için varsayılan avatarı göster</string>
     <string name="settings_auto_dismiss_jump_to_unread">"Okunmamışa git"i gizle</string>
@@ -3713,4 +3712,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$s kullanıcısının oda değişikliği silindi, neden: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Bu odanın güvenlik ve gizlilik ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
     <string name="room_personalization_redaction_reset_confirmation">Bu odanın silinen mesaj ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="settings_hide_avatars_summary">Medyanın gizlendiği odalar ve alanlar ile bunlardaki kişiler için varsayılan avatarı göster</string>
 </resources>

@@ -2316,7 +2316,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_media_preview_solid_title">Gunakan warna solid untuk media tersembunyi</string>
     <string name="settings_media_preview_solid_summary">Tampilkan warna polos alih-alih pratinjau buram sampai media ditampilkan</string>
     <string name="settings_hide_avatars_title">Sembunyikan avatar saat media disembunyikan</string>
-    <string name="settings_hide_avatars_summary">Juga tampilkan avatar bawaan di lini masa, daftar anggota, dan profil anggota di ruangan yang medianya disembunyikan</string>
     <string name="settings_hide_invite_avatars_title">Sembunyikan avatar pada undangan</string>
     <string name="settings_hide_invite_avatars_summary">Tampilkan avatar bawaan untuk undangan ruangan dan pesan langsung yang masuk di daftar ruangan dan space Anda</string>
     <string name="settings_auto_dismiss_jump_to_unread">Sembunyikan "Lompat ke belum dibaca"</string>
@@ -3682,4 +3681,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="notice_state_event_redacted_with_reason">Perubahan ruangan oleh %1$s dihapus, alasan: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Setel ulang pengaturan keamanan &amp; privasi ruangan ini ke yang berlaku di seluruh akun?</string>
     <string name="room_personalization_redaction_reset_confirmation">Setel ulang pengaturan penghapusan ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="settings_hide_avatars_summary">Tampilkan avatar bawaan untuk ruangan dan space yang medianya disembunyikan, serta untuk orang-orang di dalamnya</string>
 </resources>

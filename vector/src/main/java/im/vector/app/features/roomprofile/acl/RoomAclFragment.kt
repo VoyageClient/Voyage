@@ -38,7 +38,6 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -131,7 +130,7 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
         controller.setData(state)
         state.roomSummary()?.let { summary ->
             views.roomSettingsToolbarTitleView.text = summary.displayName.prepareForDisplay()
-            avatarRenderer.render(summary.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(avatarRenderer.displayedItem(summary), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), summary)
         }
         val enabled = state.canEdit && viewModel.hasUnsavedChanges() && !state.saving

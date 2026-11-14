@@ -36,8 +36,8 @@ class TypingMessageView @JvmOverloads constructor(
         views = TypingMessageLayoutBinding.bind(this)
     }
 
-    fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer) {
+    fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer, roomId: String?) {
         views.typingUserText.text = typingHelper.getNotificationTypingMessage(typingUsers).prepareForDisplay()
-        views.typingUserAvatars.render(typingUsers, avatarRenderer)
+        views.typingUserAvatars.render(typingUsers, avatarRenderer, roomId)
     }
 }

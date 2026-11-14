@@ -25,7 +25,6 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -80,7 +79,7 @@ class RoomKnockRequestsFragment :
     override fun invalidate() = withState(viewModel) { viewState ->
         controller.setData(viewState)
         viewState.roomSummary()?.let {
-            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(avatarRenderer.displayedItem(it), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
         Unit

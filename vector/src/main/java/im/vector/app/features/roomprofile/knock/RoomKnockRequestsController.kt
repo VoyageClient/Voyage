@@ -54,7 +54,7 @@ class RoomKnockRequestsController @Inject constructor(
             roomKnockRequestItem {
                 id(userId)
                 avatarRenderer(host.avatarRenderer)
-                matrixItem(roomMember.toMatrixItem())
+                matrixItem(host.avatarRenderer.displayedItem(roomMember.toMatrixItem(), data.roomId))
                 reason(data.reasons[userId])
                 reasonExpanded(userId in host.expandedReasons)
                 requestTime(data.requestTimestamps[userId]?.let { host.formatRequestTime(it, now) })

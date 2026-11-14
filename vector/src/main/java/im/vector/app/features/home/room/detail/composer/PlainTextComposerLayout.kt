@@ -372,7 +372,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (matrixItem != null) {
                 val start = out.length
                 out.append(label)
-                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem, bodyText = label)
+                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem, bodyText = label, roomId = roomId)
                         .also { it.bind(editText) }
                 out.setPillSpan(span, start, start + label.length)
             } else {
@@ -476,7 +476,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 avatarUrl = renderedProfile.avatarUrl,
                 avatarDecryption = renderedProfile.avatarDecryption,
                 colorPreference = event.senderInfo.colorPreference,
-        )
+        ).let { avatarRenderer.displayedItem(it, event.roomId) }
 
         // switch to expanded bar
         val senderName = renderedProfile.senderName.prepareForDisplay()

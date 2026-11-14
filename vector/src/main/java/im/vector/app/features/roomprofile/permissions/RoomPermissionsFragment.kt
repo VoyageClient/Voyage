@@ -28,7 +28,6 @@ import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -89,7 +88,7 @@ class RoomPermissionsFragment :
     private fun renderRoomSummary(state: RoomPermissionsViewState) {
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(avatarRenderer.displayedItem(it), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }

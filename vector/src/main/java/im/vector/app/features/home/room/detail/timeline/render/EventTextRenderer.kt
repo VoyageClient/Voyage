@@ -206,6 +206,7 @@ class EventTextRenderer @AssistedInject constructor(
                     itemResolver = pillItemResolver.takeIf {
                         matrixItem is MatrixItem.UserItem && matrixItem.displayName.isNullOrBlank() && matrixItem.avatarUrl.isNullOrBlank()
                     },
+                    roomId = roomId,
             )
 
     private fun addPillSpan(

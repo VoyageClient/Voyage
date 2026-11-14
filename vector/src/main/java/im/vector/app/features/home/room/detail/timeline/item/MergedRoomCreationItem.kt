@@ -69,7 +69,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
             holder.summaryView.visibility = View.VISIBLE
             if (data != null) {
                 holder.avatarView.visibility = View.VISIBLE
-                attributes.avatarRenderer.render(data.toMatrixItem(), holder.avatarView)
+                attributes.avatarRenderer.render(data.toMatrixItem(), holder.avatarView, roomId = data.roomId)
             } else {
                 holder.avatarView.visibility = View.GONE
             }
@@ -163,14 +163,15 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         holder.roomNameText.setTextOrHide(roomDisplayName?.prepareForDisplay())
         renderRoomDescription(holder)
 
-        val roomItem = roomSummary?.toDisplayMatrixItem()
+        val summary = roomSummary
+        val roomItem = summary?.toDisplayMatrixItem()
         val shouldSetAvatar = attributes.canChangeAvatar &&
-                (roomSummary?.isDirect == false || (isDirectRoom && membersCount >= 2)) &&
+                (summary?.isDirect == false || (isDirectRoom && membersCount >= 2)) &&
                 roomItem?.avatarUrl.isNullOrBlank()
 
         holder.roomAvatarImageView.isVisible = roomItem != null
-        if (roomItem != null) {
-            attributes.avatarRenderer.render(roomItem, holder.roomAvatarImageView)
+        if (summary != null && roomItem != null) {
+            attributes.avatarRenderer.render(attributes.avatarRenderer.displayedItem(summary, roomItem), holder.roomAvatarImageView)
             holder.roomAvatarImageView.onClick {
                 if (shouldSetAvatar) {
                     attributes.callback?.onTimelineItemAction(RoomDetailAction.QuickActionSetAvatar)

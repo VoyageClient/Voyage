@@ -2404,7 +2404,6 @@
     <string name="settings_media_preview_solid_title">השתמש בצבע אחיד למדיה מוסתרת</string>
     <string name="settings_media_preview_solid_summary">הצג צבע אחיד במקום תצוגה מקדימה מטושטשת עד לחשיפת המדיה</string>
     <string name="settings_hide_avatars_title">הסתר אווטארים היכן שהמדיה מוסתרת</string>
-    <string name="settings_hide_avatars_summary">הצג את אווטאר ברירת המחדל גם בציר הזמן, ברשימת החברים ובפרופילי החברים של חדרים שבהם המדיה מוסתרת</string>
     <string name="settings_hide_invite_avatars_title">הסתר אווטארים בהזמנות</string>
     <string name="settings_hide_invite_avatars_summary">הצג את אווטאר ברירת המחדל עבור הזמנות נכנסות לחדרים ולהודעות ישירות ברשימות החדרים והמרחבים שלך</string>
     <string name="settings_auto_dismiss_jump_to_unread">הסתר את "עבור לשלא נקראו"</string>
@@ -3866,4 +3865,5 @@
     <string name="notice_state_event_redacted_with_reason">שינוי החדר של %1$s נמחק, סיבה: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">לאפס את הגדרות האבטחה והפרטיות של חדר זה לאלה של החשבון כולו?</string>
     <string name="room_personalization_redaction_reset_confirmation">לאפס את הגדרות המחיקות של חדר זה לאלה של החשבון כולו?</string>
+    <string name="settings_hide_avatars_summary">הצג את אווטאר ברירת המחדל עבור חדרים ומרחבים שבהם המדיה מוסתרת, ועבור האנשים שבהם</string>
 </resources>

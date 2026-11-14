@@ -32,7 +32,7 @@ class TypingMessageAvatar @JvmOverloads constructor(
         context.resources.getDimension(im.vector.lib.ui.styles.R.dimen.typing_avatar_size).toInt()
     }
 
-    fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer) {
+    fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer, roomId: String?) {
         removeAllViews()
         for ((index, value) in typingUsers.withIndex()) {
             val avatar = ImageView(context)
@@ -42,7 +42,7 @@ class TypingMessageAvatar @JvmOverloads constructor(
             layoutParams.width = typingAvatarSize
             layoutParams.height = typingAvatarSize
             avatar.layoutParams = layoutParams
-            avatarRenderer.render(value.toMatrixItem(), avatar)
+            avatarRenderer.render(value.toMatrixItem(), avatar, roomId = roomId)
             addView(avatar)
         }
     }

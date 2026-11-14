@@ -26,7 +26,6 @@ import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -63,7 +62,7 @@ class RoomPinnedMessagesFragment :
     private fun renderToolbarRoom() {
         val roomSummary = session.getRoom(roomProfileArgs.roomId)?.roomSummary() ?: return
         views.pinnedMessagesToolbarRoomName.text = roomSummary.displayName.prepareForDisplay()
-        avatarRenderer.render(roomSummary.toDisplayMatrixItem(), views.pinnedMessagesToolbarAvatar)
+        avatarRenderer.render(avatarRenderer.displayedItem(roomSummary), views.pinnedMessagesToolbarAvatar)
     }
 
     override fun onDestroyView() {

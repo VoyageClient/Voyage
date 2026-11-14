@@ -137,6 +137,7 @@ class PillsPostProcessor @AssistedInject constructor(
                     context,
                     target.matrixItem,
                     itemResolver = itemResolver.takeIf { roomId == null || !target.isLocallyKnown },
+                    roomId = roomId,
             )
 
     private fun LinkSpan.createPillSpan(linkText: String, originServerTs: Long?): PillImageSpan? {

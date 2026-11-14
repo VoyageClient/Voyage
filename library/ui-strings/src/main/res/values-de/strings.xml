@@ -2365,7 +2365,6 @@
     <string name="settings_media_preview_solid_title">Einfarbige Fläche für ausgeblendete Medien</string>
     <string name="settings_media_preview_solid_summary">Eine einfarbige Fläche statt einer unscharfen Vorschau anzeigen, bis die Medien eingeblendet werden</string>
     <string name="settings_hide_avatars_title">Avatare ausblenden, wo Medien ausgeblendet sind</string>
-    <string name="settings_hide_avatars_summary">Im Verlauf, in der Mitgliederliste und in Mitgliederprofilen von Räumen mit ausgeblendeten Medien ebenfalls den Standard-Avatar anzeigen</string>
     <string name="settings_hide_invite_avatars_title">Avatare bei Einladungen ausblenden</string>
     <string name="settings_hide_invite_avatars_summary">Für eingehende Raum- und Direktnachrichten-Einladungen in deiner Raum- und Space-Liste den Standard-Avatar anzeigen</string>
     <string name="settings_auto_dismiss_jump_to_unread_summary">Das Banner „Zu ungelesenen springen“ ausblenden. Den Raum als gelesen markieren, wenn er unten geöffnet wird oder du bis zum Ende scrollst.</string>
@@ -3754,4 +3753,5 @@
     <string name="notice_state_event_redacted_with_reason">Die Raumänderung von %1$s wurde gelöscht, Grund: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Sicherheits- und Privatsphäre-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
     <string name="room_personalization_redaction_reset_confirmation">Löschungs-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
+    <string name="settings_hide_avatars_summary">Für Räume und Spaces, in denen Medien ausgeblendet sind, und für die Personen darin den Standard-Avatar anzeigen</string>
 </resources>

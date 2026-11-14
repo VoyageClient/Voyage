@@ -56,7 +56,7 @@ class ThreadListPagedController @Inject constructor(
                 .id(item.rootEvent?.eventId)
                 .avatarRenderer(host.avatarRenderer)
                 .matrixItemColorProvider(host.matrixItemColorProvider)
-                .matrixItem(item.rootThreadSenderInfo.toMatrixItem())
+                .matrixItem(host.avatarRenderer.displayedItem(item.rootThreadSenderInfo.toMatrixItem(), item.roomId))
                 .title(item.rootThreadSenderInfo.disambiguatedDisplayName)
                 .date(date)
                 .rootMessageDeleted(item.rootEvent?.isRedacted() ?: false)
@@ -65,7 +65,7 @@ class ThreadListPagedController @Inject constructor(
                 .rootMessage(rootMessageFormatted.toEpoxyCharSequence())
                 .lastMessage(lastMessageFormatted.toEpoxyCharSequence())
                 .lastMessageCounter(item.numberOfThreads.toString())
-                .lastMessageMatrixItem(item.latestThreadSenderInfo.toMatrixItemOrNull())
+                .lastMessageMatrixItem(item.latestThreadSenderInfo.toMatrixItemOrNull()?.let { host.avatarRenderer.displayedItem(it, item.roomId) })
                 .itemClickListener {
                     host.listener?.onThreadSummaryClicked(item)
                 }

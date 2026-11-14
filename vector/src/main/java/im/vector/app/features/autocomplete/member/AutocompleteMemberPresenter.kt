@@ -58,6 +58,7 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
 
     init {
         controller.listener = this
+        controller.roomId = roomId
     }
 
     /* ==========================================================================================

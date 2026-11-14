@@ -2321,7 +2321,6 @@
     <string name="settings_media_preview_solid_title">লুকানো মিডিয়ার জন্য একরঙা রং ব্যবহার করুন</string>
     <string name="settings_media_preview_solid_summary">মিডিয়া প্রকাশ না হওয়া পর্যন্ত ঝাপসা প্রিভিউয়ের বদলে একটি একরঙা রং দেখান</string>
     <string name="settings_hide_avatars_title">যেখানে মিডিয়া লুকানো সেখানে অবতার লুকান</string>
-    <string name="settings_hide_avatars_summary">যেসব রুমে মিডিয়া লুকানো, সেগুলির টাইমলাইন, সদস্য তালিকা ও সদস্য প্রোফাইলেও ডিফল্ট অবতার দেখান</string>
     <string name="settings_hide_invite_avatars_title">আমন্ত্রণে অবতার লুকান</string>
     <string name="settings_hide_invite_avatars_summary">আপনার রুম ও স্পেস তালিকায় আগত রুম ও সরাসরি বার্তার আমন্ত্রণের জন্য ডিফল্ট অবতার দেখান</string>
     <string name="settings_auto_dismiss_jump_to_unread">"অপঠিততে যান" লুকান</string>
@@ -3715,4 +3714,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$s-এর রুম পরিবর্তন রিড্যাক্ট করা হয়েছে, কারণ: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">এই রুমের নিরাপত্তা ও গোপনীয়তা সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
     <string name="room_personalization_redaction_reset_confirmation">এই রুমের রিড্যাকশন সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
+    <string name="settings_hide_avatars_summary">যেসব রুম ও স্পেসে মিডিয়া লুকানো, সেগুলোর এবং সেখানকার লোকেদের জন্য ডিফল্ট অবতার দেখান</string>
 </resources>

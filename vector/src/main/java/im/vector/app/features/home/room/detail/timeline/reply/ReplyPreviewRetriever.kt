@@ -31,6 +31,7 @@ import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.shouldHideMediaPreview
+import im.vector.app.features.media.withAvatarHiddenIn
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
@@ -428,7 +429,7 @@ class ReplyPreviewRetriever(
     private fun senderMatrixItem(event: TimelineEvent): MatrixItem {
         val senderInfo = event.senderInfo
         val fresh = roomForColors?.membershipService()?.getRoomMemberColorPreference(senderInfo.userId)
-        return senderInfo.copy(colorPreference = fresh).toMatrixItem()
+        return senderInfo.copy(colorPreference = fresh).toMatrixItem().withAvatarHiddenIn(event.roomId, session, vectorPreferences)
     }
 
     fun isMemberNameColored(): Boolean = messageColorProvider.isMemberNameColored()

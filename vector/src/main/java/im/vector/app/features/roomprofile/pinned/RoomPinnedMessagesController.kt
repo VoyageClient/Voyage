@@ -50,7 +50,7 @@ class RoomPinnedMessagesController @Inject constructor(
             pinnedMessageItem {
                 id(eventId)
                 avatarRenderer(host.avatarRenderer)
-                matrixItem(event.senderInfo.toMatrixItem())
+                matrixItem(host.avatarRenderer.displayedItem(event.senderInfo.toMatrixItem(), event.roomId))
                 senderName(event.senderInfo.disambiguatedDisplayName)
                 body(host.displayableEventFormatter.format(event, isDm = false, appendAuthor = false).toEpoxyCharSequence())
                 redacted(event.root.isRedacted())

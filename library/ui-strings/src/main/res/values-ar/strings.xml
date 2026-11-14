@@ -2436,7 +2436,6 @@
     <string name="settings_media_preview_solid_title">استخدم لونًا مصمتًا للوسائط المخفية</string>
     <string name="settings_media_preview_solid_summary">اعرض لونًا مسطّحًا بدلًا من معاينة مموّهة حتى تُكشف الوسائط</string>
     <string name="settings_hide_avatars_title">أخفِ الصور الرمزية حيث تكون الوسائط مخفية</string>
-    <string name="settings_hide_avatars_summary">اعرض أيضًا الصورة الرمزية المبدئية في الخط الزمني وقائمة الأعضاء والملفات الشخصية للأعضاء في الغرف التي تكون فيها الوسائط مخفية</string>
     <string name="settings_hide_invite_avatars_title">أخفِ الصور الرمزية في الدعوات</string>
     <string name="settings_hide_invite_avatars_summary">اعرض الصورة الرمزية المبدئية لدعوات الغرف والرسائل المباشرة الواردة في قوائم الغرف والمساحات</string>
     <string name="settings_auto_dismiss_jump_to_unread">أخفِ ”انتقل إلى غير المقروءة“</string>
@@ -3946,4 +3945,5 @@
     <string name="notice_state_event_redacted_with_reason">حُذف تغيير الغرفة الذي أجراه %1$s، السبب: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">أتريد إعادة إعدادات الأمان والخصوصية لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
     <string name="room_personalization_redaction_reset_confirmation">أتريد إعادة إعدادات الحذف لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="settings_hide_avatars_summary">اعرض الصورة الرمزية المبدئية للغرف والمساحات التي تكون فيها الوسائط مخفية، وللأشخاص فيها</string>
 </resources>

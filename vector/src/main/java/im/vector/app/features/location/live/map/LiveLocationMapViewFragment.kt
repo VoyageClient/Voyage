@@ -231,6 +231,7 @@ class LiveLocationMapViewFragment :
         } else {
             dismissLoadingDialog()
         }
+        bottomSheetController.roomId = viewState.roomId
         updateUserListBottomSheet(viewState.userLocations)
         updateLocateButton(showLocateButton = viewState.showLocateUserButton)
     }

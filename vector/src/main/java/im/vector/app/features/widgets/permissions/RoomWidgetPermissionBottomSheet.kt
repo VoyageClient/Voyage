@@ -60,7 +60,7 @@ class RoomWidgetPermissionBottomSheet :
         views.widgetPermissionOwnerId.text = permissionData.widget.senderInfo?.userId?.neutralizeDirectionOverrides() ?: ""
         views.widgetPermissionOwnerDisplayName.text = permissionData.widget.senderInfo?.disambiguatedDisplayName?.prepareForDisplay()
         permissionData.widget.senderInfo?.toMatrixItem()?.also {
-            avatarRenderer.render(it, views.widgetPermissionOwnerAvatar)
+            avatarRenderer.render(it, views.widgetPermissionOwnerAvatar, roomId = state.roomId)
         }
 
         val domain = permissionData.widgetDomain ?: ""

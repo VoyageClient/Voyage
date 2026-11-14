@@ -2332,7 +2332,6 @@
     <string name="settings_media_preview_solid_title">Сплошной цвет для скрытых медиа</string>
     <string name="settings_media_preview_solid_summary">Показывать однотонную заливку вместо размытого превью, пока медиа не раскрыто</string>
     <string name="settings_hide_avatars_title">Скрывать аватары там, где скрыты медиа</string>
-    <string name="settings_hide_avatars_summary">Также показывать стандартный аватар в ленте, списке участников и профилях участников комнат, где медиа скрыты</string>
     <string name="settings_hide_invite_avatars_title">Скрывать аватары в приглашениях</string>
     <string name="settings_hide_invite_avatars_summary">Показывать стандартный аватар для входящих приглашений в комнаты и личные сообщения в списках комнат и пространств</string>
     <string name="settings_auto_dismiss_jump_to_unread_summary">Скрывать баннер «Перейти к непрочитанному». Помечать комнату прочитанной, если она открывается в самом низу или когда вы прокручиваете её до конца.</string>
@@ -3897,4 +3896,5 @@
     <string name="notice_state_event_redacted_with_reason">Изменение комнаты от %1$s удалено, причина: %2$s</string>
     <string name="room_personalization_media_reset_confirmation">Вернуть настройки безопасности этой комнаты к настройкам вашей учётной записи?</string>
     <string name="room_personalization_redaction_reset_confirmation">Вернуть настройки удалённых сообщений этой комнаты к настройкам вашей учётной записи?</string>
+    <string name="settings_hide_avatars_summary">Показывать стандартный аватар для комнат и пространств, где скрыты медиа, и для их участников</string>
 </resources>

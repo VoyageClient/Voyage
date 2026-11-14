@@ -26,6 +26,8 @@ class AutocompleteMemberController @Inject constructor(private val context: Cont
 
     var listener: AutocompleteClickListener<AutocompleteMemberItem>? = null
 
+    var roomId: String? = null
+
     /* ==========================================================================================
      * Dependencies
      * ========================================================================================== */
@@ -57,7 +59,7 @@ class AutocompleteMemberController @Inject constructor(private val context: Cont
         autocompleteMatrixItem {
             roomMember.roomMemberSummary.let { user ->
                 id(user.userId)
-                matrixItem(user.toMatrixItem())
+                matrixItem(host.avatarRenderer.displayedItem(user.toMatrixItem(), host.roomId))
                 subName(user.userId)
                 avatarRenderer(host.avatarRenderer)
                 clickListener { host.listener?.onItemClick(roomMember) }

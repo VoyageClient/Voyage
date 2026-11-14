@@ -39,14 +39,15 @@ class PollVotersFactory @Inject constructor(
         return votes
                 .map { vote ->
                     val member = room.membershipService().getRoomMember(vote.userId)
+                    val hideAvatar = hideAvatars && vote.userId != session.myUserId
                     ReadReceiptData(
                             userId = vote.userId,
-                            avatarUrl = member?.avatarUrl.takeUnless { hideAvatars },
+                            avatarUrl = member?.avatarUrl.takeUnless { hideAvatar },
                             displayName = member?.displayName,
                             timestamp = vote.voteTimestamp,
                             colorOnLight = member?.colorPreference?.onLight,
                             colorOnDark = member?.colorPreference?.onDark,
-                            avatarDecryption = member?.avatarDecryption,
+                            avatarDecryption = member?.avatarDecryption.takeUnless { hideAvatar },
                     )
                 }
                 .sortedByDescending { it.timestamp }

@@ -66,7 +66,7 @@ class SpacePeopleListController @Inject constructor(
                             each = { _, roomMember ->
                                 profileMatrixItemWithPowerLevel {
                                     id(roomMember.summary.userId)
-                                    matrixItem(roomMember.summary.toMatrixItem())
+                                    matrixItem(host.avatarRenderer.displayedItem(roomMember.summary.toMatrixItem(), data.roomId))
                                     avatarRenderer(host.avatarRenderer)
                                     userVerificationLevel(data.trustLevelMap.invoke()?.get(roomMember.summary.userId))
                                             .apply {

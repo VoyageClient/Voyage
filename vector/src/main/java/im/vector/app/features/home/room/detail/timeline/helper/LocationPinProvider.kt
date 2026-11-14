@@ -45,14 +45,16 @@ class LocationPinProvider @Inject constructor(
 
     /**
      * Creates a pin drawable. If userId is null then a generic pin drawable will be created.
-     * @param matrixUser user that will be used to retrieve user avatar
+     * @param matrixItem user that will be used to retrieve user avatar
+     * @param roomId the room the pin is shown in, for that room's avatar hiding
      * @param callback Pin drawable will be sent through the callback
      */
-    fun create(matrixUser: MatrixItem?, callback: (Drawable) -> Unit) {
-        if (matrixUser == null) {
+    fun create(matrixItem: MatrixItem?, roomId: String? = null, callback: (Drawable) -> Unit) {
+        if (matrixItem == null) {
             callback(LocationAccent.pin(context))
             return
         }
+        val matrixUser = avatarRenderer.displayedItem(matrixItem, roomId)
         val size = dimensionConverter.dpToPx(44)
         avatarRenderer.render(glideRequests, matrixUser, object : CustomTarget<Drawable>(size, size) {
             override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {

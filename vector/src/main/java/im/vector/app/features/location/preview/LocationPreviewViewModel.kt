@@ -59,7 +59,7 @@ class LocationPreviewViewModel @AssistedInject constructor(
     }
 
     private fun initPin(matrixItem: MatrixItem?) {
-        locationPinProvider.create(matrixItem) { pinDrawable ->
+        locationPinProvider.create(matrixItem, initialState.roomId) { pinDrawable ->
             setState { copy(pinDrawable = pinDrawable) }
         }
     }

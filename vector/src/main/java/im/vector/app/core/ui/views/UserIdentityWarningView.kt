@@ -45,10 +45,10 @@ class UserIdentityWarningView @JvmOverloads constructor(
         }
     }
 
-    fun render(prompt: UserIdentityChangePrompt, avatarRenderer: AvatarRenderer) {
+    fun render(prompt: UserIdentityChangePrompt, avatarRenderer: AvatarRenderer, roomId: String) {
         boundUserId = prompt.userId
         val matrixItem = MatrixItem.UserItem(prompt.userId, prompt.displayName, prompt.avatarUrl)
-        avatarRenderer.render(matrixItem, views.userIdentityWarningAvatar)
+        avatarRenderer.render(matrixItem, views.userIdentityWarningAvatar, roomId = roomId)
 
         val displayName = prompt.displayName
         val html = if (displayName.isNullOrEmpty() || displayName == prompt.userId) {

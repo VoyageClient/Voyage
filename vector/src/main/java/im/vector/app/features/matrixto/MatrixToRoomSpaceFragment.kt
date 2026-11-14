@@ -176,7 +176,8 @@ class MatrixToRoomSpaceFragment :
         when (state.peopleYouKnow) {
             is Success -> {
                 val someYouKnow = state.peopleYouKnow.invoke()
-                spaceCardRenderer.renderPeopleYouKnow(views, someYouKnow)
+                val peekedRoomId = (state.roomPeekResult.invoke() as? RoomInfoResult.FullInfo)?.roomItem?.id
+                spaceCardRenderer.renderPeopleYouKnow(views, someYouKnow, peekedRoomId)
             }
             else -> {
                 views.peopleYouMayKnowText.isVisible = false

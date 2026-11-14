@@ -2319,7 +2319,6 @@
     <string name="settings_media_preview_solid_title">隱藏的媒體使用純色</string>
     <string name="settings_media_preview_solid_summary">在媒體顯示前，以純色取代模糊預覽</string>
     <string name="settings_hide_avatars_title">在隱藏媒體處隱藏大頭照</string>
-    <string name="settings_hide_avatars_summary">在隱藏媒體的聊天室中，時間軸、成員清單與成員個人資料也顯示預設大頭照</string>
     <string name="settings_hide_invite_avatars_title">隱藏邀請中的大頭照</string>
     <string name="settings_hide_invite_avatars_summary">在您的聊天室與聊天空間清單中，收到的聊天室與私人訊息邀請顯示預設大頭照</string>
     <string name="settings_auto_dismiss_jump_to_unread_summary">隱藏「跳到未讀」橫幅。當聊天室開啟於最底部或您捲動到底時，將聊天室標記為已讀。</string>
@@ -3684,4 +3683,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$s 的聊天室變更已被刪除，原因：%2$s</string>
     <string name="room_personalization_media_reset_confirmation">要將此聊天室的安全性與隱私權設定重設為帳號層級的設定嗎？</string>
     <string name="room_personalization_redaction_reset_confirmation">要將此聊天室的已刪除訊息設定重設為帳號層級的設定嗎？</string>
+    <string name="settings_hide_avatars_summary">為隱藏媒體的聊天室與聊天空間及其中的成員顯示預設大頭照</string>
 </resources>

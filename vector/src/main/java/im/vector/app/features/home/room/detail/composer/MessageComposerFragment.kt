@@ -1489,6 +1489,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     requireContext(),
                     MatrixItem.UserItem(userId, pillName, roomMember?.avatarUrl),
                     bodyText = bodyName,
+                    roomId = roomId,
             ).also { it.bind(composer.editText) }
             val pill = buildSpannedString {
                 append(bodyName)

@@ -25,7 +25,6 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
-import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -94,7 +93,7 @@ class RoomNotificationSettingsFragment :
     private fun renderRoomSummary(state: RoomNotificationSettingsViewState) {
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(avatarRenderer.displayedItem(it), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.renderRoomShieldBadge(vectorPreferences.roomBadgeConfig(), it)
         }
     }

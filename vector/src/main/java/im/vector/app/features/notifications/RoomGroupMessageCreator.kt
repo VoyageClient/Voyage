@@ -10,8 +10,11 @@ package im.vector.app.features.notifications
 import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.BidiSafeStringProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.media.shouldHideAvatars
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonPlurals
@@ -20,11 +23,14 @@ import me.gujun.android.span.span
 import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 class RoomGroupMessageCreator @Inject constructor(
         private val bitmapLoader: NotificationBitmapLoader,
         stringProvider: StringProvider,
-        private val notificationUtils: NotificationUtils
+        private val notificationUtils: NotificationUtils,
+        private val activeSessionHolder: Provider<ActiveSessionHolder>,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     private val stringProvider = BidiSafeStringProvider(stringProvider)
@@ -33,6 +39,7 @@ class RoomGroupMessageCreator @Inject constructor(
         val lastKnownRoomEvent = events.last()
         val roomName = lastKnownRoomEvent.roomName ?: lastKnownRoomEvent.senderName ?: ""
         val roomIsGroup = !lastKnownRoomEvent.roomIsDirect
+        val hideAvatars = activeSessionHolder.get().getSafeActiveSession()?.let { shouldHideAvatars(roomId, it, vectorPreferences) } == true
         val style = NotificationCompat.MessagingStyle(
                 Person.Builder()
                         .setName(userDisplayName)
@@ -42,7 +49,7 @@ class RoomGroupMessageCreator @Inject constructor(
         ).also {
             it.conversationTitle = roomName.takeIf { roomIsGroup }
             it.isGroupConversation = roomIsGroup
-            it.addMessagesFromEvents(events)
+            it.addMessagesFromEvents(events, hideAvatars)
         }
 
         val tickerText = if (roomIsGroup) {
@@ -51,7 +58,7 @@ class RoomGroupMessageCreator @Inject constructor(
             stringProvider.getString(CommonStrings.notification_ticker_text_dm, events.last().senderName, events.last().description)
         }
 
-        val largeBitmap = getRoomBitmap(events)
+        val largeBitmap = getRoomBitmap(events, hideAvatars)
 
         val lastMessageTimestamp = events.last().timestamp
         val smartReplyErrors = events.filter { it.isSmartReplyError() }
@@ -82,14 +89,15 @@ class RoomGroupMessageCreator @Inject constructor(
         )
     }
 
-    private fun NotificationCompat.MessagingStyle.addMessagesFromEvents(events: List<NotifiableMessageEvent>) {
+    private fun NotificationCompat.MessagingStyle.addMessagesFromEvents(events: List<NotifiableMessageEvent>, hideAvatars: Boolean) {
         events.forEach { event ->
             val senderPerson = if (event.outGoingMessage) {
                 null
             } else {
+                val avatarPath = event.senderAvatarPath.takeUnless { hideAvatars && event.senderId != event.matrixID }
                 Person.Builder()
                         .setName(event.senderName)
-                        .setIcon(bitmapLoader.getUserIcon(event.senderAvatarPath, event.senderMatrixItem()))
+                        .setIcon(bitmapLoader.getUserIcon(avatarPath, event.senderMatrixItem()))
                         .setKey(event.senderId)
                         .build()
             }
@@ -148,11 +156,11 @@ class RoomGroupMessageCreator @Inject constructor(
         }.withUiDirection()
     }
 
-    private fun getRoomBitmap(events: List<NotifiableMessageEvent>): Bitmap? {
+    private fun getRoomBitmap(events: List<NotifiableMessageEvent>, hideAvatars: Boolean): Bitmap? {
         // Use the last event (most recent?)
         val event = events.lastOrNull() ?: return null
         val room = MatrixItem.RoomItem(event.roomId, event.roomName)
-        return bitmapLoader.getRoomBitmap(event.roomAvatarPath, room)
+        return bitmapLoader.getRoomBitmap(event.roomAvatarPath.takeUnless { hideAvatars }, room)
     }
 
     // A sender with no id (an outgoing echo) has nothing to draw a default avatar from.

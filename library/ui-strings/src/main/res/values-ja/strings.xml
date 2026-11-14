@@ -2316,7 +2316,6 @@
     <string name="settings_media_preview_solid_title">非表示のメディアに単色を使用</string>
     <string name="settings_media_preview_solid_summary">メディアを表示するまで、ぼかしたプレビューの代わりに単色を表示</string>
     <string name="settings_hide_avatars_title">メディアが非表示の場所ではアバターも非表示</string>
-    <string name="settings_hide_avatars_summary">メディアが非表示のルームでは、タイムライン、メンバー一覧、メンバーのプロフィールでも既定のアバターを表示</string>
     <string name="settings_hide_invite_avatars_title">招待のアバターを非表示</string>
     <string name="settings_hide_invite_avatars_summary">ルームとスペースの一覧で、受信したルームとダイレクトメッセージの招待に既定のアバターを表示</string>
     <string name="settings_auto_dismiss_jump_to_unread">「未読へ移動」を非表示</string>
@@ -3680,4 +3679,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$sによるルームの変更が削除されました。理由：%2$s</string>
     <string name="room_personalization_media_reset_confirmation">このルームのセキュリティーとプライバシーの設定を、アカウント全体のものにリセットしますか？</string>
     <string name="room_personalization_redaction_reset_confirmation">このルームの削除されたメッセージの設定を、アカウント全体のものにリセットしますか？</string>
+    <string name="settings_hide_avatars_summary">メディアが非表示のルームとスペース、およびその参加者に既定のアバターを表示</string>
 </resources>

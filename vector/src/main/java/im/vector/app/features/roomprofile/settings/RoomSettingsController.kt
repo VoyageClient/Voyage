@@ -69,7 +69,7 @@ class RoomSettingsController @Inject constructor(
                         avatarImageUri(data.avatarPreviewUri)
                     } else {
                         avatarRenderer(host.avatarRenderer)
-                        matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl))
+                        matrixItem(host.avatarRenderer.displayedItem(roomSummary, roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl)))
                     }
                     hasRoomAvatar(data.avatarPreviewUri != null || roomAvatarUrl != null)
                 }

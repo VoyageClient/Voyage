@@ -46,7 +46,7 @@ class UserLiveLocationViewStateMapper @Inject constructor(
                         } else {
                             session.getUserOrDefault(userId).toMatrixItem()
                         }
-                        locationPinProvider.create(matrixItem) { pinDrawable ->
+                        locationPinProvider.create(matrixItem, roomId) { pinDrawable ->
                             val locationTimestampMillis = liveLocationShareAggregatedSummary.lastLocationDataContent?.getBestTimestampMillis()
                             val viewState = UserLiveLocationViewState(
                                     matrixItem = matrixItem,

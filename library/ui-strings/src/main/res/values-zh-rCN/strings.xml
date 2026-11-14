@@ -2317,7 +2317,6 @@
     <string name="settings_media_preview_solid_title">隐藏的媒体使用纯色</string>
     <string name="settings_media_preview_solid_summary">在媒体显示之前，显示纯色而非模糊预览</string>
     <string name="settings_hide_avatars_title">在隐藏媒体处隐藏头像</string>
-    <string name="settings_hide_avatars_summary">在隐藏媒体的房间中，时间线、成员列表和成员资料中也显示默认头像</string>
     <string name="settings_hide_invite_avatars_title">隐藏邀请中的头像</string>
     <string name="settings_hide_invite_avatars_summary">在房间和空间列表中，为收到的房间邀请和私聊邀请显示默认头像</string>
     <string name="settings_auto_dismiss_jump_to_unread_summary">隐藏“跳到未读”横幅。房间在底部打开或你滚动到末尾时，将房间标记为已读。</string>
@@ -3682,4 +3681,5 @@
     <string name="notice_state_event_redacted_with_reason">%1$s 的房间更改已被删除，原因：%2$s</string>
     <string name="room_personalization_media_reset_confirmation">将此房间的安全与隐私设置重置为账户全局设置？</string>
     <string name="room_personalization_redaction_reset_confirmation">将此房间的删除设置重置为账户全局设置？</string>
+    <string name="settings_hide_avatars_summary">为隐藏媒体的房间和空间及其中的成员显示默认头像</string>
 </resources>
