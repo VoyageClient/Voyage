@@ -3589,6 +3589,38 @@
         <item quantity="one">%d message couldn\'t be redacted. Resume to try again.</item>
         <item quantity="other">%d messages couldn\'t be redacted. Resume to try again.</item>
     </plurals>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">Accepting %d invite…</item>
+        <item quantity="other">Accepting %d invites…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">Rejecting %d invite…</item>
+        <item quantity="other">Rejecting %d invites…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">Stop accepting invites?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">Stop rejecting invites?</string>
+    <string name="bulk_invites_cancel_confirmation_message">The invites that haven\'t been answered yet will stay in your list.</string>
+    <string name="bulk_accept_invites_failed_title">Some invites weren\'t accepted</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">%d invite couldn\'t be accepted. Resume to try again.</item>
+        <item quantity="other">%d invites couldn\'t be accepted. Resume to try again.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">Some invites weren\'t rejected</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">%d invite couldn\'t be rejected. Resume to try again.</item>
+        <item quantity="other">%d invites couldn\'t be rejected. Resume to try again.</item>
+    </plurals>
+    <string name="invites_accept_all">Accept all</string>
+    <string name="invites_reject_all">Reject all</string>
+    <string name="settings_bulk_options">Bulk options</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">Accept %d invite</item>
+        <item quantity="other">Accept all %d invites</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">Reject %d invite</item>
+        <item quantity="other">Reject all %d invites</item>
+    </plurals>
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
     <string name="command_description_view">Open the file at the given mxc:// URL</string>

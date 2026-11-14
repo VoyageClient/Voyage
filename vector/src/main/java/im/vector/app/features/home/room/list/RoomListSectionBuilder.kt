@@ -672,7 +672,8 @@ class RoomListSectionBuilder(
                     isExpanded = MutableLiveData(!vectorPreferences.isRoomSectionCollapsed(collapseId)),
                     itemCount = itemCountFlow,
                     customTag = customTag,
-                    reorderTag = reorderTag
+                    reorderTag = reorderTag,
+                    queryParams = liveQueryParams
             )
             sections.add(section)
 

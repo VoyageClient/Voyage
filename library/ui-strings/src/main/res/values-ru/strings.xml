@@ -3899,4 +3899,48 @@
     <string name="option_no">Нет</string>
     <string name="ftue_auth_create_account_username_entry_footer">Другие пользователи могут найти вас как %s</string>
     <string name="room_removed_unknown">Вы больше не участник %1$s</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">Принятие %d приглашения…</item>
+        <item quantity="few">Принятие %d приглашений…</item>
+        <item quantity="many">Принятие %d приглашений…</item>
+        <item quantity="other">Принятие %d приглашения…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">Отклонение %d приглашения…</item>
+        <item quantity="few">Отклонение %d приглашений…</item>
+        <item quantity="many">Отклонение %d приглашений…</item>
+        <item quantity="other">Отклонение %d приглашения…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">Остановить принятие приглашений?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">Остановить отклонение приглашений?</string>
+    <string name="bulk_invites_cancel_confirmation_message">Приглашения, на которые ещё не ответили, останутся в вашем списке.</string>
+    <string name="bulk_accept_invites_failed_title">Некоторые приглашения не приняты</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">Не удалось принять %d приглашение. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="few">Не удалось принять %d приглашения. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="many">Не удалось принять %d приглашений. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="other">Не удалось принять %d приглашения. Продолжите, чтобы повторить попытку.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">Некоторые приглашения не отклонены</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">Не удалось отклонить %d приглашение. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="few">Не удалось отклонить %d приглашения. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="many">Не удалось отклонить %d приглашений. Продолжите, чтобы повторить попытку.</item>
+        <item quantity="other">Не удалось отклонить %d приглашения. Продолжите, чтобы повторить попытку.</item>
+    </plurals>
+    <string name="invites_accept_all">Принять все</string>
+    <string name="invites_reject_all">Отклонить все</string>
+    <string name="settings_bulk_options">Массовые действия</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">Принять %d приглашение</item>
+        <item quantity="few">Принять все %d приглашения</item>
+        <item quantity="many">Принять все %d приглашений</item>
+        <item quantity="other">Принять все %d приглашения</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">Отклонить %d приглашение</item>
+        <item quantity="few">Отклонить все %d приглашения</item>
+        <item quantity="many">Отклонить все %d приглашений</item>
+        <item quantity="other">Отклонить все %d приглашения</item>
+    </plurals>
 </resources>

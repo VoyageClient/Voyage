@@ -3948,4 +3948,60 @@
     <string name="option_no">لا</string>
     <string name="ftue_auth_create_account_username_entry_footer">يمكن للآخرين العثور عليك باسم %s</string>
     <string name="room_removed_unknown">لم تعد في %1$s</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="zero">يقبل %d دعوة…</item>
+        <item quantity="one">يقبل دعوة واحدة…</item>
+        <item quantity="two">يقبل دعوتين…</item>
+        <item quantity="few">يقبل %d دعوات…</item>
+        <item quantity="many">يقبل %d دعوة…</item>
+        <item quantity="other">يقبل %d دعوة…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="zero">يرفض %d دعوة…</item>
+        <item quantity="one">يرفض دعوة واحدة…</item>
+        <item quantity="two">يرفض دعوتين…</item>
+        <item quantity="few">يرفض %d دعوات…</item>
+        <item quantity="many">يرفض %d دعوة…</item>
+        <item quantity="other">يرفض %d دعوة…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">أتريد إيقاف قبول الدعوات؟</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">أتريد إيقاف رفض الدعوات؟</string>
+    <string name="bulk_invites_cancel_confirmation_message">ستبقى الدعوات التي لم تُرد عليها بعد في قائمتك.</string>
+    <string name="bulk_accept_invites_failed_title">لم تُقبل بعض الدعوات</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="zero">تعذّر قبول %d دعوة. استأنف لإعادة المحاولة.</item>
+        <item quantity="one">تعذّر قبول دعوة واحدة. استأنف لإعادة المحاولة.</item>
+        <item quantity="two">تعذّر قبول دعوتين. استأنف لإعادة المحاولة.</item>
+        <item quantity="few">تعذّر قبول %d دعوات. استأنف لإعادة المحاولة.</item>
+        <item quantity="many">تعذّر قبول %d دعوة. استأنف لإعادة المحاولة.</item>
+        <item quantity="other">تعذّر قبول %d دعوة. استأنف لإعادة المحاولة.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">لم تُرفض بعض الدعوات</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="zero">تعذّر رفض %d دعوة. استأنف لإعادة المحاولة.</item>
+        <item quantity="one">تعذّر رفض دعوة واحدة. استأنف لإعادة المحاولة.</item>
+        <item quantity="two">تعذّر رفض دعوتين. استأنف لإعادة المحاولة.</item>
+        <item quantity="few">تعذّر رفض %d دعوات. استأنف لإعادة المحاولة.</item>
+        <item quantity="many">تعذّر رفض %d دعوة. استأنف لإعادة المحاولة.</item>
+        <item quantity="other">تعذّر رفض %d دعوة. استأنف لإعادة المحاولة.</item>
+    </plurals>
+    <string name="invites_accept_all">قبول الكل</string>
+    <string name="invites_reject_all">رفض الكل</string>
+    <string name="settings_bulk_options">خيارات جماعية</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="zero">قبول %d دعوة</item>
+        <item quantity="one">قبول دعوة واحدة</item>
+        <item quantity="two">قبول الدعوتين</item>
+        <item quantity="few">قبول جميع الدعوات (%d)</item>
+        <item quantity="many">قبول جميع الدعوات (%d)</item>
+        <item quantity="other">قبول جميع الدعوات (%d)</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="zero">رفض %d دعوة</item>
+        <item quantity="one">رفض دعوة واحدة</item>
+        <item quantity="two">رفض الدعوتين</item>
+        <item quantity="few">رفض جميع الدعوات (%d)</item>
+        <item quantity="many">رفض جميع الدعوات (%d)</item>
+        <item quantity="other">رفض جميع الدعوات (%d)</item>
+    </plurals>
 </resources>

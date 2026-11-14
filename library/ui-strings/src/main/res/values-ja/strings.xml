@@ -3682,4 +3682,30 @@
     <string name="option_no">いいえ</string>
     <string name="ftue_auth_create_account_username_entry_footer">他の人は %s であなたを見つけることができます</string>
     <string name="room_removed_unknown">%1$sのメンバーではなくなりました</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="other">%d件の招待を承諾しています…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="other">%d件の招待を拒否しています…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">招待の承諾を中止しますか？</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">招待の拒否を中止しますか？</string>
+    <string name="bulk_invites_cancel_confirmation_message">まだ応答していない招待は一覧に残ります。</string>
+    <string name="bulk_accept_invites_failed_title">一部の招待を承諾できませんでした</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="other">%d件の招待を承諾できませんでした。再開して再試行してください。</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">一部の招待を拒否できませんでした</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="other">%d件の招待を拒否できませんでした。再開して再試行してください。</item>
+    </plurals>
+    <string name="invites_accept_all">すべて承諾</string>
+    <string name="invites_reject_all">すべて拒否</string>
+    <string name="settings_bulk_options">一括操作</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="other">%d件の招待をすべて承諾</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="other">%d件の招待をすべて拒否</item>
+    </plurals>
 </resources>

@@ -17,6 +17,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -53,6 +54,7 @@ import im.vector.app.features.home.room.list.actions.RoomSectionBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomTagBottomSheet
 import im.vector.app.features.home.room.list.sections.RoomSectionDialogs
 import im.vector.app.features.home.room.list.widget.NotifsFabMenuView
+import im.vector.app.features.invite.BulkInviteActions
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.room.LeaveRoomPrompt
@@ -66,6 +68,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orTrue
+import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
@@ -96,6 +99,7 @@ class RoomListFragment :
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var footerController: RoomListFooterController
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
+    @Inject lateinit var bulkInviteActions: BulkInviteActions
 
     private var modelBuildListener: OnModelBuildFinishedListener? = null
     private lateinit var sharedActionViewModel: RoomListQuickActionsSharedActionViewModel
@@ -461,7 +465,10 @@ class RoomListFragment :
                     },
                     onLongClickAction = section.customTag?.let { _ -> { headerView -> beginSectionDrag(headerView) } },
                     onRenameAction = section.customTag?.let { tag -> { promptRenameSection(tag, section.sectionName) } },
-                    onDeleteAction = section.customTag?.let { tag -> { promptDeleteSection(tag, section) } }
+                    onDeleteAction = section.customTag?.let { tag -> { promptDeleteSection(tag, section) } },
+                    onMoreAction = section.queryParams
+                            ?.takeIf { it.value.memberships == listOf(Membership.INVITE) }
+                            ?.let { query -> { anchor -> showInvitesSectionMenu(anchor, query.value) } }
             )
             val contentAdapter =
                     when {
@@ -597,6 +604,18 @@ class RoomListFragment :
         }
     }
 
+    private fun showInvitesSectionMenu(anchor: View, query: RoomSummaryQueryParams) {
+        PopupMenu(requireContext(), anchor).apply {
+            menu.add(0, 0, 0, CommonStrings.invites_accept_all)
+            menu.add(0, 1, 1, CommonStrings.invites_reject_all)
+            setOnMenuItemClickListener { item ->
+                bulkInviteActions.start(accept = item.itemId == 0, queryParams = query)
+                true
+            }
+            show()
+        }
+    }
+
     private fun promptDeleteSection(tag: String, section: RoomsSection) {
         val isEmpty = section.livePages?.value?.isEmpty() ?: true
         RoomSectionDialogs.showDeleteDialog(requireContext(), isEmpty) {
@@ -620,7 +639,9 @@ class RoomListFragment :
         data class Row(val data: SectionHeaderAdapter.RoomsSectionData, val reorderTag: String?)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionHeaderAdapter.VH =
-                SectionHeaderAdapter.VH.create(parent, onClickAction = {}, onLongClickAction = null, onRenameAction = null, onDeleteAction = null)
+                SectionHeaderAdapter.VH.create(
+                        parent, onClickAction = {}, onLongClickAction = null, onRenameAction = null, onDeleteAction = null, onMoreAction = null
+                )
 
         override fun onBindViewHolder(holder: SectionHeaderAdapter.VH, position: Int) = holder.bind(rows[position].data)
 

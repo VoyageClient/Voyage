@@ -3715,4 +3715,36 @@
     <string name="option_no">Hayır</string>
     <string name="ftue_auth_create_account_username_entry_footer">Diğerleri sizi %s olarak bulabilir</string>
     <string name="room_removed_unknown">Artık %1$s odasında değilsiniz</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">%d davet kabul ediliyor…</item>
+        <item quantity="other">%d davet kabul ediliyor…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">%d davet reddediliyor…</item>
+        <item quantity="other">%d davet reddediliyor…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">Davetleri kabul etme durdurulsun mu?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">Davetleri reddetme durdurulsun mu?</string>
+    <string name="bulk_invites_cancel_confirmation_message">Henüz yanıtlanmamış davetler listenizde kalacak.</string>
+    <string name="bulk_accept_invites_failed_title">Bazı davetler kabul edilemedi</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">%d davet kabul edilemedi. Yeniden denemek için devam edin.</item>
+        <item quantity="other">%d davet kabul edilemedi. Yeniden denemek için devam edin.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">Bazı davetler reddedilemedi</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">%d davet reddedilemedi. Yeniden denemek için devam edin.</item>
+        <item quantity="other">%d davet reddedilemedi. Yeniden denemek için devam edin.</item>
+    </plurals>
+    <string name="invites_accept_all">Tümünü kabul et</string>
+    <string name="invites_reject_all">Tümünü reddet</string>
+    <string name="settings_bulk_options">Toplu işlemler</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">%d daveti kabul et</item>
+        <item quantity="other">%d davetin tümünü kabul et</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">%d daveti reddet</item>
+        <item quantity="other">%d davetin tümünü reddet</item>
+    </plurals>
 </resources>

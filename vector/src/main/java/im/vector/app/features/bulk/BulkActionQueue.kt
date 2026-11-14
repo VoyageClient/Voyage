@@ -44,8 +44,10 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import timber.log.Timber
@@ -56,10 +58,11 @@ import javax.inject.Singleton
 import kotlin.coroutines.coroutineContext
 
 /**
- * The one app-wide queue for long runs of sends and redactions: forwarding or redacting many messages, and
- * [MassRedactionManager]'s jobs. Jobs run one at a time in the order they were asked for, so none competes
- * with another for the server's rate limit, and each keeps running when its room is closed. A forward is
- * sent straight to the server one message at a time, so nothing shows in a room until it has been sent.
+ * The one app-wide queue for long runs of sends and redactions: forwarding or redacting many messages,
+ * accepting or rejecting many invites, and [MassRedactionManager]'s jobs. Jobs run one at a time in the order
+ * they were asked for, so none competes with another for the server's rate limit, and each keeps running when
+ * its room is closed. A forward is sent straight to the server one message at a time, so nothing shows in a
+ * room until it has been sent.
  * The queue is saved per account, and comes back paused after the app is killed.
  */
 @Singleton
@@ -144,6 +147,12 @@ class BulkActionQueue @Inject constructor(
             BulkForward(eventType, content, inReplyToIndex, txnIds = roomIds.map { LocalEcho.createLocalEchoId() })
         }
         enqueue(BulkJob(id = newJobId(), kind = BulkJobKind.FORWARD, roomIds = roomIds, forwards = entries))
+    }
+
+    fun enqueueInvites(roomIds: List<String>, accept: Boolean) {
+        if (roomIds.isEmpty()) return
+        val kind = if (accept) BulkJobKind.ACCEPT_INVITES else BulkJobKind.REJECT_INVITES
+        enqueue(BulkJob(id = newJobId(), kind = kind, roomIds = roomIds))
     }
 
     /** Starts a mass redaction now, or queues it behind the jobs already waiting. */
@@ -242,6 +251,7 @@ class BulkActionQueue @Inject constructor(
                 }
                 BulkJobKind.FORWARD -> if (!runForward(session, job)) return
                 BulkJobKind.REDACT -> if (!runRedact(session, job)) return
+                BulkJobKind.ACCEPT_INVITES, BulkJobKind.REJECT_INVITES -> if (!runInvites(session, job)) return
             }
         }
     }
@@ -308,6 +318,48 @@ class BulkActionQueue @Inject constructor(
                     job,
                     stringProvider.getString(CommonStrings.bulk_redact_failed_title),
                     stringProvider.getQuantityString(CommonPlurals.bulk_redact_failed, failed.size, failed.size),
+            )
+            return false
+        }
+        synchronized(this) { removeJob(job.id) }
+        return true
+    }
+
+    private suspend fun runInvites(session: Session, job: BulkJob): Boolean {
+        val accept = job.kind == BulkJobKind.ACCEPT_INVITES
+        val rooms = session.roomService()
+        var progress = synchronized(this) { progressById[job.id] } ?: BulkJobProgress()
+        while (progress.next < job.roomIds.size) {
+            coroutineContext.ensureActive()
+            publishRunning(job, progress, job.roomIds.size)
+            val roomId = job.roomIds[progress.next]
+            // Answered meanwhile, here or on another device; a local answer shows in the summary only after the next sync.
+            val change = rooms.getChangeMemberships(roomId)
+            val pending = session.getRoomSummary(roomId)?.membership == Membership.INVITE && !change.isInProgress() && !change.isSuccessful()
+            val done = !pending || withRetries { if (accept) rooms.joinRoom(roomId) else rooms.leaveRoom(roomId) } != null
+            progress = progress.copy(
+                    next = progress.next + 1,
+                    failedRoomIds = if (done) progress.failedRoomIds else progress.failedRoomIds + roomId,
+            )
+            saveProgress(job.id, progress)
+            delay(COOLDOWN_MS)
+        }
+        val failed = progress.failedRoomIds
+        if (failed.isNotEmpty()) {
+            synchronized(this) {
+                jobs.indexOfFirst { it.id == job.id }.takeIf { it >= 0 }?.let { jobs[it] = job.copy(roomIds = failed) }
+                progressById[job.id] = BulkJobProgress()
+                saveJobs()
+                saveProgressFile()
+            }
+            pauseOnFailure(
+                    job,
+                    stringProvider.getString(if (accept) CommonStrings.bulk_accept_invites_failed_title else CommonStrings.bulk_reject_invites_failed_title),
+                    stringProvider.getQuantityString(
+                            if (accept) CommonPlurals.bulk_accept_invites_failed else CommonPlurals.bulk_reject_invites_failed,
+                            failed.size,
+                            failed.size,
+                    ),
             )
             return false
         }
@@ -395,7 +447,11 @@ class BulkActionQueue @Inject constructor(
         jobCount.value = jobs.size
         val job = jobs.firstOrNull()?.takeIf { it.kind != BulkJobKind.MASS_REDACTION }
         head.value = job?.let {
-            val total = if (it.kind == BulkJobKind.FORWARD) it.roomIds.size * it.forwards.size else it.eventIds.size
+            val total = when (it.kind) {
+                BulkJobKind.FORWARD -> it.roomIds.size * it.forwards.size
+                BulkJobKind.ACCEPT_INVITES, BulkJobKind.REJECT_INVITES -> it.roomIds.size
+                else -> it.eventIds.size
+            }
             it.toProgress(progressById[it.id] ?: BulkJobProgress(), total)
         }
     }
@@ -403,6 +459,8 @@ class BulkActionQueue @Inject constructor(
     private fun BulkJob.toProgress(progress: BulkJobProgress, total: Int): BulkActionProgress {
         val label = when (kind) {
             BulkJobKind.FORWARD -> stringProvider.getQuantityString(CommonPlurals.bulk_forwarding, forwards.size, forwards.size)
+            BulkJobKind.ACCEPT_INVITES -> stringProvider.getQuantityString(CommonPlurals.bulk_accepting_invites, roomIds.size, roomIds.size)
+            BulkJobKind.REJECT_INVITES -> stringProvider.getQuantityString(CommonPlurals.bulk_rejecting_invites, roomIds.size, roomIds.size)
             else -> stringProvider.getQuantityString(CommonPlurals.bulk_redacting, eventIds.size, eventIds.size)
         }
         return BulkActionProgress(label, completed = progress.next, total = total, paused = paused, queued = 0)

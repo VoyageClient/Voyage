@@ -25,7 +25,8 @@ class SectionHeaderAdapter constructor(
         private val onClickAction: ClickListener,
         private val onLongClickAction: ClickListener? = null,
         private val onRenameAction: ClickListener? = null,
-        private val onDeleteAction: ClickListener? = null
+        private val onDeleteAction: ClickListener? = null,
+        private val onMoreAction: ClickListener? = null
 ) : RecyclerView.Adapter<SectionHeaderAdapter.VH>() {
 
     data class RoomsSectionData(
@@ -68,7 +69,7 @@ class SectionHeaderAdapter constructor(
     override fun getItemViewType(position: Int) = R.layout.item_room_category
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        return VH.create(parent, onClickAction, onLongClickAction, onRenameAction, onDeleteAction)
+        return VH.create(parent, onClickAction, onLongClickAction, onRenameAction, onDeleteAction, onMoreAction)
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
@@ -82,7 +83,8 @@ class SectionHeaderAdapter constructor(
             onClickAction: ClickListener,
             onLongClickAction: ClickListener?,
             private val onRenameAction: ClickListener?,
-            private val onDeleteAction: ClickListener?
+            private val onDeleteAction: ClickListener?,
+            onMoreAction: ClickListener?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         init {
@@ -95,6 +97,8 @@ class SectionHeaderAdapter constructor(
             }
             onRenameAction?.let { binding.roomCategoryRenameView.onClick(it) }
             onDeleteAction?.let { binding.roomCategoryDeleteView.onClick(it) }
+            onMoreAction?.let { binding.roomCategoryMoreView.onClick(it) }
+            binding.roomCategoryMoreView.isVisible = onMoreAction != null
         }
 
         fun bind(roomsSectionData: RoomsSectionData) {
@@ -125,12 +129,13 @@ class SectionHeaderAdapter constructor(
                     onClickAction: ClickListener,
                     onLongClickAction: ClickListener?,
                     onRenameAction: ClickListener?,
-                    onDeleteAction: ClickListener?
+                    onDeleteAction: ClickListener?,
+                    onMoreAction: ClickListener?
             ): VH {
                 val view = LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_room_category, parent, false)
                 val binding = ItemRoomCategoryBinding.bind(view)
-                return VH(binding, onClickAction, onLongClickAction, onRenameAction, onDeleteAction)
+                return VH(binding, onClickAction, onLongClickAction, onRenameAction, onDeleteAction, onMoreAction)
             }
         }
     }

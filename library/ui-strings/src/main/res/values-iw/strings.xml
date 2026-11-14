@@ -3868,4 +3868,48 @@
     <string name="option_no">לא</string>
     <string name="ftue_auth_create_account_username_entry_footer">אחרים יכולים למצוא אותך בתור %s</string>
     <string name="room_removed_unknown">אינך נמצא עוד ב-%1$s</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">מקבל הזמנה אחת…</item>
+        <item quantity="two">מקבל שתי הזמנות…</item>
+        <item quantity="many">מקבל %d הזמנות…</item>
+        <item quantity="other">מקבל %d הזמנות…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">דוחה הזמנה אחת…</item>
+        <item quantity="two">דוחה שתי הזמנות…</item>
+        <item quantity="many">דוחה %d הזמנות…</item>
+        <item quantity="other">דוחה %d הזמנות…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">להפסיק לקבל הזמנות?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">להפסיק לדחות הזמנות?</string>
+    <string name="bulk_invites_cancel_confirmation_message">ההזמנות שעדיין לא נענו יישארו ברשימה שלך.</string>
+    <string name="bulk_accept_invites_failed_title">חלק מההזמנות לא התקבלו</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">לא ניתן היה לקבל הזמנה אחת. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="two">לא ניתן היה לקבל שתי הזמנות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="many">לא ניתן היה לקבל %d הזמנות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="other">לא ניתן היה לקבל %d הזמנות. יש להמשיך כדי לנסות שוב.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">חלק מההזמנות לא נדחו</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">לא ניתן היה לדחות הזמנה אחת. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="two">לא ניתן היה לדחות שתי הזמנות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="many">לא ניתן היה לדחות %d הזמנות. יש להמשיך כדי לנסות שוב.</item>
+        <item quantity="other">לא ניתן היה לדחות %d הזמנות. יש להמשיך כדי לנסות שוב.</item>
+    </plurals>
+    <string name="invites_accept_all">לקבל הכול</string>
+    <string name="invites_reject_all">לדחות הכול</string>
+    <string name="settings_bulk_options">פעולות מרובות</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">לקבל הזמנה אחת</item>
+        <item quantity="two">לקבל את שתי ההזמנות</item>
+        <item quantity="many">לקבל את כל %d ההזמנות</item>
+        <item quantity="other">לקבל את כל %d ההזמנות</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">לדחות הזמנה אחת</item>
+        <item quantity="two">לדחות את שתי ההזמנות</item>
+        <item quantity="many">לדחות את כל %d ההזמנות</item>
+        <item quantity="other">לדחות את כל %d ההזמנות</item>
+    </plurals>
 </resources>

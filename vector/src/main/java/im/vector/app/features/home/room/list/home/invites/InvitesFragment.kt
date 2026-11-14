@@ -9,16 +9,21 @@ package im.vector.app.features.home.room.list.home.invites
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.fragmentViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.R
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentInvitesBinding
 import im.vector.app.features.home.room.list.RoomListListener
+import im.vector.app.features.invite.BulkInviteActions
 import im.vector.app.features.notifications.NotificationDrawerManager
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -27,12 +32,15 @@ import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListListener {
+class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListListener, VectorMenuProvider {
 
     @Inject lateinit var controller: InvitesController
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
+    @Inject lateinit var bulkInviteActions: BulkInviteActions
 
     private val viewModel by fragmentViewModel(InvitesViewModel::class)
+
+    private var hasInvites = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentInvitesBinding {
         return FragmentInvitesBinding.inflate(inflater, container, false)
@@ -65,6 +73,11 @@ class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListLi
         }
 
         viewModel.invites.onEach {
+            val nowHasInvites = it is InvitesContentState.Content
+            if (nowHasInvites != hasInvites) {
+                hasInvites = nowHasInvites
+                invalidateOptionsMenu()
+            }
             when (it) {
                 is InvitesContentState.Content -> {
                     views.invitesStateView.state = StateView.State.Content
@@ -86,6 +99,23 @@ class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListLi
                 InvitesContentState.Loading -> views.invitesStateView.state = StateView.State.Loading
             }
         }.launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    override fun getMenuRes() = R.menu.menu_invites
+
+    override fun handlePrepareMenu(menu: Menu) {
+        menu.findItem(R.id.menu_invites_accept_all).isVisible = hasInvites
+        menu.findItem(R.id.menu_invites_reject_all).isVisible = hasInvites
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem): Boolean {
+        val accept = when (item.itemId) {
+            R.id.menu_invites_accept_all -> true
+            R.id.menu_invites_reject_all -> false
+            else -> return false
+        }
+        bulkInviteActions.start(accept)
+        return true
     }
 
     private fun handleOpenRoom(

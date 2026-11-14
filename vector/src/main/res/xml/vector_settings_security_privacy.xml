@@ -148,6 +148,24 @@
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_BULK_INVITES_CATEGORY_KEY"
+        android:title="@string/settings_bulk_options"
+        app:isPreferenceVisible="false"
+        tools:isPreferenceVisible="true">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ACCEPT_ALL_INVITES_KEY"
+            android:persistent="false"
+            tools:title="Accept all 3 invites" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_REJECT_ALL_INVITES_KEY"
+            android:persistent="false"
+            tools:title="Reject all 3 invites" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_MEDIA_AND_AVATARS_CATEGORY"
         android:title="@string/settings_visual">
 

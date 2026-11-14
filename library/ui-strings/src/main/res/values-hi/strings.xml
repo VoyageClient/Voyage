@@ -3645,4 +3645,36 @@
     <string name="option_no">नहीं</string>
     <string name="ftue_auth_create_account_username_entry_footer">दूसरे आपको %s के रूप में ढूंढ सकते हैं</string>
     <string name="room_removed_unknown">आप अब %1$s में नहीं हैं</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">%d आमंत्रण स्वीकार किया जा रहा है…</item>
+        <item quantity="other">%d आमंत्रण स्वीकार किए जा रहे हैं…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">%d आमंत्रण अस्वीकार किया जा रहा है…</item>
+        <item quantity="other">%d आमंत्रण अस्वीकार किए जा रहे हैं…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">आमंत्रण स्वीकार करना बंद करें?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">आमंत्रण अस्वीकार करना बंद करें?</string>
+    <string name="bulk_invites_cancel_confirmation_message">जिन आमंत्रणों का अभी तक जवाब नहीं दिया गया है, वे आपकी सूची में बने रहेंगे।</string>
+    <string name="bulk_accept_invites_failed_title">कुछ आमंत्रण स्वीकार नहीं किए गए</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">%d आमंत्रण स्वीकार नहीं किया जा सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+        <item quantity="other">%d आमंत्रण स्वीकार नहीं किए जा सके। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">कुछ आमंत्रण अस्वीकार नहीं किए गए</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">%d आमंत्रण अस्वीकार नहीं किया जा सका। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+        <item quantity="other">%d आमंत्रण अस्वीकार नहीं किए जा सके। फिर से कोशिश करने के लिए फिर से शुरू करें।</item>
+    </plurals>
+    <string name="invites_accept_all">सभी स्वीकार करें</string>
+    <string name="invites_reject_all">सभी अस्वीकार करें</string>
+    <string name="settings_bulk_options">बल्क विकल्प</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">%d आमंत्रण स्वीकार करें</item>
+        <item quantity="other">सभी %d आमंत्रण स्वीकार करें</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">%d आमंत्रण अस्वीकार करें</item>
+        <item quantity="other">सभी %d आमंत्रण अस्वीकार करें</item>
+    </plurals>
 </resources>

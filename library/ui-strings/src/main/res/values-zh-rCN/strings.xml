@@ -3684,4 +3684,30 @@
     <string name="option_no">否</string>
     <string name="ftue_auth_create_account_username_entry_footer">其他人可以通过 %s 找到你</string>
     <string name="room_removed_unknown">你已不在 %1$s 中</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="other">正在接受 %d 个邀请…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="other">正在拒绝 %d 个邀请…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">停止接受邀请？</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">停止拒绝邀请？</string>
+    <string name="bulk_invites_cancel_confirmation_message">尚未处理的邀请将保留在你的列表中。</string>
+    <string name="bulk_accept_invites_failed_title">部分邀请未能接受</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="other">有 %d 个邀请无法接受。继续即可重试。</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">部分邀请未能拒绝</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="other">有 %d 个邀请无法拒绝。继续即可重试。</item>
+    </plurals>
+    <string name="invites_accept_all">全部接受</string>
+    <string name="invites_reject_all">全部拒绝</string>
+    <string name="settings_bulk_options">批量操作</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="other">接受全部 %d 个邀请</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="other">拒绝全部 %d 个邀请</item>
+    </plurals>
 </resources>

@@ -48,6 +48,8 @@ object MassRedactionBannerBinder {
             BulkJobKind.MASS_REDACTION -> CommonStrings.mass_redaction_cancel_confirmation_title to CommonStrings.mass_redaction_cancel_confirmation_message
             BulkJobKind.FORWARD -> CommonStrings.bulk_forward_cancel_confirmation_title to CommonStrings.bulk_forward_cancel_confirmation_message
             BulkJobKind.REDACT -> CommonStrings.bulk_redact_cancel_confirmation_title to CommonStrings.bulk_redact_cancel_confirmation_message
+            BulkJobKind.ACCEPT_INVITES -> CommonStrings.bulk_accept_invites_cancel_confirmation_title to CommonStrings.bulk_invites_cancel_confirmation_message
+            BulkJobKind.REJECT_INVITES -> CommonStrings.bulk_reject_invites_cancel_confirmation_title to CommonStrings.bulk_invites_cancel_confirmation_message
         }
         MaterialAlertDialogBuilder(activity)
                 .setTitle(title)

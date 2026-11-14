@@ -28,6 +28,8 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -146,6 +148,54 @@ class BulkActionQueueTest {
         waitUntil { sent.size == 2 }
     }
 
+    @Test
+    fun `rejecting invites leaves each room still invited and skips ones already answered`() {
+        invited(INVITED_A, INVITED_B, ANSWERED_UNSYNCED)
+        every { session.roomService().getRoomSummary(ANSWERED) } returns mockk { every { membership } returns Membership.JOIN }
+        every { session.roomService().getChangeMemberships(ANSWERED_UNSYNCED) } returns ChangeMembershipState.Left
+        val left: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        coEvery { session.roomService().leaveRoom(any(), any()) } answers { left += firstArg<String>() }
+        var joins = 0
+        coEvery { session.roomService().joinRoom(any(), any(), any<List<String>>()) } answers { joins++ }
+        val queue = newQueue()
+
+        queue.enqueueInvites(listOf(INVITED_A, ANSWERED, ANSWERED_UNSYNCED, INVITED_B), accept = false)
+
+        waitUntil { left.size == 2 }
+        runBlocking { withTimeout(5_000) { queue.progress.first { it == null } } }
+        left.toList() shouldBeEqualTo listOf(INVITED_A, INVITED_B)
+        joins shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `a failed accept pauses and resuming retries only the failed invite`() {
+        invited(INVITED_A, INVITED_B)
+        var failing = true
+        val joined: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        coEvery { session.roomService().joinRoom(any(), any(), any<List<String>>()) } answers {
+            val roomId = firstArg<String>()
+            if (roomId == INVITED_A && failing) throw IllegalStateException("rejected")
+            joined += roomId
+        }
+        val queue = newQueue()
+        queue.enqueueInvites(listOf(INVITED_A, INVITED_B), accept = true)
+
+        runBlocking { withTimeout(20_000) { queue.progress.first { it?.paused == true } } }
+        joined.toList() shouldBeEqualTo listOf(INVITED_B)
+        runBlocking { queue.progress.first() }?.total shouldBeEqualTo 1
+
+        failing = false
+        queue.togglePause()
+
+        waitUntil { joined.size == 2 }
+        joined.toList() shouldBeEqualTo listOf(INVITED_B, INVITED_A)
+    }
+
+    private fun invited(vararg roomIds: String) = roomIds.forEach { roomId ->
+        every { session.roomService().getRoomSummary(roomId) } returns mockk { every { membership } returns Membership.INVITE }
+        every { session.roomService().getChangeMemberships(roomId) } returns ChangeMembershipState.Unknown
+    }
+
     private fun text(body: String, replyTo: Int? = null): Triple<String, Content, Int?> =
             Triple("m.room.message", mapOf("msgtype" to "m.text", "body" to body), replyTo)
 
@@ -160,5 +210,9 @@ class BulkActionQueueTest {
     companion object {
         private const val ME = "@me:example.org"
         private const val ROOM = "!room:example.org"
+        private const val INVITED_A = "!invited-a:example.org"
+        private const val INVITED_B = "!invited-b:example.org"
+        private const val ANSWERED = "!answered:example.org"
+        private const val ANSWERED_UNSYNCED = "!answered-unsynced:example.org"
     }
 }

@@ -3757,4 +3757,36 @@
     <string name="option_no">Non</string>
     <string name="ftue_auth_create_account_username_entry_footer">Les autres peuvent vous trouver en tant que %s</string>
     <string name="room_removed_unknown">Vous n\'êtes plus dans %1$s</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="one">Acceptation de %d invitation…</item>
+        <item quantity="other">Acceptation de %d invitations…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="one">Rejet de %d invitation…</item>
+        <item quantity="other">Rejet de %d invitations…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">Arrêter d\'accepter les invitations ?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">Arrêter de rejeter les invitations ?</string>
+    <string name="bulk_invites_cancel_confirmation_message">Les invitations auxquelles vous n\'avez pas encore répondu resteront dans votre liste.</string>
+    <string name="bulk_accept_invites_failed_title">Certaines invitations n\'ont pas été acceptées</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="one">%d invitation n\'a pas pu être acceptée. Reprenez pour réessayer.</item>
+        <item quantity="other">%d invitations n\'ont pas pu être acceptées. Reprenez pour réessayer.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">Certaines invitations n\'ont pas été rejetées</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="one">%d invitation n\'a pas pu être rejetée. Reprenez pour réessayer.</item>
+        <item quantity="other">%d invitations n\'ont pas pu être rejetées. Reprenez pour réessayer.</item>
+    </plurals>
+    <string name="invites_accept_all">Tout accepter</string>
+    <string name="invites_reject_all">Tout rejeter</string>
+    <string name="settings_bulk_options">Actions groupées</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="one">Accepter %d invitation</item>
+        <item quantity="other">Accepter les %d invitations</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="one">Rejeter %d invitation</item>
+        <item quantity="other">Rejeter les %d invitations</item>
+    </plurals>
 </resources>

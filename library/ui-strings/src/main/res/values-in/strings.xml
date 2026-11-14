@@ -3684,4 +3684,30 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="option_no">Tidak</string>
     <string name="ftue_auth_create_account_username_entry_footer">Orang lain dapat menemukan Anda sebagai %s</string>
     <string name="room_removed_unknown">Anda tidak lagi berada di %1$s</string>
+    <plurals name="bulk_accepting_invites">
+        <item quantity="other">Menerima %d undangan…</item>
+    </plurals>
+    <plurals name="bulk_rejecting_invites">
+        <item quantity="other">Menolak %d undangan…</item>
+    </plurals>
+    <string name="bulk_accept_invites_cancel_confirmation_title">Hentikan penerimaan undangan?</string>
+    <string name="bulk_reject_invites_cancel_confirmation_title">Hentikan penolakan undangan?</string>
+    <string name="bulk_invites_cancel_confirmation_message">Undangan yang belum dijawab akan tetap ada di daftar Anda.</string>
+    <string name="bulk_accept_invites_failed_title">Beberapa undangan tidak diterima</string>
+    <plurals name="bulk_accept_invites_failed">
+        <item quantity="other">%d undangan tidak dapat diterima. Lanjutkan untuk mencoba lagi.</item>
+    </plurals>
+    <string name="bulk_reject_invites_failed_title">Beberapa undangan tidak ditolak</string>
+    <plurals name="bulk_reject_invites_failed">
+        <item quantity="other">%d undangan tidak dapat ditolak. Lanjutkan untuk mencoba lagi.</item>
+    </plurals>
+    <string name="invites_accept_all">Terima semua</string>
+    <string name="invites_reject_all">Tolak semua</string>
+    <string name="settings_bulk_options">Opsi massal</string>
+    <plurals name="settings_accept_all_invites">
+        <item quantity="other">Terima semua %d undangan</item>
+    </plurals>
+    <plurals name="settings_reject_all_invites">
+        <item quantity="other">Tolak semua %d undangan</item>
+    </plurals>
 </resources>

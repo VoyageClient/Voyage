@@ -11,6 +11,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 
@@ -32,5 +34,7 @@ data class RoomsSection(
         val customTag: String? = null,
         // Identity within the stored section order: the custom tag, or "chats" for the catch-all.
         // Null for sections that can't take part in reordering (favourites, invites, ...).
-        val reorderTag: String? = null
+        val reorderTag: String? = null,
+        // The section's current query, space filter included.
+        val queryParams: StateFlow<RoomSummaryQueryParams>? = null
 )

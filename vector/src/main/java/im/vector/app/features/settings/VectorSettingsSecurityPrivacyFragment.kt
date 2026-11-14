@@ -54,6 +54,7 @@ import im.vector.app.features.crypto.keys.KeysImporter
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivity
 import im.vector.app.features.crypto.recover.BootstrapBottomSheet
 import im.vector.app.features.crypto.recover.SetupMode
+import im.vector.app.features.invite.BulkInviteActions
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pgp.PgpKeyResult
 import im.vector.app.features.pgp.PgpKeyStore
@@ -111,6 +112,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var pgpServiceManager: PgpServiceManager
     @Inject lateinit var redactionSettings: RedactionPreservationSettings
     @Inject lateinit var pgpKeyStore: PgpKeyStore
+    @Inject lateinit var bulkInviteActions: BulkInviteActions
 
     override var titleRes = CommonStrings.settings_security_and_privacy
     override val preferenceXmlRes = R.xml.vector_settings_security_privacy
@@ -367,7 +369,30 @@ class VectorSettingsSecurityPrivacyFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)    }
+        super.onViewCreated(view, savedInstanceState)
+        observeBulkInvites()
+    }
+
+    private fun observeBulkInvites() {
+        val category = findPreference<VectorPreferenceCategory>("SETTINGS_BULK_INVITES_CATEGORY_KEY") ?: return
+        val acceptPref = findPreference<VectorPreference>("SETTINGS_ACCEPT_ALL_INVITES_KEY") ?: return
+        val rejectPref = findPreference<VectorPreference>("SETTINGS_REJECT_ALL_INVITES_KEY") ?: return
+        acceptPref.setOnPreferenceClickListener {
+            bulkInviteActions.start(accept = true)
+            true
+        }
+        rejectPref.setOnPreferenceClickListener {
+            bulkInviteActions.start(accept = false)
+            true
+        }
+        session.roomService().getRoomCountFlow(BulkInviteActions.ALL_INVITES)
+                .onEach { count ->
+                    category.isVisible = count > 0
+                    acceptPref.title = resources.getQuantityString(CommonPlurals.settings_accept_all_invites, count, count)
+                    rejectPref.title = resources.getQuantityString(CommonPlurals.settings_reject_all_invites, count, count)
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
 
     private fun setUpIncognitoKeyboard() {
         incognitoKeyboardPref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O

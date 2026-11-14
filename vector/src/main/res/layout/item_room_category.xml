@@ -70,10 +70,25 @@
         android:paddingRight="4dp"
         android:textColor="?vctr_unread_text"
         app:layout_constraintBottom_toBottomOf="@id/roomCategoryTitleView"
-        app:layout_constraintEnd_toStartOf="@id/roomCategoryRenameView"
+        app:layout_constraintEnd_toStartOf="@id/roomCategoryMoreView"
         app:layout_constraintTop_toTopOf="@id/roomCategoryTitleView"
         tools:background="@drawable/bg_unread_highlight"
         tools:text="24" />
+
+    <ImageView
+        android:id="@+id/roomCategoryMoreView"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:contentDescription="@string/attachment_viewer_more_options"
+        android:padding="6dp"
+        app:srcCompat="@drawable/ic_more_vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/roomCategoryRenameView"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_secondary" />
 
     <ImageView
         android:id="@+id/roomCategoryRenameView"
