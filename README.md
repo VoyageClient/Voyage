@@ -12,8 +12,8 @@ Voyage is a [Matrix](https://matrix.org/) client for Android, based on [Element 
   <img src="resources/img/screenshots/02-timeline.png" width="45%" alt="Timeline">
 </p>
 <p align="center">
-  <img src="resources/img/screenshots/03-message-actions.png" width="45%" alt="Message actions">
-  <img src="resources/img/screenshots/04-about.png" width="45%" alt="Help &amp; About">
+  <img src="resources/img/screenshots/03-room-overview.png" width="45%" alt="Room overview">
+  <img src="resources/img/screenshots/04-image-editor.png" width="45%" alt="Image editor">
 </p>
 
 # What's different
