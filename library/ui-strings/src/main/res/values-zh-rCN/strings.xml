@@ -3674,4 +3674,7 @@
     <string name="account_shadow_banned">你的账户已被影子封禁</string>
     <string name="settings_shadow_ban_detection_title">影子封禁检测</string>
     <string name="settings_shadow_ban_detection_summary">在你的账户被影子封禁时提醒你</string>
+    <string name="home_export_logs">导出日志</string>
+    <string name="home_export_logs_done">日志已保存</string>
+    <string name="home_export_logs_failed">无法导出日志</string>
 </resources>

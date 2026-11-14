@@ -3672,4 +3672,7 @@
     <string name="account_shadow_banned">アカウントがシャドウバンされています</string>
     <string name="settings_shadow_ban_detection_title">シャドウバン検出</string>
     <string name="settings_shadow_ban_detection_summary">アカウントがシャドウバンされたときに通知します</string>
+    <string name="home_export_logs">ログをエクスポート</string>
+    <string name="home_export_logs_done">ログを保存しました</string>
+    <string name="home_export_logs_failed">ログをエクスポートできませんでした</string>
 </resources>

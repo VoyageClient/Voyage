@@ -3889,4 +3889,7 @@
     <string name="account_shadow_banned">Ваша учётная запись получила теневой бан</string>
     <string name="settings_shadow_ban_detection_title">Обнаружение теневого бана</string>
     <string name="settings_shadow_ban_detection_summary">Предупреждать, когда ваша учётная запись получает теневой бан</string>
+    <string name="home_export_logs">Экспорт логов</string>
+    <string name="home_export_logs_done">Логи сохранены</string>
+    <string name="home_export_logs_failed">Не удалось экспортировать логи</string>
 </resources>

@@ -14,6 +14,10 @@
         android:title="@string/home_init_sync" />
 
     <item
+        android:id="@+id/menu_home_export_logs"
+        android:title="@string/home_export_logs" />
+
+    <item
         android:id="@+id/menu_home_mentions"
         android:icon="@drawable/ic_mention"
         android:title="@string/mentions_title"

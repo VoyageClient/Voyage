@@ -3707,4 +3707,7 @@
     <string name="account_shadow_banned">আপনার অ্যাকাউন্ট শ্যাডো-ব্যান করা হয়েছে</string>
     <string name="settings_shadow_ban_detection_title">শ্যাডো-ব্যান শনাক্তকরণ</string>
     <string name="settings_shadow_ban_detection_summary">আপনার অ্যাকাউন্ট শ্যাডো-ব্যান হলে আপনাকে সতর্ক করে</string>
+    <string name="home_export_logs">লগ এক্সপোর্ট</string>
+    <string name="home_export_logs_done">লগ সংরক্ষিত হয়েছে</string>
+    <string name="home_export_logs_failed">লগ এক্সপোর্ট করা যায়নি</string>
 </resources>

@@ -179,6 +179,9 @@
 
     <string name="initial_sync_start_server_computing">Initial sync:\nWaiting for server response…</string>
     <string name="home_init_sync">Init sync</string>
+    <string name="home_export_logs">Export logs</string>
+    <string name="home_export_logs_done">Logs saved</string>
+    <string name="home_export_logs_failed">Could not export the logs</string>
     <string name="initial_sync_start_downloading">Initial sync:\nDownloading data…</string>
     <string name="initial_sync_start_importing_account">Initial sync:\nImporting account…</string>
     <string name="initial_sync_start_importing_account_crypto">Initial sync:\nImporting crypto</string>

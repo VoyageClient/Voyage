@@ -3635,4 +3635,7 @@
     <string name="account_shadow_banned">आपके खाते पर शैडो-बैन लगा है</string>
     <string name="settings_shadow_ban_detection_title">शैडो-बैन पहचान</string>
     <string name="settings_shadow_ban_detection_summary">आपके खाते पर शैडो-बैन लगने पर आपको सूचित करता है</string>
+    <string name="home_export_logs">लॉग एक्सपोर्ट करें</string>
+    <string name="home_export_logs_done">लॉग सहेजे गए</string>
+    <string name="home_export_logs_failed">लॉग एक्सपोर्ट नहीं हो सके</string>
 </resources>

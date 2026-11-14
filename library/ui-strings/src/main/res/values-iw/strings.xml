@@ -3858,4 +3858,7 @@
     <string name="account_shadow_banned">החשבון שלך חסום בחסימת צל</string>
     <string name="settings_shadow_ban_detection_title">זיהוי חסימת צל</string>
     <string name="settings_shadow_ban_detection_summary">התראה כשהחשבון שלך חסום בחסימת צל</string>
+    <string name="home_export_logs">ייצוא יומנים</string>
+    <string name="home_export_logs_done">היומנים נשמרו</string>
+    <string name="home_export_logs_failed">לא ניתן היה לייצא את היומנים</string>
 </resources>

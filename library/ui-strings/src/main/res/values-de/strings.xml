@@ -3746,4 +3746,7 @@
     <string name="account_shadow_banned">Dein Konto ist per Shadowban gesperrt</string>
     <string name="settings_shadow_ban_detection_title">Shadowban-Erkennung</string>
     <string name="settings_shadow_ban_detection_summary">Warnt dich, wenn dein Konto per Shadowban gesperrt ist</string>
+    <string name="home_export_logs">Logs exportieren</string>
+    <string name="home_export_logs_done">Logs gespeichert</string>
+    <string name="home_export_logs_failed">Die Logs konnten nicht exportiert werden</string>
 </resources>

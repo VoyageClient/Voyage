@@ -3705,4 +3705,7 @@
     <string name="account_shadow_banned">Hesabınız gölge yasaklı</string>
     <string name="settings_shadow_ban_detection_title">Gölge yasak tespiti</string>
     <string name="settings_shadow_ban_detection_summary">Hesabınız gölge yasaklandığında sizi uyarır</string>
+    <string name="home_export_logs">Günlükleri dışa aktar</string>
+    <string name="home_export_logs_done">Günlükler kaydedildi</string>
+    <string name="home_export_logs_failed">Günlükler dışa aktarılamadı</string>
 </resources>

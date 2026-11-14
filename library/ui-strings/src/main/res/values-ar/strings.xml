@@ -3938,4 +3938,7 @@
     <string name="account_shadow_banned">حسابك محظور حظرًا خفيًا</string>
     <string name="settings_shadow_ban_detection_title">كشف الحظر الخفي</string>
     <string name="settings_shadow_ban_detection_summary">تنبيهك عند فرض حظر خفي على حسابك</string>
+    <string name="home_export_logs">صدّر السجلات</string>
+    <string name="home_export_logs_done">حُفظت السجلات</string>
+    <string name="home_export_logs_failed">تعذّر تصدير السجلات</string>
 </resources>

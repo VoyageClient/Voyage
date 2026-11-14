@@ -3674,4 +3674,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="account_shadow_banned">Akun Anda terkena shadowban</string>
     <string name="settings_shadow_ban_detection_title">Deteksi shadowban</string>
     <string name="settings_shadow_ban_detection_summary">Memberi tahu Anda saat akun Anda terkena shadowban</string>
+    <string name="home_export_logs">Ekspor catatan</string>
+    <string name="home_export_logs_done">Catatan disimpan</string>
+    <string name="home_export_logs_failed">Tidak dapat mengekspor catatan</string>
 </resources>

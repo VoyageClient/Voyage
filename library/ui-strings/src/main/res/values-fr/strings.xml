@@ -3747,4 +3747,7 @@
     <string name="account_shadow_banned">Votre compte est victime d\'un shadowban</string>
     <string name="settings_shadow_ban_detection_title">Détection du shadowban</string>
     <string name="settings_shadow_ban_detection_summary">Vous alerte lorsque votre compte est victime d\'un shadowban</string>
+    <string name="home_export_logs">Exporter les journaux</string>
+    <string name="home_export_logs_done">Journaux enregistrés</string>
+    <string name="home_export_logs_failed">Impossible d\'exporter les journaux</string>
 </resources>

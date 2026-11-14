@@ -3647,4 +3647,7 @@
     <string name="account_shadow_banned">آپ کے اکاؤنٹ پر شیڈو بین لگا ہے</string>
     <string name="settings_shadow_ban_detection_title">شیڈو بین کی شناخت</string>
     <string name="settings_shadow_ban_detection_summary">آپ کے اکاؤنٹ پر شیڈو بین لگنے پر آپ کو خبردار کرتا ہے</string>
+    <string name="home_export_logs">لاگز برآمد کریں</string>
+    <string name="home_export_logs_done">لاگز محفوظ ہو گئے</string>
+    <string name="home_export_logs_failed">لاگز برآمد نہیں ہو سکے</string>
 </resources>

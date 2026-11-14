@@ -8,9 +8,11 @@
 package im.vector.app.features.home
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.Menu
@@ -41,6 +43,7 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.startSharePlainTextIntent
+import im.vector.app.core.utils.toast
 import im.vector.app.databinding.ActivityHomeBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
@@ -61,6 +64,7 @@ import im.vector.app.features.permalink.PermalinkHandler.Companion.USER_LINK_PRE
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.rageshake.BugReporter
+import im.vector.app.features.rageshake.LogExporter
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.roomdirectory.createroom.CreateRoomActivity
 import im.vector.app.features.session.coroutineScope
@@ -72,6 +76,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.workers.signout.ServerBackupStatusViewModel
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -113,6 +118,7 @@ class HomeActivity :
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
     @Inject lateinit var homeScreenVisibility: HomeScreenVisibility
     @Inject lateinit var bugReporter: BugReporter
+    @Inject lateinit var logExporter: LogExporter
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
@@ -127,6 +133,13 @@ class HomeActivity :
     private var isNewAppLayoutEnabled: Boolean = false // delete once old app layout is removed
     private var combinedOverview: Boolean = false
     private var showUnreadCounter: Boolean = true
+
+    private val exportLogsLauncher = registerStartForActivityResult { activityResult ->
+        val uri = activityResult.data?.data
+        if (activityResult.resultCode == Activity.RESULT_OK && uri != null) {
+            runLogExport { logExporter.exportTo(uri) }
+        }
+    }
 
     private val createSpaceResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == Activity.RESULT_OK) {
@@ -582,6 +595,10 @@ class HomeActivity :
                 MainActivity.restartApp(this, MainActivityArgs(initSyncActiveAccount = true))
                 true
             }
+            R.id.menu_home_export_logs -> {
+                exportLogs()
+                true
+            }
             R.id.menu_home_filter -> {
                 navigator.openRoomsFiltering(this)
                 true
@@ -599,6 +616,37 @@ class HomeActivity :
                 true
             }
             else -> false
+        }
+    }
+
+    private fun exportLogs() {
+        val fileName = logExporter.fileName()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType(LogExporter.MIME_TYPE)
+                    .putExtra(Intent.EXTRA_TITLE, fileName)
+            try {
+                exportLogsLauncher.launch(intent)
+                return
+            } catch (activityNotFound: ActivityNotFoundException) {
+                Timber.w(activityNotFound, "No document picker, saving the logs to Downloads")
+            }
+        }
+        runLogExport { logExporter.exportToDownloads(fileName) }
+    }
+
+    private fun runLogExport(export: suspend () -> Unit) {
+        lifecycleScope.launch {
+            try {
+                export()
+                toast(CommonStrings.home_export_logs_done)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Throwable) {
+                Timber.e(failure, "Failed to export the logs")
+                toast(CommonStrings.home_export_logs_failed)
+            }
         }
     }
 

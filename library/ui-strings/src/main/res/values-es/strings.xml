@@ -3735,4 +3735,7 @@
     <string name="account_shadow_banned">Tu cuenta tiene un shadowban</string>
     <string name="settings_shadow_ban_detection_title">Detección de shadowban</string>
     <string name="settings_shadow_ban_detection_summary">Te avisa cuando tu cuenta tiene un shadowban</string>
+    <string name="home_export_logs">Exportar registros</string>
+    <string name="home_export_logs_done">Registros guardados</string>
+    <string name="home_export_logs_failed">No se pudieron exportar los registros</string>
 </resources>

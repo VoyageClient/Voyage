@@ -3676,4 +3676,7 @@
     <string name="account_shadow_banned">您的帳號已被影子封鎖</string>
     <string name="settings_shadow_ban_detection_title">影子封鎖偵測</string>
     <string name="settings_shadow_ban_detection_summary">在您的帳號被影子封鎖時提醒您</string>
+    <string name="home_export_logs">匯出紀錄</string>
+    <string name="home_export_logs_done">已儲存紀錄</string>
+    <string name="home_export_logs_failed">無法匯出紀錄</string>
 </resources>
