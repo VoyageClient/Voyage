@@ -82,3 +82,9 @@ data class CryptoDeviceInfo(
 
     fun shortDebugString() = "$userId|$deviceId"
 }
+
+/**
+ * The devices whose trust decides a user or room shield. Stored dehydrated devices are always signed by
+ * their owner (unsigned ones are dropped on download), so all they can add is a not-yet-recomputed trust row.
+ */
+fun Iterable<CryptoDeviceInfo>.trustRelevant(): List<CryptoDeviceInfo> = filterNot { it.isDehydrated }

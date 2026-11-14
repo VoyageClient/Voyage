@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
+import org.matrix.android.sdk.api.session.crypto.model.trustRelevant
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.task.Task
@@ -60,6 +61,7 @@ internal class DefaultComputeTrustTask @Inject constructor(
             allTrustedUserIds
                     .mapNotNull { cryptoStore.getUserDeviceList(it) }
                     .flatten()
+                    .trustRelevant()
                     .let { allDevices ->
                         if (getMyCrossSigningKeys() != null) {
                             allDevices.any { !it.trustLevel?.crossSigningVerified.orFalse() }

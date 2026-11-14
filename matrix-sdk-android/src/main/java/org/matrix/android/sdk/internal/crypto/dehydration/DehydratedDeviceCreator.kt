@@ -9,7 +9,6 @@ package org.matrix.android.sdk.internal.crypto.dehydration
 
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_OLM
-import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.crypto.crosssigning.CrossSigningOlm
@@ -21,10 +20,7 @@ import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.util.JsonCanonicalizer
 import org.matrix.olm.OlmAccount
-import timber.log.Timber
 import javax.inject.Inject
-
-private val loggerTag = LoggerTag("DehydratedDeviceCreator", LoggerTag.CRYPTO)
 
 /**
  * Builds the upload body for a fresh dehydrated device: a brand new Olm account, its keys signed by
@@ -94,19 +90,20 @@ internal class DehydratedDeviceCreator @Inject constructor(
         val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, device.signalableJSONDictionary())
 
         val signatures = mutableMapOf("ed25519:$deviceId" to account.signMessage(canonicalJson))
-        crossSignature(canonicalJson)?.let { (keyId, signature) -> signatures[keyId] = signature }
+        val (keyId, crossSignature) = crossSignature(canonicalJson)
+        signatures[keyId] = crossSignature
 
         return device.toRest().copy(signatures = mapOf(userId to signatures))
     }
 
-    /** MSC3814 requires the dehydrated device to be cross signed. */
-    private fun crossSignature(canonicalJson: String): Pair<String, String>? {
+    /** MSC3814 requires the dehydrated device to be cross signed; other clients drop it otherwise. */
+    fun canCrossSign(): Boolean =
+            cryptoStore.getMyCrossSigningInfo()?.selfSigningKey() != null && crossSigningOlm.selfSigningPkSigning != null
+
+    private fun crossSignature(canonicalJson: String): Pair<String, String> {
         val selfSigningKey = cryptoStore.getMyCrossSigningInfo()?.selfSigningKey()?.unpaddedBase64PublicKey
         val signing = crossSigningOlm.selfSigningPkSigning
-        if (selfSigningKey == null || signing == null) {
-            Timber.tag(loggerTag.value).w("No self signing key available, the dehydrated device won't be cross signed")
-            return null
-        }
+        check(selfSigningKey != null && signing != null) { "No self signing key available to cross sign the dehydrated device" }
         return "ed25519:$selfSigningKey" to signing.sign(canonicalJson)
     }
 

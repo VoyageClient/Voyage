@@ -77,6 +77,7 @@ internal class ShieldSummaryUpdater @Inject constructor(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(emptyList(), roomIds = roomIds.toList())
         )
+        Timber.i("TRUSTDBG room shield update queued file=${workerParams.filename} rooms=${roomIds.size}")
         backgroundTaskScheduler.enqueueUnique(
                 "TRUST_UPDATE_QUEUE_$sessionId",
                 BackgroundQueuePolicy.APPEND_OR_REPLACE,

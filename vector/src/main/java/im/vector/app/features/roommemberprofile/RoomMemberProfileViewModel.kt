@@ -53,6 +53,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
+import org.matrix.android.sdk.api.session.crypto.model.trustRelevant
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -208,12 +209,20 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 session.flow().liveUserCryptoDevices(initialState.userId),
                 session.flow().liveCrossSigningInfo(initialState.userId)
         ) { devices, crossSigningInfo ->
+            val relevant = devices.trustRelevant()
+            Timber.i(
+                    "TRUSTDBG profile ${initialState.userId} userTrusted=${crossSigningInfo.getOrNull()?.isTrusted()} devices=" +
+                            devices.joinToString {
+                                "${it.deviceId}(cross=${it.trustLevel?.crossSigningVerified}, local=${it.trustLevel?.locallyVerified}, " +
+                                        "dehydrated=${it.isDehydrated})"
+                            }
+            )
             setState {
                 copy(
                         userCryptoInfoLoaded = true,
                         userMXCrossSigningInfo = crossSigningInfo.getOrNull(),
-                        allDevicesAreTrusted = devices.all { it.isVerified },
-                        allDevicesAreCrossSignedTrusted = devices.all { it.trustLevel?.crossSigningVerified == true },
+                        allDevicesAreTrusted = relevant.all { it.isVerified },
+                        allDevicesAreCrossSignedTrusted = relevant.all { it.trustLevel?.crossSigningVerified == true },
                         userDevices = devices
                 )
             }

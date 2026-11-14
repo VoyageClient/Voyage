@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.crypto.crosssigning
 
+import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
@@ -15,6 +16,7 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.UserTrustResult
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isCrossSignedVerified
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
+import org.matrix.android.sdk.api.session.crypto.model.trustRelevant
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
@@ -57,33 +59,48 @@ internal class UpdateTrustTaskBody @Inject constructor(
         val workerParams = params.filename
                 ?.let { updateTrustWorkerDataRepository.getParam(it) }
                 ?: return BackgroundTaskOutcome.Success.also {
-                    Timber.w("## CrossSigning - UpdateTrustWorker failed to get params")
+                    Timber.w("TRUSTDBG trust update skipped, no params file=${params.filename}")
                     cleanup(params)
                 }
 
-        Timber.v("## CrossSigning [$sId]- UpdateTrustWorker userIds:${workerParams.userIds.logLimit()}, roomIds:${workerParams.roomIds.orEmpty().logLimit()}")
+        Timber.i(
+                "TRUSTDBG trust update start file=${params.filename} attempt=${context.attemptCount} " +
+                        "users=${workerParams.userIds.logLimit()} rooms=${workerParams.roomIds?.size}"
+        )
         val userList = workerParams.userIds
 
-        // List should not be empty, but let's avoid go further in case of empty list
-        if (userList.isNotEmpty()) {
-            // Unfortunately we don't have much info on what did exactly changed (is it the cross signing keys of that user,
-            // or a new device?) So we check all again :/
-            Timber.v("## CrossSigning [$sId]- Updating trust for users: ${userList.logLimit()}")
-            updateTrust(userList)
+        try {
+            // List should not be empty, but let's avoid go further in case of empty list
+            if (userList.isNotEmpty()) {
+                // Unfortunately we don't have much info on what did exactly changed (is it the cross signing keys of that user,
+                // or a new device?) So we check all again :/
+                Timber.v("## CrossSigning [$sId]- Updating trust for users: ${userList.logLimit()}")
+                updateTrust(userList)
+            }
+
+            val roomsToCheck = workerParams.roomIds ?: cryptoSessionInfoProvider.getRoomsWhereUsersAreParticipating(userList)
+            Timber.v("## CrossSigning [$sId]- UpdateTrustWorker roomShield to check:${roomsToCheck.logLimit()}")
+            val myCrossSigningInfo = cryptoStore.getMyCrossSigningInfo()
+            // So Cross Signing keys trust is updated, device trust is updated
+            // We can now update room shields? in the session DB?
+            updateRoomShieldInSummaries(roomsToCheck, myCrossSigningInfo)
+        } catch (failure: Throwable) {
+            Timber.e(failure, "TRUSTDBG trust update failed file=${params.filename}")
+            throw failure
         }
 
-        val roomsToCheck = workerParams.roomIds ?: cryptoSessionInfoProvider.getRoomsWhereUsersAreParticipating(userList)
-        Timber.v("## CrossSigning [$sId]- UpdateTrustWorker roomShield to check:${roomsToCheck.logLimit()}")
-        val myCrossSigningInfo = cryptoStore.getMyCrossSigningInfo()
-        // So Cross Signing keys trust is updated, device trust is updated
-        // We can now update room shields? in the session DB?
-        updateRoomShieldInSummaries(roomsToCheck, myCrossSigningInfo)
-
         cleanup(params)
+        Timber.i("TRUSTDBG trust update done file=${params.filename}")
         return BackgroundTaskOutcome.Success
     }
 
-    private fun updateTrust(userListParam: List<String>) {
+    override fun onError(params: UpdateTrustWorkerParams, failureMessage: String): BackgroundTaskOutcome {
+        Timber.e("TRUSTDBG trust update skipped after an earlier failure in the queue file=${params.filename}: $failureMessage")
+        return super.onError(params, failureMessage)
+    }
+
+    @VisibleForTesting
+    internal fun updateTrust(userListParam: List<String>) {
         val sId = myUserId.take(5)
         var userList = userListParam
         var myCrossSigningInfo = cryptoStore.getMyCrossSigningInfo()
@@ -112,17 +129,26 @@ internal class UpdateTrustTaskBody @Inject constructor(
 
         trusts.forEach {
             val verified = it.value?.isVerified() == true
+            val wasTrusted = otherInfos[it.key]?.isTrusted() == true
+            if (wasTrusted != verified) {
+                Timber.i("TRUSTDBG user ${it.key} trusted $wasTrusted -> $verified (${it.value?.javaClass?.simpleName})")
+            }
             cryptoStore.setUserKeysAsTrusted(it.key, verified)
         }
 
         // Now check device trust for all these users.
         Timber.v("## CrossSigning [$sId]- Updating devices cross trust users: ${trusts.keys.logLimit()}")
         trusts.keys.forEach { userId ->
+            // Re-read, as the devices must be judged against the user trust just written, not the snapshot above.
+            val userInfo = cryptoStore.getCrossSigningInfo(userId)
             cryptoStore.getUserDeviceList(userId).orEmpty().forEach { device ->
-                val crossSignedVerified = crossSigningService
-                        .checkDeviceTrust(myCrossSigningInfo, otherInfos[userId], device)
-                        .isCrossSignedVerified()
+                val result = crossSigningService.checkDeviceTrust(myCrossSigningInfo, userInfo, device)
+                val crossSignedVerified = result.isCrossSignedVerified()
                 if (device.trustLevel?.crossSigningVerified != crossSignedVerified) {
+                    Timber.i(
+                            "TRUSTDBG device ${device.shortDebugString()} dehydrated=${device.isDehydrated} " +
+                                    "cross-signed ${device.trustLevel?.crossSigningVerified} -> $crossSignedVerified (${result.javaClass.simpleName})"
+                    )
                     cryptoStore.setDeviceTrust(userId, device.deviceId, crossSignedVerified, locallyVerified = null)
                 }
             }
@@ -162,7 +188,7 @@ internal class UpdateTrustTaskBody @Inject constructor(
                 try {
                     val updatedTrust = computeRoomShield(myCrossSigningInfo, allActiveRoomMembers, roomSummary)
                     if (roomSummary.roomEncryptionTrustLevel != updatedTrust) {
-                        Timber.d("## CrossSigning [$sId]- Shield change detected for $roomId -> $updatedTrust")
+                        Timber.i("TRUSTDBG room shield $roomId ${roomSummary.roomEncryptionTrustLevel} -> $updatedTrust")
                         stores.roomSummary.updateEncryptionTrustLevel(roomId, updatedTrust.name)
                     } else {
                         Timber.v("## CrossSigning [$sId]- Shield unchanged for $roomId -> $updatedTrust")
@@ -219,6 +245,7 @@ internal class UpdateTrustTaskBody @Inject constructor(
             allTrustedUserIds
                     .mapNotNull { userId -> cryptoStore.getUserDeviceList(userId) }
                     .flatten()
+                    .trustRelevant()
                     .let { allDevices ->
                         Timber.v("## CrossSigning - computeRoomShield ${roomSummaryEntity.roomId} devices ${allDevices.map { it.deviceId }.logLimit()}")
                         if (myCrossSigningInfo != null) {

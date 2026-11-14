@@ -833,6 +833,7 @@ internal class DefaultCrossSigningService @Inject constructor(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(userIds)
         )
+        Timber.i("TRUSTDBG trust update queued file=${workerParams.filename} users=${userIds.logLimit()}")
         backgroundTaskScheduler.enqueueUnique(
                 "TRUST_UPDATE_QUEUE_$sessionId",
                 BackgroundQueuePolicy.APPEND_OR_REPLACE,

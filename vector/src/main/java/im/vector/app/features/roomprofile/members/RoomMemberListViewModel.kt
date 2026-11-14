@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
+import org.matrix.android.sdk.api.session.crypto.model.trustRelevant
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -129,7 +130,8 @@ class RoomMemberListViewModel @AssistedInject constructor(
     }
 
     private suspend fun getUserTrustLevel(userId: String, devices: List<CryptoDeviceInfo>): UserVerificationLevel {
-        val allDeviceTrusted = devices.fold(devices.isNotEmpty()) { prev, next ->
+        val relevant = devices.trustRelevant()
+        val allDeviceTrusted = relevant.fold(relevant.isNotEmpty()) { prev, next ->
             prev && next.trustLevel?.isCrossSigningVerified().orFalse()
         }
         val mxCrossSigningInfo = session.cryptoService().crossSigningService().getUserCrossSigningKeys(userId)

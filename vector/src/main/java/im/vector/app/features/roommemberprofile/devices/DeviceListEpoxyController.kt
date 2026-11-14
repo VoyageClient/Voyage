@@ -35,6 +35,7 @@ import me.gujun.android.span.span
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
+import org.matrix.android.sdk.api.session.crypto.model.trustRelevant
 import javax.inject.Inject
 
 class DeviceListEpoxyController @Inject constructor(
@@ -96,7 +97,7 @@ class DeviceListEpoxyController @Inject constructor(
 
     private fun buildHeader(data: DeviceListViewState, deviceList: List<CryptoDeviceInfo>, trustMSK: Boolean, legacyMode: Boolean) {
         val host = this
-        val allGreen = deviceList.fold(true) { prev, device ->
+        val allGreen = deviceList.trustRelevant().fold(true) { prev, device ->
             val trustLevel = TrustUtils.shieldForTrust(
                     data.myDeviceId == device.deviceId,
                     trustMSK,

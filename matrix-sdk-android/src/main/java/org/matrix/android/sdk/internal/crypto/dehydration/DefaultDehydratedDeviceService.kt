@@ -111,7 +111,12 @@ internal class DefaultDehydratedDeviceService @Inject constructor(
         }
         if (!shouldReplace) return result
         if (sharedSecretStorageService.get().getCachedKeySpec() == null) return RehydrationResult.KeyUnavailable
-        createDehydratedDevice(displayName)
+        if (!creator.canCrossSign()) {
+            Timber.i("TRUSTDBG not replacing the dehydrated device, this session can't cross sign one")
+            return result
+        }
+        val deviceId = createDehydratedDevice(displayName)
+        Timber.i("TRUSTDBG replaced our dehydrated device with $deviceId after $result")
         return result
     }
 

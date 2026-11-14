@@ -79,6 +79,7 @@ internal class DeviceListManager @Inject constructor(
     }
 
     private fun dispatchDeviceChange(users: List<String>) {
+        Timber.i("TRUSTDBG keys downloaded, dispatching device change for ${users.logLimit()}")
         synchronized(deviceChangeListeners) {
             deviceChangeListeners.forEach {
                 try {
@@ -385,9 +386,11 @@ internal class DeviceListManager @Inject constructor(
             Timber.v("## CRYPTO | doKeyDownloadForUsers() : Got keys for $userId : $models")
             if (!models.isNullOrEmpty()) {
                 val workingCopy = models.toMutableMap()
+                val newDeviceIds = mutableSetOf<String>()
                 for ((deviceId, deviceInfo) in models) {
                     // Get the potential previously store device keys for this device
                     val previouslyStoredDeviceKeys = cryptoStore.getUserDevice(userId, deviceId)
+                    if (previouslyStoredDeviceKeys == null) newDeviceIds += deviceId
 
                     // in some race conditions (like unit tests)
                     // the self device must be seen as verified
@@ -414,8 +417,15 @@ internal class DeviceListManager @Inject constructor(
                         ?.unpaddedBase64PublicKey
                 workingCopy.values.removeAll { device ->
                     val drop = device.isDehydrated && !isSignedBy(device, sskPublicKey)
-                    if (drop) Timber.w("## CRYPTO | doKeyDownloadForUsers() : dropping dehydrated device ${device.shortDebugString()} not signed by its owner")
+                    if (drop) Timber.w("TRUSTDBG keys dropping dehydrated device ${device.shortDebugString()} not signed by its owner")
                     drop
+                }
+                val added = workingCopy.values.filter { it.deviceId in newDeviceIds }
+                if (added.isNotEmpty()) {
+                    Timber.i(
+                            "TRUSTDBG keys $userId new devices " +
+                                    added.joinToString { "${it.deviceId}(dehydrated=${it.isDehydrated}, trust=${it.trustLevel})" }
+                    )
                 }
                 // Update the store
                 // Note that devices which aren't in the response will be removed from the stores
@@ -430,6 +440,9 @@ internal class DeviceListManager @Inject constructor(
             }
             val userSigningKey = response.userSigningKeys?.get(userId)?.toCryptoModel()?.also {
                 Timber.v("## CRYPTO | CrossSigning : Got keys for $userId : USK ${it.unpaddedBase64PublicKey}")
+            }
+            if (masterKey == null || selfSigningKey == null) {
+                Timber.i("TRUSTDBG keys $userId has no cross-signing keys in the response (msk=${masterKey != null}, ssk=${selfSigningKey != null})")
             }
             userDataToStore.userIdentities[userId] = UserIdentity(
                     masterKey = masterKey,
