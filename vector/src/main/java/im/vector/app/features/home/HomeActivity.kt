@@ -136,7 +136,7 @@ class HomeActivity :
 
     private val exportLogsLauncher = registerStartForActivityResult { activityResult ->
         val uri = activityResult.data?.data
-        if (activityResult.resultCode == Activity.RESULT_OK && uri != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && activityResult.resultCode == Activity.RESULT_OK && uri != null) {
             runLogExport { logExporter.exportTo(uri) }
         }
     }
