@@ -3680,4 +3680,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_redaction_preserve_summary">Minta versi asli ke server saat pesan dihapus, dan tampilkan sebagai ganti pemberitahuan penghapusan</string>
     <string name="notice_state_event_redacted">Perubahan ruangan oleh %1$s dihapus</string>
     <string name="notice_state_event_redacted_with_reason">Perubahan ruangan oleh %1$s dihapus, alasan: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Setel ulang pengaturan keamanan &amp; privasi ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Setel ulang pengaturan penghapusan ruangan ini ke yang berlaku di seluruh akun?</string>
 </resources>

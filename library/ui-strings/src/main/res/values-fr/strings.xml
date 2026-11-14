@@ -3753,4 +3753,6 @@
     <string name="settings_redaction_preserve_summary">Demander l\'original au serveur lorsqu\'un message est supprimé, et l\'afficher à la place de l\'avis de suppression</string>
     <string name="notice_state_event_redacted">Le changement du salon effectué par %1$s a été supprimé</string>
     <string name="notice_state_event_redacted_with_reason">Le changement du salon effectué par %1$s a été supprimé, raison : %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Rétablir les paramètres de sécurité et de vie privée de ce salon sur ceux de votre compte ?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Rétablir les paramètres de suppression de ce salon sur ceux de votre compte ?</string>
 </resources>

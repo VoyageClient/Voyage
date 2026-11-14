@@ -3680,4 +3680,6 @@
     <string name="settings_redaction_preserve_summary">消息被删除时向服务器请求原始内容，并用它替代删除提示显示</string>
     <string name="notice_state_event_redacted">%1$s 的房间更改已被删除</string>
     <string name="notice_state_event_redacted_with_reason">%1$s 的房间更改已被删除，原因：%2$s</string>
+    <string name="room_personalization_media_reset_confirmation">将此房间的安全与隐私设置重置为账户全局设置？</string>
+    <string name="room_personalization_redaction_reset_confirmation">将此房间的删除设置重置为账户全局设置？</string>
 </resources>

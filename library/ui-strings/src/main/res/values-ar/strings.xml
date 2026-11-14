@@ -3944,4 +3944,6 @@
     <string name="settings_redaction_preserve_summary">اطلب من الخادم النسخة الأصلية عند حذف رسالة، واعرضها بدلًا من إشعار الحذف</string>
     <string name="notice_state_event_redacted">حُذف تغيير الغرفة الذي أجراه %1$s</string>
     <string name="notice_state_event_redacted_with_reason">حُذف تغيير الغرفة الذي أجراه %1$s، السبب: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">أتريد إعادة إعدادات الأمان والخصوصية لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="room_personalization_redaction_reset_confirmation">أتريد إعادة إعدادات الحذف لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
 </resources>

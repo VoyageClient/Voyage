@@ -3678,4 +3678,6 @@
     <string name="settings_redaction_preserve_summary">メッセージが削除されたときにサーバーに元の内容を要求し、削除の通知の代わりに表示します</string>
     <string name="notice_state_event_redacted">%1$sによるルームの変更が削除されました</string>
     <string name="notice_state_event_redacted_with_reason">%1$sによるルームの変更が削除されました。理由：%2$s</string>
+    <string name="room_personalization_media_reset_confirmation">このルームのセキュリティーとプライバシーの設定を、アカウント全体のものにリセットしますか？</string>
+    <string name="room_personalization_redaction_reset_confirmation">このルームの削除されたメッセージの設定を、アカウント全体のものにリセットしますか？</string>
 </resources>

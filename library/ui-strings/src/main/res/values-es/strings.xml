@@ -3741,4 +3741,6 @@
     <string name="settings_redaction_preserve_summary">Pide al servidor el original cuando se borre un mensaje y muéstralo en lugar del aviso de borrado</string>
     <string name="notice_state_event_redacted">Se borró el cambio en la sala de %1$s</string>
     <string name="notice_state_event_redacted_with_reason">Se borró el cambio en la sala de %1$s, motivo: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">¿Restablecer los ajustes de seguridad y privacidad de esta sala a los de toda tu cuenta?</string>
+    <string name="room_personalization_redaction_reset_confirmation">¿Restablecer los ajustes de borrados de esta sala a los de toda tu cuenta?</string>
 </resources>

@@ -3752,4 +3752,6 @@
     <string name="settings_redaction_preserve_summary">Beim Löschen einer Nachricht den Server nach dem Original fragen und es anstelle des Löschhinweises anzeigen</string>
     <string name="notice_state_event_redacted">Die Raumänderung von %1$s wurde gelöscht</string>
     <string name="notice_state_event_redacted_with_reason">Die Raumänderung von %1$s wurde gelöscht, Grund: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Sicherheits- und Privatsphäre-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Löschungs-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
 </resources>

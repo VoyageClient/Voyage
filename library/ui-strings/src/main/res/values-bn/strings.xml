@@ -3713,4 +3713,6 @@
     <string name="settings_redaction_preserve_summary">কোনো বার্তা রিড্যাক্ট করা হলে সার্ভার থেকে মূল বার্তাটি চেয়ে নিন এবং রিড্যাকশনের নোটিশের জায়গায় সেটি দেখান</string>
     <string name="notice_state_event_redacted">%1$s-এর রুম পরিবর্তন রিড্যাক্ট করা হয়েছে</string>
     <string name="notice_state_event_redacted_with_reason">%1$s-এর রুম পরিবর্তন রিড্যাক্ট করা হয়েছে, কারণ: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">এই রুমের নিরাপত্তা ও গোপনীয়তা সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
+    <string name="room_personalization_redaction_reset_confirmation">এই রুমের রিড্যাকশন সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
 </resources>

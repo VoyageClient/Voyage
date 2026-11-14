@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
@@ -24,7 +25,6 @@ import im.vector.app.core.preference.UserAvatarPreference
 import im.vector.app.core.preference.VectorEditTextPreference
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
-import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorPreferenceCategoryWithAction
 import im.vector.app.core.ui.colorpicker.ProfileColorPreferenceBinder
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
@@ -154,12 +154,7 @@ class RoomPersonalizationSettingsFragment :
         profileCategory?.apply {
             isActionEnabled = isPersonalized()
             actionClickListener = {
-                AlertDialog.Builder(requireContext())
-                        .setTitle(CommonStrings.action_reset)
-                        .setMessage(CommonStrings.room_personalization_reset_confirmation)
-                        .setPositiveButton(CommonStrings.action_reset) { _, _ -> resetToAccountProfile() }
-                        .setNegativeButton(CommonStrings.action_cancel, null)
-                        .show()
+                confirmReset(CommonStrings.room_personalization_reset_confirmation, ::resetToAccountProfile)
             }
         }
     }
@@ -175,12 +170,7 @@ class RoomPersonalizationSettingsFragment :
         roomOverrideCategory?.apply {
             isActionEnabled = isRoomOverridden()
             actionClickListener = {
-                AlertDialog.Builder(requireContext())
-                        .setTitle(CommonStrings.action_reset)
-                        .setMessage(CommonStrings.room_personalization_room_override_reset_confirmation)
-                        .setPositiveButton(CommonStrings.action_reset) { _, _ -> resetRoomOverrides() }
-                        .setNegativeButton(CommonStrings.action_cancel, null)
-                        .show()
+                confirmReset(CommonStrings.room_personalization_room_override_reset_confirmation, ::resetRoomOverrides)
             }
         }
     }
@@ -245,6 +235,9 @@ class RoomPersonalizationSettingsFragment :
         writeRoomOverride(ROOM_OVERRIDE_TYPES, emptyMap())
     }
 
+    private val mediaCategory
+        get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_MEDIA_CATEGORY_KEY)
+
     private fun setUpMediaOverrides() {
         val modePref = findPreference<VectorListPreference>(SETTINGS_ROOM_MEDIA_PREVIEW_KEY)
         modePref?.value = vectorPreferences.getRoomMediaPreviewOverride(roomId)?.value ?: INHERIT
@@ -254,6 +247,7 @@ class RoomPersonalizationSettingsFragment :
                     roomId,
                     if (value == INHERIT) null else MediaPreviewMode.fromValue(value)
             )
+            refreshMediaResetState()
             true
         }
 
@@ -262,6 +256,7 @@ class RoomPersonalizationSettingsFragment :
         linkPreviewPref?.setOnPreferenceChangeListener { _, newValue ->
             // "inherit" is no source, which clears the override.
             vectorPreferences.setRoomLinkPreviewOverride(session.myUserId, roomId, LinkPreviewSource.fromValue(newValue as? String))
+            refreshMediaResetState()
             true
         }
 
@@ -269,6 +264,7 @@ class RoomPersonalizationSettingsFragment :
         randomizePref?.value = vectorPreferences.getRoomRandomizeFilenamesOverride(roomId).toValue()
         randomizePref?.setOnPreferenceChangeListener { _, newValue ->
             vectorPreferences.setRoomRandomizeFilenamesOverride(roomId, (newValue as? String).toOverride())
+            refreshMediaResetState()
             true
         }
 
@@ -276,8 +272,35 @@ class RoomPersonalizationSettingsFragment :
         stripPref?.value = vectorPreferences.getRoomStripMetadataOverride(roomId).toValue()
         stripPref?.setOnPreferenceChangeListener { _, newValue ->
             vectorPreferences.setRoomStripMetadataOverride(roomId, (newValue as? String).toOverride())
+            refreshMediaResetState()
             true
         }
+
+        mediaCategory?.actionClickListener = {
+            confirmReset(CommonStrings.room_personalization_media_reset_confirmation, ::resetMediaOverrides)
+        }
+        refreshMediaResetState()
+    }
+
+    private fun refreshMediaResetState() {
+        mediaCategory?.isActionEnabled = vectorPreferences.getRoomMediaPreviewOverride(roomId) != null ||
+                vectorPreferences.getRoomLinkPreviewOverride(session.myUserId, roomId) != null ||
+                vectorPreferences.getRoomRandomizeFilenamesOverride(roomId) != null ||
+                vectorPreferences.getRoomStripMetadataOverride(roomId) != null
+    }
+
+    private fun resetMediaOverrides() {
+        vectorPreferences.setRoomMediaPreviewOverride(roomId, null)
+        vectorPreferences.setRoomLinkPreviewOverride(session.myUserId, roomId, null)
+        vectorPreferences.setRoomRandomizeFilenamesOverride(roomId, null)
+        vectorPreferences.setRoomStripMetadataOverride(roomId, null)
+        resetListPreferences(
+                SETTINGS_ROOM_MEDIA_PREVIEW_KEY,
+                SETTINGS_ROOM_LINK_PREVIEW_KEY,
+                SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY,
+                SETTINGS_ROOM_STRIP_METADATA_KEY,
+        )
+        refreshMediaResetState()
     }
 
     private val timelineCategory
@@ -294,12 +317,7 @@ class RoomPersonalizationSettingsFragment :
             }
         }
         timelineCategory?.actionClickListener = {
-            AlertDialog.Builder(requireContext())
-                    .setTitle(CommonStrings.action_reset)
-                    .setMessage(CommonStrings.room_personalization_timeline_reset_confirmation)
-                    .setPositiveButton(CommonStrings.action_reset) { _, _ -> resetTimelineOverrides() }
-                    .setNegativeButton(CommonStrings.action_cancel, null)
-                    .show()
+            confirmReset(CommonStrings.room_personalization_timeline_reset_confirmation, ::resetTimelineOverrides)
         }
         refreshTimelineResetState()
         updateTimelineDebugPreferences()
@@ -346,6 +364,9 @@ class RoomPersonalizationSettingsFragment :
         else -> null
     }
 
+    private val redactionCategory
+        get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_REDACTION_CATEGORY_KEY)
+
     private fun setUpRedactionOverrides() {
         // Preserving anything here means asking the server, which needs both a privileged user and a
         // server that implements MSC2815. Without either there is nothing to configure.
@@ -353,28 +374,32 @@ class RoomPersonalizationSettingsFragment :
                 (room.stateService().getRoomPowerLevels().isUserAbleToRedact(session.myUserId) ||
                         serverAdminStatusDataSource.cachedStatus().mayBeAdmin)
         if (!canUseMsc2815) {
-            findPreference<VectorPreferenceCategory>(SETTINGS_ROOM_REDACTION_CATEGORY_KEY)?.isVisible = false
+            redactionCategory?.isVisible = false
             return
         }
 
         bindTriState(SETTINGS_ROOM_REDACTION_PRESERVE_KEY,
                 current = redactionSettings.roomPreserveRedactedOverride(roomId)) {
             redactionSettings.setRoomPreserveRedactedOverride(roomId, it)
+            refreshRedactionResetState()
         }
 
         bindTriState(SETTINGS_ROOM_REDACTION_CLEAR_KEY,
                 current = redactionSettings.roomClearWithAppCacheOverride(roomId)) {
             redactionSettings.setRoomClearWithAppCacheOverride(roomId, it)
+            refreshRedactionResetState()
         }
 
         bindTriState(SETTINGS_ROOM_REDACTION_WIFI_ONLY_KEY,
                 current = redactionSettings.roomWifiOnlyOverride(roomId)) {
             redactionSettings.setRoomWifiOnlyOverride(roomId, it)
+            refreshRedactionResetState()
         }
 
         bindTriState(SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY,
                 current = redactionSettings.roomPreserveMediaOverride(roomId)) {
             redactionSettings.setRoomPreserveMediaOverride(roomId, it)
+            refreshRedactionResetState()
         }
 
         findPreference<VectorListPreference>(SETTINGS_ROOM_REDACTION_MAX_MEDIA_SIZE_KEY)?.let { pref ->
@@ -382,9 +407,39 @@ class RoomPersonalizationSettingsFragment :
             pref.setOnPreferenceChangeListener { _, newValue ->
                 val value = newValue as? String
                 redactionSettings.setRoomMaxMediaSizeOverride(roomId, if (value == INHERIT) null else value?.toLongOrNull())
+                refreshRedactionResetState()
                 true
             }
         }
+
+        redactionCategory?.actionClickListener = {
+            confirmReset(CommonStrings.room_personalization_redaction_reset_confirmation, ::resetRedactionOverrides)
+        }
+        refreshRedactionResetState()
+    }
+
+    private fun refreshRedactionResetState() {
+        redactionCategory?.isActionEnabled = redactionSettings.roomPreserveRedactedOverride(roomId) != null ||
+                redactionSettings.roomClearWithAppCacheOverride(roomId) != null ||
+                redactionSettings.roomWifiOnlyOverride(roomId) != null ||
+                redactionSettings.roomPreserveMediaOverride(roomId) != null ||
+                redactionSettings.roomMaxMediaSizeOverride(roomId) != null
+    }
+
+    private fun resetRedactionOverrides() {
+        redactionSettings.setRoomPreserveRedactedOverride(roomId, null)
+        redactionSettings.setRoomClearWithAppCacheOverride(roomId, null)
+        redactionSettings.setRoomWifiOnlyOverride(roomId, null)
+        redactionSettings.setRoomPreserveMediaOverride(roomId, null)
+        redactionSettings.setRoomMaxMediaSizeOverride(roomId, null)
+        resetListPreferences(
+                SETTINGS_ROOM_REDACTION_PRESERVE_KEY,
+                SETTINGS_ROOM_REDACTION_CLEAR_KEY,
+                SETTINGS_ROOM_REDACTION_WIFI_ONLY_KEY,
+                SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY,
+                SETTINGS_ROOM_REDACTION_MAX_MEDIA_SIZE_KEY,
+        )
+        refreshRedactionResetState()
     }
 
     private fun setUpRoomRedactionCacheClear() {
@@ -420,6 +475,19 @@ class RoomPersonalizationSettingsFragment :
             save(if (value == INHERIT) null else value.toBoolean())
             true
         }
+    }
+
+    private fun resetListPreferences(vararg keys: String) {
+        keys.forEach { findPreference<VectorListPreference>(it)?.value = INHERIT }
+    }
+
+    private fun confirmReset(@StringRes messageRes: Int, onConfirm: () -> Unit) {
+        AlertDialog.Builder(requireContext())
+                .setTitle(CommonStrings.action_reset)
+                .setMessage(messageRes)
+                .setPositiveButton(CommonStrings.action_reset) { _, _ -> onConfirm() }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private fun loadAccountProfile() {
@@ -662,6 +730,7 @@ class RoomPersonalizationSettingsFragment :
         private const val INHERIT = "inherit"
 
         private const val SETTINGS_ROOM_TIMELINE_CATEGORY_KEY = "SETTINGS_ROOM_TIMELINE_CATEGORY_KEY"
+        private const val SETTINGS_ROOM_MEDIA_CATEGORY_KEY = "SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
         private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"
         private const val SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY = "SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"

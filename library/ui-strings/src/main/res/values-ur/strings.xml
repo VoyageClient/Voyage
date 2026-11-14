@@ -3653,4 +3653,6 @@
     <string name="settings_redaction_preserve_summary">جب کوئی پیغام مٹایا جائے تو سرور سے اصل پیغام مانگیں، اور اسے مٹائے جانے کے نوٹس کی جگہ دکھائیں</string>
     <string name="notice_state_event_redacted">%1$s کی کمرے کی تبدیلی مٹا دی گئی</string>
     <string name="notice_state_event_redacted_with_reason">%1$s کی کمرے کی تبدیلی مٹا دی گئی، وجہ: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">اس کمرے کی حفاظت اور رازداری کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
+    <string name="room_personalization_redaction_reset_confirmation">اس کمرے کی مٹائے گئے پیغامات کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
 </resources>

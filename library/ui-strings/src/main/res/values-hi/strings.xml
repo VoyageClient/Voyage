@@ -3641,4 +3641,6 @@
     <string name="settings_redaction_preserve_summary">कोई मैसेज हटाए जाने पर सर्वर से मूल मैसेज मांगें, और उसे हटाए जाने की सूचना की जगह दिखाएं</string>
     <string name="notice_state_event_redacted">%1$s का रूम बदलाव हटाया गया</string>
     <string name="notice_state_event_redacted_with_reason">%1$s का रूम बदलाव हटाया गया, कारण: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">इस रूम की सुरक्षा और गोपनीयता सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
+    <string name="room_personalization_redaction_reset_confirmation">इस रूम की हटाए गए मैसेज वाली सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
 </resources>

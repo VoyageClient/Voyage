@@ -3895,4 +3895,6 @@
     <string name="settings_redaction_preserve_summary">Запрашивать у сервера оригинал при удалении сообщения и показывать его вместо уведомления об удалении</string>
     <string name="notice_state_event_redacted">Изменение комнаты от %1$s удалено</string>
     <string name="notice_state_event_redacted_with_reason">Изменение комнаты от %1$s удалено, причина: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Вернуть настройки безопасности этой комнаты к настройкам вашей учётной записи?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Вернуть настройки удалённых сообщений этой комнаты к настройкам вашей учётной записи?</string>
 </resources>

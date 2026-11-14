@@ -3753,4 +3753,6 @@
     <string name="settings_redaction_preserve_summary">Pedir o original ao servidor quando uma mensagem for removida e mostrá-lo no lugar do aviso de remoção</string>
     <string name="notice_state_event_redacted">A alteração na sala feita por %1$s foi removida</string>
     <string name="notice_state_event_redacted_with_reason">A alteração na sala feita por %1$s foi removida, motivo: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Redefinir as configurações de segurança e privacidade desta sala para as da sua conta?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Redefinir as configurações de remoções desta sala para as da sua conta?</string>
 </resources>

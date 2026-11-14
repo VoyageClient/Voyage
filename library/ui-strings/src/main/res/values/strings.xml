@@ -3744,6 +3744,8 @@
     <string name="room_personalization_room_override_title">Room name &amp; avatar</string>
     <string name="room_personalization_room_override_reset_confirmation">Remove your personal name and avatar for this room?</string>
     <string name="room_personalization_timeline_reset_confirmation">Reset this room\'s timeline settings to your account-wide ones?</string>
+    <string name="room_personalization_media_reset_confirmation">Reset this room\'s security and privacy settings to your account-wide ones?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Reset this room\'s redaction settings to your account-wide ones?</string>
     <string name="user_personalization_section">Personalization</string>
     <string name="user_personalization_reset_confirmation">Remove your personal overrides for this user?</string>
     <string name="notice_avatar_removed">%1$s removed their avatar</string>

@@ -3864,4 +3864,6 @@
     <string name="settings_redaction_preserve_summary">לבקש מהשרת את המקור כאשר הודעה נמחקת, ולהציג אותו במקום הודעת המחיקה</string>
     <string name="notice_state_event_redacted">שינוי החדר של %1$s נמחק</string>
     <string name="notice_state_event_redacted_with_reason">שינוי החדר של %1$s נמחק, סיבה: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">לאפס את הגדרות האבטחה והפרטיות של חדר זה לאלה של החשבון כולו?</string>
+    <string name="room_personalization_redaction_reset_confirmation">לאפס את הגדרות המחיקות של חדר זה לאלה של החשבון כולו?</string>
 </resources>

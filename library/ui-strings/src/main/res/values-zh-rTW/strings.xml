@@ -3682,4 +3682,6 @@
     <string name="settings_redaction_preserve_summary">訊息被刪除時向伺服器要求原始內容，並以其取代刪除通知顯示</string>
     <string name="notice_state_event_redacted">%1$s 的聊天室變更已被刪除</string>
     <string name="notice_state_event_redacted_with_reason">%1$s 的聊天室變更已被刪除，原因：%2$s</string>
+    <string name="room_personalization_media_reset_confirmation">要將此聊天室的安全性與隱私權設定重設為帳號層級的設定嗎？</string>
+    <string name="room_personalization_redaction_reset_confirmation">要將此聊天室的已刪除訊息設定重設為帳號層級的設定嗎？</string>
 </resources>

@@ -3711,4 +3711,6 @@
     <string name="settings_redaction_preserve_summary">Bir mesaj silindiğinde sunucudan orijinalini iste ve silindi bildirimi yerine onu göster</string>
     <string name="notice_state_event_redacted">%1$s kullanıcısının oda değişikliği silindi</string>
     <string name="notice_state_event_redacted_with_reason">%1$s kullanıcısının oda değişikliği silindi, neden: %2$s</string>
+    <string name="room_personalization_media_reset_confirmation">Bu odanın güvenlik ve gizlilik ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="room_personalization_redaction_reset_confirmation">Bu odanın silinen mesaj ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
 </resources>
