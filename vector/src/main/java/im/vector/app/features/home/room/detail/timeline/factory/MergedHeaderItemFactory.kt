@@ -10,11 +10,11 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MergedTimelineEventVisibilityStateChangedListener
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
-import im.vector.app.features.home.room.detail.timeline.helper.isRoomConfiguration
 import im.vector.app.features.home.room.detail.timeline.helper.timelineMergeGroupType
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedCollapseFooterItem_
@@ -32,6 +32,8 @@ import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventCo
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getRoomPowerLevels
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.threeten.bp.LocalDate
@@ -283,22 +285,22 @@ class MergedHeaderItemFactory @Inject constructor(
         val createIndex = snapshot.indexOfFirst { it.root.getClearType() == EventType.STATE_ROOM_CREATE }
         if (createIndex <= 0) return null
         val createEvent = snapshot[createIndex]
-        // Room version 11 uses the create event sender instead of content.creator.
-        val creator = createEvent.root.getClearContent().toModel<RoomCreateContent>()?.creator
-                ?: createEvent.root.senderId
-        // The first configuration may be the creator's own join; later joins end the creation block.
-        val firstConfiguration = snapshot[createIndex - 1]
-        if (!firstConfiguration.isRoomConfiguration(creator)) return null
+        val createContent = createEvent.root.getClearContent().toModel<RoomCreateContent>()
+        // Room version 11 dropped content.creator; the sender is the creator in every version.
+        val creator = createEvent.root.senderId ?: return null
+        val createDate = createEvent.root.localDateTime().toLocalDate()
+        // An upgraded room's create row carries the link to its predecessor, so it must not fold away.
+        val hasPredecessor = createContent?.predecessor != null ||
+                snapshot.any { it.root.getClearType() in EventType.STATE_ROOM_PREDECESSOR.values }
         val members = ArrayList<TimelineEvent>()
-        if (shown[createIndex - 1]) members.add(firstConfiguration)
-        var pos = createIndex - 2
-        while (pos >= 0) {
+        if (!hasPredecessor && shown[createIndex]) members.add(createEvent)
+        for (pos in createIndex - 1 downTo 0) {
             val candidate = snapshot[pos]
-            if (!candidate.isRoomConfiguration(null)) break
+            if (!candidate.isRoomCreationStep(creator) || candidate.root.localDateTime().toLocalDate() != createDate) break
             if (shown[pos]) members.add(candidate)
-            pos--
         }
-        val anchor = members.firstOrNull() ?: return null
+        if (members.none { it !== createEvent }) return null
+        val anchor = members.first()
         var hasEncryption = false
         var encryptionAlgorithm: String? = null
         members.forEach { member ->
@@ -317,6 +319,18 @@ class MergedHeaderItemFactory @Inject constructor(
                 encryptionAlgorithm = encryptionAlgorithm,
                 hasEncryption = hasEncryption,
         )
+    }
+
+    // Same rule as Element Web's creation grouper: any state the creator sets up before anyone else acts.
+    private fun TimelineEvent.isRoomCreationStep(creator: String): Boolean {
+        if (!root.isStateEvent() || root.senderId != creator) return false
+        return when (val type = root.getClearType()) {
+            EventType.STATE_ROOM_MEMBER -> root.stateKey == creator &&
+                    root.getClearContent().toModel<RoomMemberContent>()?.membership == Membership.JOIN
+            EventType.STATE_ROOM_TOMBSTONE,
+            STATE_ROOM_VOICE_BROADCAST_INFO -> false
+            else -> type !in EventType.STATE_ROOM_PREDECESSOR.values && type !in EventType.STATE_ROOM_BEACON_INFO.values
+        }
     }
 
     /** True when [localId] is the anchor (oldest member) of a run — i.e. the position carrying its header. */

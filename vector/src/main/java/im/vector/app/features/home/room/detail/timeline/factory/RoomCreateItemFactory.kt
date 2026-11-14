@@ -60,7 +60,8 @@ class RoomCreateItemFactory @Inject constructor(
     }
 
     private fun defaultRendering(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {
-        return if (userPreferencesProvider.shouldShowHiddenEvents(params.event.roomId)) {
+        return if (params.event.root.getClearType() == EventType.STATE_ROOM_CREATE ||
+                userPreferencesProvider.shouldShowHiddenEvents(params.event.roomId)) {
             noticeItemFactory.create(params)
         } else {
             null

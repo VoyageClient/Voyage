@@ -124,7 +124,7 @@ class NoticeEventFormatter @Inject constructor(
         }
         return when (val type = event.getClearType()) {
             EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, isDm)
+            EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, senderName, isDm)
             EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
@@ -372,16 +372,13 @@ class NoticeEventFormatter @Inject constructor(
         }
     }
 
-    private fun formatRoomCreateEvent(event: Event, isDm: Boolean): CharSequence? {
-        return event.content.toModel<RoomCreateContent>()
-                ?.takeIf { it.creator.isNullOrBlank().not() }
-                ?.let {
-                    if (event.isSentByCurrentUser()) {
-                        sp.getString(if (isDm) CommonStrings.notice_direct_room_created_by_you else CommonStrings.notice_room_created_by_you)
-                    } else {
-                        sp.getString(if (isDm) CommonStrings.notice_direct_room_created else CommonStrings.notice_room_created, it.creator)
-                    }
-                }
+    private fun formatRoomCreateEvent(event: Event, senderName: String?, isDm: Boolean): CharSequence? {
+        event.content.toModel<RoomCreateContent>() ?: return null
+        return if (event.isSentByCurrentUser()) {
+            sp.getString(if (isDm) CommonStrings.notice_direct_room_created_by_you else CommonStrings.notice_room_created_by_you)
+        } else {
+            sp.getString(if (isDm) CommonStrings.notice_direct_room_created else CommonStrings.notice_room_created, senderName)
+        }
     }
 
     private fun formatRoomNameEvent(event: Event, senderName: String?): CharSequence? {
