@@ -803,7 +803,7 @@ class OnboardingViewModel @AssistedInject constructor(
         state.useCase?.let { useCase ->
             session.vectorStore(applicationContext).setUseCase(useCase)
         }
-        userAgentSettings.migratePendingInto(session.myUserId)
+        userAgentSettings.applyDefaultTo(session.myUserId)
         activeSessionHolder.setActiveSession(session)
 
         authenticationService.reset()

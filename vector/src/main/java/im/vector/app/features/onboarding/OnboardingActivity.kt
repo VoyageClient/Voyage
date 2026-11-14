@@ -21,7 +21,6 @@ import im.vector.app.core.platform.lifecycleAwareLazy
 import im.vector.app.databinding.ActivityLoginBinding
 import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.pin.UnlockedActivity
-import im.vector.app.features.settings.useragent.UserAgentSettings
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import javax.inject.Inject
@@ -35,7 +34,6 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
 
     @Inject lateinit var onboardingVariantFactory: OnboardingVariantFactory
     @Inject lateinit var authenticationService: AuthenticationService
-    @Inject lateinit var userAgentSettings: UserAgentSettings
 
     override fun getBinding() = ActivityLoginBinding.inflate(layoutInflater)
 
@@ -47,13 +45,6 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         onboardingVariant.onNewIntent(intent)
-    }
-
-    override fun onDestroy() {
-        if (isFinishing) {
-            userAgentSettings.abandonPending()
-        }
-        super.onDestroy()
     }
 
     @Suppress("OVERRIDE_DEPRECATION")

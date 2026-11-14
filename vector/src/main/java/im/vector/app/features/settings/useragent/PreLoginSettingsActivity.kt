@@ -18,8 +18,8 @@ import javax.inject.Inject
 
 /**
  * Unlike VectorSettingsActivity, this host injects no Session so the User-Agent can be set before
- * authentication. Edits target the PENDING scope (never the current account, if any);
- * [UserAgentSettings.migratePendingInto] moves the choice into the account on sign-in.
+ * authentication. Edits target [UserAgentSettings.DEFAULT_SCOPE] (never the current account, if any),
+ * which [UserAgentSettings.applyDefaultTo] copies into each account on sign-in.
  */
 @AndroidEntryPoint
 class PreLoginSettingsActivity : SimpleFragmentActivity() {
@@ -30,7 +30,7 @@ class PreLoginSettingsActivity : SimpleFragmentActivity() {
         super.onCreate(savedInstanceState)
         // After super: Hilt injects fields in super.onCreate, and this must be set before the fragment
         // (added below / re-attached) reads it.
-        userAgentSettings.editScopeOverride = UserAgentSettings.PENDING
+        userAgentSettings.editScopeOverride = UserAgentSettings.DEFAULT_SCOPE
         supportActionBar?.setTitle(CommonStrings.settings_prelogin_title)
         if (isFirstCreation()) {
             addFragment(views.container, PreLoginSettingsFragment::class.java)

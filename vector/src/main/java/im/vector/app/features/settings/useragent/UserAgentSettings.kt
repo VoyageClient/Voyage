@@ -27,14 +27,14 @@ class UserAgentSettings @Inject constructor(
 ) {
 
     /**
-     * When set (by the pre-login screen), editing/reading targets the PENDING scope instead of the
+     * When set (by the pre-login screen), editing/reading targets [DEFAULT_SCOPE] instead of the
      * active account — so a spoof configured before signing in is never written to the current account.
      * The interceptor deliberately ignores this and always uses [sessionScope].
      */
     @Volatile var editScopeOverride: String? = null
 
     // Interceptor reads must not initialize sessions while an account switch is tearing one down.
-    fun sessionScope(): String = activeSessionDataSource.currentValue?.orNull()?.myUserId ?: PENDING
+    fun sessionScope(): String = activeSessionDataSource.currentValue?.orNull()?.myUserId ?: DEFAULT_SCOPE
 
     /** The scope the settings UI reads/writes: the pre-login override if set, else the session scope. */
     fun editScope(): String = editScopeOverride ?: sessionScope()
@@ -111,48 +111,35 @@ class UserAgentSettings @Inject constructor(
     private fun surfaceKey(client: UaSpoofClient, scope: String) = "SETTINGS_UA_SURFACES_${scope}_${client.id}"
 
     /**
-     * Move the pre-login (PENDING) spoof config into [newScope] after an account is created/signed in,
-     * so the choice persists into that account. No-op if nothing was configured pre-login. Always clears
-     * PENDING afterwards so it doesn't bleed into the next sign-in.
+     * Seed a newly signed-in account with an exact copy of the [DEFAULT_SCOPE] config, replacing whatever
+     * it kept from an earlier sign-in, so the UA doesn't change at the moment sign-in completes.
      */
-    fun migratePendingInto(newScope: String) {
-        if (newScope == PENDING) return
-        val hasPending = preferences.getString(clientKey(PENDING), null) != null
-        if (hasPending) {
-            val infix = "_${PENDING}_"
-            val suffix = "_$PENDING"
-            preferences.edit {
-                preferences.all.forEach { (key, value) ->
-                    if (!key.startsWith(KEY_PREFIX)) return@forEach
-                    val target = when {
-                        key.contains(infix) -> key.replaceFirst(infix, "_${newScope}_")
-                        key.endsWith(suffix) -> key.removeSuffix(suffix) + "_$newScope"
-                        else -> return@forEach
-                    }
-                    when (value) {
-                        is String -> putString(target, value)
-                        is Boolean -> putBoolean(target, value)
-                        is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(target, value as Set<String>)
-                    }
+    fun applyDefaultTo(newScope: String) {
+        if (newScope == DEFAULT_SCOPE) return
+        if (preferences.getString(clientKey(DEFAULT_SCOPE), null) == null) return
+        val defaults = scopedEntries(DEFAULT_SCOPE)
+        val stale = scopedEntries(newScope).keys
+        preferences.edit {
+            stale.forEach { remove(it) }
+            defaults.forEach { (key, value) ->
+                val target = when {
+                    key.contains("_${DEFAULT_SCOPE}_") -> key.replaceFirst("_${DEFAULT_SCOPE}_", "_${newScope}_")
+                    else -> key.removeSuffix("_$DEFAULT_SCOPE") + "_$newScope"
+                }
+                when (value) {
+                    is String -> putString(target, value)
+                    is Boolean -> putBoolean(target, value)
+                    is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(target, value as Set<String>)
                 }
             }
         }
-        clearScope(PENDING)
     }
 
-    /** Discard the pre-login spoof config (user backed out of onboarding without signing in). */
-    fun abandonPending() {
-        editScopeOverride = null
-        clearScope(PENDING)
-    }
-
-    private fun clearScope(scope: String) {
+    private fun scopedEntries(scope: String): Map<String, Any?> {
         val infix = "_${scope}_"
         val suffix = "_$scope"
-        preferences.edit {
-            preferences.all.keys.forEach { key ->
-                if (key.startsWith(KEY_PREFIX) && (key.contains(infix) || key.endsWith(suffix))) remove(key)
-            }
+        return preferences.all.filterKeys { key ->
+            key.startsWith(KEY_PREFIX) && (key.contains(infix) || key.endsWith(suffix))
         }
     }
 
@@ -160,8 +147,8 @@ class UserAgentSettings @Inject constructor(
         /** All UA-spoofing keys share this prefix; kept across logout (a device choice, not account data). */
         const val KEY_PREFIX = "SETTINGS_UA_"
 
-        /** Scope for the pre-login spoof, before an account (and its user id) exists. */
-        const val PENDING = "pending"
+        /** Scope of the pre-sign-in config: used while no account is active, and copied into each new sign-in. */
+        const val DEFAULT_SCOPE = "default"
 
         private const val KEY_CLIENT = "SETTINGS_UA_CLIENT"
         private const val KEY_SORT_BY_LATEST = "SETTINGS_UA_SORT_BY_LATEST"
