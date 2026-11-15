@@ -32,10 +32,10 @@ class BlurFadeOutTransitionTest {
         }
     }
 
-    private fun transitionTo(current: Drawable, shown: Drawable?, placeholder: Drawable?): Drawable? {
+    private fun transitionTo(current: Drawable, shown: Drawable?, placeholder: Drawable?, source: DataSource = DataSource.REMOTE): Drawable? {
         val adapter = FakeAdapter(shown)
         BlurFadeOutTransitionFactory(200, placeholder)
-                .build(DataSource.REMOTE, true)
+                .build(source, true)
                 .transition(current, adapter)
         return adapter.currentDrawable
     }
@@ -81,5 +81,19 @@ class BlurFadeOutTransitionTest {
 
         transitionTo(current, shown = null, placeholder = null) shouldBeEqualTo current
         transitionTo(current, shown = current, placeholder = current) shouldBeEqualTo current
+    }
+
+    @Test
+    fun `a memory hit does not introduce the loading placeholder into an empty view`() {
+        val current = ColorDrawable()
+
+        transitionTo(current, shown = null, placeholder = ColorDrawable(), source = DataSource.MEMORY_CACHE) shouldBeEqualTo current
+    }
+
+    @Test
+    fun `a memory hit immediately replaces the placeholder left by a recycled view`() {
+        val current = ColorDrawable()
+
+        transitionTo(current, shown = ColorDrawable(), placeholder = ColorDrawable(), source = DataSource.MEMORY_CACHE) shouldBeEqualTo current
     }
 }

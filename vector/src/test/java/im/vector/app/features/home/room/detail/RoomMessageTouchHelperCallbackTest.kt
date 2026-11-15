@@ -16,12 +16,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyViewHolder
 import com.airbnb.epoxy.SimpleEpoxyController
+import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.settings.MessageSwipeAction
 import im.vector.app.features.settings.MessageSwipeBindings
 import im.vector.app.features.settings.MessageSwipeSlot
 import im.vector.lib.core.utils.timer.Clock
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
@@ -96,6 +98,25 @@ class RoomMessageTouchHelperCallbackTest {
     fun `no available actions disable movement`() {
         every { handler.availableActions(any(), any()) } returns emptySet()
         callback.getMovementFlags(recycler, holder()) shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `read receipt rows never advertise swipe actions for their associated message`() {
+        val holder = receiptHolder()
+
+        callback.getMovementFlags(recycler, holder) shouldBeEqualTo 0
+
+        verify(exactly = 0) { handler.availableActions(any(), any()) }
+    }
+
+    @Test
+    fun `a swipe selected on a receipt row cannot invoke its associated message action`() {
+        val holder = receiptHolder()
+
+        draw(holder, -190f)
+        touch(MotionEvent.ACTION_UP)
+
+        verify(exactly = 0) { handler.performAction(any(), any()) }
     }
 
     @Test
@@ -191,6 +212,16 @@ class RoomMessageTouchHelperCallbackTest {
 
     private fun model() = object : EpoxyModel<View>() {
         override fun getDefaultLayout() = android.R.layout.simple_list_item_1
+    }
+
+    private fun receiptHolder(): EpoxyViewHolder {
+        val receipt = mockk<ReadReceiptsItem>(relaxed = true) {
+            every { getEventIds() } returns listOf("\$message:example.org")
+        }
+        val view = View(context).apply { layout(0, 0, 600, 100) }
+        return spyk(EpoxyViewHolder(recycler, view, false)).also {
+            every { it.model } returns receipt
+        }
     }
 
     private fun holder() = EpoxyViewHolder(recycler, View(context).apply { layout(0, 0, 600, 100) }, false).apply {

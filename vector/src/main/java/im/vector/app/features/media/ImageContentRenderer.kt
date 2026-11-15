@@ -9,8 +9,11 @@ package im.vector.app.features.media
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.TransitionDrawable
 import android.os.Parcelable
 import android.os.SystemClock
 import android.util.LruCache
@@ -19,7 +22,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.scale
 import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Transformation
@@ -40,6 +45,7 @@ import im.vector.app.core.glide.AnimatedContentImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.glide.ImageContentRendererDataLoader
 import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.core.glide.ViewerDownsample
 import im.vector.app.core.ui.PerformanceMode
@@ -61,6 +67,7 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 interface AttachmentData : Parcelable {
     val eventId: String
@@ -223,12 +230,14 @@ class ImageContentRenderer @Inject constructor(
             DebugLog.i { "MEDIADBG render already in flight, left alone: event=${data.eventId} view=${viewId(imageView)} url=${data.url}" }
             return
         }
+        val uploadFrame = uploadFrame(imageView, last, data, mode, Size(width, height), fromRetryTap)
 
         // a11y
         imageView.contentDescription = data.filename
 
         val thisRender = last?.takeIf { !fromRetryTap && !it.failed && it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
+        thisRender.uploadFrame = uploadFrame
         val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         imageView.startRender()
@@ -239,12 +248,15 @@ class ImageContentRenderer @Inject constructor(
         imageView.setTag(R.id.image_renderer_retrying, if (fromRetryTap) SystemClock.uptimeMillis() else null)
         if (fromRetryTap) showLoadingNow(imageView, data, showGlyph = true, square = true)
         val pending = PendingRenders.startOn(imageView, data, mode)
-        val placeholder = placeholderFor(imageView, data, showGlyph = true, square = true).also { it.setFailed(retryingFailed) }
+        val placeholder = uploadFrame ?: placeholderFor(imageView, data, showGlyph = true, square = true).also { it.setFailed(retryingFailed) }
         fun listener(isFallback: Boolean) = RenderListener(
                 imageView, data, mode, pending, isFallback,
                 showGlyph = true, square = true, pinSize = null, sizesToPicture = false,
         )
-        createGlideRequest(data, mode, imageView, Size(width, height), placeholder, fallbackListener = listener(isFallback = true))
+        createGlideRequest(
+                data, mode, imageView, Size(width, height), placeholder,
+                fallbackListener = listener(isFallback = true), placeholderIsPicture = uploadFrame != null,
+        )
                 .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
                 // Animated media plays here too: a grid of stills gives no hint which of them move.
@@ -322,6 +334,7 @@ class ImageContentRenderer @Inject constructor(
             failedMediaTracker.onLoadSucceeded(data.url)
             current.completed = true
             current.failed = false
+            current.uploadFrame = null
             // Real bounds at last — drop the holding square for the picture's own shape.
             if (sizesToPicture && !data.hasKnownDimensions()) {
                 imageView.sizeToPicture(data, mode, resource)
@@ -360,6 +373,7 @@ class ImageContentRenderer @Inject constructor(
             var completed: Boolean,
             val startedAt: Long = SystemClock.uptimeMillis(),
             var failed: Boolean = false,
+            var uploadFrame: Drawable? = null,
     ) {
 
         val isStale: Boolean get() = SystemClock.uptimeMillis() - startedAt > PENDING_RENDER_STALE_MS
@@ -369,6 +383,46 @@ class ImageContentRenderer @Inject constructor(
             stableId == data.stableId && this.mode == mode && this.data.rendersSameAs(data)
 
     private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
+
+    private fun uploadFrame(imageView: ImageView, last: LastRender?, data: Data, mode: Mode, size: Size, fromRetryTap: Boolean): Drawable? {
+        if (fromRetryTap || last == null || last.failed || last.stableId != data.stableId) return null
+        last.uploadFrame?.let { return it }
+        if (!last.completed || !last.data.allowNonMxcUrls) return null
+        var drawable = imageView.drawable ?: return null
+        while (drawable is TransitionDrawable) drawable = drawable.getDrawable(drawable.numberOfLayers - 1)
+        if (drawable is MediaPlaceholderDrawable) return null
+
+        // Glide may recycle the old request's bitmap as soon as the replacement starts.
+        val frame = runCatching {
+            val stretched = imageView.scaleType == ImageView.ScaleType.FIT_XY
+            val intrinsicWidth = (if (stretched) imageView.width else drawable.intrinsicWidth).takeIf { it > 0 } ?: size.width.coerceAtLeast(1)
+            val intrinsicHeight = (if (stretched) imageView.height else drawable.intrinsicHeight).takeIf { it > 0 } ?: size.height.coerceAtLeast(1)
+            val maxSide = maxOf(imageView.width, imageView.height, size.width, size.height).coerceAtLeast(1)
+            val scale = min(1f, maxSide.toFloat() / maxOf(intrinsicWidth, intrinsicHeight))
+            val width = (intrinsicWidth * scale).roundToInt().coerceAtLeast(1)
+            val height = (intrinsicHeight * scale).roundToInt().coerceAtLeast(1)
+            val source = (drawable as? BitmapDrawable)?.bitmap
+            val bitmap = if (source != null) {
+                // A hardware bitmap also needs a software copy before it can be drawn on a Canvas.
+                val copy = checkNotNull(source.copy(Bitmap.Config.ARGB_8888, false))
+                copy.scale(width, height).also { if (it !== copy) copy.recycle() }
+            } else {
+                val copy = createBitmap(width, height)
+                val bounds = drawable.copyBounds()
+                try {
+                    drawable.setBounds(0, 0, width, height)
+                    drawable.draw(Canvas(copy))
+                } finally {
+                    drawable.bounds = bounds
+                }
+                copy
+            }
+            bitmap.toDrawable(imageView.resources)
+        }.onFailure { DebugLog.w(it) { "MEDIADBG upload handoff snapshot failed view=${viewId(imageView)}" } }.getOrNull()
+        DebugLog.i { "MEDIADBG upload handoff view=${viewId(imageView)} mode=$mode frame=${MediaDebug.drawable(frame)} " +
+                        "previous=${MediaDebug.drawable(imageView.drawable)} local=${last.data.isLocalContent}->${data.isLocalContent}" }
+        return frame
+    }
 
     private fun ImageView.startRender() {
         (getTag(R.id.image_renderer_failure_apply) as? Runnable)?.let {
@@ -470,6 +524,7 @@ class ImageContentRenderer @Inject constructor(
             DebugLog.i { "MEDIADBG render already in flight, left alone: event=${data.eventId} view=${viewId(imageView)} url=${data.url}" }
             return
         }
+        val uploadFrame = uploadFrame(imageView, last, data, mode, size, fromRetryTap)
         val pickerFrame = pickerFrame(data, mode)
         if (data.hasKnownDimensions()) {
             imageView.adjustViewBounds = false
@@ -508,6 +563,7 @@ class ImageContentRenderer @Inject constructor(
         // so keep the existing record and its completed flag.
         val thisRender = last?.takeIf { !it.failed && it.matches(data, mode) }
                 ?: LastRender(data.stableId, data, mode, completed = false)
+        thisRender.uploadFrame = uploadFrame
         val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         imageView.startRender()
@@ -529,23 +585,18 @@ class ImageContentRenderer @Inject constructor(
                         "retryTap=$fromRetryTap restartsWedged=$restartsWedgedRender " +
                         "knownFailed=$retryingFailed drawable=${imageView.drawable?.javaClass?.simpleName} url=${data.url}" }
         val pending = PendingRenders.startOn(imageView, data, mode)
-        val placeholder = pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
+        val placeholder = uploadFrame ?: pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
         fun listener(isFallback: Boolean) = RenderListener(
                 imageView, data, mode, pending, isFallback,
                 showGlyph = showFailureGlyph, square = false, pinSize = failedPinSize(data, size), sizesToPicture = true,
         )
-        createGlideRequest(data, mode, imageView, size, placeholder, fallbackListener = listener(isFallback = true))
+        createGlideRequest(
+                data, mode, imageView, size, placeholder,
+                fallbackListener = listener(isFallback = true), placeholderIsPicture = uploadFrame != null || pickerFrame != null,
+        )
                 .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
-                .let {
-                    when {
-                        // The placeholder is this very picture already, and a crossfade between two of
-                        // them only dips through the backdrop behind — which is the grey the send flashed.
-                        pickerFrame != null -> it.transition(DrawableTransitionOptions().dontTransition())
-                        crossFade -> it.transition(fade(placeholder))
-                        else -> it
-                    }
-                }
+                .let { if (crossFade && uploadFrame == null && pickerFrame == null) it.transition(fade(placeholder)) else it }
                 .withDisplayOptions(data, mode, animate, cornerTransformation, size)
                 .intoView(imageView, animate, freshKey = freshKeyIf(restartsWedgedRender))
     }
@@ -896,7 +947,7 @@ class ImageContentRenderer @Inject constructor(
         val req = if (data.elementToDecrypt != null || data.isUploadPending()) {
             GlideApp
                     .with(contextView)
-                    .load(data)
+                    .load(ImageContentRendererDataLoader.Model(data))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else if (isLocalUri) {
             // Local-echo uri — load as Uri so Glide can use a ParcelFileDescriptor and
@@ -932,7 +983,7 @@ class ImageContentRenderer @Inject constructor(
         val req = if (data.elementToDecrypt != null || data.isUploadPending()) {
             GlideApp
                     .with(imageView)
-                    .load(data)
+                    .load(ImageContentRendererDataLoader.Model(data))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else {
             // Clear image, with the same local fallback as the pager's load
@@ -985,8 +1036,9 @@ class ImageContentRenderer @Inject constructor(
             size: Size,
             placeholder: Drawable? = null,
             fallbackListener: RequestListener<Drawable>? = null,
+            placeholderIsPicture: Boolean = false,
     ): GlideRequest<Drawable> {
-        return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder, fallbackListener)
+        return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder, fallbackListener, placeholderIsPicture)
     }
 
     /** @param fallbackListener told the outcome of the full-size load a failed THUMBNAIL falls back to. */
@@ -997,18 +1049,31 @@ class ImageContentRenderer @Inject constructor(
             size: Size = processSize(data, mode),
             placeholder: Drawable? = null,
             fallbackListener: RequestListener<Drawable>? = null,
+            placeholderIsPicture: Boolean = false,
     ): GlideRequest<Drawable> {
         data.preservedFile?.let { file ->
             DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode preservedFile=${MediaDebug.model(file)}" }
-            return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
+            return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE).withWaitingState(placeholder, placeholderIsPicture)
         }
         val localCopy = lazy { localCopyOf(data) }
         val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
         val isLocalVideoUri = isLocalUri && data.mimeType?.startsWith("video/") == true
         val uploadPending = data.isUploadPending()
-        if (isLocalVideoUri || data.elementToDecrypt != null || isLocalUri || uploadPending) {
-            DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode size=${size.width}x${size.height} " +
-                            "via=${if (isLocalVideoUri) "localVideoUri" else if (isLocalUri) "localUri" else if (uploadPending) "pendingUpload" else "encryptedDataLoader"} url=${data.url}" }
+        // Keep uploaded files on the same model after completion; switching to File would discard
+        // the decoded upload thumbnail's cache entry on the first bind after scrolling away.
+        val usesDataLoader = data.elementToDecrypt != null || isLocalUri || uploadPending || localCopy.value != null
+        if (isLocalVideoUri || usesDataLoader) {
+            DebugLog.i {
+                val source = when {
+                    isLocalVideoUri -> "localVideoUri"
+                    isLocalUri -> "localUri"
+                    uploadPending -> "pendingUpload"
+                    data.elementToDecrypt != null -> "encryptedDataLoader"
+                    else -> "localCache"
+                }
+                "MEDIADBG request built event=${data.eventId} mode=$mode size=${size.width}x${size.height} " +
+                        "via=$source sourceKey=${ImageContentRendererDataLoader.Model(data).hashCode()} url=${data.url}"
+            }
         }
         val request = if (isLocalVideoUri) {
             // Local-echo video — load the uri directly so Glide can use a
@@ -1021,10 +1086,10 @@ class ImageContentRenderer @Inject constructor(
                     .load(android.net.Uri.parse(data.url))
                     .frame(0)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
-        } else if (data.elementToDecrypt != null || isLocalUri || uploadPending) {
+        } else if (usesDataLoader) {
             // ByteBuffer decoding preserves animation; the SDK also gives pending uploads stable cache files.
             glideRequests
-                    .load(data)
+                    .load(ImageContentRendererDataLoader.Model(data))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else {
             // Clear image
@@ -1050,14 +1115,14 @@ class ImageContentRenderer @Inject constructor(
                         if (mode == Mode.THUMBNAIL) {
                             val fallbackModel = resolveUrl(data, localCopy)
                             error(
-                                    glideRequests.load(fallbackModel).withWaitingState(placeholder)
+                                    glideRequests.load(fallbackModel).withWaitingState(placeholder, placeholderIsPicture)
                                             .let { if (fallbackListener != null) it.addListener(fallbackListener) else it }
                                             .let { if (DebugLog.enabled) it.addListener(fallbackLogger(data, fallbackModel)) else it }
                             )
                         }
                     }
         }
-        return request.withWaitingState(placeholder)
+        return request.withWaitingState(placeholder, placeholderIsPicture)
     }
 
     private fun fallbackLogger(data: Data, fallbackModel: Any?) = object : RequestListener<Drawable> {
@@ -1119,10 +1184,12 @@ class ImageContentRenderer @Inject constructor(
 
     /**
      * The waiting state a load is drawn over until it lands, and the fade that reveals it. Preloads
-     * pass none: there is no view to hold one, only the decode to warm.
+     * pass none: there is no view to hold one, only the decode to warm. A picture used as the
+     * placeholder replaces the loading fill; crossfading it would briefly reveal the backdrop.
      */
-    private fun GlideRequest<Drawable>.withWaitingState(waiting: Drawable?): GlideRequest<Drawable> =
-            (if (waiting == null) this else placeholder(waiting)).transition(fade(waiting))
+    private fun GlideRequest<Drawable>.withWaitingState(waiting: Drawable?, placeholderIsPicture: Boolean = false): GlideRequest<Drawable> =
+            (if (waiting == null) this else placeholder(waiting))
+                    .transition(if (placeholderIsPicture) DrawableTransitionOptions().dontTransition() else fade(waiting))
 
     // Performance mode buys frames by dropping decoration; a fade costs a redraw per frame per view.
     private fun fade(placeholder: Drawable?): DrawableTransitionOptions =

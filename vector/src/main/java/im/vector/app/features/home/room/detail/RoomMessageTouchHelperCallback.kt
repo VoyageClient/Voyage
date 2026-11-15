@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyTouchHelperCallback
 import com.airbnb.epoxy.EpoxyViewHolder
+import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.settings.MessageSwipeBindings
 import im.vector.app.features.settings.MessageSwipeSlot
 import im.vector.lib.core.utils.timer.Clock
@@ -106,6 +107,8 @@ class RoomMessageTouchHelperCallback(
     }
 
     private fun availableActionsFor(model: EpoxyModel<*>, bindings: MessageSwipeBindings): Set<SwipeAction> {
+        // Receipt rows carry their message's event ID for placement, not as a swipe-action target.
+        if (model is ReadReceiptsItem) return emptySet()
         val candidates = MessageSwipeSlot.values().filter { bindings.isEnabled(it) }.map { bindings[it] }
                 .filter { it != SwipeAction.NONE }.toSet()
         return if (candidates.isEmpty()) emptySet() else handler.availableActions(model, candidates)

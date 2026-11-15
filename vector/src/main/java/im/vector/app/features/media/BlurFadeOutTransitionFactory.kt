@@ -16,7 +16,7 @@ import org.matrix.android.sdk.api.debug.DebugLog
 
 /**
  * @param placeholder the request's own placeholder, used as the outgoing layer when the view has
- * nothing on it: a memory hit completes inside Glide's begin(), which never puts the placeholder up.
+ * nothing on it.
  */
 class BlurFadeOutTransitionFactory(
         private val durationMs: Int,
@@ -28,8 +28,11 @@ class BlurFadeOutTransitionFactory(
                 val shown = adapter.currentDrawable
                 val previous = (if (shown == null || shown === current) placeholder else shown)?.takeIf { it !== current }
                 DebugLog.i { "MEDIADBG fade from=$dataSource first=$isFirstResource shown=${shown?.javaClass?.simpleName}" +
-                                " previous=${previous?.javaClass?.simpleName} current=${current.javaClass.simpleName} ms=$durationMs" }
-                if (previous == null) {
+                                " previous=${previous?.javaClass?.simpleName} current=${current.javaClass.simpleName} ms=$durationMs " +
+                                "animate=${dataSource != DataSource.MEMORY_CACHE && previous != null}" }
+                // A memory hit has no visible wait. Fading it would introduce a loading placeholder
+                // on every recycled-view bind, even though the decoded image is already available.
+                if (dataSource == DataSource.MEMORY_CACHE || previous == null) {
                     adapter.setDrawable(current)
                 } else {
                     adapter.setDrawable(

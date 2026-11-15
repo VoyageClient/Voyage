@@ -11,6 +11,7 @@ import android.content.Context
 import android.os.SystemClock
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.Key
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.model.ModelLoader
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -36,26 +38,42 @@ import java.util.concurrent.atomic.AtomicLong
 // Delivers ByteBuffer, not InputStream: Glide caps InputStream rewinds at 5MB, and its orientation
 // probe consumes the whole source — any image over 5MB would fail every decode path with
 // InvalidMarkException. A ByteBuffer rewinds by re-wrapping, with no size limit.
-class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRenderer.Data, ByteBuffer> {
+class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRendererDataLoader.Model, ByteBuffer> {
 
-    override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ImageContentRenderer.Data, ByteBuffer> {
+    override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ImageContentRendererDataLoader.Model, ByteBuffer> {
         return ImageContentRendererDataLoader(context)
     }
 
-    override fun teardown() {
-        // Is there something to do here?
-    }
+    override fun teardown() = Unit
 }
 
 class ImageContentRendererDataLoader(private val context: Context) :
-        ModelLoader<ImageContentRenderer.Data, ByteBuffer> {
-    override fun handles(model: ImageContentRenderer.Data): Boolean {
-        // Always handle
-        return true
+        ModelLoader<ImageContentRendererDataLoader.Model, ByteBuffer> {
+
+    // Glide keys its memory cache by model equality before consulting the ModelLoader's source key.
+    // Only fetch inputs belong here: event IDs, upload flags and layout metadata change at sync or
+    // rebind without changing the bytes. Decode size and transforms are already part of Glide's key.
+    class Model(val data: ImageContentRenderer.Data) {
+        private val content = Content(data.url, data.filename, data.mimeType, data.elementToDecrypt)
+        val sourceKey: Key get() = ObjectKey(content)
+
+        override fun equals(other: Any?): Boolean = other is Model && content == other.content
+        override fun hashCode(): Int = content.hashCode()
+        override fun toString(): String = MediaDebug.model(data)
+
+        private data class Content(
+                val url: String?,
+                val filename: String,
+                val mimeType: String?,
+                val elementToDecrypt: ElementToDecrypt?,
+        )
     }
 
-    override fun buildLoadData(model: ImageContentRenderer.Data, width: Int, height: Int, options: Options): ModelLoader.LoadData<ByteBuffer>? {
-        return ModelLoader.LoadData(ObjectKey(model), ImageContentRendererDataFetcher(context, model, width, height))
+    override fun handles(model: Model) = true
+
+    override fun buildLoadData(model: Model, width: Int, height: Int, options: Options): ModelLoader.LoadData<ByteBuffer> {
+        DebugLog.i { "MEDIADBG source load key=${model.hashCode()} event=${model.data.eventId} size=${width}x$height" }
+        return ModelLoader.LoadData(model.sourceKey, ImageContentRendererDataFetcher(context, model.data, width, height))
     }
 }
 

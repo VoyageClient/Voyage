@@ -21,7 +21,6 @@ import com.bumptech.glide.load.engine.executor.GlideExecutor
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
 import com.github.penfeizhou.animation.apng.APNGDrawable
-import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.util.JxlSupport
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -59,7 +58,7 @@ class MyAppGlideModule : AppGlideModule() {
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         // ByteBuffer, not InputStream — see ImageContentRendererDataLoaderFactory.
         registry.append(
-                ImageContentRenderer.Data::class.java,
+                ImageContentRendererDataLoader.Model::class.java,
                 ByteBuffer::class.java,
                 ImageContentRendererDataLoaderFactory(context)
         )
