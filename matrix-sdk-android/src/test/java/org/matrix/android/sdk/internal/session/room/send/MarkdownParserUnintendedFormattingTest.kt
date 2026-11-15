@@ -50,6 +50,34 @@ class MarkdownParserUnintendedFormattingTest {
     }
 
     @Test
+    fun `leading chevron emoticons do not start blockquotes`() {
+        val colonEmoticons = listOf("(", ")", "/", "\\", "D", "P", "p", "O", "o", "|", "3").flatMap { mouth ->
+            listOf(">:$mouth", ">:-$mouth")
+        }
+        val angledEmoticons = listOf(">_<", ">.<", ">o<", ">O<", ">w<", ">W<", ">~<", ">^<", ">-<")
+        (colonEmoticons + angledEmoticons).forEach { emoticon ->
+            val escaped = emoticon.replace(">", "&gt;").replace("<", "&lt;")
+            assertEquals(escaped, parser.parse(emoticon).formattedText)
+            listOf(
+                    "$emoticon **friend**",
+                    "Hello\n$emoticon **friend**",
+                    "$emoticon\n**friend**",
+                    "Hello $emoticon **friend**",
+            ).forEach { source ->
+                val result = parser.parse(source)
+                assertEquals(source, result.text)
+                assertEquals(
+                        source.replace(emoticon, escaped).replace("\n", "<br />").replace("**friend**", "<strong>friend</strong>"),
+                        result.formattedText,
+                )
+            }
+            assertEquals("<code>$escaped</code>", parser.parse("`$emoticon`").formattedText)
+        }
+        assertEquals("<blockquote>\n<p>quote</p>\n</blockquote>", parser.parse("> quote").formattedText)
+        assertEquals("<blockquote>\n<p>&gt;:/</p>\n</blockquote>", parser.parse("> >:/").formattedText)
+    }
+
+    @Test
     fun `trailing whitespace alone does not make a formatted body`() {
         val result = parser.parse("#coreboot:matrix.org ")
         assertEquals("#coreboot:matrix.org ", result.text)
@@ -125,6 +153,7 @@ class MarkdownParserUnintendedFormattingTest {
             override fun preventUnintendedMarkdown() = false
         }
         assertTrue(parser.parse("> Words words\n\n- Aristotle").formattedText.orEmpty().contains("<li>Aristotle</li>"))
+        assertTrue(parser.parse(">:/").formattedText.orEmpty().contains("<blockquote>"))
         assertFalse(parser.parse("+ item\n**bold**").formattedText.orEmpty().contains("<li>"))
     }
 }
