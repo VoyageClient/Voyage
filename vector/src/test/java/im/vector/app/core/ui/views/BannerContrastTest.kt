@@ -486,7 +486,9 @@ class BannerContrastTest {
     )
 
     private fun profile(): Profile {
-        val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
+        val controller = Robolectric.buildActivity(Activity::class.java)
+        controller.get().setTheme(com.google.android.material.R.style.Theme_MaterialComponents_NoActionBar)
+        val activity = controller.setup().get()
         val context = ContextThemeWrapper(activity, com.google.android.material.R.style.Theme_MaterialComponents)
         val root = FrameLayout(context)
         val collapsing = CollapsingToolbarLayout(context)
