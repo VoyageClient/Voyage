@@ -35,7 +35,15 @@ Release install: `make install`
 
 Run linting with `make lint` and the unit test suite with `make test`.
 
-# Running on Android 4.0–4.3 (Ice Cream Sandwich / Jelly Bean)
+# AI Disclosure
+
+Voyage is developed utilizing LLMs/AI. If you are bothered by this, then I encourage you to find another client. First and foremost, I made this client out of my own personal desire to improve upon Element Classic, and LLMs allowed me to do so as an individual within a reasonable timespan. This client is more than anything else something I made for myself. I'm offering it to you to use it, because sharing is caring. You are not entitled to an LLM-free copy of my hobby project. All changes are reviewed by a human (me!), and QA testing is conducted before a release is tagged. I review all the strings I introduce into this app to ensure that their wording is satisfactory.
+
+# Support
+
+If you have any problems, I encourage you to report them in an issue, or to join the [Matrix room](https://matrix.to/#/#voyage:matrix.org) and ask about it there. Attaching a log export often helps diagnose a problem if it cannot be reliably reproduced. You can export your logs from `... > Export logs` on the main page of the app. The client cannot improve if you encounter a problem and choose to ignore it. I am one person, and this is a big codebase. I can only encounter so many bugs myself. As the feature set grows, so does the possibility of introducing bugs.
+
+# Running on Android 4.0–4.3
 
 On Android 4.0–4.3 (API 14–18) the app currently requires the device's Dalvik
 bytecode verifier to be disabled, or it crashes when opening a room.
