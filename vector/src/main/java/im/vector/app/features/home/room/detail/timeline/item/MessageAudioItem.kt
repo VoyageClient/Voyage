@@ -163,6 +163,10 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         bindFileDetails(holder)
         bindSeekBar(holder)
         holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
+        holder.mainLayout.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.filenameView.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.audioPlaybackControlButton.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.audioSeekBar.setOnLongClickListener(attributes.itemLongClickListener)
         holder.audioPlaybackControlButton.isEnabled = playable
         holder.audioPlaybackControlButton.alpha = if (playable) 1f else 0.4f
         holder.audioSeekBar.isEnabled = playable
@@ -433,15 +437,14 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // In milliseconds rather than percent: a hundred steps across a five-minute song is a jump
         // of three seconds at a time, and nothing can glide between those.
         holder.audioSeekBar.max = duration.coerceAtLeast(1)
-        // The timeline swipes to reply and the list scrolls, and both will take a drag that began
-        // on the bar unless they are told this one is spoken for.
-        holder.audioSeekBar.setOnTouchListener { view, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> view.parent?.requestDisallowInterceptTouchEvent(true)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> view.parent?.requestDisallowInterceptTouchEvent(false)
-            }
-            false
+        holder.seekTouchListener?.dispose()
+        var cancelled = false
+        val touchListener = MessageSeekTouchListener(holder.audioSeekBar) { event ->
+            cancelled = event.actionMasked == MotionEvent.ACTION_CANCEL
+            holder.audioSeekBar.onTouchEvent(event)
         }
+        holder.seekTouchListener = touchListener
+        holder.audioSeekBar.setOnTouchListener(touchListener)
         holder.audioSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) holder.audioPlaybackTime.text = formatPlaybackTime(progress)
@@ -454,7 +457,13 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 isUserSeeking = false
-                onSeek?.invoke(seekBar.progress.toFloat() / seekBar.max)
+                if (cancelled) {
+                    val position = audioMessagePlaybackTracker.getPlaybackTime(attributes.informationData.stableId) ?: 0
+                    seekBar.progress = position
+                    holder.audioPlaybackTime.text = formatPlaybackTime(position)
+                } else {
+                    onSeek?.invoke(seekBar.progress.toFloat() / seekBar.max)
+                }
             }
         })
     }
@@ -541,6 +550,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     override fun unbind(holder: Holder) {
+        holder.seekTouchListener?.dispose()
+        holder.seekTouchListener = null
         previewUrlViewUpdater.unbind()
         holder.cancelProgressAnimation()
         holder.textColorAnimator?.cancel()
@@ -572,6 +583,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val fileSize by bind<TextView>(R.id.fileSize)
         val audioPlaybackDuration by bind<TextView>(R.id.audioPlaybackDuration)
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
+        internal var seekTouchListener: MessageSeekTouchListener? = null
         var progressAnimator: ObjectAnimator? = null
         var backdropKey: String? = null
         var textColorAnimator: ValueAnimator? = null

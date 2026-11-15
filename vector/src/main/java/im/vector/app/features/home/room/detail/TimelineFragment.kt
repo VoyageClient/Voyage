@@ -2353,7 +2353,6 @@ class TimelineFragment :
     override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean {
         // While selecting, the selection touch listener owns every gesture.
         if (timelineViewModel.selection.isActive) return true
-        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         val roomId = timelineArgs.roomId
         this.view?.hideKeyboard()
 
@@ -2364,7 +2363,6 @@ class TimelineFragment :
 
     override fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean {
         if (timelineViewModel.selection.isActive) return true
-        view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         this.view?.hideKeyboard()
         showMessageActions(
                 MessageActionsBottomSheet.newInstance(timelineArgs.roomId, informationData, isThreadTimeLine(), galleryItemIndex = itemIndex)
@@ -2614,14 +2612,12 @@ class TimelineFragment :
                 selection.hold(false)
             }
 
-            override fun onAnchor(anchorEventId: String, fromHold: Boolean) {
-                (requireActivity().supportFragmentManager.findFragmentByTag(MESSAGE_ACTIONS_TAG) as? MessageActionsBottomSheet)
-                        ?.dismissAllowingStateLoss()
+            override fun onAnchor(anchorEventId: String) {
                 selection.hold(true)
                 dragBaseSelection = selection.selected.value
                 // As in Telegram: starting on a selected message deselects what the drag passes over.
                 dragSelects = anchorEventId !in dragBaseSelection
-                if (fromHold) recycler.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                recycler.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 applyDragRange(listOf(anchorEventId))
             }
 

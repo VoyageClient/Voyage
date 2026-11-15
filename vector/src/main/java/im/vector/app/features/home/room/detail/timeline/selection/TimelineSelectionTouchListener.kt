@@ -17,10 +17,8 @@ import androidx.recyclerview.widget.prefetchForScroll
 import kotlin.math.abs
 
 /**
- * Selection gestures on top of the list's own scrolling. While selecting, a tap toggles the row under
- * it, gutter included. In or out of selection, holding a selectable row and then dragging vertically
- * selects every row passed over, auto-scrolling at the list's edges. Rows don't see these touches while
- * selecting: [im.vector.app.features.home.room.detail.timeline.view.TimelineRecyclerView.blocksChildTouches].
+ * While selecting, taps toggle rows and held vertical drags select ranges, including the gutter.
+ * Rows don't see these touches: [im.vector.app.features.home.room.detail.timeline.view.TimelineRecyclerView.blocksChildTouches].
  */
 class TimelineSelectionTouchListener(
         private val recyclerView: RecyclerView,
@@ -35,11 +33,7 @@ class TimelineSelectionTouchListener(
         fun adapterPositionOf(eventId: String): Int?
         fun onTap(eventId: String)
 
-        /**
-         * A range starts at [anchorEventId]: on a held press while selecting ([fromHold]), otherwise
-         * once a press held for the actions sheet starts dragging.
-         */
-        fun onAnchor(anchorEventId: String, fromHold: Boolean)
+        fun onAnchor(anchorEventId: String)
         fun onDragRange(eventIds: List<String>)
 
         /** The gesture that called [onAnchor] is over. */
@@ -48,7 +42,6 @@ class TimelineSelectionTouchListener(
 
     private val density = recyclerView.resources.displayMetrics.density
     private val touchSlop = ViewConfiguration.get(recyclerView.context).scaledTouchSlop
-    private val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
     private val edge = 64 * density
     private val maxAutoScrollSpeed = 1400 * density
 
@@ -58,18 +51,15 @@ class TimelineSelectionTouchListener(
     private var moved = false
     private var stoppedScroll = false
 
-    private var armedPosition = RecyclerView.NO_POSITION
     private var anchorEventId: String? = null
     private var dragging = false
     private var lastRange: Pair<Int, Int>? = null
 
     private val longPress = Runnable {
-        if (moved) return@Runnable
+        if (moved || !callback.isSelectionActive()) return@Runnable
         val position = positionUnder(downY) ?: return@Runnable
         val eventId = callback.selectableEventIdAt(position) ?: return@Runnable
-        armedPosition = position
-        // Out of selection the hold belongs to the actions sheet; the range only starts if a drag follows.
-        if (callback.isSelectionActive()) anchor(eventId, fromHold = true)
+        anchor(eventId)
     }
 
     /**
@@ -83,6 +73,10 @@ class TimelineSelectionTouchListener(
 
         override fun run() {
             if (!dragging) return
+            if (!callback.isSelectionActive()) {
+                reset()
+                return
+            }
             val now = SystemClock.uptimeMillis()
             val elapsed = if (lastFrame == 0L) 16L else (now - lastFrame).coerceAtMost(50L)
             lastFrame = now
@@ -105,6 +99,10 @@ class TimelineSelectionTouchListener(
     }
 
     override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+        if (!callback.isSelectionActive()) {
+            reset()
+            return false
+        }
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 reset()
@@ -113,10 +111,8 @@ class TimelineSelectionTouchListener(
                 lastY = e.y
                 // A touch that stops the list moving is only a stop: neither a tap nor the start of a hold.
                 stoppedScroll = rv.scrollState != RecyclerView.SCROLL_STATE_IDLE
-                if (!stoppedScroll) {
-                    // A held press picks rows sooner while selecting; otherwise it has to wait for the actions sheet.
-                    val hold = if (callback.isSelectionActive()) SELECTING_HOLD_MS else longPressTimeout
-                    recyclerView.postDelayed(longPress, hold)
+                if (!stoppedScroll && callback.isSelectionActive()) {
+                    recyclerView.postDelayed(longPress, SELECTING_HOLD_MS)
                 }
             }
             MotionEvent.ACTION_MOVE -> {
@@ -124,7 +120,7 @@ class TimelineSelectionTouchListener(
                     moved = true
                     recyclerView.removeCallbacks(longPress)
                 }
-                if (armedPosition != RecyclerView.NO_POSITION && abs(e.y - downY) > touchSlop) {
+                if (anchorEventId != null && abs(e.y - downY) > touchSlop) {
                     startDrag(e.y)
                     return true
                 }
@@ -147,6 +143,10 @@ class TimelineSelectionTouchListener(
     }
 
     override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
+        if (!callback.isSelectionActive()) {
+            reset()
+            return
+        }
         if (!dragging) return
         when (e.actionMasked) {
             MotionEvent.ACTION_MOVE -> {
@@ -162,18 +162,16 @@ class TimelineSelectionTouchListener(
     /** Another listener (a swipe) claimed the gesture, so this one never sees its end. */
     fun cancelGesture() = reset()
 
-    private fun anchor(eventId: String, fromHold: Boolean) {
+    private fun anchor(eventId: String) {
         anchorEventId = eventId
-        callback.onAnchor(eventId, fromHold)
+        callback.onAnchor(eventId)
     }
 
     private fun startDrag(y: Float) {
-        val anchorId = anchorEventId ?: callback.selectableEventIdAt(armedPosition) ?: return
+        if (anchorEventId == null) return
         dragging = true
-        armedPosition = RecyclerView.NO_POSITION
         lastY = y
         recyclerView.parent?.requestDisallowInterceptTouchEvent(true)
-        if (anchorEventId == null) anchor(anchorId, fromHold = false)
         updateRange(y)
         ViewCompat.postOnAnimation(recyclerView, autoScroll)
     }
@@ -184,7 +182,6 @@ class TimelineSelectionTouchListener(
         val wasAnchored = anchorEventId != null
         moved = false
         dragging = false
-        armedPosition = RecyclerView.NO_POSITION
         anchorEventId = null
         lastRange = null
         if (wasAnchored) callback.onAnchorReleased()

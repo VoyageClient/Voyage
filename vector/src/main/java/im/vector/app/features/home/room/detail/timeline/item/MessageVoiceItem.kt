@@ -106,6 +106,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         renderSendState(holder.voiceLayout, null)
         holder.voicePlaybackControlButton.isEnabled = playable
         holder.voicePlaybackControlButton.alpha = if (playable) 1f else 0.4f
+        holder.voicePlaybackLayout.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.voicePlaybackControlButton.setOnLongClickListener(attributes.itemLongClickListener)
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
@@ -157,19 +159,21 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         }
         holder.voicePlaybackWaveform.summarize()
 
-        holder.voicePlaybackWaveform.setOnTouchListener { view, motionEvent ->
-            if (playable) when (motionEvent.action) {
+        holder.seekTouchListener?.dispose()
+        val touchListener = MessageSeekTouchListener(holder.voicePlaybackWaveform) { motionEvent ->
+            if (playable) when (motionEvent.actionMasked) {
                 MotionEvent.ACTION_UP -> {
-                    val percentage = getTouchedPositionPercentage(motionEvent, view)
+                    val percentage = getTouchedPositionPercentage(motionEvent, holder.voicePlaybackWaveform)
                     waveformTouchListener?.onWaveformTouchedUp(percentage)
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val percentage = getTouchedPositionPercentage(motionEvent, view)
+                    val percentage = getTouchedPositionPercentage(motionEvent, holder.voicePlaybackWaveform)
                     waveformTouchListener?.onWaveformMovedTo(percentage)
                 }
             }
-            true
         }
+        holder.seekTouchListener = touchListener
+        holder.voicePlaybackWaveform.setOnTouchListener(touchListener)
 
         val listener = AudioMessagePlaybackTracker.Listener { state ->
             when (state) {
@@ -209,6 +213,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     private fun formatPlaybackTime(time: Int) = DateUtils.formatElapsedTime((time / 1000).toLong())
 
     override fun unbind(holder: Holder) {
+        holder.seekTouchListener?.dispose()
+        holder.seekTouchListener = null
         previewUrlViewUpdater.unbind()
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
@@ -228,6 +234,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         val voicePlaybackControlButton by bind<ImageButton>(R.id.voicePlaybackControlButton)
         val voicePlaybackTime by bind<TextView>(R.id.voicePlaybackTime)
         val voicePlaybackWaveform by bind<AudioWaveformView>(R.id.voicePlaybackWaveform)
+        internal var seekTouchListener: MessageSeekTouchListener? = null
         val playbackRegistration = AudioMessagePlaybackTracker.RowRegistration()
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)

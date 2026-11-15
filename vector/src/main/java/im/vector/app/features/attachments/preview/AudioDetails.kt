@@ -62,13 +62,17 @@ object AudioDetails {
         val credits: String? get() = credits(title, artist, album)
     }
 
-    /** "Artist • Album", leaving out an album that only repeats the artist or the title. */
-    fun credits(title: String?, artist: String?, album: String?): String? =
-            listOfNotNull(artist?.takeIf { it.isNotBlank() }, album?.takeIf {
-                it.isNotBlank() && !it.trim().equals(artist?.trim(), ignoreCase = true) && !it.trim().equals(title?.trim(), ignoreCase = true)
-            })
-                    .takeIf { it.isNotEmpty() }
-                    ?.joinToString(" • ")
+    fun credits(title: String?, artist: String?, album: String?): String? {
+        val artistName = artist?.trim()?.takeIf { it.isNotEmpty() }
+        val prefix = artistName?.let { "$it - " }
+        val albumName = album?.trimStart()?.let {
+            if (prefix != null && it.startsWith(prefix, ignoreCase = true)) it.substring(prefix.length) else it
+        }?.trim()
+        return listOfNotNull(
+                artist?.takeIf { it.isNotBlank() },
+                albumName?.takeIf { it.isNotBlank() && !it.equals(artistName, ignoreCase = true) && !it.equals(title?.trim(), ignoreCase = true) },
+        ).takeIf { it.isNotEmpty() }?.joinToString(" • ")
+    }
 
     /** Enough for a screenful of messages and then some, so scrolling back shows art at once. */
     private val cache = LruCache<String, Details>(32)
