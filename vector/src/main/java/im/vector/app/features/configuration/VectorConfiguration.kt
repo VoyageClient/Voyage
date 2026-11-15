@@ -137,6 +137,7 @@ class VectorConfiguration @Inject constructor(
                 "_" + ThemeUtils.getApplicationTheme(context) +
                 "_" + ThemeUtils.getApplicationThemeAccent(context) +
                 // Avatars and thumbnails resolve their variant at bind time, so bound ones need rebuilding.
-                "_" + preferences.getBoolean(VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES, true))
+                "_" + preferences.getBoolean(VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES, true) +
+                "_" + preferences.getBoolean(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY, false))
     }
 }

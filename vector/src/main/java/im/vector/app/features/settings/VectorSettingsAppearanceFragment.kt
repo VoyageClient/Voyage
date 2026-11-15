@@ -128,14 +128,24 @@ class VectorSettingsAppearanceFragment :
         bindPalettePreferences()
         bindCodePalettePreference()
         bindDefaultAvatarPreferences()
+        updatePerformanceModePreferences()
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
-            // Update the runtime mirror so new binds pick it up without a restart.
             val performanceMode = newValue as Boolean
             im.vector.app.core.ui.PerformanceMode.enabled = performanceMode
             vectorPreferences.applyPerformanceModeConstraints(performanceMode)
+            view?.post { updatePerformanceModePreferences() }
             true
         }
+    }
+
+    private fun updatePerformanceModePreferences() {
+        findPreference<VectorListPreference>(VectorPreferences.SETTINGS_SCROLL_ANIMATION_KEY)?.let { pref ->
+            pref.value = vectorPreferences.scrollAnimationStyle()
+            pref.isEnabled = !vectorPreferences.isPerformanceModeEnabled()
+        }
+        findPreference<VectorPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY)?.summary =
+                getString(vectorPreferences.avatarShape().titleRes)
     }
 
     private fun bindPalettePreferences() {
@@ -195,7 +205,6 @@ class VectorSettingsAppearanceFragment :
 
     private fun bindAvatarShapePreference() {
         val pref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY) ?: return
-        pref.summary = getString(vectorPreferences.avatarShape().titleRes)
 
         childFragmentManager.setFragmentResultListener(AVATAR_SHAPE_REQUEST_KEY, this) { _, bundle ->
             val picked = bundle.getString(AvatarShapePickerDialogFragment.RESULT_SHAPE) ?: return@setFragmentResultListener

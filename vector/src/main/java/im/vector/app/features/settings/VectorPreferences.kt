@@ -243,6 +243,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_ROOM_AVATAR_STYLE_KEY = "SETTINGS_ROOM_AVATAR_STYLE_KEY"
         private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
+        private const val SETTINGS_PERFORMANCE_MODE_BACKUP_PREFIX = "SETTINGS_PERFORMANCE_MODE_BACKUP_"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
         private const val SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY = "SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY"
@@ -681,13 +682,32 @@ class VectorPreferences @Inject constructor(
         }
     }
 
-    // Settings performance mode forces off (and the settings screen greys out while it's on).
     // The parameter exists because the settings toggle listener runs before the new value is persisted.
     fun applyPerformanceModeConstraints(performanceMode: Boolean = isPerformanceModeEnabled()) {
-        if (!performanceMode) return
+        val overrides = listOf(
+                Triple(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, autoplayAnimatedImages(), false),
+                Triple(SETTINGS_SHOW_URL_PREVIEW_KEY, showUrlPreviews(), false),
+                Triple(SETTINGS_MEDIA_PREVIEW_SOLID_KEY, useSolidColorForHiddenMedia(), true),
+        )
         defaultPrefs.edit {
-            putBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
-            putBoolean(SETTINGS_SHOW_URL_PREVIEW_KEY, false)
+            overrides.forEach { (key, previousValue, forcedValue) ->
+                val backupKey = SETTINGS_PERFORMANCE_MODE_BACKUP_PREFIX + key
+                if (performanceMode) {
+                    if (!defaultPrefs.contains(backupKey)) putBoolean(backupKey, previousValue)
+                    putBoolean(key, forcedValue)
+                } else if (defaultPrefs.contains(backupKey)) {
+                    putBoolean(key, defaultPrefs.getBoolean(backupKey, previousValue))
+                    remove(backupKey)
+                }
+            }
+            val scrollBackupKey = SETTINGS_PERFORMANCE_MODE_BACKUP_PREFIX + SETTINGS_SCROLL_ANIMATION_KEY
+            if (performanceMode) {
+                if (!defaultPrefs.contains(scrollBackupKey)) putString(scrollBackupKey, scrollAnimationStyle())
+                putString(SETTINGS_SCROLL_ANIMATION_KEY, "none")
+            } else if (defaultPrefs.contains(scrollBackupKey)) {
+                putString(SETTINGS_SCROLL_ANIMATION_KEY, defaultPrefs.getString(scrollBackupKey, "none"))
+                remove(scrollBackupKey)
+            }
         }
     }
 
@@ -1161,11 +1181,12 @@ class VectorPreferences @Inject constructor(
      */
     fun avatarShape(): AvatarShape {
         val shape = AvatarShape.of(defaultPrefs.getString(SETTINGS_AVATAR_SHAPE_KEY, AvatarShape.CIRCLE.storageKey))
-        // A setting can outlive the device it was chosen on, through a backup or a restore.
-        return if (shape.isAnimated && shape !in AvatarShape.ANIMATED) AvatarShape.CIRCLE else shape
+        // Keep the stored shape so temporary performance limits don't discard the user's choice.
+        return if (shape.isAnimated && (isPerformanceModeEnabled() || shape !in AvatarShape.ANIMATED)) AvatarShape.CIRCLE else shape
     }
 
     fun setAvatarShape(shape: AvatarShape) {
+        if (shape.isAnimated && isPerformanceModeEnabled()) return
         defaultPrefs.edit { putString(SETTINGS_AVATAR_SHAPE_KEY, shape.storageKey) }
     }
 

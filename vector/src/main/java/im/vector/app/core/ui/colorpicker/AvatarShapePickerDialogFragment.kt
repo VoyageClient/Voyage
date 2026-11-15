@@ -94,8 +94,10 @@ class AvatarShapePickerDialogFragment : DialogFragment() {
             setPadding(pad, pad, pad, pad)
         }
         addSection(context, column, CommonStrings.settings_avatar_shape_section_static, AvatarShape.STATIC)
-        AvatarEffect.Family.values().forEach { family ->
-            addSection(context, column, family.titleRes, AvatarShape.ANIMATED.filter { it.effect?.family == family })
+        if (!vectorPreferences.isPerformanceModeEnabled()) {
+            AvatarEffect.Family.values().forEach { family ->
+                addSection(context, column, family.titleRes, AvatarShape.ANIMATED.filter { it.effect?.family == family })
+            }
         }
         return ScrollView(context).apply { addView(column) }
     }

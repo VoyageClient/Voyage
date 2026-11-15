@@ -573,9 +573,11 @@ class VectorSettingsSecurityPrivacyFragment :
         val modePref = findPreference<VectorListPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_KEY) ?: return
         val solidPref = findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_SOLID_KEY)
         val hideAvatarsPref = findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_HIDE_AVATARS_KEY)
+        val performanceMode = vectorPreferences.isPerformanceModeEnabled()
+        if (performanceMode) solidPref?.isChecked = true
         val applyEnabled = { value: Any? ->
             val enabled = value != MediaPreviewMode.ALWAYS_SHOW.value
-            solidPref?.isEnabled = enabled
+            solidPref?.isEnabled = enabled && !performanceMode
             hideAvatarsPref?.isEnabled = enabled
         }
         applyEnabled(modePref.value)
