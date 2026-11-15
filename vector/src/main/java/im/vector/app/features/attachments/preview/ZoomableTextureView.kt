@@ -15,6 +15,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.TextureView
 import im.vector.app.features.attachments.ZoomPanGesture
+import org.matrix.android.sdk.api.debug.DebugLog
 import kotlin.math.min
 
 private const val MIN_ZOOM = 0.5f
@@ -86,6 +87,10 @@ class ZoomableTextureView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         applyMatrix()
+        DebugLog.i {
+            "UPLOADPREVIEW video view resize ${oldw}x$oldh->${w}x$h source=${videoWidth}x$videoHeight " +
+                    "override=$contentSizeOverride zoom=${gesture.zoom} pan=${gesture.panX},${gesture.panY}"
+        }
     }
 
     private fun applyMatrix() {
@@ -99,6 +104,7 @@ class ZoomableTextureView @JvmOverloads constructor(
         gesture.contentHeight = shapeHeight * fitScale
         gesture.viewportWidth = viewWidth
         gesture.viewportHeight = viewHeight
+        gesture.clampPan()
 
         val drawnWidth = gesture.contentWidth * gesture.zoom
         val drawnHeight = gesture.contentHeight * gesture.zoom
@@ -110,6 +116,9 @@ class ZoomableTextureView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked != MotionEvent.ACTION_MOVE) {
+            DebugLog.i { "UPLOADPREVIEW video gesture action=${event.actionMasked} pointers=${event.pointerCount} zoom=${gesture.zoom}" }
+        }
         if (onDoubleTap != null) tapDetector.onTouchEvent(event)
         return gesture.onTouchEvent(event) || super.onTouchEvent(event)
     }

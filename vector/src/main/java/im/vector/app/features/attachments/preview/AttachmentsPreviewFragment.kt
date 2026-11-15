@@ -101,6 +101,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
@@ -903,7 +904,14 @@ class AttachmentsPreviewFragment :
                 // The caption bar has to stay above the keyboard it is typed into. The window draws
                 // under the system bars, so it never resizes for the keyboard on its own.
                 val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-                v.updatePadding(bottom = maxOf(systemBarsInsets.bottom, imeInsets.bottom))
+                val bottom = maxOf(systemBarsInsets.bottom, imeInsets.bottom)
+                if (v.paddingBottom != bottom) {
+                    DebugLog.i {
+                        "UPLOADPREVIEW keyboard imeBottom=${imeInsets.bottom} systemBottom=${systemBarsInsets.bottom} " +
+                                "padding=${v.paddingBottom}->$bottom preview=${views.attachmentPreviewerBigList.width}x${views.attachmentPreviewerBigList.height}"
+                    }
+                    v.updatePadding(bottom = bottom)
+                }
                 insets
             }
             // Padding on the bar that carries the dim, like the bottom container: the dim then runs

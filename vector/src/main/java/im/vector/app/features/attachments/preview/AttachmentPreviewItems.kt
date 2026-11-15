@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
@@ -703,6 +704,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         private fun reportProgress() {
+            val startedAt = if (DebugLog.enabled) SystemClock.uptimeMillis() else 0L
             val raw = mediaPlayer?.takeIf { isPrepared }?.let { runCatching { it.currentPosition }.getOrDefault(0) }
                     ?: resumePositionMs
             val playing = mediaPlayer?.isPlayingSafe() == true
@@ -716,6 +718,10 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 waveformView.setPosition(position, playing)
             }
             listener?.onVideoProgress(position, duration, playing)
+            if (DebugLog.enabled) {
+                val elapsed = SystemClock.uptimeMillis() - startedAt
+                if (elapsed >= 100) DebugLog.w { "UPLOADPREVIEW video progress slow elapsedMs=$elapsed" }
+            }
         }
 
         override fun togglePlayback() {
@@ -795,7 +801,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             val scale = minOf(1f, videoView.width.toFloat() / size.first, videoView.height.toFloat() / size.second)
             val width = (size.first * scale).toInt().coerceAtLeast(1)
             val height = (size.second * scale).toInt().coerceAtLeast(1)
-            val frame = runCatching { videoView.getBitmap(width, height) }.getOrNull() ?: return
+            val frame = tracePlayback("capture-poster") {
+                runCatching { videoView.getBitmap(width, height) }.getOrNull()
+            } ?: return
             ownedVideoPoster = frame
             bigImageView.setImageBitmap(frame)
             bigImageView.tag = uri
@@ -940,15 +948,19 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private fun releasePlayer() {
             videoView.removeCallbacks(ticker)
             isPrepared = false
-            mediaPlayer?.let {
-                try {
-                    if (it.isPlayingSafe()) it.stop()
-                } catch (_: IllegalStateException) {
-                    // Already stopped or released.
-                }
-                it.release()
-            }
+            mediaPlayer?.let { player -> tracePlayback("release-player") { player.release() } }
             mediaPlayer = null
+        }
+
+        private inline fun <T> tracePlayback(operation: String, block: () -> T): T {
+            if (!DebugLog.enabled) return block()
+            val startedAt = SystemClock.uptimeMillis()
+            DebugLog.i { "UPLOADPREVIEW video $operation begin" }
+            return try {
+                block()
+            } finally {
+                DebugLog.i { "UPLOADPREVIEW video $operation end elapsedMs=${SystemClock.uptimeMillis() - startedAt}" }
+            }
         }
 
         private fun resetToThumbnail() {

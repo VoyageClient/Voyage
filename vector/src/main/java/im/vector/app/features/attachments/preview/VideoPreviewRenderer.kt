@@ -13,6 +13,7 @@ import android.opengl.Matrix
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.os.SystemClock
 import android.view.Surface
 import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
@@ -34,6 +35,7 @@ internal class VideoPreviewRenderer(
     private val handler = Handler(thread.looper)
     private val mainHandler = Handler(Looper.getMainLooper())
     private val released = AtomicBoolean()
+    private val framePending = AtomicBoolean()
     @Volatile private var failed = false
     private val egl = EGLContext.getEGL() as EGL10
     private var display = EGL10.EGL_NO_DISPLAY
@@ -50,6 +52,11 @@ internal class VideoPreviewRenderer(
     private var bitmapProgram = 0
     private var maxTextureSize = 0
     private var hasFrame = false
+    private var resizeRevision = 0
+    private val surfaceWidth = IntArray(1)
+    private val surfaceHeight = IntArray(1)
+    private var lastBufferWidth = 0
+    private var lastBufferHeight = 0
     private val sourceMatrix = FloatArray(16)
     private val identityMatrix = FloatArray(16).also { Matrix.setIdentityM(it, 0) }
     private val positions = buffer(floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f))
@@ -60,11 +67,14 @@ internal class VideoPreviewRenderer(
             setup()
             inputTexture = SurfaceTexture(sourceTexture).apply {
                 setOnFrameAvailableListener {
-                    submit {
-                        updateTexImage()
-                        getTransformMatrix(sourceMatrix)
-                        hasFrame = true
-                        draw()
+                    if (framePending.compareAndSet(false, true)) {
+                        submit("frame") {
+                            framePending.set(false)
+                            updateTexImage()
+                            getTransformMatrix(sourceMatrix)
+                            hasFrame = true
+                            draw()
+                        }
                     }
                 }
             }
@@ -74,10 +84,14 @@ internal class VideoPreviewRenderer(
         }
     }
 
-    fun resize(width: Int, height: Int) = submit {
+    fun resize(width: Int, height: Int) = submit("resize") {
+        DebugLog.i { "UPLOADPREVIEW video resize ${this.width}x${this.height}->${width}x$height hasFrame=$hasFrame" }
         this.width = width
         this.height = height
+        val revision = ++resizeRevision
         draw()
+        // EGL can acquire the resized back buffer only after a swap; paused clips need another draw.
+        submit("resize-settled") { if (revision == resizeRevision) draw() }
     }
 
     fun setResolution(value: Pair<Int, Int>?) = submit {
@@ -108,15 +122,25 @@ internal class VideoPreviewRenderer(
         }
     }
 
-    private fun submit(block: () -> Unit) {
+    private fun submit(operation: String = "task", block: () -> Unit) {
+        val queuedAt = if (DebugLog.enabled) SystemClock.uptimeMillis() else 0L
         handler.post {
             if (!released.get() && !failed) {
+                val startedAt = if (DebugLog.enabled) SystemClock.uptimeMillis() else 0L
                 try {
                     block()
                 } catch (failure: Throwable) {
                     failed = true
                     runCatching { cleanup() }.onFailure { Timber.w(it, "Failed to clean up video preview renderer") }
                     mainHandler.post { if (!released.get()) onFailure(failure) }
+                } finally {
+                    if (DebugLog.enabled) {
+                        val elapsed = SystemClock.uptimeMillis() - startedAt
+                        val queued = startedAt - queuedAt
+                        if (elapsed >= 100 || queued >= 250) {
+                            DebugLog.w { "UPLOADPREVIEW video slow operation=$operation elapsedMs=$elapsed queuedMs=$queued" }
+                        }
+                    }
                 }
             }
         }
@@ -153,6 +177,16 @@ internal class VideoPreviewRenderer(
 
     private fun draw() {
         if (!hasFrame || width <= 0 || height <= 0) return
+        check(egl.eglQuerySurface(display, window, EGL10.EGL_WIDTH, surfaceWidth)) { "Cannot query preview width" }
+        check(egl.eglQuerySurface(display, window, EGL10.EGL_HEIGHT, surfaceHeight)) { "Cannot query preview height" }
+        val bufferWidth = surfaceWidth[0]
+        val bufferHeight = surfaceHeight[0]
+        if (bufferWidth <= 0 || bufferHeight <= 0) return
+        if (bufferWidth != lastBufferWidth || bufferHeight != lastBufferHeight) {
+            DebugLog.i { "UPLOADPREVIEW video EGL buffer=${bufferWidth}x$bufferHeight view=${width}x$height" }
+            lastBufferWidth = bufferWidth
+            lastBufferHeight = bufferHeight
+        }
         val size = resolution?.takeIf { it.first > 0 && it.second > 0 }
                 ?.let { minOf(it.first, maxTextureSize) to minOf(it.second, maxTextureSize) }
         if (size != null) {
@@ -170,7 +204,7 @@ internal class VideoPreviewRenderer(
             drawTexture(externalProgram, GL_TEXTURE_EXTERNAL_OES, sourceTexture, sourceMatrix)
         }
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
-        GLES20.glViewport(0, 0, width, height)
+        GLES20.glViewport(0, 0, bufferWidth, bufferHeight)
         if (size == null) {
             drawTexture(externalProgram, GL_TEXTURE_EXTERNAL_OES, sourceTexture, sourceMatrix)
         } else {
