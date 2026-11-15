@@ -85,12 +85,12 @@ class FloatingDateHeader(
         }
         val topView = layoutManager.findViewByPosition(top)
         val restY = if (obstruction.isVisible) {
-            (obstruction.bottom - view.top + density * GAP_DP).coerceAtLeast(0f)
+            (obstruction.bottom - recyclerView.top - view.top + density * GAP_DP).coerceAtLeast(0f)
         } else {
             0f
         }
         val restBottom = view.top + restY + view.height
-        if (topDayPosition == RecyclerView.NO_POSITION || topView == null || recyclerView.top + topView.top >= restBottom) {
+        if (topDayPosition == RecyclerView.NO_POSITION || topView == null || topView.top >= restBottom) {
             setShown(false)
             return
         }
@@ -98,7 +98,7 @@ class FloatingDateHeader(
         for (position in top - 1 downTo first) {
             if (adapter.getModelAtPosition(position) !is DaySeparatorItem) continue
             val divider = layoutManager.findViewByPosition(position) ?: break
-            val overlap = restBottom + density * GAP_DP - (recyclerView.top + divider.top)
+            val overlap = restBottom + density * GAP_DP - divider.top
             if (overlap > 0) baseY = restY - overlap
             break
         }

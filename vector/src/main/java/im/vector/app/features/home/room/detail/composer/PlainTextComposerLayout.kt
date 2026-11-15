@@ -65,6 +65,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -104,6 +105,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     private val views: ComposerLayoutBinding
 
     private val classic = vectorPreferences.useClassicComposer()
+    private var lastGeometryTrace: String? = null
 
     // Kept so the media can be re-rendered in place when revealed elsewhere.
     private var relatedMessagePreview: MessagePreviewContent? = null
@@ -162,6 +164,14 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
         views = ComposerLayoutBinding.bind(this)
 
+        if (DebugLog.enabled) {
+            val traceLayout = OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> traceGeometry("layout") }
+            addOnLayoutChangeListener(traceLayout)
+            (views.composerEditText.parent as View).addOnLayoutChangeListener(traceLayout)
+            views.composerEditText.addOnLayoutChangeListener(traceLayout)
+            views.composerEditTextOuterBorder.addOnLayoutChangeListener(traceLayout)
+        }
+
         views.composerEditText.maxLines = MessageComposerView.MAX_LINES_WHEN_COLLAPSED
         refreshColors()
         // Draw direction-override chars (e.g. in an edited message) as tofu instead of letting them
@@ -190,7 +200,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             }
 
             override fun onTextChanged(text: CharSequence) {
+                traceGeometry("text-change")
                 callback?.onTextChanged(text)
+                if (DebugLog.enabled) post { traceGeometry("after-text-change") }
             }
         }
         val openRelatedMessage: (View) -> Unit = { lastSpecialMode?.let { callback?.onRelatedMessageClicked(it.event.eventId) } }
@@ -225,6 +237,22 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     private var lastSpecialMode: MessageComposerMode.Special? = null
     private var editSelectionToRestore: Int? = null
     private var topDividerSuppressed = false
+
+    private fun traceGeometry(reason: String) {
+        if (!DebugLog.enabled) return
+        val input = views.composerEditText
+        val row = input.parent as View
+        val border = views.composerEditTextOuterBorder
+        val geometry = "classic=$classic chars=${input.length()} lines=${input.lineCount} " +
+                "composer=${width}x$height row=${row.width}x${row.height}@${row.top} " +
+                "input=${input.width}x${input.height}@${input.top} border=${border.width}x${border.height}@${border.top} " +
+                "padding=${input.paddingTop},${input.paddingBottom} textSize=${input.textSize} " +
+                "textLayoutH=${input.layout?.height} baseline=${input.baseline} focused=${input.hasFocus()} " +
+                "send=${views.sendButton.visibility} mic=${views.composerMicButton.visibility} emoji=${views.composerEmojiButton.visibility}"
+        if (geometry == lastGeometryTrace) return
+        lastGeometryTrace = geometry
+        DebugLog.i { "COMPOSERGEOMETRY $reason $geometry" }
+    }
 
     private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
         lastSpecialModeKey = null
@@ -442,12 +470,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val event = restored ?: specialMode.event
         val defaultContent = specialMode.defaultContent
 
-        // The classic composer's bar is the toolbar color, and the preview sits flush on it; colorSurface
-        // matches that only in some themes.
         val surfaceColor = if (classic) {
             ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
         } else {
-            ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
+            ThemeUtils.getColor(context, android.R.attr.colorBackground)
         }
         views.relatedMessageBackground.setBackgroundColor(
                 // Only recovered content is marked; the bare "Message removed" placeholder isn't.

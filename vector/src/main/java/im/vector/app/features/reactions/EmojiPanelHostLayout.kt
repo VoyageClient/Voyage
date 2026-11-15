@@ -90,6 +90,7 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         stationaryViews = listOf(
                 R.id.appBarLayout, R.id.audioPlaybackBanner, R.id.massRedactionBanner, R.id.pinnedMessagesBanner,
                 R.id.tombstoneBanner, R.id.userIdentityWarningView, R.id.syncStateView, R.id.liveLocationStatusIndicator,
+                R.id.floatingDateContainer,
         ).mapNotNull { findViewById<View>(it) }
         clippedViews = listOf(R.id.rootConstraintLayout, R.id.timelineRecyclerView).mapNotNull { findViewById<View>(it) }
     }

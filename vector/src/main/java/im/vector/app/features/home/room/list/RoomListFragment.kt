@@ -12,6 +12,7 @@ import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -605,7 +606,7 @@ class RoomListFragment :
     }
 
     private fun showInvitesSectionMenu(anchor: View, query: RoomSummaryQueryParams) {
-        PopupMenu(requireContext(), anchor).apply {
+        PopupMenu(requireContext(), anchor, Gravity.NO_GRAVITY, androidx.appcompat.R.attr.actionOverflowMenuStyle, 0).apply {
             menu.add(0, 0, 0, CommonStrings.invites_accept_all)
             menu.add(0, 1, 1, CommonStrings.invites_reject_all)
             setOnMenuItemClickListener { item ->

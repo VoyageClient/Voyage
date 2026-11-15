@@ -11,6 +11,8 @@ import android.app.Activity
 import android.os.Looper
 import android.view.View
 import android.view.View.MeasureSpec
+import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import im.vector.app.R
 import org.amshove.kluent.shouldBeEqualTo
@@ -139,6 +141,28 @@ class EmojiPanelHostLayoutTest {
 
         layoutAt(KEYBOARD_UP)
         host.translationY shouldBeEqualTo 0f
+    }
+
+    @Test
+    fun `floating dates stay stationary while the keyboard opens and closes`() {
+        val date = TextView(activity).apply { translationY = -8f }
+        val container = FrameLayout(activity).apply {
+            id = R.id.floatingDateContainer
+            addView(date)
+        }
+        host.addView(container)
+        ReflectionHelpers.callInstanceMethod<Unit>(host, "onFinishInflate")
+        layoutAt(FULL)
+
+        val originalY = host.y + container.y + date.y
+        for (offset in listOf(-80f, -240f, -400f, -240f, -80f, 0f)) {
+            host.setKeyboardTranslation(offset)
+
+            host.y + container.y + date.y shouldBeEqualTo originalY
+            date.translationY shouldBeEqualTo -8f
+            host.isLayoutRequested shouldBeEqualTo false
+        }
+        container.translationY shouldBeEqualTo 0f
     }
 
     @Test
