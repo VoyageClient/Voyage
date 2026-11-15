@@ -182,6 +182,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Markdown & HTML rendering overhaul**: added or improved tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`) and superscript (`^x^`). Links and pills no longer render inside code blocks.
 
+- **Misskey message colors**: add text colors and background highlights using Misskey's `$[...]` syntax, e.g. `$[fg.color=#ff0000 text]` and `$[bg.color=0f0 text]`.
+
 - **Multi-line quote blocks**: wrap text in `<<<` and `>>>` to quote several lines without a `>` on each, sent as an ordinary blockquote.
 
 - **Prevent unintended Markdown**: text emoticons and quote attributions stay as written instead of becoming formatting.

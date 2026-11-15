@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.session.room.AdvancedCommonmarkParser
 import org.matrix.android.sdk.internal.session.room.SimpleCommonmarkParser
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
+import org.matrix.android.sdk.internal.util.unescapeHtml
 import javax.inject.Inject
 
 /**
@@ -110,8 +111,13 @@ internal class MarkdownParser @Inject constructor(
             // But it caused too many problems so it has been removed in #2002
             // See #739
             val plain = expandQuoteFences(text.toString())
-            val body = if (document.containsSpoiler()) stripSpoilerDelimiters(plain) else plain
-            TextContent(body, cleanHtmlText.postTreatment())
+            val formatted = cleanHtmlText.postTreatment()
+            val body = when {
+                document.containsNode(MfmColor::class.java) -> formatted.unescapeHtml().trimEnd()
+                document.containsNode(Spoiler::class.java) -> stripSpoilerDelimiters(plain)
+                else -> plain
+            }
+            TextContent(body, formatted)
         } else {
             TextContent(source)
         }.linkifyMscReferences()
@@ -351,11 +357,11 @@ internal class MarkdownParser @Inject constructor(
         }
     }
 
-    private fun Node.containsSpoiler(): Boolean {
-        if (this is Spoiler) return true
+    private fun Node.containsNode(type: Class<out Node>): Boolean {
+        if (type.isInstance(this)) return true
         var child = firstChild
         while (child != null) {
-            if (child.containsSpoiler()) return true
+            if (child.containsNode(type)) return true
             child = child.next
         }
         return false

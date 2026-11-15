@@ -138,8 +138,11 @@ internal class LocalEchoEventFactory @Inject constructor(
     fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? =
             createTextContent(text, autoMarkdown).formattedText
 
-    private fun markdownBody(text: String, parsedAsMarkdown: Boolean): String =
-            if (parsedAsMarkdown && !isPgpArmoredBody(text)) markdownParser.expandQuoteFences(text) else text
+    private fun markdownBody(text: String, parsed: TextContent?): String = when {
+        parsed == null -> text
+        text.contains("$[") -> parsed.text
+        else -> markdownParser.expandQuoteFences(text)
+    }
 
     fun createFormattedTextEvent(
             roomId: String,
@@ -502,16 +505,12 @@ internal class LocalEchoEventFactory @Inject constructor(
             additionalContent: Content? = null,
             targetEventId: String? = null,
     ): Event {
-        // Modern reply edit: the new_content carries only the user-typed reply text. No
-        // legacy "> <@user:server>" quote prefix in body, no <mx-reply> block in
-        // formatted_body. The outer m.relates_to (m.replace) still targets the edited event;
-        // the original event keeps its own m.in_reply_to relation so clients render the
-        // reply header from cached state rather than from a duplicated embedded snapshot.
+        // Reply relations stay on the original event; edits contain only the replacement text.
         val plainBody = replyText.toString()
-        // See createReplyTextContent: explicit formatted body wins; otherwise only auto-format when
-        // markdown is on and actually produced formatting (never a PGP armored body).
-        val htmlBody = replyTextFormatted
-                ?: if (autoMarkdown && !isPgpArmoredBody(plainBody)) markdownParser.parse(replyText).formattedText else null
+        val parsed = if (replyTextFormatted == null && autoMarkdown && !isPgpArmoredBody(plainBody)) {
+            markdownParser.parse(replyText)
+        } else null
+        val htmlBody = replyTextFormatted ?: parsed?.formattedText
         val isFormatted = htmlBody != null
 
         return createMessageEvent(
@@ -523,7 +522,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         newContent = MessageTextContent(
                                 msgType = msgType,
                                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
-                                body = markdownBody(plainBody, replyTextFormatted == null && autoMarkdown),
+                                body = markdownBody(plainBody, parsed),
                                 formattedBody = if (isFormatted) htmlBody else null,
                         )
                                 .toContent()
@@ -590,18 +589,14 @@ internal class LocalEchoEventFactory @Inject constructor(
         if (plain.isNullOrEmpty()) {
             return MediaBodyParts(body = name, filename = null, format = null, formattedBody = null)
         }
-        // A PGP armored caption is never auto-formatted (markdown would mangle the ciphertext); its
-        // formatted_body, if any, is supplied explicitly via captionFormattedText.
-        val html = when {
-            captionFormattedText != null -> captionFormattedText
-            isPgpArmoredBody(plain) -> null
-            // Parse the CharSequence (not the stringified plain) so emote/mention spans in the caption
-            // are serialized into a formatted body.
-            else -> markdownParser.parse(captionText, force = true, advanced = autoMarkdown).takeFormatted()
-        }
+        // Keep explicit HTML and ciphertext intact; parse the CharSequence to retain mention/emote spans.
+        val parsed = if (captionFormattedText == null && !isPgpArmoredBody(plain)) {
+            markdownParser.parse(captionText, force = true, advanced = autoMarkdown)
+        } else null
+        val html = captionFormattedText ?: parsed?.takeFormatted()
         val isFormatted = html != null && html != plain
         return MediaBodyParts(
-                body = markdownBody(plain, captionFormattedText == null),
+                body = markdownBody(plain, parsed),
                 filename = name,
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
                 formattedBody = if (isFormatted) html else null,
@@ -883,16 +878,14 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
         val caption = captionText?.toString()?.takeIf { it.isNotEmpty() }
-        val html = when {
-            caption == null -> null
-            captionFormattedText != null -> captionFormattedText
-            isPgpArmoredBody(caption) -> null
-            else -> markdownParser.parse(captionText, force = true, advanced = autoMarkdown).takeFormatted()
-        }
+        val parsed = if (caption != null && captionFormattedText == null && !isPgpArmoredBody(caption)) {
+            markdownParser.parse(captionText, force = true, advanced = autoMarkdown)
+        } else null
+        val html = if (caption == null) null else captionFormattedText ?: parsed?.takeFormatted()
         val isFormatted = html != null && html != caption
         val content = MessageGalleryContent(
                 msgType = MessageType.MSGTYPE_GALLERY,
-                body = caption?.let { markdownBody(it, captionFormattedText == null) } ?: galleryFallbackBody(itemContents),
+                body = caption?.let { markdownBody(it, parsed) } ?: galleryFallbackBody(itemContents),
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
                 formattedBody = if (isFormatted) html else null,
                 itemtypes = itemContents.mapNotNull { it.toGalleryItem() },
@@ -996,27 +989,19 @@ internal class LocalEchoEventFactory @Inject constructor(
         val eventId = eventReplied.root.eventId ?: return null
         val repliedSenderId = eventReplied.root.senderId
 
-        // Modern reply format: body / formatted_body contain only the user-typed reply text.
-        // The receiving client renders the "in reply to" header dynamically from the cached
-        // replied-to event via m.relates_to.m.in_reply_to. No legacy "> <@user:server>" quote
-        // prefix in body, no <mx-reply> block in formatted_body — these duplicate the preview
-        // and cause inconsistencies on edit. MSC3952 m.mentions carries the replied-to sender
-        // alongside everyone pilled in the reply text.
+        // The reply relation supplies the preview; embedding a quote here duplicates it in modern clients.
         val plainBody = replyText.toString()
-        // Honour an explicitly-provided formatted body verbatim (as sendFormattedTextMessage does);
-        // otherwise only auto-format when markdown is on and genuinely produced formatting — a plain
-        // reply must not carry format/formatted_body. A PGP armored body is never auto-formatted
-        // (markdown would mangle the ciphertext); its formatted_body, if any, is supplied explicitly.
-        // computeFormattedHtml handles both the markdown path and the span-only path (mentions, custom
-        // emotes), so a reply carrying emote/pill spans gets a formatted_body even when markdown is off.
-        val htmlBody = replyTextFormatted?.toString()
-                ?: if (!isPgpArmoredBody(plainBody)) computeFormattedHtml(replyText, autoMarkdown) else null
+        // Preserve explicit HTML and ciphertext, and include mention/emote spans even with Markdown off.
+        val parsed = if (replyTextFormatted == null && !isPgpArmoredBody(plainBody)) {
+            createTextContent(replyText, autoMarkdown)
+        } else null
+        val htmlBody = replyTextFormatted?.toString() ?: parsed?.formattedText
         val isFormatted = htmlBody != null
 
         return MessageTextContent(
                 msgType = msgType,
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
-                body = markdownBody(plainBody, replyTextFormatted == null && autoMarkdown),
+                body = markdownBody(plainBody, parsed.takeIf { autoMarkdown }),
                 formattedBody = if (isFormatted) htmlBody else null,
                 relatesTo = generateReplyRelationContent(
                         eventId = eventId,

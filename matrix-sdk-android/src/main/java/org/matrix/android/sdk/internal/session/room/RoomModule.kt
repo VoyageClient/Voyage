@@ -138,6 +138,7 @@ import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportConte
 import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportRoomTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportContentTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportRoomTask
+import org.matrix.android.sdk.internal.session.room.send.MfmColorExtension
 import org.matrix.android.sdk.internal.session.room.state.DefaultSendStateTask
 import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import org.matrix.android.sdk.internal.session.room.summary.DefaultSyncWatchedRoomSummariesTask
@@ -183,7 +184,8 @@ internal abstract class RoomModule {
                 TablesExtension.create(),
                 SubSupStrikeExtension.create(),
                 UnderlineExtension.create(),
-                ExplicitLinksExtension.create()
+                ExplicitLinksExtension.create(),
+                MfmColorExtension()
         )
 
         @Provides
@@ -214,7 +216,7 @@ internal abstract class RoomModule {
             // The simple parser disables all blocks but quotes.
             // Inline parsing(bold, italic, etc) is also enabled and is not easy to disable in commonmark currently.
             return Parser.builder()
-                    .extensions(listOf(SubSupStrikeExtension.create()))
+                    .extensions(listOf(SubSupStrikeExtension.create(), MfmColorExtension()))
                     .enabledBlockTypes(setOf(BlockQuote::class.java))
                     .build()
         }

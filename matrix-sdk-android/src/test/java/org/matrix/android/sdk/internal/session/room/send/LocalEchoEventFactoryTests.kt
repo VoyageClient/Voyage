@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.room.send
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.amshove.kluent.internal.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -188,6 +189,61 @@ class LocalEchoEventFactoryTests {
                 compatibilityText = "* <<< hi",
         )
         assertEquals("> hi", edit.newContent()?.get("body"))
+    }
+
+    @Test
+    fun `colored rich text is parsed once per send path with a plain fallback`() {
+        val raw = "$[fg.color=3a7bc2 **Example**]"
+        val source = object : CharSequence by raw {
+            override fun toString() = raw
+        }
+        val html = """<span data-mx-color="#3a7bc2"><strong>Example</strong></span>"""
+        every { fakeMarkdownParser.instance.parse(source, any(), any()) } returns TextContent("Example", html)
+        val replied = createTimelineEvent("Original", null)
+
+        val text = localEchoEventFactory.createTextEvent(A_ROOM_ID, MessageType.MSGTYPE_TEXT, source, autoMarkdown = true)
+        assertEquals("Example", text.content?.get("body"))
+        assertEquals(html, text.content?.get("formatted_body"))
+
+        val reply = localEchoEventFactory.createReplyTextContent(replied, source, null, autoMarkdown = true, showInThread = false)
+        assertEquals("Example", reply?.body)
+
+        val edit = localEchoEventFactory.createReplaceTextOfReply(
+                roomId = A_ROOM_ID,
+                eventReplaced = replied,
+                originalEvent = replied,
+                replyText = source,
+                replyTextFormatted = null,
+                autoMarkdown = true,
+                msgType = MessageType.MSGTYPE_TEXT,
+                compatibilityText = "* Example",
+        )
+        assertEquals("Example", edit.newContent()?.get("body"))
+        assertEquals(html, edit.newContent()?.get("formatted_body"))
+
+        val media = localEchoEventFactory.createMediaReplaceEvent(
+                roomId = A_ROOM_ID,
+                targetEvent = replied,
+                attachment = anImageAttachment(),
+                captionText = source,
+                autoMarkdown = true,
+        )
+        assertEquals("Example", media.newContent()?.get("body"))
+        assertEquals(html, media.newContent()?.get("formatted_body"))
+
+        val gallery = localEchoEventFactory.createGalleryEvent(
+                roomId = A_ROOM_ID,
+                attachments = listOf(anImageAttachment()),
+                rootThreadEventId = null,
+                relatesTo = null,
+                captionText = source,
+                autoMarkdown = true,
+        )
+        assertEquals("Example", gallery.content?.get("body"))
+        assertEquals(html, gallery.content?.get("formatted_body"))
+
+        verify(exactly = 5) { fakeMarkdownParser.instance.parse(source, any(), any()) }
+        verify(exactly = 0) { fakeMarkdownParser.instance.parse(raw, any(), any()) }
     }
 
     @Test
