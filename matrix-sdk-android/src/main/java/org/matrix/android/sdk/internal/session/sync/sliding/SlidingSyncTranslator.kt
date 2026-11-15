@@ -52,6 +52,7 @@ internal class SlidingSyncTranslator @Inject constructor(
             unsyncedRooms: UnsyncedRoomTracker? = null,
             recordUnsynced: Boolean = true,
             now: Long = 0L,
+            canSyncTimeline: (String) -> Boolean = { true },
     ): SyncResponse {
         val extensions = response.extensions
         val roomAccountData = extensions?.accountData?.rooms.orEmpty()
@@ -63,7 +64,9 @@ internal class SlidingSyncTranslator @Inject constructor(
         val leave = LinkedHashMap<String, RoomSync>()
         val knock = LinkedHashMap<String, KnockedRoomSync>()
 
-        response.rooms.orEmpty().forEach { (roomId, room) ->
+        response.rooms.orEmpty().forEach { (roomId, receivedRoom) ->
+            val syncTimeline = canSyncTimeline(roomId)
+            val room = if (syncTimeline) receivedRoom else receivedRoom.withoutTimeline()
             val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
             when (room.membership() ?: storedMembership(roomId)) {
                 Membership.INVITE -> invite[roomId] = InvitedRoomSync(
@@ -73,10 +76,10 @@ internal class SlidingSyncTranslator @Inject constructor(
                         knockState = RoomInviteState(room.strippedStateEvents.orEmpty())
                 )
                 Membership.LEAVE,
-                Membership.BAN -> leave[roomId] = room.toRoomSync(roomAccountData[roomId], emptyList())
+                Membership.BAN -> leave[roomId] = room.toRoomSync(roomAccountData[roomId], emptyList(), canSyncTimeline = syncTimeline)
                 Membership.JOIN -> {
-                    val forceLimited = unsyncedRooms != null && trackUnsynced(unsyncedRooms, roomId, room, recordUnsynced, now)
-                    join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral, forceLimited)
+                    val forceLimited = unsyncedRooms != null && trackUnsynced(unsyncedRooms, roomId, room, recordUnsynced || !syncTimeline, now)
+                    join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral, forceLimited, syncTimeline)
                 }
                 // Nothing says we are in this room; filing it as joined would list an empty "0 members" room.
                 else -> Timber.w("Sliding sync: ignoring $roomId, no membership known")
@@ -146,6 +149,19 @@ internal class SlidingSyncTranslator @Inject constructor(
 
     private fun isOwnMemberEvent(event: Event): Boolean = event.type == EventType.STATE_ROOM_MEMBER && event.stateKey == userId
 
+    private fun SlidingSyncRoom.withoutTimeline(): SlidingSyncRoom {
+        // A superseded request can still deliver our leave event only in its timeline.
+        val timelineState = timeline.orEmpty().filter { it.isStateEvent() }
+        val state = (timelineState + requiredState.orEmpty()).associateBy { it.type to it.stateKey }.toMutableMap()
+        timelineState.lastOrNull(::isOwnMemberEvent)?.let { state[it.type to it.stateKey] = it }
+        return copy(
+                timeline = null,
+                prevBatch = null,
+                limited = false,
+                requiredState = state.values.toList().takeIf { it.isNotEmpty() },
+        )
+    }
+
     /**
      * What the store says about a room the response carries nothing about. Synapse keeps delivering a room
      * we were kicked or banned from — its receipts at least — with none of our own membership, and reading
@@ -173,7 +189,12 @@ internal class SlidingSyncTranslator @Inject constructor(
         return tracker.onDeliveredWithTimeline(roomId) && room.prevBatch != null
     }
 
-    private fun SlidingSyncRoom.toRoomSync(accountData: List<Event>?, ephemeral: List<Event>, forceLimited: Boolean = false): RoomSync {
+    private fun SlidingSyncRoom.toRoomSync(
+            accountData: List<Event>?,
+            ephemeral: List<Event>,
+            forceLimited: Boolean = false,
+            canSyncTimeline: Boolean = true,
+    ): RoomSync {
         return RoomSync(
                 // required_state is the room state as of the end of the timeline, which is exactly what
                 // MSC4222's state_after means — so the handler applies it in the right order for free.
@@ -193,6 +214,7 @@ internal class SlidingSyncTranslator @Inject constructor(
                         ?.let { LazyRoomSyncEphemeral.Parsed(RoomSyncEphemeral(events = it)) },
                 accountData = accountData?.let { RoomSyncAccountData(events = it) },
                 isInitialDelivery = initial,
+                canSyncTimeline = canSyncTimeline,
                 heroProfiles = heroes.orEmpty()
                         .filter { it.userId != userId }
                         .map { RoomSyncHeroProfile(userId = it.userId, displayName = it.displayName, avatarUrl = it.avatarUrl) },

@@ -227,7 +227,7 @@ internal class SqlTimeline(
 
     override fun start(rootThreadEventId: String?) {
         if (!isStarted.compareAndSet(false, true)) return
-        updateRoomSubscription(true)
+        updateRoomSubscription()
         val initialNavigation = navigationGeneration.get()
         threadRootId = rootThreadEventId ?: settings.rootThreadEventId
         timelineInput.listeners.add(this)
@@ -337,7 +337,7 @@ internal class SqlTimeline(
 
     override fun dispose() {
         isStarted.set(false)
-        updateRoomSubscription(false)
+        updateRoomSubscription()
         timelineInput.listeners.remove(this)
         eventDecryptor.removeOnDecryptedListener(decryptedListener)
         eventDecryptor.destroy()
@@ -484,7 +484,7 @@ internal class SqlTimeline(
             }
         }
         rebuildsPaused = paused
-        updateRoomSubscription(!paused)
+        updateRoomSubscription()
         if (!paused && rebuildPendingWhilePaused) {
             rebuildPendingWhilePaused = false
             timelineScope.launch {
@@ -494,8 +494,9 @@ internal class SqlTimeline(
         }
     }
 
-    private fun updateRoomSubscription(active: Boolean) {
-        val shouldSubscribe = active && isStarted.get()
+    @Synchronized
+    private fun updateRoomSubscription() {
+        val shouldSubscribe = !rebuildsPaused && settings.subscribeToRoom && isStarted.get()
         if (shouldSubscribe && hasRoomSubscription.compareAndSet(false, true)) {
             slidingSyncRoomSubscriptions.acquire(roomId)
         } else if (!shouldSubscribe && hasRoomSubscription.compareAndSet(true, false)) {

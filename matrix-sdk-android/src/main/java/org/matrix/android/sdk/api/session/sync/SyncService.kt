@@ -85,8 +85,9 @@ interface SyncService {
     fun setRoomSyncScope(scope: RoomSyncScope)
 
     /**
-     * Whether rooms can be left out of sync at all, i.e. MSC4186 is enabled and offered by the server.
-     * [RoomSyncScope] and the per-room sync tags are ignored otherwise.
+     * Whether the server can omit excluded rooms' timelines, i.e. MSC4186 is enabled and offered.
+     * Paginated sliding sync still downloads these timelines but does not import them.
+     * Sync v2 ignores the scope and per-room sync tags.
      */
     fun canLimitRoomSync(): Boolean
 }

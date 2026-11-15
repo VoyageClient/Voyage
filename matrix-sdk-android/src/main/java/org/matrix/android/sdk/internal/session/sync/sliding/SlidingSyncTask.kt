@@ -19,6 +19,7 @@ import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.RoomSyncScope
@@ -148,12 +149,31 @@ internal class SlidingSyncTask @Inject constructor(
             executeSync(mode, pos, timeout, params.presence)
         }
         logResponse(mode, slidingResponse, clock.epochMillis() - requestedAt)
+        // The scope or open rooms may have changed while this request was in flight.
+        val scope = settingsStorage.getRoomSyncScope(userId)
+        val subscriptions = roomSubscriptions.snapshot()
+        val directRooms = slidingResponse.extensions?.accountData?.global
+                ?.lastOrNull { it.type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES }
+                ?.content?.values?.flatMap { (it as? List<*>)?.filterIsInstance<String>().orEmpty() }?.toSet()
+        val roomTags = slidingResponse.extensions?.accountData?.rooms?.mapValues { (_, events) ->
+            (events.lastOrNull { it.type == RoomAccountDataTypes.EVENT_TYPE_TAG && it.content?.get("tags") is Map<*, *> }
+                    ?.content?.get("tags") as? Map<*, *>)?.keys?.filterIsInstance<String>()
+        }
         val syncResponse = MatrixPerf.time("resp.translate") {
             translator.toSyncResponse(
                     response = slidingResponse,
                     unsyncedRooms = unsyncedRoomTracker,
                     recordUnsynced = mode == SlidingSyncMode.SIMPLIFIED,
                     now = clock.epochMillis(),
+                    canSyncTimeline = { roomId ->
+                        subscriptions[roomId] == SlidingSyncRoomSubscriptions.Depth.OPEN ||
+                                isSyncedByLists(
+                                        roomId = roomId,
+                                        scope = scope,
+                                        tags = roomTags?.get(roomId),
+                                        isDirect = slidingResponse.rooms?.get(roomId)?.isDm ?: directRooms?.contains(roomId),
+                                )
+                    },
             )
         }
         syncResponse.accountData?.list.orEmpty().firstOrNull { it.type == "m.push_rules" }?.let { event ->
@@ -440,13 +460,18 @@ internal class SlidingSyncTask @Inject constructor(
         }
     }
 
-    /** Mirrors [simplifiedLists] from what is stored locally. */
-    private fun isSyncedByLists(roomId: String, scope: RoomSyncScope): Boolean {
-        val tags = stores.roomTag.getTags(roomId).map { it.tagName }
+    /** Mirrors [simplifiedLists]. */
+    private fun isSyncedByLists(
+            roomId: String,
+            scope: RoomSyncScope,
+            tags: Collection<String>? = null,
+            isDirect: Boolean? = null,
+    ): Boolean {
+        val effectiveTags = tags ?: stores.roomTag.getTags(roomId).map { it.tagName }
         return when {
-            RoomTag.ROOM_TAG_SYNC_WHEN_OPEN in tags -> false
-            scope == RoomSyncScope.ALL || RoomTag.ROOM_TAG_SYNC_ALWAYS in tags -> true
-            scope == RoomSyncScope.DIRECT_MESSAGES -> stores.roomSummary.get(roomId)?.isDirect == true
+            RoomTag.ROOM_TAG_SYNC_WHEN_OPEN in effectiveTags -> false
+            scope == RoomSyncScope.ALL || RoomTag.ROOM_TAG_SYNC_ALWAYS in effectiveTags -> true
+            scope == RoomSyncScope.DIRECT_MESSAGES -> isDirect ?: (stores.roomSummary.get(roomId)?.isDirect == true)
             else -> false
         }
     }

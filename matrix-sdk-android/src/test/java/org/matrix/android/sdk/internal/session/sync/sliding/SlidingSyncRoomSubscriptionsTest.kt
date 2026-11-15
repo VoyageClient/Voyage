@@ -26,7 +26,7 @@ class SlidingSyncRoomSubscriptionsTest {
     }
 
     @Test
-    fun `closing a room does not interrupt the current sync`() {
+    fun `closing a room interrupts the current sync`() {
         val subscriptions = SlidingSyncRoomSubscriptions()
         subscriptions.acquire("room-a")
         var notifications = 0
@@ -34,7 +34,27 @@ class SlidingSyncRoomSubscriptionsTest {
 
         subscriptions.release("room-a")
 
+        notifications shouldBeEqualTo 1
+        subscriptions.snapshot() shouldBeEqualTo emptyMap()
+    }
+
+    @Test
+    fun `closing one view keeps the room subscribed until its last view closes`() {
+        val subscriptions = SlidingSyncRoomSubscriptions()
+        subscriptions.acquire("room-a")
+        subscriptions.acquire("room-a")
+        var notifications = 0
+        subscriptions.addListener { notifications++ }
+
+        subscriptions.release("room-a")
+
         notifications shouldBeEqualTo 0
+        subscriptions.snapshot() shouldBeEqualTo mapOf("room-a" to Depth.OPEN)
+
+        subscriptions.release("room-a")
+        subscriptions.release("room-a")
+
+        notifications shouldBeEqualTo 1
         subscriptions.snapshot() shouldBeEqualTo emptyMap()
     }
 

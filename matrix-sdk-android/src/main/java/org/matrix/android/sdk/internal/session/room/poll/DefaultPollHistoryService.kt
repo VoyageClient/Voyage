@@ -68,6 +68,7 @@ internal class DefaultPollHistoryService @AssistedInject constructor(
                 buildReadReceipts = false,
                 rootThreadEventId = null,
                 useLiveSenderInfo = false,
+                subscribeToRoom = false,
         )
         timelineService.createTimeline(eventId = null, settings = settings).also { it.start() }
     }

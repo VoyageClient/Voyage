@@ -129,10 +129,10 @@ internal class SqlRoomSyncHandler @Inject constructor(
             // A visibility boundary persisted while removed (403 → is_last_backward) no longer
             // applies; a legitimate room-start boundary just re-marks itself on the next paginate.
             stores.chunk.clearLastBackward(roomId)
-            aggregator.rejoinedRoomsToReanchor.add(roomId)
+            if (roomSync.canSyncTimeline) aggregator.rejoinedRoomsToReanchor.add(roomId)
         }
         // Seed newly joined rooms for previews, but skip first deliveries during sliding-sync account coverage.
-        if (previousMembership != Membership.JOIN && !isInitialSync && !roomSync.isInitialDelivery) {
+        if (previousMembership != Membership.JOIN && !isInitialSync && !roomSync.isInitialDelivery && roomSync.canSyncTimeline) {
             aggregator.newlyJoinedRooms.add(roomId)
         }
         roomEntity.membership = Membership.JOIN

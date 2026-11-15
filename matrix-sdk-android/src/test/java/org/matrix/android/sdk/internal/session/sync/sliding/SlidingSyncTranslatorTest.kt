@@ -13,7 +13,10 @@ import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldContain
+import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.internal.database.model.RoomEntity
@@ -530,6 +533,35 @@ class SlidingSyncTranslatorTest {
                 """
         )
         next.rooms?.join?.get("!room:example.org")?.timeline?.limited shouldBe false
+    }
+
+    @Test
+    fun `an excluded timeline preserves membership and room state without importing messages`() {
+        val ownJoin = Event(type = EventType.STATE_ROOM_MEMBER, stateKey = "@me:example.org", content = mapOf("membership" to "join"))
+        val ownLeave = ownJoin.copy(content = mapOf("membership" to "leave"))
+        val oldName = Event(type = EventType.STATE_ROOM_NAME, stateKey = "", content = mapOf("name" to "Earlier name"))
+        val currentName = oldName.copy(content = mapOf("name" to "Current name"))
+        val topic = Event(type = EventType.STATE_ROOM_TOPIC, stateKey = "", content = mapOf("topic" to "Example topic"))
+        val response = translator.toSyncResponse(
+                SlidingSyncResponse(
+                        pos = "next",
+                        rooms = mapOf("!room:example.org" to SlidingSyncRoom(
+                                requiredState = listOf(ownJoin, currentName),
+                                timeline = listOf(oldName, topic, ownLeave, Event(type = EventType.MESSAGE)),
+                                prevBatch = "history",
+                        )),
+                ),
+                canSyncTimeline = { false },
+        )
+
+        val room = response.rooms!!.leave["!room:example.org"]!!
+        room.timeline.shouldBeNull()
+        assertEquals(mapOf(
+                EventType.STATE_ROOM_MEMBER to ownLeave,
+                EventType.STATE_ROOM_NAME to currentName,
+                EventType.STATE_ROOM_TOPIC to topic,
+        ), room.stateAfter!!.events!!.associateBy { it.type })
+        response.rooms!!.join.isEmpty() shouldBe true
     }
 
     @Test

@@ -33,9 +33,9 @@ internal class SlidingSyncRoomSubscriptions @Inject constructor() {
         if (changed) listeners.forEach { it() }
     }
 
-    /** Silent: nothing is needed from the server sooner; the next request just drops the subscription. */
     fun release(roomId: String) {
-        synchronized(openRooms) { openRooms.decrement(roomId) }
+        val changed = synchronized(openRooms) { openRooms.decrement(roomId) }
+        if (changed) listeners.forEach { it() }
     }
 
     /**

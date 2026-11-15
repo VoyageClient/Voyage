@@ -71,6 +71,9 @@ data class RoomSync(
          */
         @Transient val isInitialDelivery: Boolean = false,
 
+        // Join post-treatment must not backfill timelines excluded by the sync scope.
+        @Transient val canSyncTimeline: Boolean = true,
+
         /**
          * Sliding sync only: the profiles the server computed for this room's heroes. Lazily-loaded members
          * often leave a DM with no member event for the other person, and this is what it has instead.

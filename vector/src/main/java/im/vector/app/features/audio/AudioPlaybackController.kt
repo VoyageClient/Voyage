@@ -175,7 +175,12 @@ class AudioPlaybackController @Inject constructor(
         // The server has never seen a local echo id, so a timeline anchored on one never finds its target.
         val anchor = track.eventId.takeIf { it.startsWith("$") && !LocalEcho.isLocalEchoId(it) }
         timeline = session?.getRoom(track.roomId)?.timelineService()?.createTimeline(anchor,
-                        TimelineSettings(100, false, session?.getRoom(track.roomId)?.timelineService()?.getTimelineEvent(track.eventId)?.root?.getRootThreadEventId()))?.also { next ->
+                        TimelineSettings(
+                                initialSize = 100,
+                                buildReadReceipts = false,
+                                rootThreadEventId = session?.getRoom(track.roomId)?.timelineService()?.getTimelineEvent(track.eventId)?.root?.getRootThreadEventId(),
+                                subscribeToRoom = false,
+                        ))?.also { next ->
             next.addListener(object : Timeline.Listener {
                 override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
                     scope.launch {
