@@ -1962,7 +1962,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         room.relationService().editMediaCaption(
                                 targetEvent,
                                 editText,
-                                editFormatted?.toString(),
+                                editFormatted ?: room.sendService().computeFormattedHtml(editText, editAutoMarkdown),
                         )
                     }
                 } else {
