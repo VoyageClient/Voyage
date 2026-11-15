@@ -3954,4 +3954,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Вернуть действия при смахивании в этой комнате к настройкам вашей учётной записи?</string>
     <string name="quick_reactions_add">Отреагировать</string>
+    <string name="settings_redaction_preserve_own">Включать мои сообщения</string>
+    <string name="settings_redaction_preserve_own_summary">Также показывать исходное содержимое моих удалённых сообщений</string>
 </resources>

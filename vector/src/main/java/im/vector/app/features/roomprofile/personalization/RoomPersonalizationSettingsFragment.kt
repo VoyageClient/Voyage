@@ -416,6 +416,7 @@ class RoomPersonalizationSettingsFragment :
     override fun onResume() {
         super.onResume()
         updateTimelineDebugPreferences()
+        updateOwnRedactionPreference()
     }
 
     private fun updateTimelineDebugPreferences() {
@@ -456,8 +457,16 @@ class RoomPersonalizationSettingsFragment :
         bindTriState(SETTINGS_ROOM_REDACTION_PRESERVE_KEY,
                 current = redactionSettings.roomPreserveRedactedOverride(roomId)) {
             redactionSettings.setRoomPreserveRedactedOverride(roomId, it)
+            updateOwnRedactionPreference()
             refreshRedactionResetState()
         }
+
+        bindTriState(SETTINGS_ROOM_REDACTION_PRESERVE_OWN_KEY,
+                current = redactionSettings.roomPreserveOwnRedactedOverride(roomId)) {
+            redactionSettings.setRoomPreserveOwnRedactedOverride(roomId, it)
+            refreshRedactionResetState()
+        }
+        updateOwnRedactionPreference()
 
         bindTriState(SETTINGS_ROOM_REDACTION_CLEAR_KEY,
                 current = redactionSettings.roomClearWithAppCacheOverride(roomId)) {
@@ -493,8 +502,14 @@ class RoomPersonalizationSettingsFragment :
         refreshRedactionResetState()
     }
 
+    private fun updateOwnRedactionPreference() {
+        findPreference<VectorListPreference>(SETTINGS_ROOM_REDACTION_PRESERVE_OWN_KEY)
+                ?.isEnabled = redactionSettings.preserveRedactedFor(roomId)
+    }
+
     private fun refreshRedactionResetState() {
         redactionCategory?.isActionEnabled = redactionSettings.roomPreserveRedactedOverride(roomId) != null ||
+                redactionSettings.roomPreserveOwnRedactedOverride(roomId) != null ||
                 redactionSettings.roomClearWithAppCacheOverride(roomId) != null ||
                 redactionSettings.roomWifiOnlyOverride(roomId) != null ||
                 redactionSettings.roomPreserveMediaOverride(roomId) != null ||
@@ -503,17 +518,20 @@ class RoomPersonalizationSettingsFragment :
 
     private fun resetRedactionOverrides() {
         redactionSettings.setRoomPreserveRedactedOverride(roomId, null)
+        redactionSettings.setRoomPreserveOwnRedactedOverride(roomId, null)
         redactionSettings.setRoomClearWithAppCacheOverride(roomId, null)
         redactionSettings.setRoomWifiOnlyOverride(roomId, null)
         redactionSettings.setRoomPreserveMediaOverride(roomId, null)
         redactionSettings.setRoomMaxMediaSizeOverride(roomId, null)
         resetListPreferences(
                 SETTINGS_ROOM_REDACTION_PRESERVE_KEY,
+                SETTINGS_ROOM_REDACTION_PRESERVE_OWN_KEY,
                 SETTINGS_ROOM_REDACTION_CLEAR_KEY,
                 SETTINGS_ROOM_REDACTION_WIFI_ONLY_KEY,
                 SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY,
                 SETTINGS_ROOM_REDACTION_MAX_MEDIA_SIZE_KEY,
         )
+        updateOwnRedactionPreference()
         refreshRedactionResetState()
     }
 
@@ -816,6 +834,7 @@ class RoomPersonalizationSettingsFragment :
         private const val SETTINGS_ROOM_STRIP_METADATA_KEY = "SETTINGS_ROOM_STRIP_METADATA_KEY"
         private const val SETTINGS_ROOM_REDACTION_CATEGORY_KEY = "SETTINGS_ROOM_REDACTION_CATEGORY_KEY"
         private const val SETTINGS_ROOM_REDACTION_PRESERVE_KEY = "SETTINGS_ROOM_REDACTION_PRESERVE_KEY"
+        private const val SETTINGS_ROOM_REDACTION_PRESERVE_OWN_KEY = "SETTINGS_ROOM_REDACTION_PRESERVE_OWN_KEY"
         private const val SETTINGS_ROOM_REDACTION_CLEAR_KEY = "SETTINGS_ROOM_REDACTION_CLEAR_KEY"
         private const val SETTINGS_ROOM_REDACTION_CLEAR_NOW_KEY = "SETTINGS_ROOM_REDACTION_CLEAR_NOW_KEY"
         private const val SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY = "SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY"

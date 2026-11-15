@@ -37,9 +37,46 @@ class RedactionPreservationSettingsTest {
     @Test
     fun `given nothing configured, then the defaults apply`() {
         settings.globalPreserveRedacted shouldBe false
+        settings.globalPreserveOwnRedacted shouldBe false
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe false
         settings.globalPreserveMedia shouldBe true
         settings.globalWifiOnly shouldBe true
         settings.clearRedactionCacheWithAppCache shouldBe true
+    }
+
+    @Test
+    fun `including own messages inherits global settings and requires preservation in that room`() {
+        settings.globalPreserveOwnRedacted = true
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe false
+        settings.globalPreserveRedacted = true
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe true
+
+        settings.setRoomPreserveOwnRedactedOverride(A_ROOM_ID, false)
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe false
+        settings.preserveOwnRedactedFor(ANOTHER_ROOM_ID) shouldBe true
+        settings.setRoomPreserveOwnRedactedOverride(A_ROOM_ID, null)
+        settings.roomPreserveOwnRedactedOverride(A_ROOM_ID) shouldBe null
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe true
+
+        settings.globalPreserveOwnRedacted = false
+        settings.setRoomPreserveOwnRedactedOverride(A_ROOM_ID, true)
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe true
+        settings.preserveOwnRedactedFor(ANOTHER_ROOM_ID) shouldBe false
+        settings.setRoomPreserveRedactedOverride(A_ROOM_ID, false)
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe false
+        settings.setRoomPreserveRedactedOverride(A_ROOM_ID, true)
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe true
+    }
+
+    @Test
+    fun `including own messages is scoped to each account`() {
+        settings.globalPreserveRedacted = true
+        settings.globalPreserveOwnRedacted = true
+        settings.setRoomPreserveOwnRedactedOverride(A_ROOM_ID, true)
+        currentUserId = ANOTHER_USER_ID
+        settings.globalPreserveOwnRedacted shouldBe false
+        settings.roomPreserveOwnRedactedOverride(A_ROOM_ID) shouldBe null
+        settings.preserveOwnRedactedFor(A_ROOM_ID) shouldBe false
     }
 
     @Test

@@ -3700,4 +3700,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">اس کمرے کی سوائپ کارروائیاں اپنے پورے کھاتے والی پر واپس لائیں؟</string>
     <string name="quick_reactions_add">ردعمل دیں</string>
+    <string name="settings_redaction_preserve_own">میرے اپنے پیغامات بھی شامل کریں</string>
+    <string name="settings_redaction_preserve_own_summary">میرے اپنے مٹائے گئے پیغامات کا اصل مواد بھی دکھائیں</string>
 </resources>

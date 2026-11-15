@@ -3721,4 +3721,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Setel ulang tindakan geser ruangan ini ke yang berlaku di seluruh akun?</string>
     <string name="quick_reactions_add">Beri reaksi</string>
+    <string name="settings_redaction_preserve_own">Sertakan pesan saya sendiri</string>
+    <string name="settings_redaction_preserve_own_summary">Tampilkan juga konten asli pesan saya sendiri yang dihapus</string>
 </resources>

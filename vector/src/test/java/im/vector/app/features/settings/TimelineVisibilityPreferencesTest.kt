@@ -13,15 +13,19 @@ import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineDisplayableEvents
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.settings.VectorPreferences.TimelineVisibilityRule
+import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.threads.ThreadDetails
+import org.matrix.android.sdk.api.util.toOption
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -41,10 +45,11 @@ class TimelineVisibilityPreferencesTest {
             vectorFeatures = mockk(relaxed = true),
             defaultPrefs = storage,
     )
+    private val activeSessionDataSource = ActiveSessionDataSource()
     private val visibility = TimelineEventVisibilityHelper(
             UserPreferencesProvider(preferences),
             mockk(relaxed = true),
-            ActiveSessionDataSource(),
+            activeSessionDataSource,
     )
 
     @Test
@@ -76,6 +81,32 @@ class TimelineVisibilityPreferencesTest {
             preferences.getRoomTimelineVisibilityOverride(ROOM_ID, rule).shouldBeNull()
             preferences.timelineVisibility(rule, ROOM_ID) shouldBeEqualTo true
         }
+    }
+
+    @Test
+    fun `own redacted placeholders stay visible when jump highlighting clears`() {
+        activeSessionDataSource.post(mockk<Session>(relaxed = true) {
+            every { myUserId } returns "@bob:example.org"
+        }.toOption())
+        preferences.setThreadMessagesEnabled()
+        val redacted = event(EventType.MESSAGE).let {
+            it.copy(root = it.root.copy(stateKey = null, unsignedData = UnsignedData(age = null, redactedBy = "\$redaction")))
+        }
+        redacted.root.threadDetails = ThreadDetails()
+        val otherRedacted = redacted.copy(root = redacted.root.copy(senderId = "@alice:example.org"))
+        otherRedacted.root.threadDetails = ThreadDetails()
+        val threadReply = redacted.copy(root = redacted.root.copy(
+                content = mapOf("m.relates_to" to mapOf("rel_type" to "m.thread", "event_id" to "\$thread")),
+        ))
+        visibility.shouldShowEvent(redacted, redacted.eventId, false, null) shouldBeEqualTo true
+        isShown(redacted) shouldBeEqualTo true
+        isShown(otherRedacted) shouldBeEqualTo true
+        visibility.shouldShowEvent(threadReply, null, true, "\$thread") shouldBeEqualTo true
+
+        preferences.setRoomTimelineVisibilityOverride(ROOM_ID, TimelineVisibilityRule.REDACTED, false)
+        isShown(redacted) shouldBeEqualTo false
+        isShown(otherRedacted) shouldBeEqualTo false
+        visibility.shouldShowEvent(threadReply, null, true, "\$thread") shouldBeEqualTo false
     }
 
     @Test

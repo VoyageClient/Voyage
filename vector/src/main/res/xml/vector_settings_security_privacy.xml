@@ -264,6 +264,14 @@
             android:title="@string/settings_redaction_preserve" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:dependency="SETTINGS_REDACTION_PRESERVE_KEY"
+            android:key="SETTINGS_REDACTION_PRESERVE_OWN_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_redaction_preserve_own_summary"
+            android:title="@string/settings_redaction_preserve_own" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_REDACTION_PRESERVE_MEDIA_KEY"
             android:persistent="false"
             android:title="@string/settings_redaction_preserve_media" />

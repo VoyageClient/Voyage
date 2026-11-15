@@ -73,13 +73,7 @@ class RedactedContentRevealManager @Inject constructor(
 
     private fun hiddenKey(userId: String) = "SETTINGS_REDACTION_HIDDEN_$userId"
 
-    /**
-     * Whether [eventId] in [roomId] should currently show its pre-redaction content.
-     *
-     * [isOwnMessage] only suppresses the room's automatic default: redacting your own message is a
-     * deliberate act, so a room-wide reveal shouldn't quietly undo it everywhere. An explicit
-     * per-message Reveal still works on your own messages.
-     */
+    /** Explicit per-message choices override the room's preservation defaults. */
     fun isRevealed(roomId: String, eventId: String, isOwnMessage: Boolean): Boolean {
         val userId = userId() ?: return false
         ensureLoaded(userId)
@@ -87,7 +81,7 @@ class RedactedContentRevealManager @Inject constructor(
             if (eventId in explicitlyRevealed) return true
             if (eventId in explicitlyHidden) return false
         }
-        if (isOwnMessage) return false
+        if (isOwnMessage) return settings.preserveOwnRedactedFor(roomId)
         return settings.preserveRedactedFor(roomId)
     }
 

@@ -4015,4 +4015,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">أتريد إعادة إجراءات السحب لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
     <string name="quick_reactions_add">تفاعل</string>
+    <string name="settings_redaction_preserve_own">ضمّن رسائلي أيضًا</string>
+    <string name="settings_redaction_preserve_own_summary">اعرض أيضًا المحتوى الأصلي لرسائلي المحذوفة</string>
 </resources>

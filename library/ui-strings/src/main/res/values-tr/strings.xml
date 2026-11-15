@@ -3758,4 +3758,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Bu odanın kaydırma eylemleri hesap genelindeki değerlere sıfırlansın mı?</string>
     <string name="quick_reactions_add">Tepki ver</string>
+    <string name="settings_redaction_preserve_own">Kendi mesajlarımı da dahil et</string>
+    <string name="settings_redaction_preserve_own_summary">Silinen kendi mesajlarımın orijinal içeriğini de göster</string>
 </resources>

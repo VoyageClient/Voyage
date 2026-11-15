@@ -3923,4 +3923,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">לאפס את פעולות ההחלקה של חדר זה לאלה של החשבון כולו?</string>
     <string name="quick_reactions_add">הגב</string>
+    <string name="settings_redaction_preserve_own">כלול גם הודעות שלי</string>
+    <string name="settings_redaction_preserve_own_summary">הצג גם את התוכן המקורי של ההודעות שלי שנמחקו</string>
 </resources>

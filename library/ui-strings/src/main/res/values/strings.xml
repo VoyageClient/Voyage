@@ -4097,6 +4097,8 @@
     <string name="settings_redactions">Redactions</string>
     <string name="settings_redaction_preserve">Preserve redacted messages</string>
     <string name="settings_redaction_preserve_summary">Ask the server for the original when a message is redacted, and show it in place of the redacted notice</string>
+    <string name="settings_redaction_preserve_own">Include my own messages</string>
+    <string name="settings_redaction_preserve_own_summary">Also show the original content of my own redacted messages</string>
     <string name="settings_redaction_preserve_media">Preserve media</string>
     <string name="settings_redaction_max_media_size">Maximum media size to download</string>
     <string name="settings_redaction_wifi_only">Only preserve media on Wi-Fi</string>

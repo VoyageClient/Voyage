@@ -3760,4 +3760,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">এই রুমের সোয়াইপের কাজগুলো আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
     <string name="quick_reactions_add">প্রতিক্রিয়া দিন</string>
+    <string name="settings_redaction_preserve_own">আমার নিজের বার্তাও অন্তর্ভুক্ত করুন</string>
+    <string name="settings_redaction_preserve_own_summary">আমার নিজের রিড্যাক্ট করা বার্তার মূল বিষয়বস্তুও দেখান</string>
 </resources>

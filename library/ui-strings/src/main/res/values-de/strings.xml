@@ -3799,4 +3799,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Wischaktionen dieses Raums auf die kontoweiten Einstellungen zurücksetzen?</string>
     <string name="quick_reactions_add">Reagieren</string>
+    <string name="settings_redaction_preserve_own">Eigene Nachrichten einbeziehen</string>
+    <string name="settings_redaction_preserve_own_summary">Auch den ursprünglichen Inhalt meiner eigenen gelöschten Nachrichten anzeigen</string>
 </resources>

@@ -3800,4 +3800,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Redefinir as ações ao deslizar desta sala para as da sua conta?</string>
     <string name="quick_reactions_add">Reagir</string>
+    <string name="settings_redaction_preserve_own">Incluir minhas próprias mensagens</string>
+    <string name="settings_redaction_preserve_own_summary">Mostrar também o conteúdo original das minhas próprias mensagens removidas</string>
 </resources>

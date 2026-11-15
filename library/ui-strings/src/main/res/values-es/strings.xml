@@ -3788,4 +3788,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">¿Restablecer las acciones al deslizar de esta sala a las de toda tu cuenta?</string>
     <string name="quick_reactions_add">Reaccionar</string>
+    <string name="settings_redaction_preserve_own">Incluir mis propios mensajes</string>
+    <string name="settings_redaction_preserve_own_summary">Mostrar también el contenido original de mis propios mensajes borrados</string>
 </resources>

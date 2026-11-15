@@ -211,6 +211,7 @@ import im.vector.app.features.redaction.MassRedactionBannerBinder
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.redaction.preservation.RevealFailure
 import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.session.coroutineScope
@@ -319,6 +320,7 @@ class TimelineFragment :
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var redactedContentRepository: RedactedContentRepository
     @Inject lateinit var redactedContentRestorer: RedactedContentRestorer
+    @Inject lateinit var redactionPreservationSettings: RedactionPreservationSettings
     @Inject lateinit var threadsManager: ThreadsManager
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var dimensionConverter: DimensionConverter
@@ -1487,7 +1489,11 @@ class TimelineFragment :
     private fun refreshOnTimelineVisibilityChange() {
         val visibility = VectorPreferences.TimelineVisibilityRule.values().map {
             vectorPreferences.timelineVisibility(it, timelineArgs.roomId)
-        } + vectorPreferences.showMessageTimestamps()
+        } + listOf(
+                vectorPreferences.showMessageTimestamps(),
+                redactionPreservationSettings.preserveRedactedFor(timelineArgs.roomId),
+                redactionPreservationSettings.preserveOwnRedactedFor(timelineArgs.roomId),
+        )
         if (lastTimelineVisibility != null && lastTimelineVisibility != visibility) {
             timelineEventController.invalidateAllCache()
         }

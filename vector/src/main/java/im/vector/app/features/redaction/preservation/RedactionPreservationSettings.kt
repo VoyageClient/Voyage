@@ -59,6 +59,24 @@ class RedactionPreservationSettings @Inject constructor(
 
     fun preserveRedactedFor(roomId: String): Boolean = roomPreserveRedactedOverride(roomId) ?: globalPreserveRedacted
 
+    var globalPreserveOwnRedacted: Boolean
+        get() = preferences.getBoolean(key(PRESERVE_OWN), false)
+        set(value) {
+            preferences.edit { putBoolean(key(PRESERVE_OWN), value) }
+        }
+
+    fun roomPreserveOwnRedactedOverride(roomId: String): Boolean? =
+            if (preferences.contains(roomKey(PRESERVE_OWN, roomId))) preferences.getBoolean(roomKey(PRESERVE_OWN, roomId), false) else null
+
+    fun setRoomPreserveOwnRedactedOverride(roomId: String, value: Boolean?) {
+        preferences.edit {
+            if (value == null) remove(roomKey(PRESERVE_OWN, roomId)) else putBoolean(roomKey(PRESERVE_OWN, roomId), value)
+        }
+    }
+
+    fun preserveOwnRedactedFor(roomId: String): Boolean =
+            preserveRedactedFor(roomId) && (roomPreserveOwnRedactedOverride(roomId) ?: globalPreserveOwnRedacted)
+
     // -- What gets preserved. Each has a per-room override; null means inherit the account value. ---
 
     var globalPreserveMedia: Boolean
@@ -143,6 +161,7 @@ class RedactionPreservationSettings @Inject constructor(
 
     companion object {
         private const val PRESERVE = "PRESERVE"
+        private const val PRESERVE_OWN = "PRESERVE_OWN"
         private const val PRESERVE_MEDIA = "PRESERVE_MEDIA"
         private const val MAX_MEDIA_SIZE = "MAX_MEDIA_SIZE"
         private const val WIFI_ONLY = "WIFI_ONLY"
@@ -153,6 +172,7 @@ class RedactionPreservationSettings @Inject constructor(
 
         // Preference keys (the values are not persisted under these; the fragment reads/writes this class).
         const val SETTINGS_REDACTION_PRESERVE_KEY = "SETTINGS_REDACTION_PRESERVE_KEY"
+        const val SETTINGS_REDACTION_PRESERVE_OWN_KEY = "SETTINGS_REDACTION_PRESERVE_OWN_KEY"
         const val SETTINGS_REDACTION_PRESERVE_MEDIA_KEY = "SETTINGS_REDACTION_PRESERVE_MEDIA_KEY"
         const val SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY = "SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY"
         const val SETTINGS_REDACTION_WIFI_ONLY_KEY = "SETTINGS_REDACTION_WIFI_ONLY_KEY"

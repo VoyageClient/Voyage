@@ -3688,4 +3688,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">इस रूम की स्वाइप कार्रवाइयों को अपने खाते वाली पर रीसेट करें?</string>
     <string name="quick_reactions_add">प्रतिक्रिया दें</string>
+    <string name="settings_redaction_preserve_own">मेरे अपने मैसेज भी शामिल करें</string>
+    <string name="settings_redaction_preserve_own_summary">मेरे अपने हटाए गए मैसेज की मूल सामग्री भी दिखाएं</string>
 </resources>

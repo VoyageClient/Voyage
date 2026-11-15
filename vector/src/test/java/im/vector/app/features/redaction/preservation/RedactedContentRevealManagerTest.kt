@@ -39,6 +39,7 @@ class RedactedContentRevealManagerTest {
 
     private fun setPreserve(roomId: String, preserve: Boolean) {
         every { settings.preserveRedactedFor(roomId) } returns preserve
+        every { settings.preserveOwnRedactedFor(roomId) } returns false
     }
 
     @Test
@@ -140,13 +141,28 @@ class RedactedContentRevealManagerTest {
         manager.isRevealed(ANOTHER_ROOM_ID, AN_EVENT_ID, isOwnMessage = false) shouldBe false
     }
 
-    /** Deleting your own message is deliberate, so a room-wide reveal must not undo it. */
     @Test
     fun `given own message, then the room default does not reveal it`() {
         setPreserve(A_ROOM_ID, true)
 
         manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = true) shouldBe false
         manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = false) shouldBe true
+    }
+
+    @Test
+    fun `including own messages reveals them by default while explicit hide and reveal take priority`() {
+        setPreserve(A_ROOM_ID, true)
+        every { settings.preserveOwnRedactedFor(A_ROOM_ID) } returns true
+
+        manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = true) shouldBe true
+        manager.setRevealed(AN_EVENT_ID, false)
+        manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = true) shouldBe false
+        manager.isRevealed(A_ROOM_ID, ANOTHER_EVENT_ID, isOwnMessage = true) shouldBe true
+
+        every { settings.preserveOwnRedactedFor(A_ROOM_ID) } returns false
+        manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = true) shouldBe false
+        manager.setRevealed(AN_EVENT_ID, true)
+        manager.isRevealed(A_ROOM_ID, AN_EVENT_ID, isOwnMessage = true) shouldBe true
     }
 
     @Test

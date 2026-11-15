@@ -69,6 +69,7 @@ import im.vector.app.features.redaction.preservation.RedactionPreservationSettin
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_MEDIA_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_OWN_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_WIFI_ONLY_KEY
 import im.vector.app.features.session.ShadowBanState
 import im.vector.app.features.session.coroutineScope
@@ -643,12 +644,14 @@ class VectorSettingsSecurityPrivacyFragment :
         }
 
         val preservePref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_PRESERVE_KEY)
+        val preserveOwnPref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_PRESERVE_OWN_KEY)
         val preserveMediaPref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_PRESERVE_MEDIA_KEY)
         val maxSizePref = findPreference<VectorListPreference>(SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY)
         val wifiOnlyPref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_WIFI_ONLY_KEY)
         val clearWithAppCachePref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY)
 
         preservePref?.isChecked = redactionSettings.globalPreserveRedacted
+        preserveOwnPref?.isChecked = redactionSettings.globalPreserveOwnRedacted
         preserveMediaPref?.isChecked = redactionSettings.globalPreserveMedia
         maxSizePref?.value = redactionSettings.globalMaxMediaSize.toString()
         wifiOnlyPref?.isChecked = redactionSettings.globalWifiOnly
@@ -656,6 +659,10 @@ class VectorSettingsSecurityPrivacyFragment :
 
         preservePref?.setOnPreferenceChangeListener { _, newValue ->
             redactionSettings.globalPreserveRedacted = newValue as Boolean
+            true
+        }
+        preserveOwnPref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.globalPreserveOwnRedacted = newValue as Boolean
             true
         }
         preserveMediaPref?.setOnPreferenceChangeListener { _, newValue ->

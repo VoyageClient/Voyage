@@ -3800,4 +3800,6 @@
     <string name="settings_swipe_binding_description">%1$s : %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">Rétablir les actions par balayage de ce salon sur celles de votre compte ?</string>
     <string name="quick_reactions_add">Réagir</string>
+    <string name="settings_redaction_preserve_own">Inclure mes propres messages</string>
+    <string name="settings_redaction_preserve_own_summary">Afficher aussi le contenu d\'origine de mes propres messages supprimés</string>
 </resources>

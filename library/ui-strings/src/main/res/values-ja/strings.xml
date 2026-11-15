@@ -3719,4 +3719,6 @@
     <string name="settings_swipe_binding_description">%1$s: %2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">このルームのスワイプ操作を、アカウント全体のものにリセットしますか？</string>
     <string name="quick_reactions_add">リアクション</string>
+    <string name="settings_redaction_preserve_own">自分のメッセージも含める</string>
+    <string name="settings_redaction_preserve_own_summary">自分の削除されたメッセージの元の内容も表示します</string>
 </resources>

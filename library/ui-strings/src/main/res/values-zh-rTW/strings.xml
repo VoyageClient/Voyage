@@ -3723,4 +3723,6 @@
     <string name="settings_swipe_binding_description">%1$s：%2$s</string>
     <string name="room_personalization_swipe_reset_confirmation">要將此聊天室的滑動操作重設為帳號層級的設定嗎？</string>
     <string name="quick_reactions_add">反應</string>
+    <string name="settings_redaction_preserve_own">包含我自己的訊息</string>
+    <string name="settings_redaction_preserve_own_summary">同時顯示我自己已刪除訊息的原始內容</string>
 </resources>
