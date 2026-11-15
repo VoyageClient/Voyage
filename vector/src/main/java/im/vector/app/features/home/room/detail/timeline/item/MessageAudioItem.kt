@@ -561,7 +561,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.detailsSource = null
         holder.loadingDetailsSource = null
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId, holder.progressLayout)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
         holder.playbackRegistration.release(audioMessagePlaybackTracker)
     }

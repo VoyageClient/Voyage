@@ -3723,4 +3723,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="quick_reactions_add">Beri reaksi</string>
     <string name="settings_redaction_preserve_own">Sertakan pesan saya sendiri</string>
     <string name="settings_redaction_preserve_own_summary">Tampilkan juga konten asli pesan saya sendiri yang dihapus</string>
+    <string name="send_file_step_retrying_upload">Mencoba mengunggah lagi…</string>
+    <string name="send_file_step_waiting_for_server">Menunggu server…</string>
+    <string name="send_file_step_sending_unknown_size">Mengirim file…</string>
 </resources>

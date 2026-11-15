@@ -3762,4 +3762,7 @@
     <string name="quick_reactions_add">প্রতিক্রিয়া দিন</string>
     <string name="settings_redaction_preserve_own">আমার নিজের বার্তাও অন্তর্ভুক্ত করুন</string>
     <string name="settings_redaction_preserve_own_summary">আমার নিজের রিড্যাক্ট করা বার্তার মূল বিষয়বস্তুও দেখান</string>
+    <string name="send_file_step_retrying_upload">আবার আপলোডের চেষ্টা করা হচ্ছে…</string>
+    <string name="send_file_step_waiting_for_server">সার্ভারের জন্য অপেক্ষা করা হচ্ছে…</string>
+    <string name="send_file_step_sending_unknown_size">ফাইল পাঠানো হচ্ছে…</string>
 </resources>

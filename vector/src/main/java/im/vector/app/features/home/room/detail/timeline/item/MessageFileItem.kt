@@ -148,7 +148,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
     override fun unbind(holder: Holder) {
         previewUrlViewUpdater.unbind()
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId, holder.progressLayout)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
     }
 

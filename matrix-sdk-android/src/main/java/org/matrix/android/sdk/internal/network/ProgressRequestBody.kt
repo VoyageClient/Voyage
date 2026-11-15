@@ -23,15 +23,19 @@ import okio.BufferedSink
 import okio.ForwardingSink
 import okio.Sink
 import okio.buffer
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class ProgressRequestBody(
         private val delegate: RequestBody,
-        private val listener: Listener
+        private val listener: Listener,
+        private val nanoTime: () -> Long = System::nanoTime,
 ) : RequestBody() {
 
-    private lateinit var countingSink: CountingSink
+    val uploadId = nextUploadId.incrementAndGet()
+    private var attempt = 0
 
     override fun contentType(): MediaType? {
         return delegate.contentType()
@@ -43,40 +47,69 @@ internal class ProgressRequestBody(
 
     @Throws(IOException::class)
     override fun writeTo(sink: BufferedSink) {
-        countingSink = CountingSink(sink)
-        val bufferedSink = countingSink.buffer()
-        delegate.writeTo(bufferedSink)
-        bufferedSink.flush()
+        // Body loggers serialize to memory before the actual network write.
+        if (sink is Buffer) {
+            delegate.writeTo(sink)
+            return
+        }
+        attempt++
+        val countingSink = CountingSink(sink)
+        DebugLog.i { "UPLOADDBG body=$uploadId context=${listener.logContext} attempt=$attempt start total=$length" }
+        listener.onStart(attempt > 1)
+        try {
+            val bufferedSink = countingSink.buffer()
+            delegate.writeTo(bufferedSink)
+            bufferedSink.flush()
+            DebugLog.i { "UPLOADDBG body=$uploadId attempt=$attempt written=${countingSink.bytesWritten} awaiting-response" }
+            listener.onComplete()
+        } catch (failure: IOException) {
+            DebugLog.w { "UPLOADDBG body=$uploadId attempt=$attempt interrupted written=${countingSink.bytesWritten} error=${failure.javaClass.simpleName}" }
+            throw failure
+        }
     }
 
     private inner class CountingSink(delegate: Sink) : ForwardingSink(delegate) {
 
-        private var bytesWritten: Long = 0
-        private var lastNotifiedAtMs: Long = 0L
+        var bytesWritten = 0L
+            private set
+        private var lastNotifiedAtNs: Long? = null
+        private var lastLoggedAtNs: Long? = null
+        private var lastLoggedBucket = -1
 
         @Throws(IOException::class)
         override fun write(source: Buffer, byteCount: Long) {
             super.write(source, byteCount)
             bytesWritten += byteCount
-            // On fast networks (e.g. LAN) writes happen so frequently that posting a progress
-            // update for every 8KB segment floods the main thread and freezes the UI until the
-            // upload completes. Throttle to at most one update per PROGRESS_UPDATE_THROTTLE_MS,
-            // and always emit the final "done" update so the UI doesn't stall just shy of 100%.
-            val total = contentLength()
-            val now = System.currentTimeMillis()
-            val isFinal = total in 1..bytesWritten
-            if (isFinal || now - lastNotifiedAtMs >= PROGRESS_UPDATE_THROTTLE_MS) {
-                lastNotifiedAtMs = now
-                listener.onProgress(bytesWritten, total)
+            val now = nanoTime()
+            val isFinal = length in 1..bytesWritten
+            // Bound main-thread work even when a fast connection writes thousands of segments.
+            val lastNotified = lastNotifiedAtNs
+            if (isFinal || lastNotified == null || now - lastNotified >= PROGRESS_UPDATE_THROTTLE_NS) {
+                lastNotifiedAtNs = now
+                listener.onProgress(bytesWritten, length)
+            }
+            if (DebugLog.enabled) {
+                val bucket = if (length > 0) (bytesWritten.toDouble() * 10 / length).toInt() else -1
+                val lastLogged = lastLoggedAtNs
+                if (isFinal || lastLogged == null || bucket > lastLoggedBucket || now - lastLogged >= PROGRESS_LOG_INTERVAL_NS) {
+                    lastLoggedAtNs = now
+                    lastLoggedBucket = bucket
+                    DebugLog.i { "UPLOADDBG body=$uploadId attempt=$attempt progress=$bytesWritten/$length" }
+                }
             }
         }
     }
 
     companion object {
-        private const val PROGRESS_UPDATE_THROTTLE_MS = 100L
+        private val nextUploadId = AtomicInteger()
+        private const val PROGRESS_UPDATE_THROTTLE_NS = 100_000_000L
+        private const val PROGRESS_LOG_INTERVAL_NS = 5_000_000_000L
     }
 
     interface Listener {
+        val logContext: String get() = "upload"
+        fun onStart(isRetry: Boolean) = Unit
+        fun onComplete() = Unit
         fun onProgress(current: Long, total: Long)
     }
 }

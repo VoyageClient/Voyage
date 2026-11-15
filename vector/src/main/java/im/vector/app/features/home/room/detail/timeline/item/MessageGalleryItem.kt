@@ -138,7 +138,7 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
     override fun unbind(holder: Holder) {
         previewUrlViewUpdater.unbind()
         GalleryGridBinder.unbind(holder.grid, imageContentRenderer)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId, holder.progressLayout)
         holder.grid.setOnLongClickListener(null)
         super.unbind(holder)
     }

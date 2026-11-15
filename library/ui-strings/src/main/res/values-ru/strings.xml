@@ -3956,4 +3956,7 @@
     <string name="quick_reactions_add">Отреагировать</string>
     <string name="settings_redaction_preserve_own">Включать мои сообщения</string>
     <string name="settings_redaction_preserve_own_summary">Также показывать исходное содержимое моих удалённых сообщений</string>
+    <string name="send_file_step_retrying_upload">Повторная попытка загрузки…</string>
+    <string name="send_file_step_waiting_for_server">Ожидание ответа сервера…</string>
+    <string name="send_file_step_sending_unknown_size">Файл отправляется…</string>
 </resources>

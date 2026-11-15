@@ -161,6 +161,25 @@ internal class UploadContentTaskBody @Inject constructor(
             }
 
             val progressListener = object : ProgressRequestBody.Listener {
+                override val logContext get() = "file transfers=${params.localEchoIds.map { it.eventId.hashCode().toString(16) }} item=${params.galleryItemIndex}"
+
+                override fun onStart(isRetry: Boolean) {
+                    if (context.isStopped) return
+                    notifyTracker(params) {
+                        contentUploadStateTracker.setUploadStarted(
+                                it, isRetry || context.attemptCount > 0,
+                                itemIndex = params.galleryItemIndex, sizes = params.galleryItemSizes,
+                        )
+                    }
+                }
+
+                override fun onComplete() {
+                    if (context.isStopped) return
+                    notifyTracker(params) {
+                        contentUploadStateTracker.setUploadAwaitingResponse(it, itemIndex = params.galleryItemIndex, sizes = params.galleryItemSizes)
+                    }
+                }
+
                 override fun onProgress(current: Long, total: Long) {
                     if (context.isStopped) return
                     notifyItemPhase(params, current, total) { contentUploadStateTracker.setProgress(it, current, total) }
@@ -427,7 +446,7 @@ internal class UploadContentTaskBody @Inject constructor(
                     )
                 }
 
-                val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)
+                val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile, context)
                 val imageBlurHash = if (attachment.type == ContentAttachmentData.Type.IMAGE) {
                     media.encodeBlurHash(fileToUpload)
                 } else {
@@ -581,10 +600,7 @@ internal class UploadContentTaskBody @Inject constructor(
             val mimeType: String,
     )
 
-    /**
-     * If appropriate, it will create and upload a thumbnail.
-     */
-    private suspend fun dealWithThumbnail(params: Params, transcodedVideo: File?): UploadThumbnailResult? {
+    private suspend fun dealWithThumbnail(params: Params, transcodedVideo: File?, context: BackgroundTaskContext): UploadThumbnailResult? {
         // Frame decode + JPEG encode take seconds on a large video; without a state of their own the
         // progress UI sits on the last processing percent looking hung.
         if (params.attachment.type == ContentAttachmentData.Type.VIDEO) {
@@ -600,7 +616,20 @@ internal class UploadContentTaskBody @Inject constructor(
                     "actual=${thumbnailData.width}x${thumbnailData.height} mime=${thumbnailData.mimeType} bytes=${thumbnailData.size}"
         }
         val thumbnailProgressListener = object : ProgressRequestBody.Listener {
+            override val logContext get() = "thumbnail transfers=${params.localEchoIds.map { it.eventId.hashCode().toString(16) }} item=${params.galleryItemIndex}"
+
+            override fun onStart(isRetry: Boolean) {
+                if (context.isStopped) return
+                notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setUploadStarted(it, isRetry, thumbnail = true) }
+            }
+
+            override fun onComplete() {
+                if (context.isStopped) return
+                notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setUploadAwaitingResponse(it, thumbnail = true) }
+            }
+
             override fun onProgress(current: Long, total: Long) {
+                if (context.isStopped) return
                 notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
             }
         }

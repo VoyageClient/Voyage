@@ -27,6 +27,7 @@ import okio.BufferedSink
 import okio.source
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.MatrixUrls.toMxcParts
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -156,6 +157,7 @@ internal class FileUploader @Inject constructor(
 
         withContext(coroutineDispatchers.io) {
             okHttpClient.newCall(request).awaitResponse().use { response ->
+                DebugLog.i { "UPLOADDBG body=${(requestBody as? ProgressRequestBody)?.uploadId} response=${response.code()}" }
                 if (!response.isSuccessful) {
                     throw response.toFailure(globalErrorReceiver)
                 }
@@ -248,6 +250,7 @@ internal class FileUploader @Inject constructor(
 
         return withContext(coroutineDispatchers.io) {
             okHttpClient.newCall(request).awaitResponse().use { response ->
+                DebugLog.i { "UPLOADDBG body=${(requestBody as? ProgressRequestBody)?.uploadId} response=${response.code()}" }
                 if (!response.isSuccessful) {
                     throw response.toFailure(globalErrorReceiver)
                 } else {

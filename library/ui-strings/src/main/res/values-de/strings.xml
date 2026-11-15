@@ -3801,4 +3801,7 @@
     <string name="quick_reactions_add">Reagieren</string>
     <string name="settings_redaction_preserve_own">Eigene Nachrichten einbeziehen</string>
     <string name="settings_redaction_preserve_own_summary">Auch den ursprünglichen Inhalt meiner eigenen gelöschten Nachrichten anzeigen</string>
+    <string name="send_file_step_retrying_upload">Upload wird erneut versucht…</string>
+    <string name="send_file_step_waiting_for_server">Warten auf den Server…</string>
+    <string name="send_file_step_sending_unknown_size">Datei wird gesendet…</string>
 </resources>

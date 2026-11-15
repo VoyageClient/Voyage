@@ -230,6 +230,7 @@ internal class DefaultSendService @AssistedInject constructor(
         // we need to resend the media
         val attachmentData = messageContent.toResendAttachment() ?: return NoOpCancellable
         localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
+        contentUploadStateTracker.reset(localEcho.eventId)
         return internalSendMedia(listOf(localEcho.root), attachmentData, compressBeforeSending = !failedMediaUploadRecovery.isPreserved(url))
     }
 
@@ -248,6 +249,7 @@ internal class DefaultSendService @AssistedInject constructor(
         val isRoomEncrypted = cryptoStore.roomWasOnceEncrypted(roomId)
         val uploading = uploads.toMap()
         val itemSizes = items.indices.map { uploading[it]?.size ?: 0L }
+        contentUploadStateTracker.reset(eventId)
         // The progress overlay comes down once every item has settled, and the kept ones already have.
         items.indices.filterNot { it in uploading }.forEach { contentUploadStateTracker.setGalleryItemSettled(eventId, it, itemSizes) }
         val sendAfterEventIds = mediaSendOrder.enqueue(localEchoIds)

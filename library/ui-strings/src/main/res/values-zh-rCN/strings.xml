@@ -3723,4 +3723,7 @@
     <string name="quick_reactions_add">回应</string>
     <string name="settings_redaction_preserve_own">包括我自己的消息</string>
     <string name="settings_redaction_preserve_own_summary">同时显示我自己已删除消息的原始内容</string>
+    <string name="send_file_step_retrying_upload">正在重试上传…</string>
+    <string name="send_file_step_waiting_for_server">正在等待服务器…</string>
+    <string name="send_file_step_sending_unknown_size">正在发送文件…</string>
 </resources>

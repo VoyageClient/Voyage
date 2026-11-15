@@ -3725,4 +3725,7 @@
     <string name="quick_reactions_add">反應</string>
     <string name="settings_redaction_preserve_own">包含我自己的訊息</string>
     <string name="settings_redaction_preserve_own_summary">同時顯示我自己已刪除訊息的原始內容</string>
+    <string name="send_file_step_retrying_upload">正在重試上傳…</string>
+    <string name="send_file_step_waiting_for_server">正在等待伺服器…</string>
+    <string name="send_file_step_sending_unknown_size">正在傳送檔案…</string>
 </resources>

@@ -29,41 +29,40 @@ class ContentUploadStateTrackerBinder @Inject constructor(
         private val messageColorProvider: MessageColorProvider,
 ) {
 
-    private val updateListeners = mutableMapOf<String, ContentUploadStateTracker.UpdateListener>()
+    private data class Binding(
+            val eventId: String,
+            val tracker: ContentUploadStateTracker,
+            val listener: ContentUploadStateTracker.UpdateListener,
+    )
+
+    private val bindings = mutableMapOf<ViewGroup, Binding>()
 
     fun bind(
             eventId: String,
             isLocalFile: Boolean,
             progressLayout: ViewGroup
     ) {
-        activeSessionHolder.getSafeActiveSession()?.also { session ->
-            val uploadStateTracker = session.contentUploadProgressTracker()
-            // A rebind replaces the map entry, so without untracking here the old listener leaks in
-            // the tracker forever and keeps painting states onto whatever view got recycled under it.
-            updateListeners[eventId]?.also { uploadStateTracker.untrack(eventId, it) }
-            val updateListener = ContentMediaProgressUpdater(progressLayout, isLocalFile, messageColorProvider)
-            updateListeners[eventId] = updateListener
-            uploadStateTracker.track(eventId, updateListener)
-        }
+        bindings.remove(progressLayout)?.also { it.tracker.untrack(it.eventId, it.listener) }
+        val session = activeSessionHolder.getSafeActiveSession() ?: return
+        val tracker = session.contentUploadProgressTracker()
+        val listener = ContentMediaProgressUpdater(progressLayout, isLocalFile, messageColorProvider)
+        bindings[progressLayout] = Binding(eventId, tracker, listener)
+        tracker.track(eventId, listener)
     }
 
-    fun unbind(eventId: String) {
-        activeSessionHolder.getSafeActiveSession()?.also { session ->
-            val uploadStateTracker = session.contentUploadProgressTracker()
-            updateListeners[eventId]?.also {
-                uploadStateTracker.untrack(eventId, it)
-            }
-        }
+    fun unbind(eventId: String, progressLayout: ViewGroup) {
+        val binding = bindings[progressLayout]?.takeIf { it.eventId == eventId } ?: return
+        bindings.remove(progressLayout)
+        binding.tracker.untrack(binding.eventId, binding.listener)
     }
 
     fun clear() {
-        activeSessionHolder.getSafeActiveSession()?.also {
-            it.contentUploadProgressTracker().clear()
-        }
+        bindings.values.forEach { it.tracker.untrack(it.eventId, it.listener) }
+        bindings.clear()
     }
 }
 
-private class ContentMediaProgressUpdater(
+internal class ContentMediaProgressUpdater(
         private val progressLayout: ViewGroup,
         private val isLocalFile: Boolean,
         private val messageColorProvider: MessageColorProvider,
@@ -137,7 +136,7 @@ private class ContentMediaProgressUpdater(
     }
 
     private fun handleProgressThumbnail(state: ContentUploadStateTracker.State.UploadingThumbnail) {
-        doHandleProgress(CommonStrings.send_file_step_sending_thumbnail, state.current, state.total)
+        doHandleProgress(CommonStrings.send_file_step_sending_thumbnail, state.current, state.total, state.isRetrying, state.isAwaitingResponse)
     }
 
     private fun handleEncrypting(state: ContentUploadStateTracker.State.Encrypting) {
@@ -145,25 +144,13 @@ private class ContentMediaProgressUpdater(
     }
 
     private fun handleProgress(state: ContentUploadStateTracker.State.Uploading) {
-        doHandleProgress(CommonStrings.send_file_step_sending_file, state.current, state.total)
+        doHandleProgress(CommonStrings.send_file_step_sending_file, state.current, state.total, state.isRetrying, state.isAwaitingResponse)
     }
 
-    // The item index and count are digits appended to an already-localised string.
     @SuppressLint("SetTextI18n")
     private fun handleGalleryProgress(state: ContentUploadStateTracker.State.UploadingGalleryItem) {
-        progressLayout.visibility = View.VISIBLE
-        val percent = if (state.overallTotal > 0) (100L * state.overallCurrent / state.overallTotal).toInt().coerceIn(0, 100) else 0
-        progressBar.isVisible = true
-        progressBar.isIndeterminate = false
-        progressBar.progress = percent
-        progressTextView.isVisible = true
-        val sendingFile = progressLayout.context.getString(
-                CommonStrings.send_file_step_sending_file,
-                TextUtils.formatFileSize(progressLayout.context, state.current, true),
-                TextUtils.formatFileSize(progressLayout.context, state.total, true)
-        )
-        progressTextView.text = "$sendingFile (${state.itemIndex + 1}/${state.itemCount})"
-        progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
+        doHandleProgress(CommonStrings.send_file_step_sending_file, state.overallCurrent, state.overallTotal, state.isRetrying, state.isAwaitingResponse)
+        progressTextView.text = "${progressTextView.text} (${state.completedCount}/${state.itemCount})"
     }
 
     private fun handleCompressingImage() {
@@ -175,7 +162,6 @@ private class ContentMediaProgressUpdater(
         progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
-    // Add SuppressLint to fix a false positive
     @SuppressLint("StringFormatMatches")
     private fun handleCompressingVideo(state: ContentUploadStateTracker.State.CompressingVideo) {
         progressLayout.visibility = View.VISIBLE
@@ -183,7 +169,6 @@ private class ContentMediaProgressUpdater(
         progressBar.isIndeterminate = false
         progressBar.progress = state.percent.toInt()
         progressTextView.isVisible = true
-        // False positive is here...
         progressTextView.text = progressLayout.context.getString(CommonStrings.send_file_step_compressing_video, state.percent.toInt())
         progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
@@ -198,18 +183,23 @@ private class ContentMediaProgressUpdater(
         progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.ENCRYPTING))
     }
 
-    private fun doHandleProgress(resId: Int, current: Long, total: Long) {
+    private fun doHandleProgress(resId: Int, current: Long, total: Long, isRetrying: Boolean = false, isAwaitingResponse: Boolean = false) {
         progressLayout.visibility = View.VISIBLE
-        val percent = 100L * (current.toFloat() / total.toFloat())
+        val percent = if (total > 0) (100.0 * current / total).toInt().coerceIn(0, 100) else 0
         progressBar.isVisible = true
-        progressBar.isIndeterminate = false
-        progressBar.progress = percent.toInt()
+        progressBar.isIndeterminate = total <= 0
+        progressBar.progress = percent
         progressTextView.isVisible = true
-        progressTextView.text = progressLayout.context.getString(
-                resId,
-                TextUtils.formatFileSize(progressLayout.context, current, true),
-                TextUtils.formatFileSize(progressLayout.context, total, true)
-        )
+        progressTextView.text = when {
+            isRetrying -> progressLayout.context.getString(CommonStrings.send_file_step_retrying_upload)
+            isAwaitingResponse -> progressLayout.context.getString(CommonStrings.send_file_step_waiting_for_server)
+            total <= 0 -> progressLayout.context.getString(CommonStrings.send_file_step_sending_unknown_size)
+            else -> progressLayout.context.getString(
+                    resId,
+                    TextUtils.formatFileSize(progressLayout.context, current, true),
+                    TextUtils.formatFileSize(progressLayout.context, total.coerceAtLeast(0), true)
+            )
+        }
         progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 

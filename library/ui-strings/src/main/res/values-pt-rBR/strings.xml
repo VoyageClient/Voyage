@@ -3802,4 +3802,7 @@
     <string name="quick_reactions_add">Reagir</string>
     <string name="settings_redaction_preserve_own">Incluir minhas próprias mensagens</string>
     <string name="settings_redaction_preserve_own_summary">Mostrar também o conteúdo original das minhas próprias mensagens removidas</string>
+    <string name="send_file_step_retrying_upload">Tentando enviar novamente…</string>
+    <string name="send_file_step_waiting_for_server">Aguardando o servidor…</string>
+    <string name="send_file_step_sending_unknown_size">Enviando arquivo…</string>
 </resources>

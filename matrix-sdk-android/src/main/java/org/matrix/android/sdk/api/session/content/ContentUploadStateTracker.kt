@@ -40,13 +40,23 @@ interface ContentUploadStateTracker {
 
         /** Extracting and encoding the video's thumbnail frame before anything can upload. */
         object PreparingThumbnail : State()
-        data class UploadingThumbnail(val current: Long, val total: Long) : State()
+        data class UploadingThumbnail(
+                val current: Long,
+                val total: Long,
+                val isRetrying: Boolean = false,
+                val isAwaitingResponse: Boolean = false,
+        ) : State()
         data class Encrypting(val current: Long, val total: Long) : State()
-        data class Uploading(val current: Long, val total: Long) : State()
+        data class Uploading(
+                val current: Long,
+                val total: Long,
+                val isRetrying: Boolean = false,
+                val isAwaitingResponse: Boolean = false,
+        ) : State()
 
         /**
-         * One MSC4274 gallery upload: [current]/[total] are the item being sent, while
-         * [overallCurrent]/[overallTotal] aggregate every item's declared bytes.
+         * Byte counts retain the furthest position reached while retries retransmit earlier bytes.
+         * [overallCurrent]/[overallTotal] sum each gallery item's progress, weighted by declared size.
          */
         data class UploadingGalleryItem(
                 val itemIndex: Int,
@@ -55,6 +65,9 @@ interface ContentUploadStateTracker {
                 val total: Long,
                 val overallCurrent: Long,
                 val overallTotal: Long,
+                val completedCount: Int = 0,
+                val isRetrying: Boolean = false,
+                val isAwaitingResponse: Boolean = false,
         ) : State()
         object Success : State()
         data class Failure(val throwable: Throwable) : State()

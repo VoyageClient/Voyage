@@ -3925,4 +3925,7 @@
     <string name="quick_reactions_add">הגב</string>
     <string name="settings_redaction_preserve_own">כלול גם הודעות שלי</string>
     <string name="settings_redaction_preserve_own_summary">הצג גם את התוכן המקורי של ההודעות שלי שנמחקו</string>
+    <string name="send_file_step_retrying_upload">מנסה להעלות שוב…</string>
+    <string name="send_file_step_waiting_for_server">ממתין לשרת…</string>
+    <string name="send_file_step_sending_unknown_size">שולח קובץ…</string>
 </resources>

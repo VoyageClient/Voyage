@@ -284,7 +284,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.showDuration(false)
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId, holder.progressLayout)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
         holder.mediaShowButton.setOnClickListener(null)

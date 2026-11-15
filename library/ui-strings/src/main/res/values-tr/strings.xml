@@ -3760,4 +3760,7 @@
     <string name="quick_reactions_add">Tepki ver</string>
     <string name="settings_redaction_preserve_own">Kendi mesajlarımı da dahil et</string>
     <string name="settings_redaction_preserve_own_summary">Silinen kendi mesajlarımın orijinal içeriğini de göster</string>
+    <string name="send_file_step_retrying_upload">Yükleme yeniden deneniyor…</string>
+    <string name="send_file_step_waiting_for_server">Sunucu bekleniyor…</string>
+    <string name="send_file_step_sending_unknown_size">Dosya gönderiliyor…</string>
 </resources>

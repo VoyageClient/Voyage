@@ -74,7 +74,29 @@ internal class UploadMediaBytesTaskBody @Inject constructor(
                     filename = params.filename.takeUnless { params.isEncrypted },
                     mimeType = if (params.isEncrypted) MimeTypes.OctetStream else params.mimeType,
                     progressListener = object : ProgressRequestBody.Listener {
+                        override val logContext get() = "reserved transfers=${params.localEchoIds.map { it.eventId.hashCode().toString(16) }} item=${params.galleryItemIndex} workerAttempt=${context.attemptCount}"
+
+                        override fun onStart(isRetry: Boolean) {
+                            if (context.isStopped) return
+                            params.localEchoIds.forEach {
+                                contentUploadStateTracker.setUploadStarted(
+                                        it.eventId, isRetry || context.attemptCount > 0,
+                                        itemIndex = params.galleryItemIndex, sizes = params.galleryItemSizes,
+                                )
+                            }
+                        }
+
+                        override fun onComplete() {
+                            if (context.isStopped) return
+                            params.localEchoIds.forEach {
+                                contentUploadStateTracker.setUploadAwaitingResponse(
+                                        it.eventId, itemIndex = params.galleryItemIndex, sizes = params.galleryItemSizes,
+                                )
+                            }
+                        }
+
                         override fun onProgress(current: Long, total: Long) {
+                            if (context.isStopped) return
                             params.localEchoIds.forEach { notifyProgress(params, it.eventId, current, total) }
                         }
                     },
@@ -93,7 +115,14 @@ internal class UploadMediaBytesTaskBody @Inject constructor(
                 return BackgroundTaskOutcome.Success
             }
             if (failure.shouldBeRetried() && context.attemptCount < MAX_ATTEMPTS) {
-                Timber.w(failure, "## Media byte upload failed, will retry (attempt ${context.attemptCount})")
+                params.localEchoIds.forEach {
+                    contentUploadStateTracker.setUploadRetrying(it.eventId, itemIndex = params.galleryItemIndex, sizes = params.galleryItemSizes)
+                }
+                Timber.w(
+                        "UPLOADDBG context=%s item=%s workerAttempt=%d retry error=%s",
+                        params.localEchoIds.map { it.eventId.hashCode().toString(16) }, params.galleryItemIndex,
+                        context.attemptCount, failure.javaClass.simpleName,
+                )
                 BackgroundTaskOutcome.Retry
             } else {
                 Timber.e(failure, "## Media byte upload permanently failed for ${params.contentUri}")

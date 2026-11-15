@@ -217,7 +217,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         holder.seekTouchListener = null
         previewUrlViewUpdater.unbind()
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId, holder.progressLayout)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
         holder.playbackRegistration.release(audioMessagePlaybackTracker)
     }

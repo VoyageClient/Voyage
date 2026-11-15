@@ -3721,4 +3721,7 @@
     <string name="quick_reactions_add">リアクション</string>
     <string name="settings_redaction_preserve_own">自分のメッセージも含める</string>
     <string name="settings_redaction_preserve_own_summary">自分の削除されたメッセージの元の内容も表示します</string>
+    <string name="send_file_step_retrying_upload">アップロードを再試行しています…</string>
+    <string name="send_file_step_waiting_for_server">サーバーの応答を待っています…</string>
+    <string name="send_file_step_sending_unknown_size">ファイルを送信しています…</string>
 </resources>

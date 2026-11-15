@@ -3790,4 +3790,7 @@
     <string name="quick_reactions_add">Reaccionar</string>
     <string name="settings_redaction_preserve_own">Incluir mis propios mensajes</string>
     <string name="settings_redaction_preserve_own_summary">Mostrar también el contenido original de mis propios mensajes borrados</string>
+    <string name="send_file_step_retrying_upload">Reintentando la subida…</string>
+    <string name="send_file_step_waiting_for_server">Esperando al servidor…</string>
+    <string name="send_file_step_sending_unknown_size">Enviando el archivo…</string>
 </resources>

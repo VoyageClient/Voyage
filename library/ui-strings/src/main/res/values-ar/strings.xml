@@ -4017,4 +4017,7 @@
     <string name="quick_reactions_add">تفاعل</string>
     <string name="settings_redaction_preserve_own">ضمّن رسائلي أيضًا</string>
     <string name="settings_redaction_preserve_own_summary">اعرض أيضًا المحتوى الأصلي لرسائلي المحذوفة</string>
+    <string name="send_file_step_retrying_upload">تجري إعادة محاولة الرفع…</string>
+    <string name="send_file_step_waiting_for_server">ينتظر استجابة الخادم…</string>
+    <string name="send_file_step_sending_unknown_size">يجري إرسال الملف…</string>
 </resources>

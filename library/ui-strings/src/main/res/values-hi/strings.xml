@@ -3690,4 +3690,7 @@
     <string name="quick_reactions_add">प्रतिक्रिया दें</string>
     <string name="settings_redaction_preserve_own">मेरे अपने मैसेज भी शामिल करें</string>
     <string name="settings_redaction_preserve_own_summary">मेरे अपने हटाए गए मैसेज की मूल सामग्री भी दिखाएं</string>
+    <string name="send_file_step_retrying_upload">अपलोड का फिर से प्रयास किया जा रहा है…</string>
+    <string name="send_file_step_waiting_for_server">सर्वर की प्रतीक्षा की जा रही है…</string>
+    <string name="send_file_step_sending_unknown_size">फ़ाइल भेजी जा रही है…</string>
 </resources>
