@@ -1,0 +1,10 @@
+• Fix media upload flicker and read receipt swipes
+• Fix audio message actions and timeline selection
+• Add Misskey message color formatting
+• Add configurable message swipe actions
+• Fix avatar badges, censor zoom and poll handling
+• Fix compressed media previews and timeline uploads
+• Stabilize room controls and refine SchildiChat date headers
+• Reduce notification, member loading and timeline overhead
+• Cancel profile header callbacks when leaving the screen
+…and 13 more
