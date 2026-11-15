@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -239,6 +240,7 @@ internal class SqlTimeline(
                 delay(DECRYPT_REBUILD_DEBOUNCE_MS)
                 while (decryptedSignal.tryReceive().isSuccess) { /* drain the burst */ }
                 chunkSnapshotCache.clear()
+                DebugLog.i { "UTDDBG stage=timeline-refresh room=$roomId timeline=$timelineID paused=$rebuildsPaused built=${builtEvents.size}" }
                 rebuildSnapshot()
             }
         }
@@ -246,7 +248,12 @@ internal class SqlTimeline(
         // event) writes to the event table without hitting our decryptor's listener — fold it into the
         // same debounced refresh so the preview event stops rendering as encrypted.
         decryptionSignalJob = timelineScope.launch {
-            decryptionSignal.rooms.collect { if (it == roomId) decryptedSignal.trySend(Unit) }
+            decryptionSignal.rooms.collect {
+                if (it == roomId) {
+                    DebugLog.i { "UTDDBG stage=timeline-signal room=$roomId timeline=$timelineID paused=$rebuildsPaused" }
+                    decryptedSignal.trySend(Unit)
+                }
+            }
         }
         profileOverridesJob = timelineScope.launch {
             ProfileOverrides.changes.collect { changedUsers ->
@@ -471,6 +478,11 @@ internal class SqlTimeline(
     @Volatile private var rebuildPendingWhilePaused = false
 
     override fun setPaused(paused: Boolean) {
+        if (paused != rebuildsPaused) {
+            DebugLog.i {
+                "UTDDBG stage=timeline-pause room=$roomId timeline=$timelineID paused=$paused pending=$rebuildPendingWhilePaused"
+            }
+        }
         rebuildsPaused = paused
         updateRoomSubscription(!paused)
         if (!paused && rebuildPendingWhilePaused) {
@@ -1192,6 +1204,9 @@ internal class SqlTimeline(
         val startedSeed = seedGeneration.get()
         val startedNavigation = navigationGeneration.get()
         if (rebuildsPaused && !force) {
+            if (!rebuildPendingWhilePaused) {
+                DebugLog.i { "UTDDBG stage=timeline-deferred room=$roomId timeline=$timelineID" }
+            }
             rebuildPendingWhilePaused = true
             return
         }
@@ -1291,6 +1306,13 @@ internal class SqlTimeline(
                 return@withContext
             }
             val unchanged = sameByReference(events, builtEvents)
+            DebugLog.i {
+                val encrypted = events.filter { it.root.isEncrypted() }
+                val pending = encrypted.filter { it.root.getClearType() == EventType.ENCRYPTED }
+                "UTDDBG stage=timeline-snapshot room=$roomId timeline=$timelineID count=${events.size} " +
+                        "encrypted=${encrypted.size} pending=${pending.size} pendingIds=${pending.take(20).map { it.eventId }} " +
+                        "unchanged=$unchanged paused=$rebuildsPaused"
+            }
             builtEvents = events
             builtSeedGeneration = startedSeed
             Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")

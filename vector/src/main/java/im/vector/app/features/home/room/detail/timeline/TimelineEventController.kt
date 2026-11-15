@@ -70,6 +70,7 @@ import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -1176,6 +1177,12 @@ class TimelineEventController @Inject constructor(
             (it as? BaseEventItem<*>)?.let { item ->
                 if (params.isHighlighted) item.highlightNonce = params.highlightNonce
                 item.profileColorGeneration = matrixItemColorProvider.changes.value
+            }
+        }
+        if (DebugLog.enabled && event.root.isEncrypted()) {
+            DebugLog.i {
+                "UTDDBG stage=timeline-model room=${event.roomId} event=${event.eventId} clearType=${event.root.getClearType()} " +
+                        "result=${event.root.mxDecryptionResult != null} error=${event.root.mCryptoError} model=${eventModel.javaClass.simpleName}"
             }
         }
         // Do not cache blank gated rows; settling must rebuild them into media items.

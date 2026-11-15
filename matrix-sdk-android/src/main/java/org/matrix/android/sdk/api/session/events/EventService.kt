@@ -87,8 +87,7 @@ interface EventService {
 
     /**
      * Emits whenever an event in [roomId] is decrypted and persisted, by any decryptor. Screens
-     * showing individual events outside a Timeline must re-read them on this signal, since
-     * decryption rewrites the event row without touching what timeline-event flows observe.
+     * caching individual events without a TimelineService flow must re-read them on this signal.
      */
     fun decryptionUpdates(roomId: String): Flow<Unit>
 }

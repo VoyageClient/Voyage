@@ -193,6 +193,8 @@ internal class TimelineEventDecryptor @Inject constructor(
     // commit fsyncs (no WAL), so a per-event transaction caps throughput at a handful/second — batching a
     // room's UTD backlog into one commit is what lets them surface together after a key import / room open.
     private fun processChunk(requests: List<DecryptionRequest>) {
+        val started = if (DebugLog.enabled) System.nanoTime() else 0L
+        DebugLog.i { "UTDDBG stage=batch-start count=${requests.size} rooms=${requests.map { it.event.roomId }.distinct()}" }
         val successes = ArrayList<Pair<Event, MXEventDecryptionResult>>(requests.size)
         val errors = ArrayList<Triple<String, String, String?>>()
         for (request in requests) {
@@ -253,6 +255,15 @@ internal class TimelineEventDecryptor @Inject constructor(
                     }
                 }
             }
+        }
+        successes.forEach { (event, result) ->
+            DebugLog.i {
+                "UTDDBG stage=persisted source=timeline room=${event.roomId} event=${event.eventId} " +
+                        "clearType=${result.clearEvent["type"]} batchMs=${(System.nanoTime() - started) / 1_000_000}"
+            }
+        }
+        errors.forEach { (eventId, code, _) ->
+            DebugLog.w { "UTDDBG stage=decrypt-failed source=timeline event=$eventId error=$code" }
         }
         if (successes.isNotEmpty()) {
             eventIndexer.onEventsDecrypted(successes)

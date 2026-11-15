@@ -39,11 +39,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.crypto.MXCryptoError
-import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
@@ -56,8 +56,6 @@ import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
-import timber.log.Timber
-import java.util.UUID
 
 /**
  * Resolves and caches the replied-to event for each reply in the timeline, exposing it as a
@@ -100,8 +98,9 @@ class ReplyPreviewRetriever(
         return if (root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(this)) {
             "REDACTED"
         } else {
-            // A poll's votes change what the preview draws without changing the event.
-            "L:${getLatestEventId()}:${annotations?.pollResponseSummary?.hashCode() ?: 0}"
+            // Decryption and poll votes can change the preview without changing its event ID.
+            "L:${getLatestEventId()}:${root.getClearType()}:${root.mCryptoError}:${root.mCryptoErrorReason?.hashCode() ?: 0}:" +
+                    (annotations?.pollResponseSummary?.hashCode() ?: 0)
         }
     }
 
@@ -211,70 +210,64 @@ class ReplyPreviewRetriever(
                     retrieveEventLocks.getOrPut(eventIdToRetrieve) { eventIdToRetrieve }
                 }
                 try {
-                runCatching {
-                    // Don't spam the server too often if it doesn't know the event
-                    val mayAskServerForEvent = synchronized(serverRequests) {
-                        val lastAttempt = serverRequests[eventIdToRetrieve]
-                        if (lastAttempt == null || lastAttempt < now - RETRY_SERVER_LOOKUP_INTERVAL_MS) {
-                            serverRequests[eventIdToRetrieve] = now
-                            true
-                        } else {
-                            false
+                    runCatching {
+                        // Don't spam the server too often if it doesn't know the event
+                        val mayAskServerForEvent = synchronized(serverRequests) {
+                            val lastAttempt = serverRequests[eventIdToRetrieve]
+                            if (lastAttempt == null || lastAttempt < now - RETRY_SERVER_LOOKUP_INTERVAL_MS) {
+                                serverRequests[eventIdToRetrieve] = now
+                                true
+                            } else {
+                                false
+                            }
                         }
-                    }
-                    synchronized(retrieveEventLock) {
-                        val room = session.getRoom(roomId)
-                        var timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
-                        if (timelineEvent == null && mayAskServerForEvent) {
-                            runBlocking { session.eventService().ensureEventCached(roomId, eventIdToRetrieve) }
-                            timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
-                        }
-                        // The event cache is a local read, so consult it even when rate-limited for the
-                        // server: a sibling reply's fetch may have cached the event without timeline rows.
-                        timelineEvent
-                                ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)
-                                        ?.let { session.toCachedTimelineEvent(roomId, it) }
-                    }?.apply {
-                        // Decrypt synchronously if needed
-                        val repliedToEvent = root
-                        if (repliedToEvent.isEncrypted() && repliedToEvent.mxDecryptionResult == null) {
-                            try {
-                                val result = runBlocking {
-                                    session.cryptoService().decryptEvent(root, root.roomId + UUID.randomUUID().toString())
+                        synchronized(retrieveEventLock) {
+                            val room = session.getRoom(roomId)
+                            var timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
+                            if (timelineEvent == null && mayAskServerForEvent) {
+                                runBlocking { session.eventService().ensureEventCached(roomId, eventIdToRetrieve) }
+                                timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
+                            }
+                            // The event cache is a local read, so consult it even when rate-limited for the
+                            // server: a sibling reply's fetch may have cached the event without timeline rows.
+                            val cached = timelineEvent
+                                    ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)
+                                            ?.let { session.toCachedTimelineEvent(roomId, it) }
+                            if (cached?.root?.getClearType() == EventType.ENCRYPTED) {
+                                DebugLog.i {
+                                    "UTDDBG stage=preview-request surface=reply-header room=$roomId event=$eventIdToRetrieve " +
+                                            "parent=${event.eventId} error=${cached.root.mCryptoError}"
                                 }
-                                repliedToEvent.mxDecryptionResult = OlmDecryptionResult(
-                                        payload = result.clearEvent,
-                                        senderKey = result.senderCurve25519Key,
-                                        keysClaimed = result.claimedEd25519Key?.let { k -> mapOf("ed25519" to k) },
-                                        forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
-                                        verificationState = result.messageVerificationState,
-                                )
-                            } catch (e: MXCryptoError) {
-                                Timber.w("Failed to decrypt event in reply")
+                                runBlocking { session.eventService().decryptEventNow(cached.root) }
+                                room?.getTimelineEvent(eventIdToRetrieve)
+                                        ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)
+                                                ?.let { session.toCachedTimelineEvent(roomId, it) }
+                                        ?: cached
+                            } else {
+                                cached
                             }
                         }
-                    }
-                }.fold(
-                        {
-                            val asOriginal = it != null && quotesForwardAsOriginal(event.root.getClearContent(), it.root.getClearContent())
-                            // Pre-render the reply body here (off the main thread) so the view's bind is a cache hit.
-                            if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it, asOriginal)
-                            synchronized(data) {
-                                updateState(eventId, eventIdToRetrieve,
-                                        when {
-                                            it == null -> PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
-                                            it.root.senderId in ignoredUserIds -> PreviewReplyUiState.Error(IgnoredAuthorException, eventIdToRetrieve)
-                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, replySenderName(it, asOriginal), asOriginal)
-                                        }
-                                )
+                    }.fold(
+                            {
+                                val asOriginal = it != null && quotesForwardAsOriginal(event.root.getClearContent(), it.root.getClearContent())
+                                // Pre-render the reply body here (off the main thread) so the view's bind is a cache hit.
+                                if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it, asOriginal)
+                                synchronized(data) {
+                                    updateState(eventId, eventIdToRetrieve,
+                                            when {
+                                                it == null -> PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
+                                                it.root.senderId in ignoredUserIds -> PreviewReplyUiState.Error(IgnoredAuthorException, eventIdToRetrieve)
+                                                else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, replySenderName(it, asOriginal), asOriginal)
+                                            }
+                                    )
+                                }
+                            },
+                            {
+                                synchronized(data) {
+                                    updateState(eventId, eventIdToRetrieve, PreviewReplyUiState.Error(it, eventIdToRetrieve))
+                                }
                             }
-                        },
-                        {
-                            synchronized(data) {
-                                updateState(eventId, eventIdToRetrieve, PreviewReplyUiState.Error(it, eventIdToRetrieve))
-                            }
-                        }
-                )
+                    )
                 } finally {
                     synchronized(data) {
                         if (inFlightRetrievals[eventId] == eventIdToRetrieve) inFlightRetrievals.remove(eventId)
@@ -495,7 +488,17 @@ class ReplyPreviewRetriever(
         val forwardedFrom = displayableEventFormatter.forwardedMessages.origin(event)?.name
         val pgpPlain = (event.getLastMessageContent() as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom:$asOriginal:${pgpPlain?.hashCode() ?: 0}"
-        synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
+        synchronized(replyBodyCache) { replyBodyCache[key] }?.let {
+            DebugLog.i {
+                "UTDDBG stage=preview-cache room=$roomId event=${event.eventId} hit=true " +
+                        "clearType=${it.event.root.getClearType()} keyHash=${key.hashCode()}"
+            }
+            return it
+        }
+        DebugLog.i {
+            "UTDDBG stage=preview-cache room=$roomId event=${event.eventId} hit=false " +
+                    "clearType=${event.root.getClearType()} keyHash=${key.hashCode()}"
+        }
         val built = previewBuilder.build(event, previewOptions.copy(senderItem = senderMatrixItem(event), framesForwards = !asOriginal))
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()

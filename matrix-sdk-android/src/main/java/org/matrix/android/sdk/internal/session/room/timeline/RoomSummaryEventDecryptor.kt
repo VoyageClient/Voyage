@@ -25,6 +25,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
@@ -131,6 +132,7 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
      * failure goes through the queue, which tracks it and retries once its key arrives.
      */
     suspend fun decryptNow(event: Event) {
+        DebugLog.i { "UTDDBG stage=immediate room=${event.roomId} event=${event.eventId} clearType=${event.getClearType()}" }
         if (decryptAndPersist(event) != null) requestDecryption(event)
     }
 
@@ -138,12 +140,16 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
     private suspend fun decryptAndPersist(event: Event): MXCryptoError.Base? {
         if (event.getClearType() != EventType.ENCRYPTED) return null
         val algorithm = event.content?.get("algorithm") as? String
-        if (algorithm != MXCRYPTO_ALGORITHM_MEGOLM) return null
+        if (algorithm != MXCRYPTO_ALGORITHM_MEGOLM) {
+            DebugLog.w { "UTDDBG stage=unsupported-algorithm room=${event.roomId} event=${event.eventId} algorithm=$algorithm" }
+            return null
+        }
 
+        val started = if (DebugLog.enabled) System.nanoTime() else 0L
+        DebugLog.i { "UTDDBG stage=decrypt-start source=room-summary room=${event.roomId} event=${event.eventId}" }
         return try {
             val result = cryptoService.get().decryptEvent(event, "")
             val clearPrevContent = cryptoService.get().decryptStatePrevContent(event, event.roomId.orEmpty(), "")
-            // now let's persist the result in database
             val eventId = event.eventId.orEmpty()
             database.awaitDbTransaction(dispatcher) {
                 stores.event.applyDecryptionResult(event, result, clearPrevContent)
@@ -160,6 +166,10 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
                     stores.roomSummary.touch(roomId)
                 }
             }
+            DebugLog.i {
+                "UTDDBG stage=persisted source=room-summary room=${event.roomId} event=$eventId " +
+                        "clearType=${result.clearEvent["type"]} elapsedMs=${(System.nanoTime() - started) / 1_000_000}"
+            }
             eventIndexer.onEventsDecrypted(listOf(event to result))
             // The write above lands in the event table, which an open timeline's row flow doesn't
             // observe — signal it so the newly-decrypted preview event stops showing as encrypted.
@@ -169,7 +179,13 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
             throw failure
         } catch (failure: Throwable) {
             Timber.v(failure, "Failed to decrypt event ${event.eventId}")
-            if (failure !is MXCryptoError.Base) return null
+            if (failure !is MXCryptoError.Base) {
+                DebugLog.w {
+                    "UTDDBG stage=decrypt-aborted source=room-summary room=${event.roomId} event=${event.eventId} " +
+                            "failure=${failure.javaClass.simpleName} elapsedMs=${(System.nanoTime() - started) / 1_000_000}"
+                }
+                return null
+            }
             database.awaitDbTransaction(dispatcher) {
                 stores.event.applyDecryptionError(
                         event.eventId.orEmpty(),
@@ -177,11 +193,16 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
                         failure.technicalMessage.takeIf { it.isNotEmpty() } ?: failure.detailedErrorDescription,
                 )
             }
+            DebugLog.w {
+                "UTDDBG stage=decrypt-failed source=room-summary room=${event.roomId} event=${event.eventId} " +
+                        "error=${failure.errorType} elapsedMs=${(System.nanoTime() - started) / 1_000_000}"
+            }
             failure
         }
     }
 
     fun requestDecryption(event: Event) {
-        channel.trySend(Message.DecryptEvent(event))
+        val queued = channel.trySend(Message.DecryptEvent(event)).isSuccess
+        DebugLog.i { "UTDDBG stage=queued source=room-summary room=${event.roomId} event=${event.eventId} accepted=$queued" }
     }
 }

@@ -64,9 +64,11 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -494,8 +496,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private var replyTargetJob: Job? = null
     private var replyTargetEventId: String? = null
 
-    // The preview renders a snapshot of the replied-to event, so it has to follow edits (and redactions)
-    // landing while the reply is still being composed.
+    // Reply previews hold a snapshot; follow edits, redactions and decryption while composing.
     private fun observeReplyTarget(room: Room, eventId: String?) {
         if (eventId == replyTargetEventId) return
         replyTargetEventId = eventId
@@ -504,12 +505,25 @@ class MessageComposerViewModel @AssistedInject constructor(
             // Edits land in the annotations summary, which the timeline-event flow doesn't watch, so
             // both have to be followed and the event re-read to pick the new content up.
             combine(room.flow().liveTimelineEvent(it), room.flow().liveAnnotationSummary(it)) { _, _ -> }
+                    .onStart {
+                        withContext(Dispatchers.IO) {
+                            val event = room.getTimelineEvent(eventId)?.root
+                            if (event?.getClearType() == EventType.ENCRYPTED) {
+                                DebugLog.i { "UTDDBG stage=preview-request surface=composer room=${room.roomId} event=$eventId error=${event.mCryptoError}" }
+                                session.eventService().decryptEventNow(event)
+                            }
+                        }
+                    }
                     .map { withContext(Dispatchers.IO) { room.getTimelineEvent(eventId) } }
                     .filterNotNull()
                     // The table-level query re-fires on every sync; only content changes (and a poll's votes)
                     // warrant a re-render.
                     .distinctUntilChangedBy { Triple(it.root, it.annotations?.editSummary, it.annotations?.pollResponseSummary) }
                     .onEach { updated ->
+                        DebugLog.i {
+                            "UTDDBG stage=preview-update surface=composer room=${room.roomId} event=$eventId " +
+                                    "clearType=${updated.root.getClearType()} error=${updated.root.mCryptoError}"
+                        }
                         setState {
                             if (sendMode is SendMode.Reply && sendMode.timelineEvent.eventId == updated.eventId) {
                                 // Carry what is in the box: the re-render writes sendMode.text back into

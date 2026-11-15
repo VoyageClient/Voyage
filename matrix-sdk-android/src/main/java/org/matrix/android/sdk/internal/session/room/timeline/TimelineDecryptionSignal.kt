@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
@@ -28,6 +29,7 @@ internal class TimelineDecryptionSignal @Inject constructor() {
     val rooms: SharedFlow<String> = _rooms.asSharedFlow()
 
     fun onDecrypted(roomId: String) {
-        _rooms.tryEmit(roomId)
+        val emitted = _rooms.tryEmit(roomId)
+        DebugLog.i { "UTDDBG stage=signal room=$roomId accepted=$emitted subscribers=${_rooms.subscriptionCount.value}" }
     }
 }

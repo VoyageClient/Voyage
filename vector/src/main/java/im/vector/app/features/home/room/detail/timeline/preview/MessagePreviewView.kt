@@ -51,6 +51,7 @@ import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaPlaceholderDrawable
 import im.vector.app.features.themes.ThemeUtils
+import org.matrix.android.sdk.api.debug.DebugLog
 
 /**
  * A [MessagePreviewContent]: its media (inside a forward's frame), then its text or table, faded out past
@@ -156,6 +157,11 @@ class MessagePreviewView @JvmOverloads constructor(
 
     /** [hidden]: the media is hidden per the room's media-preview setting, as a blurhash or a [hiddenAsSolidColor] fill. */
     fun bind(content: MessagePreviewContent, hidden: Boolean, hiddenAsSolidColor: Boolean, renderers: Renderers) {
+        DebugLog.i {
+            "UTDDBG stage=preview-bind view=${System.identityHashCode(this)} room=${content.event.roomId} event=${content.event.eventId} " +
+                    "clearType=${content.event.root.getClearType()} result=${content.event.root.mxDecryptionResult != null} " +
+                    "error=${content.event.root.mCryptoError} style=${content.textStyle}"
+        }
         isVisible = true
         bindMedia(content, hidden, hiddenAsSolidColor, renderers.imageContentRenderer, crossFade = false)
         val showsMedia = thumbnail.isVisible || gallery.isVisible || pill.isVisible

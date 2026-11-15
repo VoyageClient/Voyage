@@ -8,7 +8,6 @@
 package org.matrix.android.sdk.internal.session.room.timeline
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +16,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
@@ -61,10 +62,23 @@ internal class SqlTimelineEventDataSource @Inject constructor(
     }
 
     fun getTimelineEventFlow(roomId: String, eventId: String): Flow<Optional<TimelineEvent>> =
-            database.timelineEventQueries.selectByRoomAndEventId(roomId, eventId)
-                    .asFlow()
-                    .mapToList(dispatcher)
-                    .map { getTimelineEvent(roomId, eventId).toOptional() }
+            merge(
+                    database.timelineEventQueries.selectByRoomAndEventId(roomId, eventId).asFlow().map { },
+                    // Decryption updates the event table without touching timeline_event.
+                    decryptionSignal.rooms.filter { it == roomId }.map { },
+            )
+                    .conflate()
+                    .map {
+                        withContext(dispatcher) {
+                            val event = getTimelineEvent(roomId, eventId)
+                            DebugLog.i {
+                                "UTDDBG stage=event-flow room=$roomId event=$eventId found=${event != null} " +
+                                        "clearType=${event?.root?.getClearType()} result=${event?.root?.mxDecryptionResult != null} " +
+                                        "error=${event?.root?.mCryptoError}"
+                            }
+                            event.toOptional()
+                        }
+                    }
 
     // SQLDelight notifies per table, so every room's writes wake this: re-read on the collector's thread,
     // not by queueing the query on the single write dispatcher.

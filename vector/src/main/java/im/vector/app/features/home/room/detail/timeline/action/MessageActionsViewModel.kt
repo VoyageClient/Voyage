@@ -48,16 +48,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
@@ -177,7 +175,9 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
 
             observeEvent()
-            if (seededEvent == null) fetchMissingEvent()
+            if (seededEvent == null || seededEvent.root.getClearType() == EventType.ENCRYPTED) {
+                fetchAndDecryptEvent()
+            }
             observeReactions()
             observePowerLevel()
             observeTimelineEventState()
@@ -216,20 +216,16 @@ class MessageActionsViewModel @AssistedInject constructor(
                 }
     }
 
-    // Server-side search results aren't in the timeline DB until something fetches them.
-    private fun fetchMissingEvent() {
+    private fun fetchAndDecryptEvent() {
         val room = room ?: return
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull { session.eventService().ensureEventCached(room.roomId, initialState.eventId, requireTimelineEvent = true) }
             val event = room.getTimelineEvent(initialState.eventId) ?: return@launch
             if (event.root.getClearType() != EventType.ENCRYPTED) return@launch
-            // Decryption only touches the event table, which liveTimelineEvent doesn't watch.
-            session.eventService().requestDecryption(event.root)
-            val decrypted = session.eventService().decryptionUpdates(room.roomId)
-                    .onStart { emit(Unit) }
-                    .mapNotNull { room.getTimelineEvent(initialState.eventId)?.takeIf { it.root.getClearType() != EventType.ENCRYPTED } }
-                    .first()
-            setState { copy(timelineEvent = Success(decrypted)) }
+            DebugLog.i {
+                "UTDDBG stage=preview-request surface=actions room=${room.roomId} event=${event.eventId} error=${event.root.mCryptoError}"
+            }
+            session.eventService().decryptEventNow(event.root)
         }
     }
 
@@ -286,6 +282,10 @@ class MessageActionsViewModel @AssistedInject constructor(
         // The seeds reach observeTimelineEventState as an emission of their own; recomputing the same
         // input would only throw away the pass that is already running (or done) for it.
         if (computedInput == nonNullTimelineEvent to permissions) return
+        DebugLog.i {
+            "UTDDBG stage=preview-update surface=actions room=${initialState.roomId} event=${nonNullTimelineEvent.eventId} " +
+                    "clearType=${nonNullTimelineEvent.root.getClearType()} error=${nonNullTimelineEvent.root.mCryptoError}"
+        }
         computedInput = nonNullTimelineEvent to permissions
         eventIdFlow.tryEmit(nonNullTimelineEvent.eventId)
         // A newer event or power level supersedes whatever is in flight, rather than both racing to
