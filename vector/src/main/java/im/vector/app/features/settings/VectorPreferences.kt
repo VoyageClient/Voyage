@@ -1301,8 +1301,15 @@ class VectorPreferences @Inject constructor(
      *
      * @return true to send the typing notifs
      */
-    fun sendTypingNotifs(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SEND_TYPING_NOTIF_KEY, false)
+    fun sendTypingNotifs(roomId: String): Boolean {
+        return getRoomSendTypingNotifsOverride(roomId) ?: defaultPrefs.getBoolean(SETTINGS_SEND_TYPING_NOTIF_KEY, false)
+    }
+
+    /** Yes or no for this room whatever the account says, or null to follow it. */
+    fun getRoomSendTypingNotifsOverride(roomId: String): Boolean? = getRoomBooleanOverride("${SETTINGS_SEND_TYPING_NOTIF_KEY}_$roomId")
+
+    fun setRoomSendTypingNotifsOverride(roomId: String, send: Boolean?) {
+        setRoomBooleanOverride("${SETTINGS_SEND_TYPING_NOTIF_KEY}_$roomId", send)
     }
 
     /**
@@ -1310,8 +1317,24 @@ class VectorPreferences @Inject constructor(
      * When false (default), receipts are sent as `m.read.private` — the server still tracks
      * the read state for unread counts and cross-device sync, but other users don't see them.
      */
-    fun sendReadReceipts(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SEND_READ_RECEIPT_KEY, false)
+    fun sendReadReceipts(roomId: String): Boolean {
+        return getRoomSendReadReceiptsOverride(roomId) ?: defaultPrefs.getBoolean(SETTINGS_SEND_READ_RECEIPT_KEY, false)
+    }
+
+    /** Yes or no for this room whatever the account says, or null to follow it. */
+    fun getRoomSendReadReceiptsOverride(roomId: String): Boolean? = getRoomBooleanOverride("${SETTINGS_SEND_READ_RECEIPT_KEY}_$roomId")
+
+    fun setRoomSendReadReceiptsOverride(roomId: String, send: Boolean?) {
+        setRoomBooleanOverride("${SETTINGS_SEND_READ_RECEIPT_KEY}_$roomId", send)
+    }
+
+    private fun getRoomBooleanOverride(key: String): Boolean? =
+            if (defaultPrefs.contains(key)) defaultPrefs.getBoolean(key, false) else null
+
+    private fun setRoomBooleanOverride(key: String, value: Boolean?) {
+        defaultPrefs.edit {
+            if (value == null) remove(key) else putBoolean(key, value)
+        }
     }
 
     /**

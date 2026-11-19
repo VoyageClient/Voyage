@@ -21,7 +21,8 @@ import javax.inject.Inject
 
 internal interface MarkAllRoomsReadTask : Task<MarkAllRoomsReadTask.Params, Unit> {
     data class Params(
-            val roomIds: List<String>
+            val roomIds: List<String>,
+            val publicReceiptRoomIds: Set<String> = emptySet(),
     )
 }
 
@@ -29,7 +30,12 @@ internal class DefaultMarkAllRoomsReadTask @Inject constructor(private val readM
 
     override suspend fun execute(params: MarkAllRoomsReadTask.Params) {
         params.roomIds.forEach { roomId ->
-            readMarkersTask.execute(SetReadMarkersTask.Params(roomId, forceReadMarker = true, forceReadReceipt = true))
+            readMarkersTask.execute(SetReadMarkersTask.Params(
+                    roomId,
+                    forceReadMarker = true,
+                    forceReadReceipt = true,
+                    publicReadReceipt = roomId in params.publicReceiptRoomIds,
+            ))
         }
     }
 }

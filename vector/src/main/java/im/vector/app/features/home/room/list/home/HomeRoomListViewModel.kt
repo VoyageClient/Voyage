@@ -544,7 +544,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 session.getRoom(action.roomId)?.readService()?.markAsRead(
                         ReadService.MarkAsReadParams.BOTH,
                         mainTimeLineOnly = true,
-                        public = vectorPreferences.sendReadReceipts(),
+                        public = vectorPreferences.sendReadReceipts(action.roomId),
                 )
             } catch (failure: Throwable) {
                 _viewEvents.post(HomeRoomListViewEvents.Failure(failure))

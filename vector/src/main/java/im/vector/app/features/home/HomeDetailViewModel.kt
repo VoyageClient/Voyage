@@ -20,6 +20,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
 import im.vector.app.features.settings.VectorDataStore
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.ui.UiStateRepository
 import im.vector.lib.core.utils.flow.throttleFirst
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,7 @@ class HomeDetailViewModel @AssistedInject constructor(
         private val spaceStateHandler: SpaceStateHandler,
         private val autoAcceptInvites: AutoAcceptInvites,
         private val homeScreenVisibility: HomeScreenVisibility,
+        private val vectorPreferences: VectorPreferences,
 ) : VectorViewModel<HomeDetailViewState, HomeDetailAction, HomeDetailViewEvents>(initialState) {
 
     @AssistedFactory
@@ -156,7 +158,7 @@ class HomeDetailViewModel @AssistedInject constructor(
             )
                     .map { it.roomId }
             try {
-                session.roomService().markAllAsRead(roomIds)
+                session.roomService().markAllAsRead(roomIds, roomIds.filterTo(HashSet()) { vectorPreferences.sendReadReceipts(it) })
             } catch (failure: Throwable) {
                 Timber.d(failure, "Failed to mark all as read")
             }

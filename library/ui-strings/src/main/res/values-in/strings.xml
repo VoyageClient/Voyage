@@ -3727,4 +3727,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="send_file_step_waiting_for_server">Menunggu server…</string>
     <string name="send_file_step_sending_unknown_size">Mengirim file…</string>
     <string name="image_editor_color_eyedropper">Ambil warna dari gambar</string>
+    <string name="room_personalization_activity_category">Aktivitas</string>
+    <string name="room_personalization_activity_reset_confirmation">Setel ulang pengaturan aktivitas ruangan ini ke yang berlaku di seluruh akun?</string>
 </resources>

@@ -494,7 +494,7 @@ class RoomListViewModel @AssistedInject constructor(
                     room.readService().markAsRead(
                             ReadService.MarkAsReadParams.BOTH,
                             mainTimeLineOnly = true,
-                            public = vectorPreferences.sendReadReceipts(),
+                            public = vectorPreferences.sendReadReceipts(room.roomId),
                     )
                 } catch (failure: Throwable) {
                     _viewEvents.post(RoomListViewEvents.Failure(failure))

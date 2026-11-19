@@ -102,7 +102,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                         room.readService().markAsRead(
                                 params = ReadService.MarkAsReadParams.READ_RECEIPT,
                                 mainTimeLineOnly = false,
-                                public = vectorPreferences.sendReadReceipts(),
+                                public = vectorPreferences.sendReadReceipts(roomId),
                         )
                     }
                 }

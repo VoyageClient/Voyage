@@ -198,9 +198,9 @@ interface RoomService {
     suspend fun onRoomDisplayed(roomId: String)
 
     /**
-     * Mark all rooms as read.
+     * Mark all rooms as read. Rooms in [publicReceiptRoomIds] get a public `m.read` receipt, the others a private one.
      */
-    suspend fun markAllAsRead(roomIds: List<String>)
+    suspend fun markAllAsRead(roomIds: List<String>, publicReceiptRoomIds: Set<String> = emptySet())
 
     /**
      * Resolve a room alias to a room ID.

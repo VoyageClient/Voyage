@@ -287,7 +287,7 @@ class TimelineViewModel @AssistedInject constructor(
                 room.readService().markAsRead(
                         params = ReadService.MarkAsReadParams.READ_RECEIPT,
                         mainTimeLineOnly = true,
-                        public = vectorPreferences.sendReadReceipts(),
+                        public = vectorPreferences.sendReadReceipts(initialState.roomId),
                 )
             }
         }
@@ -1585,13 +1585,13 @@ private fun handleSelectStickerAttachment() {
                                     room.readService().markAsRead(
                                             params = ReadService.MarkAsReadParams.READ_RECEIPT,
                                             mainTimeLineOnly = true,
-                                            public = vectorPreferences.sendReadReceipts(),
+                                            public = vectorPreferences.sendReadReceipts(initialState.roomId),
                                     )
                                 } else {
                                     room.readService().setReadReceipt(
                                             eventId = eventId,
                                             threadId = threadId,
-                                            public = vectorPreferences.sendReadReceipts(),
+                                            public = vectorPreferences.sendReadReceipts(initialState.roomId),
                                     )
                                 }
                             }
@@ -1620,7 +1620,7 @@ private fun handleSelectStickerAttachment() {
                 room.readService().markAsRead(
                         params = ReadService.MarkAsReadParams.BOTH,
                         mainTimeLineOnly = true,
-                        public = vectorPreferences.sendReadReceipts(),
+                        public = vectorPreferences.sendReadReceipts(initialState.roomId),
                 )
             }
             // markAsRead moves the marker to the latest *synced* event, which can be absent or older
@@ -2207,9 +2207,7 @@ private fun handleSelectStickerAttachment() {
         }
         timeline?.dispose()
         timeline?.removeAllListeners()
-        if (vectorPreferences.sendTypingNotifs()) {
-            room?.typingService()?.userStopsTyping()
-        }
+        room?.typingService()?.userStopsTyping()
         // we should also mark it as read here, for the scenario that the user
         // is already in the thread timeline
         markThreadTimelineAsReadLocal()

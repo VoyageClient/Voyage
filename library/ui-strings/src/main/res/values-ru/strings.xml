@@ -3960,4 +3960,6 @@
     <string name="send_file_step_waiting_for_server">Ожидание ответа сервера…</string>
     <string name="send_file_step_sending_unknown_size">Файл отправляется…</string>
     <string name="image_editor_color_eyedropper">Выбрать цвет на изображении</string>
+    <string name="room_personalization_activity_category">Активность</string>
+    <string name="room_personalization_activity_reset_confirmation">Вернуть настройки активности этой комнаты к настройкам вашей учётной записи?</string>
 </resources>

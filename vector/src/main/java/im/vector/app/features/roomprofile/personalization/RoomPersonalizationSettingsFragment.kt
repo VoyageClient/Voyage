@@ -146,6 +146,7 @@ class RoomPersonalizationSettingsFragment :
         setUpProfileReset()
         setUpRoomOverrideReset()
         setUpSyncOverride()
+        setUpActivityOverrides()
         setUpMediaOverrides()
         setUpTimelineOverrides()
         setUpSwipeOverrides()
@@ -292,6 +293,36 @@ class RoomPersonalizationSettingsFragment :
         RoomTag.ROOM_TAG_SYNC_ALWAYS -> SYNC_ALWAYS
         RoomTag.ROOM_TAG_SYNC_WHEN_OPEN -> SYNC_WHEN_OPEN
         else -> INHERIT
+    }
+
+    private val activityCategory
+        get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_ACTIVITY_CATEGORY_KEY)
+
+    private fun setUpActivityOverrides() {
+        bindTriState(SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY, vectorPreferences.getRoomSendReadReceiptsOverride(roomId)) {
+            vectorPreferences.setRoomSendReadReceiptsOverride(roomId, it)
+            refreshActivityResetState()
+        }
+        bindTriState(SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY, vectorPreferences.getRoomSendTypingNotifsOverride(roomId)) {
+            vectorPreferences.setRoomSendTypingNotifsOverride(roomId, it)
+            refreshActivityResetState()
+        }
+        activityCategory?.actionClickListener = {
+            confirmReset(CommonStrings.room_personalization_activity_reset_confirmation, ::resetActivityOverrides)
+        }
+        refreshActivityResetState()
+    }
+
+    private fun refreshActivityResetState() {
+        activityCategory?.isActionEnabled = vectorPreferences.getRoomSendReadReceiptsOverride(roomId) != null ||
+                vectorPreferences.getRoomSendTypingNotifsOverride(roomId) != null
+    }
+
+    private fun resetActivityOverrides() {
+        vectorPreferences.setRoomSendReadReceiptsOverride(roomId, null)
+        vectorPreferences.setRoomSendTypingNotifsOverride(roomId, null)
+        resetListPreferences(SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY, SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY)
+        refreshActivityResetState()
     }
 
     private val mediaCategory
@@ -827,6 +858,9 @@ class RoomPersonalizationSettingsFragment :
         private const val SETTINGS_ROOM_SYNC_KEY = "SETTINGS_ROOM_SYNC_KEY"
         private const val SYNC_ALWAYS = "always"
         private const val SYNC_WHEN_OPEN = "when_open"
+        private const val SETTINGS_ROOM_ACTIVITY_CATEGORY_KEY = "SETTINGS_ROOM_ACTIVITY_CATEGORY_KEY"
+        private const val SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY = "SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY"
+        private const val SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY = "SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY"
         private const val SETTINGS_ROOM_MEDIA_CATEGORY_KEY = "SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
         private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"

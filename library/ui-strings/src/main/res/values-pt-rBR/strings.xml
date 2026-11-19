@@ -3806,4 +3806,6 @@
     <string name="send_file_step_waiting_for_server">Aguardando o servidor…</string>
     <string name="send_file_step_sending_unknown_size">Enviando arquivo…</string>
     <string name="image_editor_color_eyedropper">Escolher uma cor da imagem</string>
+    <string name="room_personalization_activity_category">Atividade</string>
+    <string name="room_personalization_activity_reset_confirmation">Redefinir as configurações de atividade desta sala para as da sua conta?</string>
 </resources>

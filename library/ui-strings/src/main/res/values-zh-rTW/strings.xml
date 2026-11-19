@@ -3729,4 +3729,6 @@
     <string name="send_file_step_waiting_for_server">正在等待伺服器…</string>
     <string name="send_file_step_sending_unknown_size">正在傳送檔案…</string>
     <string name="image_editor_color_eyedropper">從圖片中取色</string>
+    <string name="room_personalization_activity_category">活動</string>
+    <string name="room_personalization_activity_reset_confirmation">要將此聊天室的活動設定重設為帳號層級的設定嗎？</string>
 </resources>

@@ -3764,4 +3764,6 @@
     <string name="send_file_step_waiting_for_server">Sunucu bekleniyor…</string>
     <string name="send_file_step_sending_unknown_size">Dosya gönderiliyor…</string>
     <string name="image_editor_color_eyedropper">Görüntüden renk seç</string>
+    <string name="room_personalization_activity_category">Etkinlik</string>
+    <string name="room_personalization_activity_reset_confirmation">Bu odanın etkinlik ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
 </resources>

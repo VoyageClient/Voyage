@@ -3798,6 +3798,8 @@
     <string name="room_personalization_sync_title">Sync room state</string>
     <string name="room_personalization_room_list_reset_confirmation">Reset this room\'s room list settings to your account-wide ones?</string>
     <string name="room_personalization_redaction_reset_confirmation">Reset this room\'s redaction settings to your account-wide ones?</string>
+    <string name="room_personalization_activity_category">Activity</string>
+    <string name="room_personalization_activity_reset_confirmation">Reset this room\'s activity settings to your account-wide ones?</string>
     <string name="user_personalization_section">Personalization</string>
     <string name="user_personalization_reset_confirmation">Remove your personal overrides for this user?</string>
     <string name="notice_avatar_removed">%1$s removed their avatar</string>

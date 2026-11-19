@@ -1581,12 +1581,11 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleUserIsTyping(room: Room, action: MessageComposerAction.UserIsTyping) {
-        if (vectorPreferences.sendTypingNotifs()) {
-            if (action.isTyping) {
-                room.typingService().userIsTyping()
-            } else {
-                room.typingService().userStopsTyping()
-            }
+        // Stopping is unconditional so turning the setting off mid-typing doesn't leave us shown as typing.
+        if (!action.isTyping) {
+            room.typingService().userStopsTyping()
+        } else if (vectorPreferences.sendTypingNotifs(room.roomId)) {
+            room.typingService().userIsTyping()
         }
     }
 

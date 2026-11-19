@@ -3929,4 +3929,6 @@
     <string name="send_file_step_waiting_for_server">ממתין לשרת…</string>
     <string name="send_file_step_sending_unknown_size">שולח קובץ…</string>
     <string name="image_editor_color_eyedropper">בחירת צבע מהתמונה</string>
+    <string name="room_personalization_activity_category">פעילות</string>
+    <string name="room_personalization_activity_reset_confirmation">לאפס את הגדרות הפעילות של חדר זה לאלה של החשבון כולו?</string>
 </resources>

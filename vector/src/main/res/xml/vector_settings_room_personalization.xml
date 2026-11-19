@@ -168,6 +168,28 @@
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_ROOM_ACTIVITY_CATEGORY_KEY"
+        android:title="@string/room_personalization_activity_category">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_send_read_receipts"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_send_typing_notifs"
+            app:useSimpleSummaryProvider="true" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
         android:key="SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         android:title="@string/room_personalization_media_category">
 

@@ -3805,4 +3805,6 @@
     <string name="send_file_step_waiting_for_server">Warten auf den Server…</string>
     <string name="send_file_step_sending_unknown_size">Datei wird gesendet…</string>
     <string name="image_editor_color_eyedropper">Farbe aus dem Bild übernehmen</string>
+    <string name="room_personalization_activity_category">Aktivität</string>
+    <string name="room_personalization_activity_reset_confirmation">Aktivitäts-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
 </resources>

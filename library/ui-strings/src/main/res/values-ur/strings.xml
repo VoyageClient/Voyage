@@ -3706,4 +3706,6 @@
     <string name="send_file_step_waiting_for_server">سرور کا انتظار ہے…</string>
     <string name="send_file_step_sending_unknown_size">فائل بھیجی جا رہی ہے…</string>
     <string name="image_editor_color_eyedropper">تصویر سے رنگ منتخب کریں</string>
+    <string name="room_personalization_activity_category">سرگرمی</string>
+    <string name="room_personalization_activity_reset_confirmation">اس کمرے کی سرگرمی کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
 </resources>

@@ -255,8 +255,8 @@ internal class DefaultRoomService @Inject constructor(
         forgetRoomTask.execute(ForgetRoomTask.Params(roomId))
     }
 
-    override suspend fun markAllAsRead(roomIds: List<String>) {
-        markAllRoomsReadTask.execute(MarkAllRoomsReadTask.Params(roomIds))
+    override suspend fun markAllAsRead(roomIds: List<String>, publicReceiptRoomIds: Set<String>) {
+        markAllRoomsReadTask.execute(MarkAllRoomsReadTask.Params(roomIds, publicReceiptRoomIds))
     }
 
     override suspend fun getRoomIdByAlias(roomAlias: String, searchOnServer: Boolean): Optional<RoomAliasDescription> {
