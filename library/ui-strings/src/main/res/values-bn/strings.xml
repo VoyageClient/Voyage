@@ -1722,8 +1722,6 @@
     <string name="encryption_unknown_algorithm_tile_description">এই রুমে ব্যবহৃত এনক্রিপশন সমর্থিত নয়</string>
     <string name="room_created_summary_item">%s রুমটি তৈরি ও কনফিগার করেছেন।</string>
     <string name="room_created_summary_item_by_you">আপনি রুমটি তৈরি ও কনফিগার করেছেন।</string>
-    <string name="direct_room_created_summary_item">%s যোগ দিয়েছেন।</string>
-    <string name="direct_room_created_summary_item_by_you">আপনি যোগ দিয়েছেন।</string>
     <string name="this_is_the_beginning_of_room">এটি %s-এর শুরু।</string>
     <string name="this_is_the_beginning_of_room_no_name">এটি এই কথোপকথনের শুরু।</string>
     <string name="this_is_the_beginning_of_dm">এটি %s-এর সাথে আপনার সরাসরি বার্তার ইতিহাসের শুরু।</string>

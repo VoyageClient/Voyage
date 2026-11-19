@@ -85,18 +85,10 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         val resources = holder.expandView.resources
         val createdFromCurrentUser = data?.userId == attributes.currentUserId
         val summary = if (createdFromCurrentUser) {
-            if (isDirectRoom) {
-                resources.getString(CommonStrings.direct_room_created_summary_item_by_you)
-            } else {
-                resources.getString(CommonStrings.room_created_summary_item_by_you)
-            }
+            resources.getString(CommonStrings.room_created_summary_item_by_you)
         } else {
             val name = data?.memberName.orEmpty().neutralizeDirectionOverrides().bidiIsolate()
-            if (isDirectRoom) {
-                resources.getString(CommonStrings.direct_room_created_summary_item, name)
-            } else {
-                resources.getString(CommonStrings.room_created_summary_item, name)
-            }.withUiDirection()
+            resources.getString(CommonStrings.room_created_summary_item, name).withUiDirection()
         }
         holder.summaryView.text = summary
     }

@@ -1469,8 +1469,6 @@
     <string name="settings_discovery_no_terms_title">IDサーバーには利用規約がありません</string>
     <string name="settings_discovery_consent_notice_off_2">あなたの連絡先は非公開です。端末の連絡先からユーザーを発見するためには、連絡先の情報をIDサーバーに送信する許可が必要です。</string>
     <string name="room_created_summary_item">%sがルームを作成し設定しました。</string>
-    <string name="direct_room_created_summary_item_by_you">参加しました。</string>
-    <string name="direct_room_created_summary_item">%sが参加しました。</string>
     <string name="encryption_unknown_algorithm_tile_description">このルームで使用されている暗号化はサポートされていません</string>
     <string name="encryption_misconfigured">暗号化が正しく設定されていません</string>
     <string name="settings_text_message_sent">%sにテキストメッセージを送信しました。メッセージ内の確認コードを入力してください。</string>

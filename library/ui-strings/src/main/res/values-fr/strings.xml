@@ -1411,8 +1411,6 @@
     <string name="settings_emails_and_phone_numbers_summary">Gérer les courriels et numéros de téléphone liés à votre compte Matrix</string>
     <string name="settings_emails_and_phone_numbers_title">Courriels et numéros de téléphone</string>
     <string name="power_level_title">Rôle</string>
-    <string name="direct_room_created_summary_item_by_you">Vous avez rejoint la conversation.</string>
-    <string name="direct_room_created_summary_item">%s a rejoint la conversation.</string>
     <string name="disabled_integration_dialog_title">Les intégrations sont désactivées</string>
     <string name="room_participants_power_level_demote_warning_title">Vous rétrograder vous-même \?</string>
     <string name="room_participants_power_level_demote_warning_prompt">Vous ne pourrez pas annuler cette modification car vous vous rétrogradez vous-même, il ne vous sera pas possible de regagner ces privilèges si vous êtes le dernier utilisateur privilégié de ce salon.</string>

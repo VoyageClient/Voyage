@@ -1687,8 +1687,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="this_is_the_beginning_of_dm">Ini adalah awalnya dari riwayat pesan langsung dengan %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Ini adalah awalnya dari percakapan ini.</string>
     <string name="this_is_the_beginning_of_room">Ini adalah awalnya dari %s.</string>
-    <string name="direct_room_created_summary_item_by_you">Anda bergabung.</string>
-    <string name="direct_room_created_summary_item">%s bergabung.</string>
     <string name="room_created_summary_item_by_you">Anda membuat dan mengatur ruangan ini.</string>
     <string name="room_created_summary_item">%s membuat dan mengatur ruangan ini.</string>
     <string name="encryption_not_enabled">Enkripsi tidak diaktifkan</string>

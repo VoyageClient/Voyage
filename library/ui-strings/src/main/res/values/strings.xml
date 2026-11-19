@@ -2430,8 +2430,6 @@
 
     <string name="room_created_summary_item">%s created and configured the room.</string>
     <string name="room_created_summary_item_by_you">You created and configured the room.</string>
-    <string name="direct_room_created_summary_item">%s joined.</string>
-    <string name="direct_room_created_summary_item_by_you">You joined.</string>
     <string name="this_is_the_beginning_of_room">This is the beginning of %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">This is the beginning of this conversation.</string>
     <string name="this_is_the_beginning_of_dm">This is the beginning of your direct message history with %s.</string>

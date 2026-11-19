@@ -1745,8 +1745,6 @@
     <string name="encryption_unknown_algorithm_tile_description">Bu odanın kullandığı şifreleme desteklenmiyor</string>
     <string name="room_created_summary_item">%s odayı oluşturdu ve yapılandırdı.</string>
     <string name="room_created_summary_item_by_you">Odayı oluşturdunuz ve yapılandırdınız.</string>
-    <string name="direct_room_created_summary_item">%s katıldı.</string>
-    <string name="direct_room_created_summary_item_by_you">Katıldınız.</string>
     <string name="this_is_the_beginning_of_room">%s burada başlıyor.</string>
     <string name="this_is_the_beginning_of_room_no_name">Bu sohbet burada başlıyor.</string>
     <string name="this_is_the_beginning_of_dm">%s ile doğrudan mesaj geçmişiniz burada başlıyor.</string>

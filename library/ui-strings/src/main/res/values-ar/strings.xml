@@ -1842,8 +1842,6 @@
     <string name="encryption_unknown_algorithm_tile_description">التعمية التي تستخدمها هذه الغرفة غير مدعومة</string>
     <string name="room_created_summary_item">أنشأ %s الغرفة وضبطها.</string>
     <string name="room_created_summary_item_by_you">أنشأت الغرفة وضبطتها.</string>
-    <string name="direct_room_created_summary_item">انضم %s.</string>
-    <string name="direct_room_created_summary_item_by_you">انضممت.</string>
     <string name="this_is_the_beginning_of_room">هذه بداية %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">هذه بداية هذه المحادثة.</string>
     <string name="this_is_the_beginning_of_dm">هذه بداية تأريخ رسائلك المباشرة مع %s.</string>

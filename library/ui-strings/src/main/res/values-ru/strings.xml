@@ -1376,8 +1376,6 @@
     <string name="secure_backup_reset_all_no_other_devices">Делайте это только в том случае, если у вас нет другого устройства, с которого вы можете проверить это устройство.</string>
     <string name="secure_backup_reset_all">Сбросить всё</string>
     <string name="bad_passphrase_key_reset_all_action">Забыли или потеряли все варианты восстановления\? Сбросить всё</string>
-    <string name="direct_room_created_summary_item_by_you">Вы вошли.</string>
-    <string name="direct_room_created_summary_item">%s вошёл(шла).</string>
     <string name="direct_room_encryption_enabled_tile_description">Сообщения в этой переписке защищены сквозным шифрованием.</string>
     <string name="direct_room_profile_section_more_leave">Покинуть</string>
     <string name="direct_room_profile_encrypted_subtitle">Сообщения здесь защищены сквозным шифрованием.

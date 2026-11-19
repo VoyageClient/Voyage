@@ -1413,8 +1413,6 @@
     <string name="secure_backup_reset_all_no_other_devices">僅在您沒有其他裝置可以驗證此裝置時才使用此方式。</string>
     <string name="secure_backup_reset_all">重設所有東西</string>
     <string name="bad_passphrase_key_reset_all_action">忘記或遺失所有復原選項？重設所有東西</string>
-    <string name="direct_room_created_summary_item_by_you">您已加入。</string>
-    <string name="direct_room_created_summary_item">%s 已加入。</string>
     <string name="direct_room_encryption_enabled_tile_description">此聊天中的訊息有端對端加密。</string>
     <string name="direct_room_profile_section_more_leave">離開</string>
     <string name="direct_room_profile_encrypted_subtitle">這裡的訊息有端到端加密。

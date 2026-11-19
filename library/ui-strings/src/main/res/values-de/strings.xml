@@ -1448,8 +1448,6 @@
     <string name="secure_backup_reset_all_no_other_devices">Mache dies nur, wenn du kein anderes Gerät hast, mit dem du dieses verifizieren kannst.</string>
     <string name="secure_backup_reset_all">Alles zurücksetzen</string>
     <string name="bad_passphrase_key_reset_all_action">Alle Wiederherstellungsoptionen vergessen oder verloren\? Alles zurücksetzen</string>
-    <string name="direct_room_created_summary_item_by_you">Du bist beigetreten.</string>
-    <string name="direct_room_created_summary_item">%s ist beigetreten.</string>
     <string name="direct_room_encryption_enabled_tile_description">Nachrichten in dieser Unterhaltung sind Ende-zu-Ende-verschlüsselt.</string>
     <string name="direct_room_profile_section_more_leave">Verlassen</string>
     <string name="direct_room_profile_encrypted_subtitle">Nachrichten hier sind Ende-zu-Ende-verschlüsselt.

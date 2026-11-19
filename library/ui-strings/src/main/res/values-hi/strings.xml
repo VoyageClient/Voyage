@@ -1669,8 +1669,6 @@
     <string name="encryption_unknown_algorithm_tile_description">इस रूम में उपयोग किया गया एन्क्रिप्शन समर्थित नहीं है</string>
     <string name="room_created_summary_item">%s ने रूम बनाया और कॉन्फ़िगर किया।</string>
     <string name="room_created_summary_item_by_you">आपने रूम बनाया और कॉन्फ़िगर किया।</string>
-    <string name="direct_room_created_summary_item">%s शामिल हुए।</string>
-    <string name="direct_room_created_summary_item_by_you">आप शामिल हुए।</string>
     <string name="this_is_the_beginning_of_room">यह %s की शुरुआत है।</string>
     <string name="this_is_the_beginning_of_room_no_name">यह इस बातचीत की शुरुआत है।</string>
     <string name="this_is_the_beginning_of_dm">यह %s के साथ आपके डायरेक्ट मैसेज इतिहास की शुरुआत है।</string>

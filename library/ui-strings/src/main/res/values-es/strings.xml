@@ -1459,8 +1459,6 @@
     <string name="secure_backup_reset_all_no_other_devices">Solo haga esto si no tiene otro dispositivo con el que verificar éste.</string>
     <string name="secure_backup_reset_all">Resetear todo</string>
     <string name="bad_passphrase_key_reset_all_action">¿Ha perdido o olvidado todas las opciones de recuperación\? Resetear todo</string>
-    <string name="direct_room_created_summary_item_by_you">Tú te has unido.</string>
-    <string name="direct_room_created_summary_item">%s se ha unido.</string>
     <string name="settings_export_trail">Exportar inspección</string>
     <string name="delete_account_data_warning">¿Borrar los datos de cuenta de typo %1$s\?
 \n

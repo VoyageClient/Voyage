@@ -1372,8 +1372,6 @@
     <string name="secure_backup_reset_all_no_other_devices">仅当没有其它设备可用来验证此设备时，才执行此操作。</string>
     <string name="secure_backup_reset_all">全部重置</string>
     <string name="bad_passphrase_key_reset_all_action">忘记或丢失了所有的恢复选项？重置一切</string>
-    <string name="direct_room_created_summary_item_by_you">你已加入。</string>
-    <string name="direct_room_created_summary_item">%s 已加入。</string>
     <string name="direct_room_encryption_enabled_tile_description">此聊天的消息是端到端加密的。</string>
     <string name="direct_room_profile_section_more_leave">离开</string>
     <string name="direct_room_profile_encrypted_subtitle">此处的消息已端到端加密。

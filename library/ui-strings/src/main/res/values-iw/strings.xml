@@ -1245,8 +1245,6 @@
     <string name="this_is_the_beginning_of_dm">זוהי ההתחלה של היסטוריית ההודעות הישירות שלך עם%s.</string>
     <string name="this_is_the_beginning_of_room_no_name">זו תחילתה של השיחה הזו.</string>
     <string name="this_is_the_beginning_of_room">זו ההתחלה ש ל%s.</string>
-    <string name="direct_room_created_summary_item_by_you">הצטרפתם.</string>
-    <string name="direct_room_created_summary_item">%s הצטרף.</string>
     <string name="room_created_summary_item_by_you">יצרת ותגדרת את החדר.</string>
     <string name="room_created_summary_item">%s יצר את החדר והגדיר אותו.</string>
     <string name="encryption_unknown_algorithm_tile_description">ההצפנה בה משתמשים בחדר זה אינה נתמכת</string>

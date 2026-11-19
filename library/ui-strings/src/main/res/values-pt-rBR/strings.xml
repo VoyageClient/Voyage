@@ -1446,7 +1446,6 @@
     <string name="secure_backup_reset_all_no_other_devices">Somente faça isto se você não tem nenhum outro dispositivo com o qual você pode verificar este dispositivo.</string>
     <string name="secure_backup_reset_all">Resettar tudo</string>
     <string name="bad_passphrase_key_reset_all_action">Esqueceu ou perdeu todas as opções de recuperação\? Resete tudo</string>
-    <string name="direct_room_created_summary_item_by_you">Você entrou.</string>
     <string name="direct_room_encryption_enabled_tile_description">Mensagens neste chat são encriptadas ponta-a-ponta.</string>
     <string name="direct_room_profile_section_more_leave">Sair</string>
     <string name="direct_room_profile_encrypted_subtitle">Mensagens aqui são encriptadas ponta-a-ponta.
@@ -1467,7 +1466,6 @@
     <string name="action_reset">Resettar</string>
     <string name="direct_room_join_rules_invite">%1$s fez isto somente convite.</string>
     <string name="direct_room_join_rules_invite_by_you">Você fez isto somente convite.</string>
-    <string name="direct_room_created_summary_item">%s entrou.</string>
     <string name="search_banned_user_hint">Filtrar usuários banidos</string>
     <string name="settings_troubleshoot_test_push_loop_title">Testar Push</string>
     <plurals name="notification_invitations">
