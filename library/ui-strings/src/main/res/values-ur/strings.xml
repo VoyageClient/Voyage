@@ -3706,4 +3706,7 @@
     <string name="image_editor_color_eyedropper">تصویر سے رنگ منتخب کریں</string>
     <string name="room_personalization_activity_category">سرگرمی</string>
     <string name="room_personalization_activity_reset_confirmation">اس کمرے کی سرگرمی کی ترتیبات اپنے پورے کھاتے والی پر واپس لائیں؟</string>
+    <string name="video_editor_convert_to_animation">متحرک تصویر میں تبدیل کریں</string>
+    <string name="video_editor_converting_to_animation">متحرک تصویر میں تبدیل ہو رہا ہے…</string>
+    <string name="video_editor_convert_to_animation_failed">اس ویڈیو کو متحرک تصویر میں تبدیل نہیں کیا جا سکا</string>
 </resources>

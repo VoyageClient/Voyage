@@ -4037,6 +4037,9 @@
     <string name="video_editor_capture_frame">Extract frame</string>
     <string name="video_editor_capture_frame_failed">Couldn\'t capture this frame</string>
     <string name="video_editor_extracting_frame">Extracting frame…</string>
+    <string name="video_editor_convert_to_animation">Convert to animated image</string>
+    <string name="video_editor_converting_to_animation">Converting to animated image…</string>
+    <string name="video_editor_convert_to_animation_failed">Couldn\'t convert this video to an animated image</string>
     <string name="video_editor_reverse">Reverse</string>
     <string name="video_editor_reverse_preview_unsupported">The preview plays forwards, but the saved video will be reversed</string>
     <string name="video_editor_volume">Volume</string>

@@ -13,6 +13,7 @@ import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.util.concurrent.atomic.AtomicReference
 
 data class AnimatedFrame(val bitmap: Bitmap, val durationMs: Int)
@@ -67,8 +68,21 @@ object AnimatedWebpEncoder {
         return true
     }
 
-    class StreamWriter(file: File, private val width: Int, private val height: Int, private val quality: Int) : Closeable {
+    /**
+     * @param reversed writes the frames in the opposite order to how they are appended. They are
+     * spooled to disk until [finish], so a long animation never has to be held in memory to reverse it.
+     */
+    class StreamWriter(
+            file: File,
+            private val width: Int,
+            private val height: Int,
+            private val quality: Int,
+            reversed: Boolean = false,
+    ) : Closeable {
         private val output = FileOutputStream(file)
+        private val spoolFile = if (reversed) File(file.path + ".frames") else null
+        private val spool = spoolFile?.let { FileOutputStream(it) }
+        private val spooledChunkEnds = ArrayList<Long>()
         private var frameCount = 0
 
         init {
@@ -85,13 +99,37 @@ object AnimatedWebpEncoder {
             val workers = if (width.toLong() * height < 65536) 1 else minOf(4, Runtime.getRuntime().availableProcessors(), frames.size)
             val encoded = if (workers <= 1) frames.map { encodeFrame(it, quality) ?: return false }
                     else encodeParallel(frames, quality, workers) ?: return false
-            encoded.forEach { writeAnmfChunk(output, it) }
+            encoded.forEach { frame ->
+                if (spool == null) {
+                    writeAnmfChunk(output, frame)
+                } else {
+                    writeAnmfChunk(spool, frame)
+                    spooledChunkEnds.add(spool.channel.position())
+                }
+            }
             frameCount += encoded.size
             return true
         }
 
         fun finish(): Boolean {
             if (frameCount == 0) return false
+            if (spool != null && spoolFile != null) {
+                spool.close()
+                RandomAccessFile(spoolFile, "r").use { frames ->
+                    val buffer = ByteArray(BUFFER_SIZE)
+                    for (index in spooledChunkEnds.indices.reversed()) {
+                        val start = if (index == 0) 0L else spooledChunkEnds[index - 1]
+                        var remaining = spooledChunkEnds[index] - start
+                        frames.seek(start)
+                        while (remaining > 0) {
+                            val read = frames.read(buffer, 0, minOf(buffer.size.toLong(), remaining).toInt())
+                            if (read < 0) return false
+                            output.write(buffer, 0, read)
+                            remaining -= read
+                        }
+                    }
+                }
+            }
             val size = output.channel.position()
             if (size - 8 > 0xFFFFFFFFL) return false
             output.channel.position(4)
@@ -101,7 +139,15 @@ object AnimatedWebpEncoder {
             return true
         }
 
-        override fun close() = output.close()
+        override fun close() {
+            output.close()
+            spool?.close()
+            spoolFile?.delete()
+        }
+
+        private companion object {
+            const val BUFFER_SIZE = 64 * 1024
+        }
     }
 
     private fun encodeFrame(frame: AnimatedFrame, quality: Int): FrameEncoded? {

@@ -3766,4 +3766,7 @@
     <string name="image_editor_color_eyedropper">ছবি থেকে একটি রং বেছে নিন</string>
     <string name="room_personalization_activity_category">কার্যকলাপ</string>
     <string name="room_personalization_activity_reset_confirmation">এই রুমের কার্যকলাপ সেটিংস আপনার অ্যাকাউন্টের সাধারণ সেটিংসে ফিরিয়ে আনবেন?</string>
+    <string name="video_editor_convert_to_animation">অ্যানিমেটেড ছবিতে রূপান্তর করুন</string>
+    <string name="video_editor_converting_to_animation">অ্যানিমেটেড ছবিতে রূপান্তর করা হচ্ছে…</string>
+    <string name="video_editor_convert_to_animation_failed">এই ভিডিওটি অ্যানিমেটেড ছবিতে রূপান্তর করা যায়নি</string>
 </resources>

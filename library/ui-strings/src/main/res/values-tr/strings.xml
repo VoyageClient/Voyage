@@ -3764,4 +3764,7 @@
     <string name="image_editor_color_eyedropper">Görüntüden renk seç</string>
     <string name="room_personalization_activity_category">Etkinlik</string>
     <string name="room_personalization_activity_reset_confirmation">Bu odanın etkinlik ayarları hesap genelindeki değerlere sıfırlansın mı?</string>
+    <string name="video_editor_convert_to_animation">Hareketli görsele dönüştür</string>
+    <string name="video_editor_converting_to_animation">Hareketli görsele dönüştürülüyor…</string>
+    <string name="video_editor_convert_to_animation_failed">Bu video hareketli görsele dönüştürülemedi</string>
 </resources>

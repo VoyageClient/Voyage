@@ -370,10 +370,11 @@ class AttachmentsPreviewFragment :
                                 // An animated image comes back through the same editor, and a
                                 // duration on an image attachment means nothing.
                                 duration = output.durationMs.takeIf { output.mimeType.isMimeTypeVideo() || output.isExtractedAudio },
-                                editRecord = pendingEditOriginal?.takeUnless { output.isCapturedFrame || output.isExtractedAudio }
+                                editRecord = pendingEditOriginal
+                                        ?.takeUnless { output.isCapturedFrame || output.isExtractedAudio || output.isConvertedToAnimation }
                                         ?.let { EditRecord(it, output.edits) },
                                 replacementType = when {
-                                    output.isCapturedFrame -> ContentAttachmentData.Type.IMAGE
+                                    output.isCapturedFrame || output.isConvertedToAnimation -> ContentAttachmentData.Type.IMAGE
                                     output.isExtractedAudio -> ContentAttachmentData.Type.AUDIO
                                     else -> null
                                 },

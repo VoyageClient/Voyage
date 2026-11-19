@@ -47,6 +47,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/videoEditorConvertToAnimationAction"
+        android:title="@string/video_editor_convert_to_animation"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/videoEditorSnapAction"
         android:checkable="true"
         android:title="@string/image_editor_snap"

@@ -319,6 +319,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             setIcon(volumeIcon())
         }
         menu.findItem(R.id.videoEditorExtractAudioAction)?.isVisible = canExtractAudio
+        menu.findItem(R.id.videoEditorConvertToAnimationAction)?.isVisible = !isAnimated
         menu.findItem(R.id.videoEditorReverseAction)?.isChecked = reversed
         menu.findItem(R.id.videoEditorSnapAction)?.isChecked = views.videoEditorCropOverlay.snapToCenter
         menu.findItem(R.id.videoEditorRotateAction)?.let {
@@ -358,8 +359,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             R.id.videoEditorExtractAudioAction -> {
                 if (canExtractAudio) {
-                    save(extractAudio = true)
+                    save(ExportKind.AUDIO)
                 }
+                true
+            }
+            R.id.videoEditorConvertToAnimationAction -> {
+                if (!isAnimated) save(ExportKind.ANIMATION)
                 true
             }
             R.id.videoEditorVolumeAction -> {
@@ -1358,7 +1363,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun save(extractAudio: Boolean = false) {
+    /** What a save writes: the edited clip itself, or something else made from it that replaces it. */
+    private enum class ExportKind { EDIT, AUDIO, ANIMATION }
+
+    private fun save(kind: ExportKind = ExportKind.EDIT) {
         if (exporting || exportJob?.isActive == true) return
         // The export decodes every frame again at full size; not alongside the preview's own decode.
         if (isAnimated && !animatedLoaded) return
@@ -1373,13 +1381,14 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 crop = views.videoEditorCropOverlay.currentCrop(),
                 speed = playbackSpeed
         )
+        val isEdit = kind == ExportKind.EDIT
         // Left exactly as it was opened: the attachment already is this export.
-        if (!extractAudio && edits == initialEdits) {
+        if (isEdit && edits == initialEdits) {
             keepHistory(initialEdits)
             finish()
             return
         }
-        if (!extractAudio && !edits.hasChanges) {
+        if (isEdit && !edits.hasChanges) {
             keepHistory(edits)
             finishWithPreview(restoreOriginalResult())
             return
@@ -1388,14 +1397,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         showExportOverlay(true)
         views.videoEditorExportLabel.setText(
                 when {
-                    extractAudio -> CommonStrings.video_editor_extracting_audio
+                    kind == ExportKind.AUDIO -> CommonStrings.video_editor_extracting_audio
+                    kind == ExportKind.ANIMATION -> CommonStrings.video_editor_converting_to_animation
                     isAnimated -> CommonStrings.animated_image_editor_exporting
                     else -> CommonStrings.video_editor_exporting
                 }
         )
         exportJob = lifecycleScope.launch {
             val result = try {
-                runCatching { runExport(edits, extractAudio) }
+                runCatching { runExport(edits, kind) }
             } finally {
                 showExportOverlay(false)
             }
@@ -1416,29 +1426,32 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                             putExtra(EXTRA_RESULT_DURATION, output.durationMs)
                             putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
                             putExtra(EXTRA_RESULT_EDITS, edits)
-                            putExtra(EXTRA_RESULT_EXTRACTED_AUDIO, extractAudio)
+                            putExtra(EXTRA_RESULT_EXTRACTED_AUDIO, kind == ExportKind.AUDIO)
+                            putExtra(EXTRA_RESULT_CONVERTED_TO_ANIMATION, kind == ExportKind.ANIMATION)
                         }
-                        if (!extractAudio) keepHistory(edits)
+                        if (isEdit) keepHistory(edits)
                         finishWithPreview(editorResult)
                     },
                     onFailure = { error ->
                         Timber.w(error, "VideoEditor: export failed")
-                        Toast.makeText(this@VideoEditorActivity, messageFor(error, extractAudio), Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@VideoEditorActivity, messageFor(error, kind), Toast.LENGTH_LONG).show()
                     }
             )
         }
     }
 
-    /** The video branch needs API 18, and is only reached when there is no animated source. */
+    /** The video branches need API 18, and are only reached when there is no animated source. */
     @SuppressLint("NewApi")
-    private suspend fun runExport(edits: VideoEditorEdits, extractAudio: Boolean): VideoEditorExporter.Result {
+    private suspend fun runExport(edits: VideoEditorEdits, kind: ExportKind): VideoEditorExporter.Result {
         val progress = VideoEditProgressListener { percent ->
             handler.post { views.videoEditorExportProgress.progress = percent }
         }
         val animatedSource = animatedSource
-        return if (extractAudio) {
+        return if (kind == ExportKind.AUDIO) {
             check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
             VideoEditorExporter.extractAudio(this, sourceUri, displayName, edits, progress)
+        } else if (kind == ExportKind.ANIMATION) {
+            AnimatedImageExporter.exportVideo(this, sourceUri, displayName, edits, progress)
         } else if (animatedSource != null) {
             val targetWidth = intent.getIntExtra(EXTRA_TARGET_WIDTH, 0)
             val targetHeight = intent.getIntExtra(EXTRA_TARGET_HEIGHT, 0)
@@ -1456,12 +1469,20 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun messageFor(error: Throwable, extractAudio: Boolean): String = when (error) {
+    private fun messageFor(error: Throwable, kind: ExportKind): String = when (error) {
         is VideoEditException.NotEnoughSpace -> getString(CommonStrings.video_editor_no_space)
         is VideoEditException.UnsupportedCodec -> getString(CommonStrings.video_editor_unsupported)
         is AnimatedImageExporter.TransparencyUnsupportedException -> getString(CommonStrings.animated_image_editor_no_transparency)
-        is AnimatedImageExporter.AnimatedImageException -> getString(CommonStrings.animated_image_editor_export_failed)
-        else -> getString(if (extractAudio) CommonStrings.audio_editor_export_failed else CommonStrings.video_editor_export_failed)
+        is AnimatedImageExporter.AnimatedImageException -> getString(
+                if (kind == ExportKind.ANIMATION) CommonStrings.video_editor_convert_to_animation_failed else CommonStrings.animated_image_editor_export_failed
+        )
+        else -> getString(
+                when (kind) {
+                    ExportKind.EDIT -> CommonStrings.video_editor_export_failed
+                    ExportKind.AUDIO -> CommonStrings.audio_editor_export_failed
+                    ExportKind.ANIMATION -> CommonStrings.video_editor_convert_to_animation_failed
+                }
+        )
     }
 
     private fun showExportOverlay(visible: Boolean) {
@@ -1551,6 +1572,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             /** A still of one frame, which replaces the clip rather than being an edit of it. */
             val isCapturedFrame: Boolean = false,
             val isExtractedAudio: Boolean = false,
+            val isConvertedToAnimation: Boolean = false,
     )
 
     companion object {
@@ -1601,6 +1623,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
         private const val EXTRA_RESULT_EXTRACTED_AUDIO = "EXTRA_RESULT_EXTRACTED_AUDIO"
         private const val EXTRA_RESULT_CAPTURED_FRAME = "EXTRA_RESULT_CAPTURED_FRAME"
+        private const val EXTRA_RESULT_CONVERTED_TO_ANIMATION = "EXTRA_RESULT_CONVERTED_TO_ANIMATION"
 
         fun newIntent(
                 context: Context,
@@ -1633,7 +1656,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                     mimeType = intent.getStringExtra(EXTRA_RESULT_MIME_TYPE).orEmpty(),
                     edits = intent.getParcelableExtraCompat(EXTRA_RESULT_EDITS) ?: VideoEditorEdits(),
                     isCapturedFrame = intent.getBooleanExtra(EXTRA_RESULT_CAPTURED_FRAME, false),
-                    isExtractedAudio = intent.getBooleanExtra(EXTRA_RESULT_EXTRACTED_AUDIO, false)
+                    isExtractedAudio = intent.getBooleanExtra(EXTRA_RESULT_EXTRACTED_AUDIO, false),
+                    isConvertedToAnimation = intent.getBooleanExtra(EXTRA_RESULT_CONVERTED_TO_ANIMATION, false)
             )
         }
     }

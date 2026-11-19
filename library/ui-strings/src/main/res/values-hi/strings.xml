@@ -3694,4 +3694,7 @@
     <string name="image_editor_color_eyedropper">छवि से रंग चुनें</string>
     <string name="room_personalization_activity_category">गतिविधि</string>
     <string name="room_personalization_activity_reset_confirmation">इस रूम की गतिविधि सेटिंग्स अपने खाते वाली पर रीसेट करें?</string>
+    <string name="video_editor_convert_to_animation">एनिमेटेड इमेज में बदलें</string>
+    <string name="video_editor_converting_to_animation">एनिमेटेड इमेज में बदला जा रहा है…</string>
+    <string name="video_editor_convert_to_animation_failed">इस वीडियो को एनिमेटेड इमेज में बदला नहीं जा सका</string>
 </resources>

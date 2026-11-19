@@ -3806,4 +3806,7 @@
     <string name="image_editor_color_eyedropper">Escolher uma cor da imagem</string>
     <string name="room_personalization_activity_category">Atividade</string>
     <string name="room_personalization_activity_reset_confirmation">Redefinir as configurações de atividade desta sala para as da sua conta?</string>
+    <string name="video_editor_convert_to_animation">Converter em imagem animada</string>
+    <string name="video_editor_converting_to_animation">Convertendo em imagem animada…</string>
+    <string name="video_editor_convert_to_animation_failed">Não foi possível converter este vídeo em imagem animada</string>
 </resources>

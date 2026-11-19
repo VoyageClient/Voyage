@@ -10,10 +10,13 @@ package im.vector.app.features.attachments.editor.video
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.net.Uri
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.features.attachments.editor.FrameTransform
@@ -24,16 +27,19 @@ import im.vector.lib.animatedimage.AnimatedFrame
 import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.animatedimage.AnimatedImageReader
 import im.vector.lib.animatedimage.AnimatedWebpEncoder
+import im.vector.lib.mediatranscode.MediaSourceInfo
 import im.vector.lib.mediatranscode.VideoEditProgressListener
+import im.vector.lib.mediatranscode.VideoFrameSampler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import kotlin.coroutines.coroutineContext
+import kotlin.math.roundToLong
 
 /**
- * Applies a [VideoEditorEdits] to an animated image and writes an animated WebP.
+ * Applies a [VideoEditorEdits] to an animated image, or converts a video, and writes an animated WebP.
  *
  * Always WebP, whatever went in: it is the one animated format the fork can both write and show
  * everywhere, and a GIF re-encoded as GIF would only lose colours.
@@ -172,6 +178,103 @@ object AnimatedImageExporter {
         }
     }
 
+    /**
+     * Turns the edited range of a video into an animated WebP, without its sound. Sampled in output
+     * time, so a sped-up clip keeps its frame rate rather than skipping frames, and decoded straight to
+     * the size the crop then brings down to [MAX_CONVERSION_DIMENSION].
+     */
+    @RequiresApi(18)
+    suspend fun exportVideo(
+            context: Context,
+            source: Uri,
+            displayName: String?,
+            edits: VideoEditorEdits,
+            progressListener: VideoEditProgressListener?,
+    ): VideoEditorExporter.Result = withContext(Dispatchers.Default) {
+        progressListener?.onProgress(0)
+        val info = MediaSourceInfo.probe(context, source) ?: throw AnimatedImageException()
+        val endUs = edits.endUs.takeIf { it > edits.startUs } ?: info.durationUs
+        // The video's own rate as it plays at the chosen speed; past the cap, frames are dropped evenly.
+        val sourceFrameRate = info.frameRate.takeIf { it > 0f } ?: MAX_CONVERSION_FRAME_RATE
+        val frameRate = minOf((sourceFrameRate * edits.speed.speed).toDouble(), MAX_CONVERSION_FRAME_RATE.toDouble())
+        val sourceIntervalUs = (1_000_000.0 / frameRate * edits.speed.speed).toLong().coerceAtLeast(1)
+        fun elapsedMs(slots: Long): Long = (slots * 1000.0 / frameRate).roundToLong()
+        val (renderWidth, renderHeight) = renderSize(info.displayWidth, info.displayHeight, edits, MAX_CONVERSION_DIMENSION)
+
+        val destination = createOutputFile(context, displayName)
+        var writer: AnimatedWebpEncoder.StreamWriter? = null
+        var geometry: Geometry? = null
+        val pending = ArrayList<AnimatedFrame>(MAX_BATCH)
+        var slotsWritten = 0L
+        var lastProgress = -1
+        val jobContext = coroutineContext
+        fun flush() {
+            try {
+                if (writer?.append(pending) != true) throw AnimatedImageException()
+            } finally {
+                pending.forEach { it.bitmap.recycle() }
+                pending.clear()
+            }
+        }
+        try {
+            val decoded = VideoFrameSampler.sample(
+                    context, source, info, edits.startUs, endUs, sourceIntervalUs, renderWidth, renderHeight
+            ) { frame, samples, samplesDone, samplesTotal ->
+                try {
+                    jobContext.ensureActive()
+                    val current = geometry ?: Geometry.of(frame, edits, null, emptyList<CensorEdit>() to emptyList(), opaque = true)
+                            .also { geometry = it }
+                    if (writer == null) {
+                        writer = AnimatedWebpEncoder.StreamWriter(destination, current.width, current.height, DEFAULT_QUALITY, edits.reversed)
+                    }
+                    // From the running total, so rounding each delay to whole milliseconds never drifts.
+                    val delay = (elapsedMs(slotsWritten + samples) - elapsedMs(slotsWritten)).toInt().coerceAtLeast(MIN_FRAME_DELAY_MS)
+                    slotsWritten += samples
+                    pending.add(AnimatedFrame(current.apply(frame), delay))
+                    val bytesPerFrame = current.width.toLong() * current.height * 4
+                    val batchSize = (Runtime.getRuntime().maxMemory() / 16 / bytesPerFrame.coerceAtLeast(1)).coerceIn(1, MAX_BATCH.toLong())
+                    if (pending.size >= batchSize) flush()
+                } finally {
+                    frame.recycle()
+                }
+                val progress = samplesDone * 99 / samplesTotal.coerceAtLeast(1)
+                if (progress != lastProgress) {
+                    progressListener?.onProgress(progress)
+                    lastProgress = progress
+                }
+            }
+            if (!decoded) throw AnimatedImageException()
+            if (pending.isNotEmpty()) flush()
+            jobContext.ensureActive()
+            if (writer?.finish() != true) throw AnimatedImageException()
+            val finalGeometry = geometry ?: throw AnimatedImageException()
+            progressListener?.onProgress(100)
+            VideoEditorExporter.Result(
+                    uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, destination),
+                    width = finalGeometry.width, height = finalGeometry.height, size = destination.length(),
+                    mimeType = OUTPUT_MIME_TYPE, durationMs = elapsedMs(slotsWritten), audioDropped = false
+            )
+        } catch (error: Throwable) {
+            destination.parentFile?.deleteRecursively()
+            throw error
+        } finally {
+            writer?.close()
+            pending.forEach { it.bitmap.recycle() }
+        }
+    }
+
+    /** The whole frame at the scale that leaves the cropped part no longer than [maxDimension]. */
+    private fun renderSize(displayWidth: Int, displayHeight: Int, edits: VideoEditorEdits, maxDimension: Int): Pair<Int, Int> {
+        val swapped = (((edits.rotationDegrees % 360) + 360) % 360) % 180 == 90
+        val crop = edits.crop ?: RectF(0f, 0f, 1f, 1f)
+        val croppedLongest = maxOf(
+                crop.width() * if (swapped) displayHeight else displayWidth,
+                crop.height() * if (swapped) displayWidth else displayHeight
+        )
+        val scale = if (croppedLongest <= maxDimension) 1f else maxDimension / croppedLongest
+        return (displayWidth * scale).toInt().coerceAtLeast(1) to (displayHeight * scale).toInt().coerceAtLeast(1)
+    }
+
     /** The trim is in source time, which for an animation is the running total of frame delays. */
     private fun trim(frames: List<AnimatedFrame>, edits: VideoEditorEdits): List<AnimatedFrame> {
         if (edits.durationUs <= 0 || (edits.startUs <= 0 && edits.endUs >= edits.durationUs)) return frames
@@ -189,6 +292,11 @@ object AnimatedImageExporter {
             (durationMs / edits.speed.speed).toInt().coerceAtLeast(MIN_FRAME_DELAY_MS)
 
     private const val MIN_FRAME_DELAY_MS = 10
+    private const val MAX_BATCH = 4
+    private const val MAX_CONVERSION_FRAME_RATE = 30f
+
+    /** Longest side of a converted video; never scaled up. Every frame is a full still, so size grows fast. */
+    private const val MAX_CONVERSION_DIMENSION = 640
 
     private class Geometry(
             val width: Int,
@@ -196,6 +304,7 @@ object AnimatedImageExporter {
             private val matrix: Matrix,
             private val censors: List<CensorEdit>,
             private val strokes: List<BrushStroke>,
+            private val opaque: Boolean,
     ) {
 
         private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
@@ -203,6 +312,11 @@ object AnimatedImageExporter {
         fun apply(bitmap: Bitmap): Bitmap {
             val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(output)
+            if (opaque) {
+                // Black behind what a tilt swings away, so no frame needs an alpha channel.
+                canvas.drawColor(Color.BLACK)
+                output.setHasAlpha(false)
+            }
             canvas.concat(matrix)
             canvas.drawBitmap(bitmap, 0f, 0f, paint)
             if (censors.isNotEmpty() || strokes.isNotEmpty()) {
@@ -218,6 +332,7 @@ object AnimatedImageExporter {
                     edits: VideoEditorEdits,
                     targetSize: Pair<Int, Int>?,
                     annotations: Pair<List<CensorEdit>, List<BrushStroke>>,
+                    opaque: Boolean = false,
             ): Geometry {
                 val rotation = ((edits.rotationDegrees % 360) + 360) % 360
                 val swapped = rotation % 180 == 90
@@ -234,7 +349,7 @@ object AnimatedImageExporter {
                     postTranslate(-crop.left * displayWidth, -crop.top * displayHeight)
                     postScale(width / (crop.width() * displayWidth), height / (crop.height() * displayHeight))
                 }
-                return Geometry(width, height, matrix, annotations.first, annotations.second)
+                return Geometry(width, height, matrix, annotations.first, annotations.second, opaque)
             }
         }
     }

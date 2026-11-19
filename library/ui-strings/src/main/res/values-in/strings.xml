@@ -3727,4 +3727,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_editor_color_eyedropper">Ambil warna dari gambar</string>
     <string name="room_personalization_activity_category">Aktivitas</string>
     <string name="room_personalization_activity_reset_confirmation">Setel ulang pengaturan aktivitas ruangan ini ke yang berlaku di seluruh akun?</string>
+    <string name="video_editor_convert_to_animation">Konversi ke gambar animasi</string>
+    <string name="video_editor_converting_to_animation">Mengonversi ke gambar animasi…</string>
+    <string name="video_editor_convert_to_animation_failed">Tidak dapat mengonversi video ini ke gambar animasi</string>
 </resources>

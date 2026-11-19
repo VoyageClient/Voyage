@@ -62,6 +62,29 @@ class AnimatedWebpEncoderTest {
     }
 
     @Test
+    fun `reversed stream writes frames in reverse order and removes its spool`() {
+        val frames = listOf(Color.RED, Color.GREEN, Color.BLUE, Color.TRANSPARENT).mapIndexed { index, color ->
+            AnimatedFrame(Bitmap.createBitmap(64, 48, Bitmap.Config.ARGB_8888).apply { eraseColor(color) }, 20 + index * 30)
+        }
+        val file = File.createTempFile("animated-reversed-", ".webp")
+        try {
+            val expected = ByteArrayOutputStream()
+            AnimatedWebpEncoder.encode(frames.reversed(), 80, expected) shouldBeEqualTo true
+
+            AnimatedWebpEncoder.StreamWriter(file, 64, 48, 80, reversed = true).use { writer ->
+                writer.append(frames.take(1)) shouldBeEqualTo true
+                writer.append(frames.drop(1)) shouldBeEqualTo true
+                writer.finish() shouldBeEqualTo true
+            }
+            file.readBytes().contentEquals(expected.toByteArray()) shouldBeEqualTo true
+            File(file.path + ".frames").exists() shouldBeEqualTo false
+        } finally {
+            file.delete()
+            frames.forEach { it.bitmap.recycle() }
+        }
+    }
+
+    @Test
     fun `streaming GIF decoder releases frames and preserves colors and timing`() {
         val file = gifSource()
         val bitmaps = ArrayList<Bitmap>()

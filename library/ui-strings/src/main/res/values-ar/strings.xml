@@ -4021,4 +4021,7 @@
     <string name="image_editor_color_eyedropper">اختيار لون من الصورة</string>
     <string name="room_personalization_activity_category">النشاط</string>
     <string name="room_personalization_activity_reset_confirmation">أتريد إعادة إعدادات النشاط لهذه الغرفة إلى ما هو معيّن لحسابك عمومًا؟</string>
+    <string name="video_editor_convert_to_animation">تحويل إلى صورة متحركة</string>
+    <string name="video_editor_converting_to_animation">جارٍ التحويل إلى صورة متحركة…</string>
+    <string name="video_editor_convert_to_animation_failed">تعذّر تحويل هذا الفيديو إلى صورة متحركة</string>
 </resources>

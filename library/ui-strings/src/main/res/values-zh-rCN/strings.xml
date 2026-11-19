@@ -3727,4 +3727,7 @@
     <string name="image_editor_color_eyedropper">从图片中取色</string>
     <string name="room_personalization_activity_category">活动</string>
     <string name="room_personalization_activity_reset_confirmation">将此房间的活动设置重置为账户全局设置？</string>
+    <string name="video_editor_convert_to_animation">转换为动图</string>
+    <string name="video_editor_converting_to_animation">正在转换为动图…</string>
+    <string name="video_editor_convert_to_animation_failed">无法将此视频转换为动图</string>
 </resources>

@@ -3725,4 +3725,7 @@
     <string name="image_editor_color_eyedropper">画像から色を選択</string>
     <string name="room_personalization_activity_category">アクティビティ</string>
     <string name="room_personalization_activity_reset_confirmation">このルームのアクティビティ設定を、アカウント全体のものにリセットしますか？</string>
+    <string name="video_editor_convert_to_animation">アニメーション画像に変換</string>
+    <string name="video_editor_converting_to_animation">アニメーション画像に変換しています…</string>
+    <string name="video_editor_convert_to_animation_failed">この動画をアニメーション画像に変換できませんでした</string>
 </resources>

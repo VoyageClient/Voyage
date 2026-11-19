@@ -3805,4 +3805,7 @@
     <string name="image_editor_color_eyedropper">Farbe aus dem Bild übernehmen</string>
     <string name="room_personalization_activity_category">Aktivität</string>
     <string name="room_personalization_activity_reset_confirmation">Aktivitäts-Einstellungen dieses Raums auf die kontoweiten Werte zurücksetzen?</string>
+    <string name="video_editor_convert_to_animation">In animiertes Bild umwandeln</string>
+    <string name="video_editor_converting_to_animation">Wird in animiertes Bild umgewandelt…</string>
+    <string name="video_editor_convert_to_animation_failed">Dieses Video konnte nicht in ein animiertes Bild umgewandelt werden</string>
 </resources>
