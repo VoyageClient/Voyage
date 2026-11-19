@@ -758,6 +758,8 @@ internal class SqlTimeline(
                     }
                     oldestPrevToken != null -> {
                         if (!paginateThroughHidden(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)) return
+                        // The page landed below the cached live slice, which rebuilds never re-read.
+                        growLiveChunkMapping()
                         revealAfterBackwardFetch()
                     }
                     else -> {
