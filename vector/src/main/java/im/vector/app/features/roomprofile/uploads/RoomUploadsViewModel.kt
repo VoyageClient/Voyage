@@ -18,18 +18,23 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
+import im.vector.app.features.redaction.preservation.PreservedMediaStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
+import java.io.File
 
 class RoomUploadsViewModel @AssistedInject constructor(
         @Assisted initialState: RoomUploadsViewState,
         private val session: Session,
         private val preservedAttachmentResolver: PreservedAttachmentResolver,
+        private val preservedMediaStore: PreservedMediaStore,
 ) : VectorViewModel<RoomUploadsViewState, RoomUploadsAction, RoomUploadsViewEvents>(initialState) {
 
     @AssistedFactory
@@ -83,12 +88,15 @@ class RoomUploadsViewModel @AssistedInject constructor(
                                     it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_VIDEO ||
                                     it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL
                         }
+                val newMediaEvents = groupedUploadEvents[true].orEmpty()
+                val newPreservedFiles = preservedFilesOf(newMediaEvents)
 
                 setState {
                     copy(
                             asyncEventsRequest = Success(Unit),
-                            mediaEvents = (this.mediaEvents + groupedUploadEvents[true].orEmpty()).newestFirst(),
+                            mediaEvents = (this.mediaEvents + newMediaEvents).newestFirst(),
                             fileEvents = (this.fileEvents + groupedUploadEvents[false].orEmpty()).newestFirst(),
+                            preservedMediaFiles = this.preservedMediaFiles + newPreservedFiles,
                             hasMore = result.hasMore
                     )
                 }
@@ -134,6 +142,13 @@ class RoomUploadsViewModel @AssistedInject constructor(
     }
 
     private fun List<UploadEvent>.newestFirst() = sortedByDescending { it.root.originServerTs ?: 0L }
+
+    // A stat per event: kept off the grid's model build, which reruns over the whole list on every page.
+    private suspend fun preservedFilesOf(events: List<UploadEvent>): Map<String, File> = withContext(Dispatchers.IO) {
+        events.mapNotNull { event ->
+            preservedMediaStore.fileFor(room.roomId, event.eventId).takeIf { it.isFile }?.let { event.eventId to it }
+        }.toMap()
+    }
 
     override fun handle(action: RoomUploadsAction) {
         when (action) {

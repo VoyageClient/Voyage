@@ -197,21 +197,26 @@ class ImageContentRenderer @Inject constructor(
     /**
      * For gallery.
      */
-    fun render(data: Data, imageView: ImageView, size: Int, fromRetryTap: Boolean = false) {
-        render(data, imageView, size, size, fromRetryTap)
+    fun render(data: Data, imageView: ImageView, size: Int, fromRetryTap: Boolean = false, animate: Boolean = true) {
+        render(data, imageView, size, size, fromRetryTap, mode = gridMode(data.mimeType), animate = animate)
     }
 
     /**
      * Fixed-box variant for grid tiles (uploads grid, MSC4274 gallery tiles). Placeholders are drawn
      * square: a tile is flush with its neighbours, and the grid rounds the outer edge itself.
      */
-    fun render(data: Data, imageView: ImageView, width: Int, height: Int, fromRetryTap: Boolean = false) {
+    fun render(
+            data: Data,
+            imageView: ImageView,
+            width: Int,
+            height: Int,
+            fromRetryTap: Boolean = false,
+            // Not a plain THUMBNAIL: the homeserver can't scale formats it has no decoder for, such as JPEG XL.
+            mode: Mode = previewMode(isSticker = false, mimeType = data.mimeType),
+            animate: Boolean = true,
+    ) {
         // renderFailed leaves FIT_XY behind, which would stretch the picture a later load draws here.
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-        // A plain THUMBNAIL asks the homeserver to scale the file, which it cannot do for formats it
-        // has no decoder for — JPEG XL among them — leaving the grid blank. previewMode routes those
-        // to the original, exactly as the timeline's previews already do.
-        val mode = previewMode(isSticker = false, mimeType = data.mimeType)
         // Same keep-the-drawn-picture rule as render(data, mode, …).
         val last = imageView.lastRender()
         DebugLog.i { "MEDIADBG grid render decide event=${data.eventId} view=${viewId(imageView)} mode=$mode retryTap=$fromRetryTap " +
@@ -242,7 +247,7 @@ class ImageContentRenderer @Inject constructor(
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         imageView.startRender()
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
-        imageView.setTag(R.id.image_renderer_retry) { render(data, imageView, width, height, fromRetryTap = true) }
+        imageView.setTag(R.id.image_renderer_retry) { render(data, imageView, width, height, fromRetryTap = true, mode = mode, animate = animate) }
         // Stamped like the main render, so a tap while a retry is in flight is swallowed rather
         // than opening the viewer on media that is not there yet.
         imageView.setTag(R.id.image_renderer_retrying, if (fromRetryTap) SystemClock.uptimeMillis() else null)
@@ -259,8 +264,7 @@ class ImageContentRenderer @Inject constructor(
         )
                 .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
-                // Animated media plays here too: a grid of stills gives no hint which of them move.
-                .intoView(imageView, animate = true, freshKey = freshKeyIf(restartsWedgedRender))
+                .intoView(imageView, animate = animate, freshKey = freshKeyIf(restartsWedgedRender))
     }
 
     /**
@@ -912,6 +916,10 @@ class ImageContentRenderer @Inject constructor(
          */
         fun previewMode(isSticker: Boolean, mimeType: String?): Mode =
                 if (isSticker || mimeType in ALPHA_CAPABLE_MIME_TYPES) Mode.STICKER else Mode.THUMBNAIL
+
+        // Unlike previewMode, a crop can lose transparency, and a screen of whole PNG originals is too slow to scroll.
+        fun gridMode(mimeType: String?): Mode =
+                if (mimeType in ORIGINAL_ONLY_MIME_TYPES || mimeType == MimeTypes.Jxl) Mode.STICKER else Mode.THUMBNAIL
     }
 
     fun clear(imageView: ImageView) {

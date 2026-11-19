@@ -18,6 +18,7 @@ import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.os.SystemClock
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.ColorUtils
@@ -38,7 +39,7 @@ class MediaPlaceholderDrawable(
         val blurHash: BlurHashDrawable? = null,
         private val showGlyph: Boolean = true,
         private val hasNoSource: Boolean = false,
-) : Drawable(), Drawable.Callback, Runnable {
+) : Drawable(), Drawable.Callback {
 
     init {
         // The blurhash decodes off the main thread and invalidates itself when the bitmap lands.
@@ -78,10 +79,11 @@ class MediaPlaceholderDrawable(
         // A settled failure has stopped animating, so nothing else would redraw it.
         invalidateSelf()
     }
-    private val handler = Handler(Looper.getMainLooper())
 
     private var running = false
     private var failed = false
+    private var drawnSinceTick = false
+    private var undrawnTicks = 0
 
     /**
      * Media of our own whose bytes are still being uploaded has no download that can time out, and the
@@ -115,6 +117,7 @@ class MediaPlaceholderDrawable(
     fun isFailed(): Boolean = failed
 
     override fun draw(canvas: Canvas) {
+        drawnSinceTick = true
         val rect = RectF(bounds)
         val target = if (failed || hasNoSource) 1f else 0f
         failProgress = if (changedAtMs == 0L) {
@@ -165,10 +168,20 @@ class MediaPlaceholderDrawable(
                 it.draw(canvas)
             }
         }
+
+        if (!running && isVisible && !isSettled()) start()
     }
 
-    override fun run() {
-        if (!running) return
+    // Settled failures have nothing left to animate; waiting ones breathe for as long as they are drawn.
+    private fun isSettled() = failed && failProgress >= 1f
+
+    /** False once there is nothing left to animate. */
+    private fun tick(): Boolean {
+        // Undrawn means let go: a finished crossfade keeps this as a hidden layer, and before API 24 an
+        // ImageView never hides a drawable it replaces. Pulsing on, either redraws its view every frame.
+        if (drawnSinceTick) undrawnTicks = 0 else undrawnTicks++
+        drawnSinceTick = false
+        if (undrawnTicks >= MAX_UNDRAWN_TICKS) return false
         // Not every loader reports back. Requests served by Glide's own HTTP stack, rather than the
         // fetcher that has its own timeout, can hang with no callback at all — so waiting is bounded
         // here, where it covers whoever is doing the loading.
@@ -176,23 +189,49 @@ class MediaPlaceholderDrawable(
             setFailed(true)
         }
         invalidateSelf()
-        // Settled failures have nothing left to animate; waiting ones breathe indefinitely.
-        if (failed && failProgress >= 1f) {
-            running = false
-        } else {
-            handler.postDelayed(this, FRAME_INTERVAL_MS)
-        }
+        return !isSettled()
     }
 
     private fun start() {
         if (running || hasNoSource) return
         running = true
-        handler.post(this)
+        undrawnTicks = 0
+        PulseTicker.add(this)
     }
 
     private fun stop() {
         running = false
-        handler.removeCallbacks(this)
+        PulseTicker.remove(this)
+    }
+
+    // A grid of loading tiles shares one frame callback rather than posting one each.
+    private object PulseTicker : Handler.Callback {
+        private const val TICK = 1
+        private val handler = Handler(Looper.getMainLooper(), this)
+        private val active = LinkedHashSet<MediaPlaceholderDrawable>()
+
+        fun add(drawable: MediaPlaceholderDrawable) = onMain {
+            active.add(drawable)
+            schedule(0L)
+        }
+
+        fun remove(drawable: MediaPlaceholderDrawable) = onMain {
+            active.remove(drawable)
+        }
+
+        override fun handleMessage(msg: Message): Boolean {
+            active.toList().forEach { if (it.running && !it.tick()) it.stop() }
+            schedule(FRAME_INTERVAL_MS)
+            return true
+        }
+
+        private fun schedule(delayMs: Long) {
+            if (active.isNotEmpty() && !handler.hasMessages(TICK)) handler.sendEmptyMessageDelayed(TICK, delayMs)
+        }
+
+        private inline fun onMain(crossinline block: () -> Unit) {
+            if (Looper.myLooper() == Looper.getMainLooper()) block() else handler.post { block() }
+        }
     }
 
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
@@ -235,6 +274,9 @@ class MediaPlaceholderDrawable(
         private const val MAX_ICON_DP = 48f
         private const val SCRIM_ALPHA = 0x66
         private const val FRAME_INTERVAL_MS = 16L
+
+        // Two, not one: the redraw a tick asks for can land just after the next tick on a slow frame.
+        private const val MAX_UNDRAWN_TICKS = 2
         private const val FADE_MS = 320f
         private const val PULSE_PERIOD_MS = 1300L
         private const val FILL_PULSE_MIN_ALPHA = 0.32

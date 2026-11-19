@@ -32,6 +32,7 @@ import im.vector.app.features.audio.AudioGalleryData
 import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.roomprofile.uploads.RoomUploadsAction
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel
+import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import im.vector.app.features.share.forwardEventIntent
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -69,6 +70,7 @@ class RoomUploadsFilesFragment :
     override fun onDestroyView() {
         views.genericStateViewListRecycler.cleanup()
         controller.listener = null
+        renderedState = null
         super.onDestroyView()
     }
 
@@ -140,9 +142,16 @@ class RoomUploadsFilesFragment :
         } else {
             views.genericStateViewListStateView.state = StateView.State.Content
             views.genericStateViewListRecycler.post { loadMoreIfSpinnerShown() }
-            controller.setData(state)
+            // Only a page changes this list; every other state change would reformat each row's date for nothing.
+            val rendered = renderedState
+            if (rendered == null || rendered.fileEvents !== state.fileEvents || rendered.hasMore != state.hasMore) {
+                renderedState = state
+                controller.setData(state)
+            }
         }
     }
+
+    private var renderedState: RoomUploadsViewState? = null
 
     override fun onResume() {
         super.onResume()

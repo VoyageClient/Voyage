@@ -14,6 +14,7 @@ import im.vector.app.features.roomprofile.RoomProfileArgs
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
+import java.io.File
 
 data class RoomUploadsViewState(
         val roomId: String = "",
@@ -21,6 +22,8 @@ data class RoomUploadsViewState(
         // Store cumul of pagination result, grouped by type
         val mediaEvents: List<UploadEvent> = emptyList(),
         val fileEvents: List<UploadEvent> = emptyList(),
+        // Local copies of redacted media, by event id
+        val preservedMediaFiles: Map<String, File> = emptyMap(),
         // Current pagination request
         val asyncEventsRequest: Async<Unit> = Uninitialized,
         // True if more result are available server side

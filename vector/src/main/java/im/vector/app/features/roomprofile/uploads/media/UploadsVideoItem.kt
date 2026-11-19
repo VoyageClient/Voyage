@@ -29,7 +29,7 @@ abstract class UploadsVideoItem : VectorEpoxyModel<UploadsVideoItem.Holder>(R.la
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.view.onClick(listener)
-        imageContentRenderer.render(data.thumbnailMediaData, holder.imageView, IMAGE_SIZE_DP)
+        imageContentRenderer.render(data.thumbnailMediaData, holder.imageView, IMAGE_SIZE_DP, animate = false)
         ViewCompat.setTransitionName(holder.imageView, "videoPreview_${id()}")
     }
 

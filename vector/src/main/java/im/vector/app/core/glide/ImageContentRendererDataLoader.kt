@@ -25,6 +25,7 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaDebug
 import im.vector.app.features.session.coroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -107,8 +108,14 @@ class ImageContentRendererDataFetcher(
         return DataSource.REMOTE
     }
 
+    @Volatile
+    private var job: Job? = null
+
+    // Only stops this request waiting: the download is shared with other requesters and finishes into the cache.
     override fun cancel() {
-        DebugLog.i { "MEDIADBG fetcher #$id cancel (no-op) after ${SystemClock.uptimeMillis() - startedAt}ms delivered=${delivered.get()} url=${data.url}" }
+        val wasDelivered = delivered.getAndSet(true)
+        DebugLog.i { "MEDIADBG fetcher #$id cancel after ${SystemClock.uptimeMillis() - startedAt}ms delivered=$wasDelivered url=${data.url}" }
+        if (!wasDelivered) job?.cancel()
     }
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in ByteBuffer>) {
@@ -142,6 +149,8 @@ class ImageContentRendererDataFetcher(
         val fileService = session.fileService()
         // Use the file vector service, will avoid flickering and redownload after upload
         val job = session.coroutineScope.launch {
+            // Glide abandoned this request before the launch got going.
+            if (delivered.get()) return@launch
             val result = runCatching {
                 // The service's own watchdog is half an hour, sized for large file downloads, and
                 // requests for the same url share one download — so a stalled fetch leaves the
@@ -176,6 +185,7 @@ class ImageContentRendererDataFetcher(
             }
             DebugLog.i { "MEDIADBG fetcher #$id callback delivered ok=${buffered.isSuccess} url=${data.url}" }
         }
+        this.job = job
         // A cancelled scope silently swallows the launch, leaving Glide on the placeholder forever.
         job.invokeOnCompletion { cause ->
             if (cause != null && !delivered.getAndSet(true)) {

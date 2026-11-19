@@ -21,4 +21,18 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@tools:sample/backgrounds/scenic" />
 
+    <ImageView
+        android:id="@+id/uploadsImageAnimatedBadge"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/bg_media_duration"
+        android:contentDescription="@null"
+        android:padding="3dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_animated_media"
+        app:layout_constraintBottom_toBottomOf="@id/uploadsImagePreview"
+        app:layout_constraintEnd_toEndOf="@id/uploadsImagePreview"
+        tools:visibility="visible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

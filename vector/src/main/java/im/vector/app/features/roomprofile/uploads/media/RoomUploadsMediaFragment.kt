@@ -94,6 +94,7 @@ class RoomUploadsMediaFragment :
     override fun onDestroyView() {
         views.genericStateViewListRecycler.cleanup()
         controller.listener = null
+        renderedState = null
         super.onDestroyView()
     }
 
@@ -225,9 +226,24 @@ class RoomUploadsMediaFragment :
             views.genericStateViewListStateView.state = StateView.State.Content
             if (filterChanged) scrollToTopAfterNextBuild()
             views.genericStateViewListRecycler.post { loadMoreIfSpinnerShown() }
-            controller.setData(state)
+            if (!rendersSameGrid(renderedState, state)) {
+                renderedState = state
+                controller.setData(state)
+            }
         }
     }
+
+    // Unrelated state changes (each page's Loading, the room summary) would otherwise rebuild the whole grid.
+    // By identity: these lists are only ever replaced, and comparing them would walk every event.
+    private var renderedState: RoomUploadsViewState? = null
+
+    private fun rendersSameGrid(rendered: RoomUploadsViewState?, state: RoomUploadsViewState) =
+            rendered != null &&
+                    rendered.mediaEvents === state.mediaEvents &&
+                    rendered.preservedMediaFiles === state.preservedMediaFiles &&
+                    rendered.showPhotos == state.showPhotos &&
+                    rendered.showVideos == state.showVideos &&
+                    rendered.hasMore == state.hasMore
 
     override fun onResume() {
         super.onResume()
