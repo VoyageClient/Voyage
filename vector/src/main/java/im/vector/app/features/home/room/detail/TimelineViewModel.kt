@@ -230,6 +230,7 @@ class TimelineViewModel @AssistedInject constructor(
     companion object : MavericksViewModelFactory<TimelineViewModel, RoomDetailViewState> by hiltMavericksViewModelFactory() {
         private const val HIGHLIGHT_TTL_MS = 1500L
         private const val HIGHLIGHT_SAFETY_TTL_MS = 30_000L
+        private const val MARKER_PLACEMENT_BATCH = 50
         const val PAGINATION_COUNT = 50
         const val PAGINATION_COUNT_FORWARD_CATCHUP = 200
 
@@ -914,10 +915,10 @@ private fun handleSelectStickerAttachment() {
 
     private fun persistReadMarker(seen: TimelineEvent?, unflushed: TimelineEvent?) {
         if (room == null) return
+        // Ordered now: the timeline can restart or be torn down before the launch runs.
+        val eventId = newerOf(seen, unflushed)?.root?.eventId ?: return
         session.coroutineScope.launch(Dispatchers.Default) {
-            newerOf(seen, unflushed)?.root?.eventId?.let {
-                tryOrNull { room.readService().setReadMarker(it) }
-            }
+            tryOrNull { room.readService().setReadMarker(eventId) }
         }
     }
 
@@ -1836,6 +1837,7 @@ private fun handleSelectStickerAttachment() {
         ) { timelineEvents, roomSummary ->
             computeUnreadState(timelineEvents, roomSummary)
         }
+                .flowOn(Dispatchers.Default)
                 // We don't want live update of unread so we skip when we already had a HasUnread or HasNoUnread
                 // However, we want to update an existing HasUnread, if the readMarkerId hasn't changed or when we go back in live,
                 // as we might be loading new events to fill gaps in the timeline.
@@ -1894,6 +1896,7 @@ private fun handleSelectStickerAttachment() {
         if (roomSummary.isRemovedFromRoom) return UnreadState.HasNoUnread
         val readMarkerIdSnapshot = roomSummary.readMarkerId ?: return UnreadState.Unknown
         val firstDisplayableEventIndex = timeline.getIndexOfEvent(readMarkerIdSnapshot)
+                ?: indexOfNewestEventNotAfter(events, readMarkerIdSnapshot)
                 ?: return if (timeline.isLive) {
                     UnreadState.ReadMarkerNotLoaded(readMarkerIdSnapshot)
                 } else {
@@ -1913,6 +1916,21 @@ private fun handleSelectStickerAttachment() {
             }
         }
         return UnreadState.HasNoUnread
+    }
+
+    // A marker on an event the timeline hides (a reaction, an edit, hidden state) stands at the newest shown
+    // event before it; otherwise the room stays ReadMarkerNotLoaded and tracking never starts.
+    private fun indexOfNewestEventNotAfter(events: List<TimelineEvent>, readMarkerId: String): Int? {
+        val readService = room?.readService() ?: return null
+        val oldest = events.lastOrNull() ?: return null
+        // Skips the scan for a marker simply older than everything loaded.
+        if (readService.getEventIdsNotAfter(readMarkerId, listOf(oldest.eventId)).isEmpty()) return null
+        events.chunked(MARKER_PLACEMENT_BATCH).forEachIndexed { batchIndex, batch ->
+            val notAfter = readService.getEventIdsNotAfter(readMarkerId, batch.map { it.eventId })
+            val indexInBatch = batch.indexOfFirst { it.eventId in notAfter }
+            if (indexInBatch >= 0) return batchIndex * MARKER_PLACEMENT_BATCH + indexInBatch
+        }
+        return null
     }
 
     private fun observeUnreadState() {

@@ -46,11 +46,23 @@ internal data class PendingReadReceipt(
         @Json(name = "threadId") val threadId: String? = null,
 )
 
+/** This read with whatever half of [older] it leaves out, so a receipt can't drop a pending marker or the reverse. */
+internal fun PendingReadReceipt.mergedOnto(older: PendingReadReceipt?): PendingReadReceipt {
+    if (older == null) return this
+    val receiptSource = if (readReceiptEventId != null) this else older
+    return copy(
+            fullyReadEventId = fullyReadEventId ?: older.fullyReadEventId,
+            readReceiptEventId = receiptSource.readReceiptEventId,
+            readReceiptType = receiptSource.readReceiptType,
+            threadId = receiptSource.threadId,
+    )
+}
+
 /**
  * Persistent, off-main-thread queue of read receipts / fully-read markers that retries (with exponential
  * backoff capped at 15 minutes) until the homeserver confirms the send. Entries are only removed once the
  * request succeeds, and the queue survives app restarts so reads performed while offline are eventually
- * synced. One pending entry is kept per room; a newer read supersedes the older one.
+ * synced. One pending entry is kept per room; a newer read is merged onto the older one.
  */
 @SessionScope
 internal class ReadReceiptQueue @Inject constructor(
@@ -82,7 +94,7 @@ internal class ReadReceiptQueue @Inject constructor(
         if (fullyReadEventId == null && readReceiptEventId == null) return
         val entry = PendingReadReceipt(roomId, fullyReadEventId, readReceiptEventId, readReceiptType, threadId)
         synchronized(pending) {
-            pending[roomId] = entry
+            pending[roomId] = entry.mergedOnto(pending[roomId])
             persist()
         }
         wakeUp.trySend(Unit)

@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.sync.handler.room
 
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTagContent
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sql.store.isReadMarkerMoreRecent
 import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
 import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
 import timber.log.Timber
@@ -28,6 +29,11 @@ internal class SqlRoomFullyReadHandler @Inject constructor() {
     fun handle(stores: SessionStores, roomId: String, content: FullyReadContent?) {
         content ?: return
         Timber.v("Handle for roomId: $roomId eventId: ${content.eventId}")
+        // Sync can deliver the server's copy before our newer marker has reached it.
+        if (stores.readMarker.get(roomId) != content.eventId && stores.isReadMarkerMoreRecent(roomId, content.eventId)) {
+            Timber.v("Ignoring older read marker for roomId: $roomId")
+            return
+        }
         stores.roomSummary.updateReadMarkerId(roomId, content.eventId)
         stores.readMarker.upsert(roomId, content.eventId)
     }

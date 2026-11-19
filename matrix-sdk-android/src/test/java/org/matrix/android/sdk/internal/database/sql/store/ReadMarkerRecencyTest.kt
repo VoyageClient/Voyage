@@ -95,6 +95,23 @@ class ReadMarkerRecencyTest {
     }
 
     @Test
+    fun `events at or before an anchor are found even when the anchor is not among them`() {
+        add("\$a", ts = 10 * HOUR)
+        add("\$hidden", ts = 20 * HOUR)
+        add("\$c", ts = 30 * HOUR)
+
+        stores.eventIdsNotAfter(ROOM_ID, "\$hidden", listOf("\$a", "\$c")) shouldBeEqualTo setOf("\$a")
+        stores.eventIdsNotAfter(ROOM_ID, "\$c", listOf("\$a", "\$c")) shouldBeEqualTo setOf("\$a", "\$c")
+    }
+
+    @Test
+    fun `an anchor this client never stored places nothing`() {
+        add("\$a", ts = 10 * HOUR)
+
+        stores.eventIdsNotAfter(ROOM_ID, "\$unknown", listOf("\$a")) shouldBeEqualTo emptySet()
+    }
+
+    @Test
     fun `the newest stored event is the live chunk's newest, not its first row`() {
         add("\$a", ts = 10 * HOUR)
         add("\$c", ts = 30 * HOUR)

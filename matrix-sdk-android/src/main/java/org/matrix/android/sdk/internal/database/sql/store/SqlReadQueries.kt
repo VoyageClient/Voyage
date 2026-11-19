@@ -251,6 +251,14 @@ private fun SessionStores.roomNotificationState(roomId: String, facts: AccountPu
     return state.takeUnless { it == RoomNotificationState.MUTE }
 }
 
+internal fun SessionStores.eventIdsNotAfter(roomId: String, anchorEventId: String, eventIds: Collection<String>): Set<String> {
+    if (eventIds.isEmpty()) return emptySet()
+    val anchor = database.timelineEventQueries.selectReadPosition(roomId, anchorEventId).executeAsOneOrNull() ?: return emptySet()
+    return eventIds.flatMapInChunks { database.timelineEventQueries.selectReadPositions(roomId, it).executeAsList() }
+            .filter { it.ts < anchor.ts || (it.ts == anchor.ts && it.seq <= anchor.seq) }
+            .mapTo(HashSet()) { it.event_id }
+}
+
 internal fun SessionStores.isReadMarkerMoreRecent(roomId: String, eventId: String): Boolean {
     val currentMarker = readMarker.get(roomId) ?: return false
     if (currentMarker == eventId) return true

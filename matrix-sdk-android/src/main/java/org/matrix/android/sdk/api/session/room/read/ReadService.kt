@@ -68,6 +68,12 @@ interface ReadService {
             eventIds.filterTo(HashSet()) { isEventRead(it, threadId) }
 
     /**
+     * The ids among [eventIds] at or before [anchorEventId] in room order. Empty when the anchor isn't
+     * stored locally and so can't be placed.
+     */
+    fun getEventIdsNotAfter(anchorEventId: String, eventIds: Collection<String>): Set<String> = emptySet()
+
+    /**
      * Returns a live read marker id for the room.
      */
     fun getReadMarkerFlow(): Flow<Optional<String>>

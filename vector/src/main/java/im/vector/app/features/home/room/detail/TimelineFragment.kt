@@ -1094,7 +1094,8 @@ class TimelineFragment :
         clearReplyJumpSource()
         scrollOnHighlightedEventCallback.cancel()
         timelineEventController.setBuildFocusEventId(null)
-        timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
+        // Save without ending tracking: what is read at the bottom must still move the marker.
+        timelineViewModel.handle(RoomDetailAction.PersistReadMarker)
         views.jumpToBottomView.visibility = View.INVISIBLE
         // The scroll listener ignores programmatic scrolls.
         withState(timelineViewModel) { state ->
