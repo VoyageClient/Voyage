@@ -23,8 +23,10 @@ import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.utils.lsFiles
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.typing.DebugTypingUsers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -32,6 +34,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
@@ -54,6 +57,7 @@ class VectorDebugReceiver @Inject constructor(
     private val paginating = AtomicBoolean(false)
     private val watchingSync = AtomicBoolean(false)
     private val registered = AtomicBoolean(false)
+    private var fakeTypingStop: Job? = null
 
     override fun register(context: Context) {
         MainThreadWatchdog.start()
@@ -94,6 +98,7 @@ class VectorDebugReceiver @Inject constructor(
                 it.endsWith(DEBUG_ACTION_FREEZE_MAIN) -> freezeMain(intent)
                 it.endsWith(DEBUG_ACTION_PROFILE_COLOR) -> changeProfileColor(intent)
                 it.endsWith(DEBUG_ACTION_CLEAR_PROFILE_COLORS) -> clearProfileColors()
+                it.endsWith(DEBUG_ACTION_FAKE_TYPING) -> fakeTyping(intent)
             }
         }
     }
@@ -494,6 +499,30 @@ class VectorDebugReceiver @Inject constructor(
         Timber.i("Profile color debug: cleared cached profile colors")
     }
 
+    /**
+     * Shows made-up users typing, in one room or (without room_id) in every room; count 0 stops it.
+     * With seconds, it stops by itself after that long.
+     * adb shell am broadcast -a <pkg>.DEBUG_ACTION_FAKE_TYPING [--es room_id '!roomId'] [--ei count 1] [--ei seconds 10]
+     */
+    private fun fakeTyping(intent: Intent) {
+        val roomId = intent.getStringExtra("room_id")
+        val count = intent.getIntExtra("count", 1).coerceIn(0, FAKE_TYPING_NAMES.size)
+        val seconds = intent.getIntExtra("seconds", 0)
+        val users = FAKE_TYPING_NAMES.take(count).map { name ->
+            SenderInfo("@${name.lowercase()}:example.org", name, isUniqueDisplayName = true, avatarUrl = null)
+        }
+        fakeTypingStop?.cancel()
+        DebugTypingUsers.set(roomId, users)
+        Timber.i("Typing debug: room=${roomId ?: "all"} users=${users.map { it.displayName }} seconds=$seconds")
+        if (seconds > 0 && users.isNotEmpty()) {
+            fakeTypingStop = scope.launch {
+                delay(seconds * 1000L)
+                DebugTypingUsers.set(roomId, emptyList())
+                Timber.i("Typing debug: room=${roomId ?: "all"} stopped")
+            }
+        }
+    }
+
     private fun dumpPreferences() {
         logPrefs("DefaultSharedPreferences", sharedPreferences)
     }
@@ -542,6 +571,8 @@ class VectorDebugReceiver @Inject constructor(
         private const val DEBUG_ACTION_FREEZE_MAIN = ".DEBUG_ACTION_FREEZE_MAIN"
         private const val DEBUG_ACTION_PROFILE_COLOR = ".DEBUG_ACTION_PROFILE_COLOR"
         private const val DEBUG_ACTION_CLEAR_PROFILE_COLORS = ".DEBUG_ACTION_CLEAR_PROFILE_COLORS"
+        private const val DEBUG_ACTION_FAKE_TYPING = ".DEBUG_ACTION_FAKE_TYPING"
+        private val FAKE_TYPING_NAMES = listOf("Alice", "Bob", "Carol", "Dave", "Erin")
 
         fun getIntentFilter(context: Context) = IntentFilter().apply {
             addAction(context.packageName + DEBUG_ACTION_DUMP_CHUNKS)
@@ -560,6 +591,7 @@ class VectorDebugReceiver @Inject constructor(
             addAction(context.packageName + DEBUG_ACTION_FREEZE_MAIN)
             addAction(context.packageName + DEBUG_ACTION_PROFILE_COLOR)
             addAction(context.packageName + DEBUG_ACTION_CLEAR_PROFILE_COLORS)
+            addAction(context.packageName + DEBUG_ACTION_FAKE_TYPING)
         }
     }
 }

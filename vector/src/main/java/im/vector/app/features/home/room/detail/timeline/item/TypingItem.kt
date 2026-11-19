@@ -9,9 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
 import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
@@ -21,12 +19,10 @@ import im.vector.app.core.ui.views.TypingMessageView
 import im.vector.app.features.home.AvatarRenderer
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 
+// Never shown: reserves the floating typing indicator's height under the newest message, and is the
+// bottom row RecyclerView anchors on to keep the live edge pinned.
 @EpoxyModelClass
 abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
-
-    companion object {
-        private const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
-    }
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     lateinit var avatarRenderer: AvatarRenderer
@@ -42,34 +38,12 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
     override fun bind(holder: TypingHolder) {
         super.bind(holder)
 
-        val typingUsers = users.take(MAX_TYPING_MESSAGE_USERS_COUNT)
+        val typingUsers = users.take(TypingMessageView.MAX_TYPING_USERS_COUNT)
         holder.typingView.apply {
-            ViewCompat.animate(this).cancel()
-            val duration = 100L
-            if (typingUsers.isEmpty()) {
-                if (!isVisible) {
-                    setIdle(true)
-                    return
-                }
-                ViewCompat.animate(this).translationY(height.toFloat())
-                        .alpha(0f)
-                        .setDuration(duration)
-                        .withEndAction {
-                            isInvisible = true
-                            setIdle(true)
-                        }.start()
-            } else {
-                setIdle(false)
-                isVisible = true
-
-                translationY = height.toFloat()
-                alpha = 0f
-                render(typingUsers, avatarRenderer, roomId)
-                animate().translationY(0f)
-                        .alpha(1f)
-                        .setDuration(duration)
-                        .start()
-            }
+            isInvisible = true
+            // Rendered with the same users so the row measures exactly as tall as the indicator.
+            if (typingUsers.isNotEmpty()) render(typingUsers, avatarRenderer, roomId)
+            setIdle(typingUsers.isEmpty())
         }
     }
 

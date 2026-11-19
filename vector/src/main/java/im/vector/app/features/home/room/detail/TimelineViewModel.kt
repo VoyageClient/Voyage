@@ -50,6 +50,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlayb
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
+import im.vector.app.features.home.room.typing.DebugTypingUsers
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
@@ -1794,8 +1795,7 @@ private fun handleSelectStickerAttachment() {
                 )
             }
         } else {
-            room.flow().liveRoomSummary()
-                    .unwrap()
+            DebugTypingUsers.applyTo(room.flow().liveRoomSummary().unwrap())
                     .execute { async ->
                         copy(
                                 asyncRoomSummary = async

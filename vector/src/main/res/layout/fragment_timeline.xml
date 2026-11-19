@@ -222,6 +222,26 @@
 
         </FrameLayout>
 
+        <!-- Floats over the timeline so it stays visible in history; at the live edge it covers
+             TypingItem, which reserves its height. The frame clips the slide in and out. -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="@id/timelineRecyclerView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <im.vector.app.core.ui.views.TypingMessageView
+                android:id="@+id/typingIndicatorView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:colorBackground"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:visibility="invisible" />
+
+        </FrameLayout>
+
         <ViewStub
             android:id="@+id/failedMessagesWarningStub"
             android:layout_width="match_parent"

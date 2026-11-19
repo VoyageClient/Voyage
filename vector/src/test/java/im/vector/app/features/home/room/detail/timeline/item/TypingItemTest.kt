@@ -56,12 +56,12 @@ class TypingItemTest {
     }
 
     @Test
-    fun `the row regains its height when someone starts typing`() {
+    fun `the row reserves the indicator's height but stays hidden while someone types`() {
         bind(emptyList())
 
         bind(listOf(SenderInfo("@alice:example.org", "Alice", isUniqueDisplayName = true, avatarUrl = null)))
 
         params.height shouldBeEqualTo ViewGroup.LayoutParams.WRAP_CONTENT
-        visibility shouldBeEqualTo View.VISIBLE
+        visibility shouldBeEqualTo View.INVISIBLE
     }
 }

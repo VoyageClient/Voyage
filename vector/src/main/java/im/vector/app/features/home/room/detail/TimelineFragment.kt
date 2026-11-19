@@ -345,7 +345,6 @@ class TimelineFragment :
     @Inject lateinit var mxcMediaOpener: MxcMediaOpener
 
     companion object {
-        const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
         private const val JSON_VIEWER_TAG = "JSON_VIEWER"
         private const val MESSAGE_ACTIONS_TAG = "MESSAGE_CONTEXTUAL_ACTIONS"
         private const val COMPOSER_SLIDE_MS = 220L
@@ -455,6 +454,7 @@ class TimelineFragment :
         setupNotificationView()
         setupJumpToReadMarkerView()
         setupJumpToBottomView()
+        setupTypingIndicator()
         setupPinnedMessagesBanner()
         setupMassRedactionBanner()
         views.syncStateView.bindShadowBanSuspected(viewLifecycleOwner, shadowBanState.isSuspected(session.myUserId))
@@ -1120,6 +1120,10 @@ class TimelineFragment :
 
     private fun clearReplyJumpSource() {
         replyJumpSourceEventId = null
+    }
+
+    private fun setupTypingIndicator() {
+        views.typingIndicatorView.onShownHeightChanged = { views.jumpToBottomView.translationY = -it.toFloat() }
     }
 
     private fun setupJumpToBottomView() {
@@ -1852,6 +1856,7 @@ class TimelineFragment :
         }
         val summary = mainState.asyncRoomSummary()
         renderToolbar(summary, mainState.isRoomPreview)
+        views.typingIndicatorView.showTypingUsers(summary?.typingUsers.orEmpty(), avatarRenderer, summary?.roomId)
         renderPinnedMessagesBanner(mainState)
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.bulkActionProgress)
