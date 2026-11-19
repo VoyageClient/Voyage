@@ -30,7 +30,8 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.getMsgType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
+import org.matrix.android.sdk.api.session.events.model.isSticker
+import org.matrix.android.sdk.api.session.events.model.isTextLikeMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -205,7 +206,7 @@ internal class DefaultSendService @AssistedInject constructor(
     }
 
     override fun resendTextMessage(localEcho: TimelineEvent): Cancelable {
-        if (localEcho.root.isTextMessage() && localEcho.root.sendState.hasFailed()) {
+        if (localEcho.root.isTextLikeMessage() && localEcho.root.sendState.hasFailed()) {
             localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
             return sendEvent(localEcho.root)
         }
@@ -214,6 +215,11 @@ internal class DefaultSendService @AssistedInject constructor(
 
     override fun resendMediaMessage(localEcho: TimelineEvent): Cancelable {
         if (!localEcho.root.sendState.hasFailed()) return NoOpCancellable
+        // Stickers reference media that is already uploaded.
+        if (localEcho.root.isSticker()) {
+            localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
+            return sendEvent(localEcho.root)
+        }
         val clearContent = localEcho.root.getClearContent()
         (clearContent?.toModel<MessageContent>() as? MessageGalleryContent)?.let { gallery ->
             return resendGallery(localEcho.root, gallery)
@@ -354,10 +360,11 @@ internal class DefaultSendService @AssistedInject constructor(
                 val eventsToResend = localEchoRepository.getAllFailedEventsToResend(roomId)
                         .sortedBy { it.root.originServerTs ?: 0L }
                 for (event in eventsToResend) {
-                    val isTextMessage = event.root.isTextMessage()
-                    if (!isTextMessage && !event.root.isAttachmentMessage() && !MessageType.isGalleryMsgType(event.root.getMsgType())) continue
+                    val isTextLike = event.root.isTextLikeMessage()
+                    if (!isTextLike && !event.root.isAttachmentMessage() && !event.root.isSticker() &&
+                            !MessageType.isGalleryMsgType(event.root.getMsgType())) continue
                     sendOutcomeTracker.track(event.eventId)
-                    val posted = if (isTextMessage) resendTextMessage(event) else resendMediaMessage(event)
+                    val posted = if (isTextLike) resendTextMessage(event) else resendMediaMessage(event)
                     if (posted === NoOpCancellable) {
                         sendOutcomeTracker.untrack(event.eventId)
                         continue

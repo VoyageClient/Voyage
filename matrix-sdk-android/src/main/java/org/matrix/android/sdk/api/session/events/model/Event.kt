@@ -483,6 +483,9 @@ fun Event.isLocationMessage(): Boolean {
 
 fun Event.isPoll(): Boolean = isPollStart() || isPollEnd()
 
+/** Message-like content with no media to upload, so a failed echo is resent unchanged. */
+fun Event.isTextLikeMessage(): Boolean = isTextMessage() || isLocationMessage() || isPoll()
+
 fun Event.isPollStart(): Boolean = getClearType() in EventType.POLL_START.values
 
 fun Event.isPollResponse(): Boolean = getClearType() in EventType.POLL_RESPONSE.values

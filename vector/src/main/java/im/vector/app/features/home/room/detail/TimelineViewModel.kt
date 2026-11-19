@@ -103,7 +103,8 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
+import org.matrix.android.sdk.api.session.events.model.isSticker
+import org.matrix.android.sdk.api.session.events.model.isTextLikeMessage
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
@@ -1512,8 +1513,8 @@ private fun handleSelectStickerAttachment() {
                 return
             }
             when {
-                it.root.isTextMessage() -> room.sendService().resendTextMessage(it)
-                it.root.isAttachmentMessage() || it.root.isGalleryMessage() -> room.sendService().resendMediaMessage(it)
+                it.root.isTextLikeMessage() -> room.sendService().resendTextMessage(it)
+                it.root.isAttachmentMessage() || it.root.isGalleryMessage() || it.root.isSticker() -> room.sendService().resendMediaMessage(it)
                 else -> {
                     // TODO
                 }

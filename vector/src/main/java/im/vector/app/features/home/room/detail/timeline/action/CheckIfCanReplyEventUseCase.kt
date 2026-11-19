@@ -37,7 +37,8 @@ class CheckIfCanReplyEventUseCase @Inject constructor() {
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_POLL_END,
             MessageType.MSGTYPE_BEACON_INFO,
-            MessageType.MSGTYPE_LOCATION -> true
+            MessageType.MSGTYPE_LOCATION,
+            MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }
     }

@@ -194,7 +194,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     }
 
     /**
-     * Build an m.replace edit for a media event (image/video/file/audio/sticker) that updates,
+     * Build an m.replace edit for a media event (image/video/file/audio) that updates,
      * adds or removes its MSC2530 caption while preserving all the media fields (url, info, …).
      * An empty [newCaption] removes the caption, restoring the captionless form a fresh upload
      * uses: `body` holds the file name and the `filename` field is omitted.
@@ -275,8 +275,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             mentions: Mentions? = null,
             additionalContent: Content? = null,
     ): Event {
-        val targetType = targetEvent.root.getClearType()
-        val mediaContent = createMediaEvent(
+        val newContent = createMediaEvent(
                 roomId = roomId,
                 attachment = attachment,
                 rootThreadEventId = null,
@@ -286,13 +285,11 @@ internal class LocalEchoEventFactory @Inject constructor(
                 autoMarkdown = autoMarkdown,
                 mentions = mentions,
         ).content.orEmpty()
-        // A sticker is an image content without a msgtype, and an edit may not change the event type.
-        val newContent = if (targetType == EventType.STICKER) mediaContent - MessageContent.MSG_TYPE_JSON_KEY else mediaContent
         val outerContent = newContent + mapOf(
                 "m.relates_to" to RelationDefaultContent(RelationType.REPLACE, targetEvent.eventId).toContent(),
                 "m.new_content" to newContent,
         )
-        return createEvent(roomId, targetType, outerContent, additionalContent)
+        return createEvent(roomId, targetEvent.root.getClearType(), outerContent, additionalContent)
     }
 
     private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {

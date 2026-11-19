@@ -29,6 +29,7 @@ class CheckIfCanRedactEventUseCaseTest {
                 EventType.MESSAGE,
                 EventType.STICKER,
                 EventType.REACTION,
+                EventType.ENCRYPTED,
         ) +
                 EventType.POLL_START.values +
                 EventType.POLL_END.values +

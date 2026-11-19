@@ -27,6 +27,8 @@ import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
@@ -122,6 +124,13 @@ class MessageActionEligibilityTest {
     }
 
     @Test
+    fun `location messages can start a thread`() {
+        val content = MessageLocationContent(body = "A sample location", geoUri = "geo:1.0,2.0")
+        every { preferences.areThreadMessagesEnabled() } returns true
+        eligibility.canReplyInThread(event(content), content, canSendMessage = true, isFromThreadTimeline = false) shouldBeEqualTo true
+    }
+
+    @Test
     fun `translation requires a configured primary or backup engine`() {
         val content = MessageTextContent(msgType = MessageType.MSGTYPE_TEXT, body = "A sample message")
         every { settings.engine } returns null
@@ -162,7 +171,7 @@ class MessageActionEligibilityTest {
         action.formattedBody shouldBeEqualTo "A <strong>sample</strong> message"
     }
 
-    private fun event(content: MessageTextContent) = TimelineEvent(
+    private inline fun <reified T : MessageContent> event(content: T) = TimelineEvent(
             root = Event(type = EventType.MESSAGE, eventId = eventId, senderId = session.myUserId, content = content.toContent()),
             localId = 1L,
             eventId = eventId,

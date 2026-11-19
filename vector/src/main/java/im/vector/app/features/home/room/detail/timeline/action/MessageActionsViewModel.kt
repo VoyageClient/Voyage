@@ -65,7 +65,7 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContentForType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
+import org.matrix.android.sdk.api.session.events.model.isTextLikeMessage
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
@@ -479,6 +479,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                     if (restoredMessageContent != null && canShare(restoredMessageContent.msgType) && !isFailedMedia(restoredMessageContent)) {
                         add(EventSharedAction.Share(eventId, restoredMessageContent))
                     }
+                    if (canSave(restoredMessageContent?.msgType) && restoredMessageContent is MessageWithAttachmentContent &&
+                            !isFailedMedia(restoredMessageContent)) {
+                        add(EventSharedAction.Save(eventId, restoredMessageContent))
+                    }
                 }
                 canRestoreRedactedContent(timelineEvent) -> add(EventSharedAction.RevealRedacted(eventId))
                 else -> Unit
@@ -638,6 +642,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_FILE,
             MessageType.MSGTYPE_GALLERY,
             MessageType.MSGTYPE_GALLERY_STABLE,
+            MessageType.MSGTYPE_LOCATION,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_POLL_END,
             MessageType.MSGTYPE_STICKER_LOCAL -> event.root.threadDetails?.isRootThread ?: false
@@ -666,7 +671,7 @@ class MessageActionsViewModel @AssistedInject constructor(
     private fun canRetry(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
         return event.root.sendState.hasFailed() &&
                 actionPermissions.canSendMessage &&
-                (event.root.isAttachmentMessage() || event.root.isGalleryMessage() || event.root.isTextMessage())
+                (event.root.isAttachmentMessage() || event.root.isGalleryMessage() || event.root.isTextLikeMessage() || event.isSticker())
     }
 
     private fun canViewReactions(event: TimelineEvent): Boolean {
@@ -714,8 +719,6 @@ internal fun TimelineEvent.canBeEditedBy(myUserId: String, canSendMessage: Boole
     if (root.senderId != myUserId) return false
     // MSC4553: readers ignore edits to a forward.
     if (root.getClearContent().isForward()) return false
-    // Stickers: edit/add a caption.
-    if (root.getClearType() == EventType.STICKER) return true
     // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
     if (root.getClearType() !in listOf(EventType.MESSAGE) + EventType.POLL_START.values) return false
     val messageContent = root.getClearContent().toModel<MessageContent>()

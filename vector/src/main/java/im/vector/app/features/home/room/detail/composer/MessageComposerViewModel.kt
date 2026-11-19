@@ -311,7 +311,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             // It is uploaded already, so this replaces the content outright rather than going through
             // the upload pipeline.
             val target = room.getTimelineEvent(edited.eventId) ?: edited
-            room.relationService().editMediaContent(target, action.content.forEventType(target.root.getClearType()))
+            room.relationService().editMediaContent(target, action.content.toImageContent())
             popDraft(room, state.sendMode)
             return@withState
         }
@@ -340,12 +340,8 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * A sticker as the given event type would carry it: a sticker event holds it as it is, while a
-     * message event has to say it is an image, an edit not being allowed to change the type.
-     */
-    private fun MessageStickerContent.forEventType(eventType: String): Content {
-        if (eventType == EventType.STICKER) return copy(relatesTo = null).toContent()
+    // An edit may not change the event type, so the sticker goes into the message as an image.
+    private fun MessageStickerContent.toImageContent(): Content {
         return MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
                 body = body,

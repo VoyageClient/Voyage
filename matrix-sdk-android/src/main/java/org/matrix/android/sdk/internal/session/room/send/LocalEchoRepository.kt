@@ -406,6 +406,8 @@ internal class LocalEchoRepository @Inject constructor(
                                 else -> false
                             }
                         }
+                        EventType.STICKER -> true
+                        in EventType.POLL_START.values, in EventType.POLL_END.values -> true
                         else -> false
                     }
                 }

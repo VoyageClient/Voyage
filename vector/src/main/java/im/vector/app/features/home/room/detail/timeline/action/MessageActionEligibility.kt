@@ -132,6 +132,7 @@ class MessageActionEligibility @Inject constructor(
             MessageType.MSGTYPE_FILE,
             MessageType.MSGTYPE_GALLERY,
             MessageType.MSGTYPE_GALLERY_STABLE,
+            MessageType.MSGTYPE_LOCATION,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false

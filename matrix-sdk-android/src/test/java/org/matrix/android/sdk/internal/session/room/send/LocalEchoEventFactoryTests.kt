@@ -290,23 +290,6 @@ class LocalEchoEventFactoryTests {
         assertEquals("image.jpg", newContent?.get("filename"))
     }
 
-    @Test
-    fun `replacing a sticker stays a sticker, which has no msgtype`() {
-        val sticker = createTimelineEvent(null, null).let { it.copy(root = it.root.copy(type = EventType.STICKER)) }
-
-        val edit = localEchoEventFactory.createMediaReplaceEvent(
-                roomId = A_ROOM_ID,
-                targetEvent = sticker,
-                attachment = anImageAttachment(),
-        )
-
-        assertEquals(EventType.STICKER, edit.type)
-        assertEquals(null, edit.content?.get(MessageContent.MSG_TYPE_JSON_KEY))
-        val newContent = edit.newContent()
-        assertEquals(null, newContent?.get(MessageContent.MSG_TYPE_JSON_KEY))
-        assertEquals(A_MEDIA_URI, newContent?.get("url"))
-    }
-
     @Suppress("UNCHECKED_CAST")
     private fun Event.newContent(): Content? = content?.get("m.new_content") as? Content
 

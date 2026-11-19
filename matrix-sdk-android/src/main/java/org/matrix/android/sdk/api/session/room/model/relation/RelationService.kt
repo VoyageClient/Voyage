@@ -100,7 +100,7 @@ interface RelationService {
     ): Cancelable
 
     /**
-     * Edit, add or remove the MSC2530 caption of a media event (image/video/file/audio/sticker),
+     * Edit, add or remove the MSC2530 caption of a media event (image/video/file/audio),
      * preserving all the media fields. An empty [newCaption] removes the caption.
      * @param targetEvent The media event to edit
      * @param newCaption The new caption in plain text (empty to remove)

@@ -22,6 +22,8 @@ class CheckIfCanRedactEventUseCase @Inject constructor(
                 EventType.MESSAGE,
                 EventType.STICKER,
                 EventType.REACTION,
+                // Undecryptable messages still need removing, e.g. spam a moderator has no keys for.
+                EventType.ENCRYPTED,
         ) +
                 EventType.POLL_START.values +
                 EventType.POLL_END.values +
