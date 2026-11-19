@@ -45,6 +45,8 @@ internal class SyncTokenSqlStore(private val database: SessionSqlDatabase) {
     fun setSlidingSyncTransport(transport: String?) = queries.upsertSlidingSyncTransport(transport)
     fun getUnsyncedRooms(): String? = queries.selectUnsyncedRooms().executeAsOneOrNull()?.next_batch
     fun setUnsyncedRooms(serialized: String?) = queries.upsertUnsyncedRooms(serialized)
+    fun getSlidingSyncScope(): String? = queries.selectSlidingSyncScope().executeAsOneOrNull()?.next_batch
+    fun setSlidingSyncScope(scope: String?) = queries.upsertSlidingSyncScope(scope)
 }
 
 /** Single-row `breadcrumbs` ordered recent-room-id list. */

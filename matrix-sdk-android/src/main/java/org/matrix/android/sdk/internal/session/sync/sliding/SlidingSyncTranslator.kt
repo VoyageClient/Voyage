@@ -64,8 +64,11 @@ internal class SlidingSyncTranslator @Inject constructor(
         val leave = LinkedHashMap<String, RoomSync>()
         val knock = LinkedHashMap<String, KnockedRoomSync>()
 
+        val stripped = ArrayList<String>()
+        val forcedLimited = ArrayList<String>()
         response.rooms.orEmpty().forEach { (roomId, receivedRoom) ->
             val syncTimeline = canSyncTimeline(roomId)
+            if (!syncTimeline && !receivedRoom.timeline.isNullOrEmpty()) stripped.add("$roomId(${receivedRoom.timeline.size})")
             val room = if (syncTimeline) receivedRoom else receivedRoom.withoutTimeline()
             val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
             when (room.membership() ?: storedMembership(roomId)) {
@@ -79,11 +82,15 @@ internal class SlidingSyncTranslator @Inject constructor(
                 Membership.BAN -> leave[roomId] = room.toRoomSync(roomAccountData[roomId], emptyList(), canSyncTimeline = syncTimeline)
                 Membership.JOIN -> {
                     val forceLimited = unsyncedRooms != null && trackUnsynced(unsyncedRooms, roomId, room, recordUnsynced || !syncTimeline, now)
+                    if (forceLimited) forcedLimited.add(roomId)
                     join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral, forceLimited, syncTimeline)
                 }
                 // Nothing says we are in this room; filing it as joined would list an empty "0 members" room.
                 else -> Timber.w("Sliding sync: ignoring $roomId, no membership known")
             }
+        }
+        if (stripped.isNotEmpty() || forcedLimited.isNotEmpty()) {
+            Timber.i("SYNCDBG translate: messages dropped for left-out rooms ${stripped.take(20)} (${stripped.size}), forced limited $forcedLimited")
         }
 
         // Tags, receipts and typing arrive only in the extensions block; a room with no timeline/state

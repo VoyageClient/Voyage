@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.sync.sliding
 
 import org.matrix.android.sdk.internal.session.SessionScope
+import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArraySet
 import javax.inject.Inject
 
@@ -29,14 +30,18 @@ internal class SlidingSyncRoomSubscriptions @Inject constructor() {
 
     /** The room a timeline is reading. Worth interrupting the current long poll for. */
     fun acquire(roomId: String) {
-        val changed = synchronized(openRooms) { openRooms.increment(roomId) }
+        val (changed, holders) = synchronized(openRooms) { openRooms.increment(roomId) to openRooms[roomId] }
+        Timber.i("SYNCDBG subscription acquire $roomId holders=$holders entered=$changed open=${openRoomIds()} listeners=${listeners.size}")
         if (changed) listeners.forEach { it() }
     }
 
     fun release(roomId: String) {
-        val changed = synchronized(openRooms) { openRooms.decrement(roomId) }
+        val (changed, holders) = synchronized(openRooms) { openRooms.decrement(roomId) to openRooms[roomId] }
+        Timber.i("SYNCDBG subscription release $roomId holders=${holders ?: 0} left=$changed open=${openRoomIds()} listeners=${listeners.size}")
         if (changed) listeners.forEach { it() }
     }
+
+    private fun openRoomIds() = synchronized(openRooms) { openRooms.keys.toList() }
 
     /**
      * The room-list viewport. Deliberately silent: these rooms are a prefetch, and cancelling the
@@ -61,6 +66,7 @@ internal class SlidingSyncRoomSubscriptions @Inject constructor() {
 
     /** Something else that shapes the request changed; worth interrupting the current long poll for. */
     fun invalidate() {
+        Timber.i("SYNCDBG subscriptions invalidated listeners=${listeners.size}")
         listeners.forEach { it() }
     }
 

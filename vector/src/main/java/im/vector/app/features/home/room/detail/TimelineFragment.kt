@@ -1437,6 +1437,7 @@ class TimelineFragment :
 
     override fun onStart() {
         super.onStart()
+        Timber.i("SYNCDBG ui room ${timelineArgs.roomId} started heldForModal=$timelineHeldForModal")
         // A sheet dismissed while the room was away takes its release listener with it.
         timelineHeldForModal = false
         if (!views.timelineRecyclerView.isComputingLayout) views.timelineRecyclerView.suppressLayout(false)
@@ -1446,6 +1447,7 @@ class TimelineFragment :
     }
 
     override fun onStop() {
+        Timber.i("SYNCDBG ui room ${timelineArgs.roomId} stopped")
         timelineViewModel.handle(RoomDetailAction.PersistReadMarker)
         scrollOnHighlightedEventCallback.setPaused(true)
         // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event —
@@ -2486,6 +2488,7 @@ class TimelineFragment :
 
     private fun setTimelineHeldForModal(held: Boolean) {
         if (timelineHeldForModal == held) return
+        Timber.i("SYNCDBG ui room ${timelineArgs.roomId} timeline ${if (held) "held" else "released"} for a modal sheet")
         timelineHeldForModal = held
         timelineEventController.setPaused(held)
         timelineViewModel.timeline?.setPaused(held)

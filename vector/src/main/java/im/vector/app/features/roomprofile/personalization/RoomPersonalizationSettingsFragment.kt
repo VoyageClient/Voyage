@@ -63,6 +63,7 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.mapOptional
 import org.matrix.android.sdk.flow.unwrap
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -274,6 +275,7 @@ class RoomPersonalizationSettingsFragment :
         lifecycleScope.launch {
             val result = runCatching {
                 val current = room.roomSummary()?.tags?.map { it.name }.orEmpty().filter(RoomTag::isSyncOverrideTag)
+                Timber.i("SYNCDBG room ${room.roomId} sync override $current -> $tag")
                 current.filter { it != tag }.forEach { room.tagsService().deleteTag(it) }
                 if (tag != null && tag !in current) room.tagsService().addTag(tag, null)
             }

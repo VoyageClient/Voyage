@@ -134,9 +134,10 @@ internal class DefaultSyncTask @Inject constructor(
         val filter = getCurrentFilterTask.execute(Unit)
 
         slidingSyncMode()?.let { mode ->
-            Timber.tag(loggerTag.value).d("Syncing over $mode")
+            Timber.i("SYNCDBG transport $mode")
             return slidingSyncTask.sync(mode, params)
         }
+        Timber.i("SYNCDBG transport v2 since=${token != null} timeout=${params.timeout} afterPause=${params.afterPause}")
 
         requestParams["timeout"] = timeout.toString()
         requestParams["filter"] = filter
@@ -211,15 +212,17 @@ internal class DefaultSyncTask @Inject constructor(
                 syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncIdle)
                 throw cancellation
             } catch (throwable: Throwable) {
-                Timber.tag(loggerTag.value).e(throwable, "Incremental sync request error")
+                Timber.tag(loggerTag.value).e(throwable, "SYNCDBG v2 incremental sync request error")
                 syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncError)
                 throw throwable
             }
             val nbRooms = syncResponse.rooms?.invite.orEmpty().size + syncResponse.rooms?.join.orEmpty().size + syncResponse.rooms?.leave.orEmpty().size
             val nbToDevice = syncResponse.toDevice?.events.orEmpty().size
             val nextBatch = syncResponse.nextBatch
-            Timber.tag(loggerTag.value).d(
-                    "Incremental sync request parsing, $nbRooms room(s) $nbToDevice toDevice(s). Got nextBatch: $nextBatch"
+            Timber.i(
+                    "SYNCDBG v2 response rooms=$nbRooms toDevice=$nbToDevice " +
+                            "timelines=${syncResponse.rooms?.join.orEmpty().count { !it.value.timeline?.events.isNullOrEmpty() }} " +
+                            "limited=${syncResponse.rooms?.join.orEmpty().filterValues { it.timeline?.limited == true }.keys.take(20)}"
             )
             if (syncResponse.accountData?.list.orEmpty().any { it.type == "m.push_rules" }) {
                 DebugLog.i { "NOTIFDBG sync carried m.push_rules: since=$token nextBatch=$nextBatch thread=${Thread.currentThread().name}" }

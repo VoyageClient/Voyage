@@ -80,6 +80,7 @@ internal class DefaultSyncService @Inject constructor(
             syncThread = null
         }
         val localSyncThread = getSyncThread()
+        Timber.i("SYNCDBG service startSync fromForeground=$fromForeground alive=${localSyncThread.isAlive} scope=${getRoomSyncScope().value}")
         if (!localSyncThread.isAlive) {
             Timber.i("Starting sync thread")
             localSyncThread.setInitialForeground(fromForeground)
@@ -95,6 +96,7 @@ internal class DefaultSyncService @Inject constructor(
     @Synchronized
     override fun stopSync() {
         assert(sessionState.isOpen)
+        Timber.i("SYNCDBG service stopSync hadThread=${syncThread != null}")
         syncThread?.kill()
         syncThread = null
     }
@@ -124,6 +126,7 @@ internal class DefaultSyncService @Inject constructor(
 
     override fun setRoomSyncScope(scope: RoomSyncScope) {
         if (scope == getRoomSyncScope()) return
+        Timber.i("SYNCDBG service room sync scope ${getRoomSyncScope().value} -> ${scope.value}")
         settingsStorage.setRoomSyncScope(userId, scope)
         slidingSyncRoomSubscriptions.invalidate()
     }

@@ -378,7 +378,14 @@ internal class SyncResponseHandler @Inject constructor(
         val rules = pushRuleService.getPushRules(RuleScope.GLOBAL).getAllRules()
         // A sliding-sync connection hands rooms over gradually, and a room's first delivery brings back
         // history with it; notifying for that would fire a burst of alerts for messages already read.
-        val notifiable = roomsSyncResponse.copy(join = roomsSyncResponse.join.filterValues { !it.isInitialDelivery })
+        val notifiable = roomsSyncResponse.copy(
+                join = roomsSyncResponse.join
+                        .filterValues { !it.isInitialDelivery }
+                        .mapValues { (_, room) ->
+                            val ids = room.notifiableEventIds ?: return@mapValues room
+                            room.copy(timeline = room.timeline?.let { timeline -> timeline.copy(events = timeline.events?.filter { it.eventId in ids }) })
+                        }
+        )
         processEventForPushTask.execute(ProcessEventForPushTask.Params(notifiable, rules))
         Timber.v("[PushRules] <-- Push task scheduled")
     }

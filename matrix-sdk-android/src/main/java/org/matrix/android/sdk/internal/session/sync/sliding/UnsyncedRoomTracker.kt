@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.sync.sliding
 
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.SessionScope
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -45,13 +46,44 @@ internal class UnsyncedRoomTracker @Inject constructor(
                     bumpStamp = bumpStamp ?: previous?.bumpStamp,
                     activityTs = if (isNews) now else previous?.activityTs ?: 0L,
             )
+            // Not every new entry: a connection's first fill delivers every left-out room this way.
+            if (isNews) Timber.i("SYNCDBG unsynced $roomId: new activity without messages, bump ${previous?.bumpStamp} -> $bumpStamp")
         }
     }
 
     /** @return whether messages may have been left out since the room's last timeline. */
     fun onDeliveredWithTimeline(roomId: String): Boolean {
         ensureLoaded()
-        return synchronized(lock) { pending.remove(roomId) != null }
+        val removed = synchronized(lock) { pending.remove(roomId) != null }
+        if (removed) Timber.i("SYNCDBG unsynced $roomId: messages delivered again, no longer tracked")
+        return removed
+    }
+
+    fun isTracked(roomId: String): Boolean {
+        ensureLoaded()
+        return synchronized(lock) { roomId in pending }
+    }
+
+    fun trackedRoomIds(): Set<String> {
+        ensureLoaded()
+        return synchronized(lock) { pending.keys.toSet() }
+    }
+
+    /**
+     * Rooms about to be synced again, which may have missed messages without ever being delivered empty.
+     * Persisted at once rather than staged: the scope or tag change that found them is not seen twice.
+     */
+    fun markMissed(roomIds: Collection<String>) {
+        if (roomIds.isEmpty()) return
+        ensureLoaded()
+        val snapshot = synchronized(lock) {
+            val added = roomIds.filter { it !in pending }.ifEmpty { return }
+            added.forEach { pending[it] = Entry(bumpStamp = null, activityTs = 0L) }
+            val stored = committed.orEmpty()
+            (stored + added.filter { it !in stored }.associateWith { Entry(bumpStamp = null, activityTs = 0L) }).also { committed = it }
+        }
+        persist(snapshot)
+        Timber.i("SYNCDBG unsynced marked ${roomIds.size} rooms joining sync as possibly missing messages ${roomIds.take(LOG_ROOM_IDS)}")
     }
 
     /** When the room last had messages this device never received, or null if it has none pending. */
@@ -68,6 +100,7 @@ internal class UnsyncedRoomTracker @Inject constructor(
             committed?.get(roomId)?.let { committed = committed.orEmpty() + (roomId to it.copy(activityTs = 0)) }
             dirty = true
         }
+        Timber.i("SYNCDBG unsynced $roomId: marked read, unseen activity cleared")
     }
 
     fun commit() {
@@ -77,11 +110,14 @@ internal class UnsyncedRoomTracker @Inject constructor(
             HashMap(pending).also { committed = it }
         }
         persist(snapshot)
+        Timber.i("SYNCDBG unsynced committed ${snapshot.size} rooms ${snapshot.keys.take(LOG_ROOM_IDS)}")
     }
 
     fun rollback() {
         synchronized(lock) {
-            pending = HashMap(committed ?: return)
+            val restored = committed ?: return
+            if (pending != restored) Timber.i("SYNCDBG unsynced rollback: ${pending.size} staged -> ${restored.size} committed")
+            pending = HashMap(restored)
         }
     }
 
@@ -113,5 +149,9 @@ internal class UnsyncedRoomTracker @Inject constructor(
                     activityTs = fields.getOrNull(2)?.toLongOrNull() ?: 0L,
             )
         }.toMap()
+    }
+
+    private companion object {
+        const val LOG_ROOM_IDS = 20
     }
 }

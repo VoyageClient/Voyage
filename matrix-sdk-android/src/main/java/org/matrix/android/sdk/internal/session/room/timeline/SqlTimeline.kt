@@ -498,8 +498,13 @@ internal class SqlTimeline(
     private fun updateRoomSubscription() {
         val shouldSubscribe = !rebuildsPaused && settings.subscribeToRoom && isStarted.get()
         if (shouldSubscribe && hasRoomSubscription.compareAndSet(false, true)) {
+            Timber.i("SYNCDBG timeline $timelineID subscribes to $roomId")
             slidingSyncRoomSubscriptions.acquire(roomId)
         } else if (!shouldSubscribe && hasRoomSubscription.compareAndSet(true, false)) {
+            Timber.i(
+                    "SYNCDBG timeline $timelineID unsubscribes from $roomId paused=$rebuildsPaused started=${isStarted.get()} " +
+                            "subscribeToRoom=${settings.subscribeToRoom}"
+            )
             slidingSyncRoomSubscriptions.release(roomId)
         }
     }
@@ -1546,6 +1551,7 @@ internal class SqlTimeline(
     }
 
     private suspend fun reseedAtLiveEdge(chunkId: Long) {
+        Timber.i("SYNCDBG timeline $timelineID in $roomId follows the new live range $chunkId from ${loadedChunkIds.firstOrNull()} built=${builtEvents.size}")
         pendingShowEventId = null
         oldestShownEventId = null
         newestShownEventId = null

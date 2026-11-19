@@ -53,6 +53,16 @@ class UnsyncedRoomTrackerTest {
     }
 
     @Test
+    fun `rooms marked as missing messages survive a rollback and a restart`() {
+        tracker.markMissed(listOf(ROOM))
+        tracker.rollback()
+
+        tracker.isTracked(ROOM) shouldBe true
+        tracker.unseenActivityTs(ROOM).shouldBeNull()
+        UnsyncedRoomTracker(stores).onDeliveredWithTimeline(ROOM) shouldBe true
+    }
+
+    @Test
     fun `a replayed response finds the rooms it had un-tracked still tracked`() {
         tracker.onDeliveredWithoutTimeline(ROOM, bumpStamp = 10, now = 1_000)
         tracker.commit()

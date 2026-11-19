@@ -520,6 +520,15 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 }
             }
         }
+        if ((isLimited || forceNewChunk) && !isInitialSync && lastChunkId != null) {
+            Timber.i(
+                    "SYNCDBG $roomId: ${if (isLimited) "limited" else "forced"} batch of ${eventList.size} " +
+                            when {
+                                overlapsLastChunk -> "joined onto live range $lastChunkId"
+                                else -> "started live range $chunkId after a gap, demoting $demotedLiveRange"
+                            } + " hasPrev=${prevToken != null} insert=$insertType"
+            )
+        }
         val isLastForward = true
         val eventIds = ArrayList<String>(eventList.size)
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()

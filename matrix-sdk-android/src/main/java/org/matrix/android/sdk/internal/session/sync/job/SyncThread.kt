@@ -136,8 +136,9 @@ internal class SyncThread @Inject constructor(
     fun restart() = synchronized(lock) {
         forceImmediateSync = true
         val resumed = !isStarted
+        dbg("restart resumed=$resumed state=$state canReachServer=$canReachServer tokenValid=$isTokenValid " +
+                "pausedFor=${if (resumed) SystemClock.elapsedRealtime() - pausedAt else 0}ms inflight=${inflightDescription()}")
         if (resumed) {
-            Timber.tag(loggerTag.value).d("Resume sync...")
             isStarted = true
             // Check again server availability and the token validity
             canReachServer = true
@@ -146,7 +147,7 @@ internal class SyncThread @Inject constructor(
         }
         // Doze and NAT expiry take far longer than a hop to another app; kicking then only discards a slow, healthy request.
         if (resumed && SystemClock.elapsedRealtime() - pausedAt < MIN_BACKGROUND_TO_STRAND_SYNC_MS) {
-            Timber.tag(loggerTag.value).d("Not cancelling a sync after a short background trip (restart)")
+            dbg("not cancelling a sync after a short background trip (restart)")
             return@synchronized
         }
         // Kick the in-flight sync. If the request is still healthy it will be re-issued
@@ -157,8 +158,8 @@ internal class SyncThread @Inject constructor(
     }
 
     fun pause() = synchronized(lock) {
+        dbg("pause wasStarted=$isStarted state=$state inflight=${inflightDescription()}")
         if (isStarted) {
-            Timber.tag(loggerTag.value).d("Pause sync...")
             isStarted = false
             pausedAt = SystemClock.elapsedRealtime()
             forceImmediateSync = true
@@ -169,6 +170,7 @@ internal class SyncThread @Inject constructor(
     }
 
     private fun requestImmediateSyncIfRunning() = synchronized(lock) {
+        dbg("room subscriptions changed started=$isStarted state=$state inflight=${inflightDescription()}")
         if (!isStarted) return@synchronized
         forceQuietImmediateSync = true
         // A timeout=0 request already returns as soon as the server can answer, and the next one carries the new
@@ -177,7 +179,7 @@ internal class SyncThread @Inject constructor(
     }
 
     fun kill() = synchronized(lock) {
-        Timber.tag(loggerTag.value).d("Kill sync...")
+        dbg("kill state=$state")
         updateStateTo(SyncState.Killing)
         retryNoNetworkTask?.cancel()
         syncScope.coroutineContext.cancelChildren()
@@ -188,6 +190,7 @@ internal class SyncThread @Inject constructor(
 
     override fun onConnectivityChanged() {
         retryNoNetworkTask?.cancel()
+        dbg("connectivity changed canReachServer=$canReachServer state=$state")
         synchronized(lock) {
             // Only force a catch-up when recovering from an actual outage, not on a plain network switch.
             if (!canReachServer) forceImmediateSync = true
@@ -208,16 +211,16 @@ internal class SyncThread @Inject constructor(
         // checker reports the network once at startup, milliseconds after the first request goes out —
         // cancelling that one just throws away a healthy sync and re-issues it.
         if (!force && SystemClock.elapsedRealtime() - inflightSyncStartedAt < MIN_AGE_TO_CANCEL_SYNC_MS) {
-            Timber.tag(loggerTag.value).d("Not cancelling a just-issued sync ($reason)")
+            dbg("not cancelling a just-issued sync ($reason)")
             return
         }
         // Cancelling during import would discard work and replay the same delta.
         if (syncImportState.isImporting) {
-            Timber.tag(loggerTag.value).d("Not cancelling a sync that is importing its response ($reason)")
+            dbg("not cancelling a sync that is importing its response ($reason)")
             return
         }
         cancelledSyncGeneration = generation
-        Timber.tag(loggerTag.value).d("Cancelling in-flight sync ($reason)")
+        dbg("cancelling in-flight sync ($reason) ${inflightDescription()}")
         job.cancel(CancellationException("Sync cancelled: $reason"))
     }
 
@@ -229,17 +232,18 @@ internal class SyncThread @Inject constructor(
         backgroundDetectionObserver.register(this)
         slidingSyncRoomSubscriptions.addListener(roomSubscriptionsListener)
         registerActiveCallsObserver()
+        dbg("start")
         while (state != SyncState.Killing) {
             Timber.tag(loggerTag.value).d("Entering loop, state: $state")
             if (!isStarted) {
-                Timber.tag(loggerTag.value).d("Sync is Paused. Waiting...")
+                dbg("paused, waiting")
                 updateStateTo(SyncState.Paused)
                 synchronized(lock) {
                     if (!isStarted && state != SyncState.Killing) lock.wait()
                 }
-                Timber.tag(loggerTag.value).d("...unlocked")
+                dbg("woken from pause started=$isStarted")
             } else if (!canReachServer) {
-                Timber.tag(loggerTag.value).d("No network. Waiting...")
+                dbg("no network, waiting up to ${RETRY_WAIT_TIME_MS}ms")
                 updateStateTo(SyncState.NoNetwork)
                 // We force retrying in RETRY_WAIT_TIME_MS maximum. Otherwise it will be unlocked by onConnectivityChanged() or restart()
                 retryNoNetworkTask = Timer(SyncState.NoNetwork.toString(), false).schedule(RETRY_WAIT_TIME_MS) {
@@ -254,7 +258,7 @@ internal class SyncThread @Inject constructor(
                 if (state == SyncState.Killing) {
                     continue
                 }
-                Timber.tag(loggerTag.value).d("Token is invalid. Waiting...")
+                dbg("token is invalid, waiting")
                 updateStateTo(SyncState.InvalidToken)
                 synchronized(lock) {
                     if (!isTokenValid && state != SyncState.Killing) lock.wait()
@@ -276,7 +280,6 @@ internal class SyncThread @Inject constructor(
                     afterPause || quietImmediate -> 0L /* No timeout after a pause */
                     else -> matrixConfiguration.syncConfig.longPollTimeout
                 }
-                Timber.tag(loggerTag.value).d("Execute sync request with timeout $timeout")
                 val presence = lightweightSettingsStorage.getSyncPresenceStatus()
                 val params = SyncTask.Params(timeout, presence, afterPause = afterPause)
                 val sync = syncScope.launch {
@@ -288,14 +291,17 @@ internal class SyncThread @Inject constructor(
                     inflightSyncTimeout = timeout
                     inflightSyncJob = sync
                 }
+                dbg("execute #$inflightSyncGeneration timeout=$timeout afterPause=$afterPause quiet=$quietImmediate " +
+                        "toDeviceFollowUp=$previousSyncResponseHasToDevice")
                 runBlocking {
                     sync.join()
                 }
                 inflightSyncJob = null
-                Timber.tag(loggerTag.value).d("...Continue")
+                dbg("#$inflightSyncGeneration finished in ${SystemClock.elapsedRealtime() - inflightSyncStartedAt}ms " +
+                        "cancelled=${sync.isCancelled} state=$state")
             }
         }
-        Timber.tag(loggerTag.value).d("Sync killed")
+        dbg("killed")
         updateStateTo(SyncState.Killed)
         backgroundDetectionObserver.unregister(this)
         slidingSyncRoomSubscriptions.removeListener(roomSubscriptionsListener)
@@ -343,19 +349,18 @@ internal class SyncThread @Inject constructor(
             }
             if (failure is Failure.NetworkConnection && failure.cause is SocketTimeoutException) {
                 // Timeout are not critical
-                Timber.tag(loggerTag.value).d("Timeout")
+                dbg("timeout")
             } else if (failure is CancellationException) {
-                Timber.tag(loggerTag.value).d("Cancelled")
+                dbg("cancelled: ${failure.message}")
             } else if (failure.isTokenError()) {
                 // No token or invalid token, stop the thread
-                Timber.tag(loggerTag.value).w(failure, "Token error")
+                Timber.tag(loggerTag.value).w(failure, "SYNCDBG thread token error")
                 isStarted = false
                 isTokenValid = false
             } else {
-                Timber.tag(loggerTag.value).e(failure)
+                Timber.tag(loggerTag.value).e(failure, "SYNCDBG thread sync failed")
                 if (failure !is Failure.NetworkConnection || failure.cause is JsonEncodingException) {
-                    // Wait 10s before retrying
-                    Timber.tag(loggerTag.value).d("Wait 10s")
+                    dbg("waiting ${RETRY_WAIT_TIME_MS}ms before retrying")
                     delay(RETRY_WAIT_TIME_MS)
                 }
             }
@@ -364,10 +369,10 @@ internal class SyncThread @Inject constructor(
     }
 
     private fun updateStateTo(newState: SyncState) {
-        Timber.tag(loggerTag.value).d("Update state from $state to $newState")
         if (newState == state) {
             return
         }
+        dbg("state $state -> $newState")
         state = newState
         // Publishing straight from the sync thread: hopping through a main-thread Handler meant a sync
         // shorter than the debounce window never published its Running(afterPause = true) at all (the
@@ -375,11 +380,21 @@ internal class SyncThread @Inject constructor(
         syncStateHolder.state.value = newState
     }
 
+    private fun inflightDescription(): String {
+        val job = inflightSyncJob ?: return "none"
+        return "#$inflightSyncGeneration active=${job.isActive} timeout=$inflightSyncTimeout " +
+                "age=${SystemClock.elapsedRealtime() - inflightSyncStartedAt}ms importing=${syncImportState.isImporting}"
+    }
+
+    private fun dbg(message: String) = Timber.i("SYNCDBG thread $message")
+
     override fun onMoveToForeground() {
+        dbg("app foregrounded")
         restart()
     }
 
     override fun onMoveToBackground() {
+        dbg("app backgrounded activeCalls=${activeCallHandler.getActiveCallsFlow().value.size}")
         if (SyncDebugFlags.keepSyncingInBackground) {
             Timber.tag(loggerTag.value).i("Backgrounded, but debug background sync is on: staying live")
             return

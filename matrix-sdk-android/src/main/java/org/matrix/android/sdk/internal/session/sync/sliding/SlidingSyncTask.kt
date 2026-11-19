@@ -20,10 +20,12 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.RoomSyncScope
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
+import org.matrix.android.sdk.api.session.sync.model.RoomSync
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -83,9 +85,20 @@ internal class SlidingSyncTask @Inject constructor(
         private val settingsStorage: DefaultLightweightSettingsStorage,
         private val stores: SessionStores,
         @UserId private val userId: String,
+        private val latestRoomTimelineFetcher: LatestRoomTimelineFetcher,
 ) {
     // Persist coverage per connection. Start with visible rooms, then widen in large batches.
     private var listRangeEnd = INITIAL_RANGE_SIZE - 1
+
+    // What the request in flight subscribed to as open, and which of those rooms have been caught up since
+    // they were opened. Only touched from the sync coroutine.
+    private var requestedOpenRooms: Set<String> = emptySet()
+    private val caughtUpOpenRooms = HashSet<String>()
+
+    // Rooms the lists sync again that still have to be caught up; while some remain the next request does
+    // not long-poll. A room whose fetch failed waits for its next delivery or for being opened instead.
+    private var catchUpBacklog = false
+    private val failedCatchUps = HashSet<String>()
 
     // Whether the server still has rooms this connection has not been given. While true the next sync must
     // not long-poll, since there is already something waiting.
@@ -100,7 +113,7 @@ internal class SlidingSyncTask @Inject constructor(
         // different from the one that opened the connection, the connection has to start over — otherwise
         // rooms keep whatever state the old list happened to cover.
         if (syncTokenStore.getSlidingSyncStateVersion() != STATE_VERSION) {
-            Timber.tag(loggerTag.value).i("required_state changed, restarting the sliding sync connection")
+            Timber.i("SYNCDBG required_state changed (${syncTokenStore.getSlidingSyncStateVersion()} -> $STATE_VERSION), restarting the connection")
             syncTokenStore.setSlidingSyncPos(null)
             syncTokenStore.setSlidingSyncToDeviceSince(null)
             syncTokenStore.setSlidingSyncStateVersion(STATE_VERSION)
@@ -110,7 +123,7 @@ internal class SlidingSyncTask @Inject constructor(
         val storedTransport = syncTokenStore.getSlidingSyncTransport()
         if (storedTransport != mode.name) {
             if (storedTransport != null) {
-                Timber.tag(loggerTag.value).i("Switching from $storedTransport to $mode, restarting the sliding sync connection")
+                Timber.i("SYNCDBG switching from $storedTransport to $mode, restarting the connection")
                 syncTokenStore.setSlidingSyncPos(null)
                 syncTokenStore.setSlidingSyncToDeviceSince(null)
             }
@@ -120,6 +133,7 @@ internal class SlidingSyncTask @Inject constructor(
         // Whatever is still staged belongs to a response that never got its pos stored, and is about to be
         // replayed: it has to find the rooms it was going to un-track still tracked.
         unsyncedRoomTracker.rollback()
+        markRoomsJoiningSyncByScope()
 
         val pos = syncTokenStore.getSlidingSyncPos()
         val isInitialSync = pos == null
@@ -139,7 +153,12 @@ internal class SlidingSyncTask @Inject constructor(
         // this method returning as "the sync finished", and holding it open for the whole fill leaves the
         // spinner up, the thread unable to pause when the app is backgrounded, and every other database
         // user queued behind an unbroken run of writes. Coverage continues on the next call instead.
-        val timeout = if (coverageIncomplete) 0L else params.timeout
+        val timeout = if (coverageIncomplete || catchUpBacklog) 0L else params.timeout
+        Timber.i(
+                "SYNCDBG sync start $mode pos=$pos initial=$isInitialSync coverage=0..$listRangeEnd coverageIncomplete=$coverageIncomplete " +
+                        "catchUpBacklog=$catchUpBacklog " +
+                        "timeout=$timeout (asked ${params.timeout}) afterPause=${params.afterPause}"
+        )
         val requestedAt = clock.epochMillis()
         val slidingResponse = if (isInitialSync) {
             reportSubtask(initialSyncReporter, InitialSyncStep.ServerComputing, WAIT_PROGRESS_STEPS, 0.3f) {
@@ -159,23 +178,52 @@ internal class SlidingSyncTask @Inject constructor(
             (events.lastOrNull { it.type == RoomAccountDataTypes.EVENT_TYPE_TAG && it.content?.get("tags") is Map<*, *> }
                     ?.content?.get("tags") as? Map<*, *>)?.keys?.filterIsInstance<String>()
         }
-        val syncResponse = MatrixPerf.time("resp.translate") {
+        fun syncedByLists(roomId: String) = isSyncedByLists(
+                roomId = roomId,
+                scope = scope,
+                tags = roomTags?.get(roomId),
+                isDirect = slidingResponse.rooms?.get(roomId)?.isDm ?: directRooms?.contains(roomId),
+        )
+        val openRooms = subscriptions.filterValues { it == SlidingSyncRoomSubscriptions.Depth.OPEN }.keys
+        // A room closed and reopened between two responses went out unsubscribed in between, and Synapse moved
+        // past whatever arrived meanwhile.
+        caughtUpOpenRooms.retainAll(openRooms intersect requestedOpenRooms)
+        // Before translating, which un-tracks whatever this response delivers messages for. Stored tags and DM
+        // flags are still the old ones here: the response carrying a change is what writes it.
+        val changedRooms = roomTags?.keys.orEmpty() + (directRooms.orEmpty().takeIf { scope == RoomSyncScope.DIRECT_MESSAGES }.orEmpty())
+        val joiningSync = changedRooms.filter { it !in openRooms && syncedByLists(it) && !isSyncedByLists(it, scope) }
+        if (joiningSync.isNotEmpty()) {
+            Timber.i("SYNCDBG ${joiningSync.size} rooms join sync through a tag or DM change: $joiningSync")
+            unsyncedRoomTracker.markMissed(joiningSync)
+            failedCatchUps.removeAll(joiningSync.toSet())
+        }
+        val translated = MatrixPerf.time("resp.translate") {
             translator.toSyncResponse(
                     response = slidingResponse,
                     unsyncedRooms = unsyncedRoomTracker,
                     recordUnsynced = mode == SlidingSyncMode.SIMPLIFIED,
                     now = clock.epochMillis(),
-                    canSyncTimeline = { roomId ->
-                        subscriptions[roomId] == SlidingSyncRoomSubscriptions.Depth.OPEN ||
-                                isSyncedByLists(
-                                        roomId = roomId,
-                                        scope = scope,
-                                        tags = roomTags?.get(roomId),
-                                        isDirect = slidingResponse.rooms?.get(roomId)?.isDm ?: directRooms?.contains(roomId),
-                                )
-                    },
+                    canSyncTimeline = { roomId -> roomId in openRooms || syncedByLists(roomId) },
             )
         }
+        val reopened = requestedOpenRooms.filter {
+            it in openRooms && it !in caughtUpOpenRooms && (!syncedByLists(it) || unsyncedRoomTracker.isTracked(it))
+        }
+        // A fresh connection delivers every room anyway, which un-tracks the ones it syncs.
+        val backlog = if (isInitialSync || coverageIncomplete) {
+            emptyList()
+        } else {
+            val synced = syncedTrackedRooms(scope, changedRooms, ::syncedByLists) - openRooms - failedCatchUps
+            (joiningSync.filter { it in synced } + synced).distinct()
+        }
+        val catchUp = catchUpRooms(
+                response = slidingResponse,
+                syncResponse = translated,
+                reopened = reopened,
+                joiningSync = backlog.take(CATCH_UP_BATCH),
+        )
+        val syncResponse = catchUp.syncResponse
+        logOpenRooms(slidingResponse, syncResponse, openRooms, scope)
         syncResponse.accountData?.list.orEmpty().firstOrNull { it.type == "m.push_rules" }?.let { event ->
             val mention = (((event.content["global"] as? Map<*, *>)?.get("override") as? List<*>)
                     ?.firstOrNull { (it as? Map<*, *>)?.get("rule_id") == ".m.rule.is_user_mention" } as? Map<*, *>)
@@ -194,6 +242,7 @@ internal class SlidingSyncTask @Inject constructor(
         }
         if (isInitialSync || coverageIncomplete) shieldSummaryUpdater.holdRefreshes()
 
+        val importStartedAt = clock.epochMillis()
         val owesSpaceValidation = try {
             syncImportState.importing {
                 reportSubtask(
@@ -221,12 +270,22 @@ internal class SlidingSyncTask @Inject constructor(
             // The release below is never reached otherwise, and a hold outliving this response leaves every
             // room's shield stale for the session.
             shieldSummaryUpdater.releaseRefreshes()
+            Timber.w(failure, "SYNCDBG import of pos=${slidingResponse.pos} failed after ${clock.epochMillis() - importStartedAt}ms, it will be replayed")
             throw failure
         }
 
         // Before the pos: a crash in between replays this response, which re-records the same rooms.
         unsyncedRoomTracker.commit()
         syncTokenStore.setSlidingSyncPos(slidingResponse.pos)
+        // Only once imported: a response cancelled before that is replayed, and has to catch these up again.
+        caughtUpOpenRooms.addAll(catchUp.caughtUpOpen)
+        failedCatchUps.addAll(catchUp.failed)
+        catchUpBacklog = backlog.size > CATCH_UP_BATCH
+        Timber.i(
+                "SYNCDBG imported pos=$fromToken -> ${slidingResponse.pos} in ${clock.epochMillis() - importStartedAt}ms " +
+                        "join=${syncResponse.rooms?.join?.size} invite=${syncResponse.rooms?.invite?.size} leave=${syncResponse.rooms?.leave?.size} " +
+                        "importedTimelines=${syncResponse.rooms?.join?.count { !it.value.timeline?.events.isNullOrEmpty() }}"
+        )
         slidingResponse.extensions?.toDevice?.nextBatch?.let { syncTokenStore.setSlidingSyncToDeviceSince(it) }
 
         if (isInitialSync) {
@@ -251,6 +310,7 @@ internal class SlidingSyncTask @Inject constructor(
         spaceValidationOwed = spaceValidationOwed || owesSpaceValidation
         coverageIncomplete = advanceCoverage(mode, slidingResponse)
         syncImportState.catchUpPending = coverageIncomplete
+        if (coverageIncomplete) Timber.i("SYNCDBG coverage incomplete, widened to 0..$listRangeEnd; next request skips the long poll")
         if (!coverageIncomplete) {
             shieldSummaryUpdater.releaseRefreshes()
             if (!isInitialSync) {
@@ -283,6 +343,121 @@ internal class SlidingSyncTask @Inject constructor(
         }
     }
 
+    /**
+     * Synapse counts every room in a list range as delivered on each response, even one a `timeline_limit` 0
+     * list gave it nothing to send for, and only records a lowered limit on a limited response. A room left
+     * out of sync is therefore neither re-sent from where it stopped nor seen as asking for more when it is
+     * opened again or a list starts syncing it, and what arrived in between never comes. Fetch its newest
+     * page instead: once per open for [reopened], once for [joiningSync]. The handler joins the page onto the
+     * stored range where they overlap and leaves a gap where not.
+     */
+    private suspend fun catchUpRooms(
+            response: SlidingSyncResponse,
+            syncResponse: SyncResponse,
+            reopened: List<String>,
+            joiningSync: List<String>,
+    ): CatchUpResult {
+        val rooms = syncResponse.rooms
+        if (rooms == null || (reopened.isEmpty() && joiningSync.isEmpty())) return CatchUpResult(syncResponse)
+        val join = LinkedHashMap(rooms.join)
+        suspend fun catchUp(roomId: String, limit: Int, reason: String): Boolean {
+            val delivered = response.rooms?.get(roomId)
+            if (delivered?.initial == true) {
+                Timber.i("SYNCDBG catch-up $roomId ($reason): skipped, delivered as initial with ${delivered.timeline.orEmpty().size} events")
+                return true
+            }
+            val joined = roomId in join || (roomId !in rooms.leave && roomId !in rooms.invite && roomId !in rooms.knock &&
+                    stores.room.get(roomId)?.membership == Membership.JOIN)
+            if (!joined) {
+                Timber.i("SYNCDBG catch-up $roomId ($reason): skipped, not joined")
+                unsyncedRoomTracker.onDeliveredWithTimeline(roomId)
+                return true
+            }
+            val startedAt = clock.epochMillis()
+            val timeline = try {
+                latestRoomTimelineFetcher.fetch(roomId, limit)
+            } catch (failure: Throwable) {
+                if (failure is CancellationException) throw failure
+                Timber.w(failure, "SYNCDBG catch-up $roomId ($reason): fetch failed")
+                return false
+            }
+            val wasTracked = unsyncedRoomTracker.onDeliveredWithTimeline(roomId)
+            val deliveredTimeline = join[roomId]?.timeline
+            join[roomId] = (join[roomId] ?: RoomSync()).copy(
+                    timeline = timeline,
+                    // The page reaches back to messages long seen or already notified.
+                    notifiableEventIds = deliveredTimeline?.events.orEmpty().mapNotNullTo(HashSet()) { it.eventId },
+            )
+            Timber.i(
+                    "SYNCDBG catch-up $roomId ($reason): fetched ${timeline.events.orEmpty().size} events in ${clock.epochMillis() - startedAt}ms " +
+                            "newest=${timeline.events?.lastOrNull()?.eventId} hasPrev=${timeline.prevToken != null} " +
+                            "replacedDelivered=${deliveredTimeline?.events?.size}(limited=${deliveredTimeline?.limited}) wasTracked=$wasTracked"
+            )
+            return true
+        }
+        val caughtUpOpen = reopened.filter { catchUp(it, OPEN_ROOM_TIMELINE_LIMIT, "opened") }
+        val failed = (joiningSync - reopened.toSet()).filterNot { catchUp(it, INCREMENTAL_TIMELINE_LIMIT, "joined sync") }
+        return CatchUpResult(syncResponse.copy(rooms = rooms.copy(join = join)), caughtUpOpen, failed)
+    }
+
+    private class CatchUpResult(
+            val syncResponse: SyncResponse,
+            val caughtUpOpen: List<String> = emptyList(),
+            val failed: List<String> = emptyList(),
+    )
+
+    /** A widened scope starts syncing rooms that may have missed messages without ever being delivered empty. */
+    private fun markRoomsJoiningSyncByScope() {
+        val scope = settingsStorage.getRoomSyncScope(userId)
+        val previous = RoomSyncScope.fromValue(syncTokenStore.getSlidingSyncScope())
+        if (previous == scope) return
+        if (previous != null) {
+            val joined = stores.roomSummary.getRoomIdsByMembership(Membership.JOIN)
+            val open = roomSubscriptions.snapshot().filterValues { it == SlidingSyncRoomSubscriptions.Depth.OPEN }.keys
+            val joining = storedSyncedByLists(joined, scope) - storedSyncedByLists(joined, previous) - open
+            Timber.i("SYNCDBG scope ${previous.value} -> ${scope.value}: ${joining.size} rooms join sync")
+            unsyncedRoomTracker.markMissed(joining)
+            failedCatchUps.removeAll(joining)
+        }
+        syncTokenStore.setSlidingSyncScope(scope.value)
+    }
+
+    /**
+     * Tracked rooms the lists now sync. [changed] rooms have tags or a DM flag in this response that the store
+     * does not hold yet, so [syncedByLists] judges those from the response.
+     */
+    private fun syncedTrackedRooms(scope: RoomSyncScope, changed: Set<String>, syncedByLists: (String) -> Boolean): Set<String> {
+        val tracked = unsyncedRoomTracker.trackedRoomIds()
+        if (tracked.isEmpty()) return emptySet()
+        return storedSyncedByLists(tracked - changed, scope) + tracked.filter { it in changed && syncedByLists(it) }
+    }
+
+    /** [isSyncedByLists] over stored tags and DM flags, for many rooms at once. */
+    private fun storedSyncedByLists(roomIds: Collection<String>, scope: RoomSyncScope): Set<String> {
+        if (roomIds.isEmpty()) return emptySet()
+        val whenOpen = stores.roomTag.getRoomIdsByTag(RoomTag.ROOM_TAG_SYNC_WHEN_OPEN).toSet()
+        val always = stores.roomTag.getRoomIdsByTag(RoomTag.ROOM_TAG_SYNC_ALWAYS).toSet()
+        val direct = if (scope == RoomSyncScope.DIRECT_MESSAGES) stores.roomSummary.directRooms().mapTo(HashSet()) { it.first } else emptySet()
+        return roomIds.filterTo(HashSet()) { roomId ->
+            roomId !in whenOpen && (scope == RoomSyncScope.ALL || roomId in always || roomId in direct)
+        }
+    }
+
+    private fun logOpenRooms(response: SlidingSyncResponse, syncResponse: SyncResponse, openRooms: Set<String>, scope: RoomSyncScope) {
+        if (openRooms.isEmpty()) return
+        openRooms.forEach { roomId ->
+            val received = response.rooms?.get(roomId)
+            val imported = syncResponse.rooms?.join?.get(roomId)
+            Timber.i(
+                    "SYNCDBG open $roomId scope=${scope.value} requested=${roomId in requestedOpenRooms} caughtUp=${roomId in caughtUpOpenRooms} " +
+                            "received=${received?.let { "timeline=${it.timeline?.size} limited=${it.limited} hasPrev=${it.prevBatch != null} " +
+                                    "initial=${it.initial} bump=${it.bumpStamp}" } ?: "nothing"} " +
+                            "imported=${imported?.timeline?.let { "timeline=${it.events?.size} limited=${it.limited}" } ?: "no timeline"} " +
+                            "tracked=${unsyncedRoomTracker.isTracked(roomId)}"
+            )
+        }
+    }
+
     private fun logResponse(mode: SlidingSyncMode, response: SlidingSyncResponse, durationMs: Long) {
         val rooms = response.rooms.orEmpty()
         Timber.tag(loggerTag.value).d(
@@ -292,6 +467,30 @@ internal class SlidingSyncTask @Inject constructor(
                         "toDevice=${response.extensions?.toDevice?.events.orEmpty().size} " +
                         "coverage=0..$listRangeEnd of ${response.lists?.get(ALL_ROOMS_LIST)?.count} " +
                         "limit=$FIRST_DELIVERY_TIMELINE_LIMIT pending=${response.pending}"
+        )
+        val withTimeline = rooms.filterValues { !it.timeline.isNullOrEmpty() }
+        Timber.i(
+                "SYNCDBG response $mode pos=${response.pos} in ${durationMs}ms rooms=${rooms.size} " +
+                        "withTimeline=${withTimeline.size}${withTimeline.keys.take(LOG_ROOM_IDS)} " +
+                        "withoutTimeline=${rooms.size - withTimeline.size} initial=${rooms.values.count { it.initial }} " +
+                        "lists=${response.lists?.mapValues { it.value.count }} pending=${response.pending} " +
+                        "receipts=${response.extensions?.receipts?.rooms?.size} typing=${response.extensions?.typing?.rooms?.size} " +
+                        "accountDataRooms=${response.extensions?.accountData?.rooms?.keys?.take(LOG_ROOM_IDS)} " +
+                        "toDevice=${response.extensions?.toDevice?.events.orEmpty().size}"
+        )
+    }
+
+    private fun logRequest(mode: SlidingSyncMode, pos: String?, timeout: Long, request: SlidingSyncRequest) {
+        Timber.i(
+                "SYNCDBG request $mode pos=$pos timeout=$timeout scope=${settingsStorage.getRoomSyncScope(userId).value} " +
+                        "lists=${request.lists?.map { (name, list) ->
+                            "$name${list.ranges}/t${list.timelineLimit}" +
+                                    (list.filters?.tags?.let { " tags=$it" } ?: "") +
+                                    (list.filters?.notTags?.let { " notTags=$it" } ?: "") +
+                                    (list.filters?.isDm?.let { " dm=$it" } ?: "")
+                        }} " +
+                        "subs=${request.roomSubscriptions?.map { (roomId, sub) -> "$roomId/t${sub.timelineLimit}" }} " +
+                        "open=$requestedOpenRooms caughtUp=$caughtUpOpenRooms receiptLists=${request.extensions?.receipts?.lists}"
         )
     }
 
@@ -323,7 +522,7 @@ internal class SlidingSyncTask @Inject constructor(
         return try {
             requestSync(mode, pos, timeout, presence)
         } catch (cancellation: CancellationException) {
-            Timber.tag(loggerTag.value).d("Sliding sync request cancelled")
+            Timber.i("SYNCDBG request cancelled: ${cancellation.message}")
             syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncIdle)
             throw cancellation
         } catch (throwable: Throwable) {
@@ -331,13 +530,13 @@ internal class SlidingSyncTask @Inject constructor(
                 // MSC4186 expires connections with M_UNKNOWN_POS; MSC4525 drops the error and just treats
                 // an unknown pos as absent. Restarting from scratch satisfies both. Synapse does not
                 // reliably set the errcode, so any rejection of a request carrying a pos is read as expiry.
-                Timber.tag(loggerTag.value).w("Sliding sync connection expired, restarting from scratch")
+                Timber.w(throwable, "SYNCDBG connection expired (pos=$pos rejected), restarting from scratch")
                 syncTokenStore.setSlidingSyncPos(null)
                 syncTokenStore.setSlidingSyncToDeviceSince(null)
                 listRangeEnd = INITIAL_RANGE_SIZE - 1
                 return requestSync(mode, null, 0L, presence)
             }
-            Timber.tag(loggerTag.value).e(throwable, "Sliding sync request error")
+            Timber.e(throwable, "SYNCDBG request error (pos=$pos timeout=$timeout)")
             syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncError)
             throw throwable
         }
@@ -350,6 +549,7 @@ internal class SlidingSyncTask @Inject constructor(
             presence: SyncPresence?,
     ): SlidingSyncResponse {
         val body = buildRequest(mode, presence)
+        logRequest(mode, pos, timeout, body)
         val readTimeOut = (timeout + TIMEOUT_MARGIN).coerceAtLeast(TimeOutInterceptor.DEFAULT_LONG_TIMEOUT)
         return executeRequest(globalErrorReceiver) {
             when (mode) {
@@ -370,6 +570,8 @@ internal class SlidingSyncTask @Inject constructor(
                 typing = RoomScopedExtensionRequest(),
                 unstableProfiles = profiles,
         )
+        val subscriptions = roomSubscriptions.snapshot()
+        requestedOpenRooms = subscriptions.filterValues { it == SlidingSyncRoomSubscriptions.Depth.OPEN }.keys
         return when (mode) {
             SlidingSyncMode.SIMPLIFIED -> {
                 val scope = settingsStorage.getRoomSyncScope(userId)
@@ -379,7 +581,7 @@ internal class SlidingSyncTask @Inject constructor(
                         .takeIf { it.size < lists.size }
                 SlidingSyncRequest(
                         lists = lists,
-                        roomSubscriptions = roomSubscriptions.snapshot()
+                        roomSubscriptions = subscriptions
                                 // The room-list viewport is a prefetch of messages; rooms left out are not prefetched.
                                 .filter { (roomId, depth) -> depth == SlidingSyncRoomSubscriptions.Depth.OPEN || isSyncedByLists(roomId, scope) }
                                 .mapValues { (_, depth) ->
@@ -525,6 +727,10 @@ internal class SlidingSyncTask @Inject constructor(
 
         // The room the user is reading: enough to open on without a /messages round trip.
         private const val OPEN_ROOM_TIMELINE_LIMIT = 50
+        private const val LOG_ROOM_IDS = 20
+
+        // Rooms caught up per response after they join sync; each is one /messages round trip before the import.
+        private const val CATCH_UP_BATCH = 10
         private const val CONNECTION_CONFIG_VERSION = 3
 
         /** Stored with the pos; a pos saved under any other version belongs to a connection that gets discarded. */
