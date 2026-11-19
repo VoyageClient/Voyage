@@ -399,12 +399,29 @@ class TimelineFragment :
                 when {
                     coversScreen -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
                     views.roomPreviewJoinBar.isVisible -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
-                    timelineViewModel.selection.isActive || isEmojiPanelDrawn || !views.composerContainer.isVisible -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+                    isNotificationAreaAtBottom() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_keys_backup_banner_accent_color)
+                    timelineViewModel.selection.isActive || isEmojiPanelDrawn || !views.composerContainer.isVisible || !isComposerOnScreen() ->
+                        ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
                     vectorPreferences.useClassicComposer() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
                     else -> Color.TRANSPARENT
                 }
         )
     }
+
+    // The banner and composer turn visible some layout passes before they reach the bottom edge.
+    private fun isNotificationAreaAtBottom(): Boolean {
+        val banner = views.notificationAreaView
+        return banner.isVisible && banner.height > 0 && windowTop(banner) + banner.height >= coordinatorBottom()
+    }
+
+    private fun isComposerOnScreen(): Boolean {
+        val composer = views.composerContainer
+        return composer.height > 0 && windowTop(composer) < coordinatorBottom()
+    }
+
+    private fun coordinatorBottom() = windowTop(views.coordinatorLayout) + views.coordinatorLayout.height
+
+    private fun windowTop(view: View): Int = IntArray(2).also { view.getLocationInWindow(it) }[1]
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentTimelineBinding {
         return FragmentTimelineBinding.inflate(inflater, container, false)
@@ -474,6 +491,12 @@ class TimelineFragment :
         PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
         setupSelection()
         tintNavigationBar()
+        val retintOnMove = View.OnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (top != oldTop || bottom != oldBottom) tintNavigationBar()
+        }
+        views.notificationAreaView.addOnLayoutChangeListener(retintOnMove)
+        views.rootConstraintLayout.addOnLayoutChangeListener(retintOnMove)
+        views.composerContainer.addOnLayoutChangeListener(retintOnMove)
         vectorBaseActivity.excludeFromGlobalColorRefresh(views.timelineRecyclerView)
         setupNotificationView()
         setupJumpToReadMarkerView()
