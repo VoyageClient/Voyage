@@ -949,6 +949,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     // back to the front with it.
                     if (visible) autoCompleters[composer.editText]?.dismissEmojiPopup()
                 },
+                onPanelDrawnChanged = { drawn -> (parentFragment as? TimelineFragment)?.isEmojiPanelDrawn = drawn },
         ).also { emojiKeyboardController = it }
     }
 

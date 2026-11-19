@@ -384,6 +384,25 @@ class TimelineFragment :
     /** Hosts the strip below the composer that the emoji panel reserves; see EmojiKeyboardController. */
     val emojiPanelHost: EmojiPanelHostLayout get() = views.root
 
+    var isEmojiPanelDrawn = false
+        set(value) {
+            if (field == value) return
+            field = value
+            tintNavigationBar()
+        }
+
+    // The classic composer tints the navigation bar to its own color; with the emoji panel or the
+    // timeline above the bar instead, it follows that surface.
+    private fun tintNavigationBar() {
+        vectorBaseActivity.tintNavigationBarStrip(
+                when {
+                    timelineViewModel.selection.isActive || isEmojiPanelDrawn -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+                    vectorPreferences.useClassicComposer() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+                    else -> Color.TRANSPARENT
+                }
+        )
+    }
+
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentTimelineBinding {
         return FragmentTimelineBinding.inflate(inflater, container, false)
     }
@@ -2782,15 +2801,7 @@ class TimelineFragment :
         if (active != selectionWasActive) {
             animateComposerForSelection(active)
             withState(messageComposerViewModel) { renderComposerVisibility(it.isComposerVisible) }
-            // The classic composer tints the navigation bar to its own color; with it gone the bar
-            // sits under the timeline instead.
-            vectorBaseActivity.tintNavigationBarStrip(
-                    when {
-                        active -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
-                        vectorPreferences.useClassicComposer() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
-                        else -> Color.TRANSPARENT
-                    }
-            )
+            tintNavigationBar()
             selectionDecoration?.animateGutter(active)
         } else {
             views.timelineRecyclerView.invalidate()

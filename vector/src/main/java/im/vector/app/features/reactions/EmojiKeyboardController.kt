@@ -42,6 +42,8 @@ class EmojiKeyboardController(
         private val scope: CoroutineScope,
         private val onVisibilityChanged: (visible: Boolean) -> Unit,
         private val onKeyboardDismissed: () -> Unit,
+        // Unlike onVisibilityChanged, follows the panel staying drawn until the keyboard covers it.
+        private val onPanelDrawnChanged: (drawn: Boolean) -> Unit,
 ) {
 
     private val pickerView = EmojiPickerView(activity).apply {
@@ -131,10 +133,10 @@ class EmojiKeyboardController(
             lastKeyboardHeight = height
             if (stripReserved) panelHost.setDesiredStripHeight(stripHeight())
             // The panel stays drawn until the keyboard is actually over it, so the strip is never a hole.
-            if (!panelOpen) pickerView.isVisible = false
+            if (!panelOpen) setPanelDrawn(false)
         } else if (stripReserved && !panelOpen) {
             // Keyboard gone with no panel to take its place: give the space back to the timeline.
-            pickerView.isVisible = false
+            setPanelDrawn(false)
             releaseStrip()
         }
     }
@@ -169,7 +171,7 @@ class EmojiKeyboardController(
         reload()
         panelOpen = true
         reserveStrip()
-        pickerView.isVisible = true
+        setPanelDrawn(true)
         hideKeyboard()
         onVisibilityChanged(true)
     }
@@ -194,7 +196,7 @@ class EmojiKeyboardController(
         editText.removeCallbacks(releaseKeyboardRestoreHold)
         hostActivity?.isRestoringComposerKeyboard = false
         panelOpen = false
-        pickerView.isVisible = false
+        setPanelDrawn(false)
         hideKeyboard()
         rememberKeyboardDismissed()
         releaseStrip()
@@ -211,7 +213,7 @@ class EmojiKeyboardController(
         panelHost.onWindowFocusRestored = null
         editText.removeCallbacks(recordKeyboardDismissal)
         panelOpen = false
-        pickerView.isVisible = false
+        setPanelDrawn(false)
         releaseStrip()
         panelHost.strip.removeView(pickerView)
         heightProvider.close()
@@ -232,6 +234,12 @@ class EmojiKeyboardController(
         val screenHeight = heightProvider.screenHeight()
         return prefs.getInt(PREF_KEYBOARD_HEIGHT, (screenHeight * DEFAULT_KEYBOARD_FRACTION).toInt())
                 .coerceIn(MIN_KEYBOARD_HEIGHT, (screenHeight * MAX_KEYBOARD_FRACTION).toInt())
+    }
+
+    private fun setPanelDrawn(drawn: Boolean) {
+        if (pickerView.isVisible == drawn) return
+        pickerView.isVisible = drawn
+        onPanelDrawnChanged(drawn)
     }
 
     private fun reserveStrip() {
