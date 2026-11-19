@@ -64,7 +64,7 @@ internal class VideoCompressor @Inject constructor(
         }
         // An explicit request is always honoured; only the automatic pass may decide to skip.
         val chosenBySender = targetWidth != null || targetHeight != null || targetBitrate != null
-        if (!chosenBySender && isAlreadyWithinTargets(sourceUri, sourceSize)) {
+        if (!chosenBySender && skipsTranscode(sourceUri, sourceSize)) {
             Timber.d("Compressing: source already within targets, skipping transcode")
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
         }
@@ -107,10 +107,10 @@ internal class VideoCompressor @Inject constructor(
                 }
         )
 
-        // Re-encoding can produce a larger file than the source (already-efficient inputs). Keep
-        // the original then — unless the sender asked for a specific size, which they still get.
-        if (!chosenBySender && sourceSize > 0 && destinationFile.length() >= sourceSize) {
-            Timber.d("Compressing: result ${destinationFile.length()} >= source $sourceSize, keeping original")
+        // Keep the original if re-encoding didn't pay off — unless the sender asked for a specific
+        // size, which they still get.
+        if (!chosenBySender && sourceSize > 0 && !savesEnough(sourceSize, destinationFile.length())) {
+            Timber.d("Compressing: result ${destinationFile.length()} vs source $sourceSize saves too little, keeping original")
             deleteFile(destinationFile)
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
         }
@@ -130,13 +130,18 @@ internal class VideoCompressor @Inject constructor(
     ): Long {
         if (!VideoEditExporter.isSupported()) return sourceSize
         val chosenBySender = targetWidth != null || targetHeight != null || targetBitrate != null
-        if (!chosenBySender && isAlreadyWithinTargets(sourceUri, sourceSize)) return sourceSize
+        if (!chosenBySender && skipsTranscode(sourceUri, sourceSize)) return sourceSize
         val source = MediaSourceInfo.probe(context, sourceUri)
         if (source == null || source.durationUs <= 0) return sourceSize
         val audioBitrate = if (source.audioMime != null) ESTIMATED_AUDIO_BITRATE else 0
         val estimate = (targetBitrate ?: TARGET_BITRATE).plus(audioBitrate).toLong() * source.durationUs / 8_000_000
-        return if (!chosenBySender && sourceSize > 0 && estimate >= sourceSize) sourceSize else estimate
+        return if (!chosenBySender && sourceSize > 0 && !savesEnough(sourceSize, estimate)) sourceSize else estimate
     }
+
+    // Encoders undershoot their bitrate on simple content, which metadata can't predict; small
+    // files are cheap enough to transcode and judge by the actual result.
+    private fun skipsTranscode(sourceUri: Uri, sourceSize: Long): Boolean =
+            sourceSize !in 1..TRIAL_TRANSCODE_BYTES && isAlreadyWithinTargets(sourceUri)
 
     /** The size the sender asked for, with a missing axis taken from the source's shape. */
     private fun requestedSize(source: MediaSourceInfo, width: Int?, height: Int?): Pair<Int, Int>? {
@@ -158,8 +163,7 @@ internal class VideoCompressor @Inject constructor(
         return (width * scale).roundToInt() to (height * scale).roundToInt()
     }
 
-    private fun isAlreadyWithinTargets(sourceUri: Uri, sourceSize: Long): Boolean {
-        if (sourceSize in 1..SKIP_TRANSCODE_BYTES) return true
+    private fun isAlreadyWithinTargets(sourceUri: Uri): Boolean {
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(context, sourceUri)
@@ -182,9 +186,18 @@ internal class VideoCompressor @Inject constructor(
     companion object {
         private const val TARGET_SHORTEST_SIDE = 720
         private const val TARGET_BITRATE = 2_000_000
-        private const val SKIP_TRANSCODE_BYTES = 4L * 1024 * 1024
+        private const val TRIAL_TRANSCODE_BYTES = 8L * 1024 * 1024
+        private const val MIN_SAVINGS_PERCENT = 20
 
         // The audio track is mostly copied through, and its bitrate isn't probed; typical AAC.
         private const val ESTIMATED_AUDIO_BITRATE = 128_000
+
+        // Small files are transcoded unconditionally, so they must earn the quality loss.
+        internal fun savesEnough(sourceSize: Long, resultSize: Long): Boolean =
+                if (sourceSize <= TRIAL_TRANSCODE_BYTES) {
+                    resultSize * 100 <= sourceSize * (100 - MIN_SAVINGS_PERCENT)
+                } else {
+                    resultSize < sourceSize
+                }
     }
 }
