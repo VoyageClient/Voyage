@@ -10,10 +10,12 @@ package im.vector.app.core.extensions
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.getSystemService
+import im.vector.app.core.utils.KeyboardDebug
 
 fun View.hideKeyboard() {
     val imm = context?.getSystemService<InputMethodManager>()
-    imm?.hideSoftInputFromWindow(windowToken, 0)
+    val result = imm?.hideSoftInputFromWindow(windowToken, 0)
+    KeyboardDebug.log { "hideKeyboard result=$result ${KeyboardDebug.state(this)} caller=${KeyboardDebug.caller()}" }
 }
 
 fun View.showKeyboard(andRequestFocus: Boolean = false) {
@@ -21,7 +23,8 @@ fun View.showKeyboard(andRequestFocus: Boolean = false) {
         requestFocus()
     }
     val imm = context?.getSystemService<InputMethodManager>()
-    imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    val result = imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    KeyboardDebug.log { "showKeyboard requestFocus=$andRequestFocus result=$result ${KeyboardDebug.state(this)} caller=${KeyboardDebug.caller()}" }
 }
 
 fun View.setHorizontalPadding(padding: Int) {

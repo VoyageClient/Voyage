@@ -19,6 +19,7 @@ import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.utils.KeyboardDebug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -90,6 +91,7 @@ class EmojiKeyboardController(
                 return
             }
             keyboardDismissalPending = false
+            KeyboardDebug.log { "EmojiKbd recordKeyboardDismissal -> rememberKeyboardDismissed ${KeyboardDebug.state(editText)}" }
             rememberKeyboardDismissed()
         }
     }
@@ -144,6 +146,12 @@ class EmojiKeyboardController(
     private fun updateKeyboardVisibility(height: Int) {
         val wasVisible = keyboardVisible
         keyboardVisible = height > MIN_KEYBOARD_HEIGHT
+        if (wasVisible != keyboardVisible) {
+            KeyboardDebug.log {
+                "EmojiKbd visibility $wasVisible->$keyboardVisible height=$height panelOpen=$panelOpen paused=$paused " +
+                        "suppressed=$keyboardRestoreSuppressed ${KeyboardDebug.state(editText)}"
+            }
+        }
         if (keyboardVisible && editText.hasFocus()) keyboardRestoreSuppressed = false
         if (keyboardVisible || panelOpen) {
             if (keyboardVisible && !paused && !keyboardRestoreSuppressed) {
@@ -187,6 +195,7 @@ class EmojiKeyboardController(
 
     /** Fully close: panel, keyboard, and the space they shared. */
     fun close() {
+        KeyboardDebug.log { "EmojiKbd close panelOpen=$panelOpen caller=${KeyboardDebug.caller()}" }
         val wasShowing = panelOpen
         keyboardRestoreSuppressed = true
         keyboardVisible = false
@@ -267,10 +276,14 @@ class EmojiKeyboardController(
     private fun setKeyboardRestoreState(state: Int) {
         val mode = activity.window.attributes.softInputMode
         val updated = (mode and WindowManager.LayoutParams.SOFT_INPUT_MASK_STATE.inv()) or state
-        if (mode != updated) activity.window.setSoftInputMode(updated)
+        if (mode != updated) {
+            KeyboardDebug.log { "EmojiKbd softInput ${KeyboardDebug.softInputMode(mode)}->${KeyboardDebug.softInputMode(updated)} caller=${KeyboardDebug.caller()}" }
+            activity.window.setSoftInputMode(updated)
+        }
     }
 
     fun onPause() {
+        KeyboardDebug.log { "EmojiKbd onPause keyboardVisible=$keyboardVisible ${KeyboardDebug.state(editText)}" }
         editText.removeCallbacks(restoreKeyboardAfterFocus)
         paused = true
         // A restore still waiting for window focus (e.g. a permission prompt chained into a picker) must survive.
@@ -289,6 +302,7 @@ class EmojiKeyboardController(
     }
 
     fun onResume() {
+        KeyboardDebug.log { "EmojiKbd onResume showKeyboardOnResume=$showKeyboardOnResume ${KeyboardDebug.state(editText)}" }
         paused = false
         editText.removeCallbacks(hideKeyboardAfterPause)
         consumeRestoreOnReturn()
@@ -309,19 +323,22 @@ class EmojiKeyboardController(
             editText.removeCallbacks(recordKeyboardDismissal)
             showKeyboardOnResume = false
             editText.requestFocus()
-            activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+            val result = activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+            KeyboardDebug.log { "EmojiKbd restoreKeyboardIfReady result=$result ${KeyboardDebug.state(editText)}" }
             editText.postDelayed(releaseKeyboardRestoreHold, 1500L)
         }
     }
 
     private fun hideKeyboard() {
-        activity.getSystemService<InputMethodManager>()?.hideSoftInputFromWindow(editText.windowToken, 0)
+        val result = activity.getSystemService<InputMethodManager>()?.hideSoftInputFromWindow(editText.windowToken, 0)
+        KeyboardDebug.log { "EmojiKbd hideKeyboard result=$result ${KeyboardDebug.state(editText)} caller=${KeyboardDebug.caller()}" }
     }
 
     private fun showKeyboardOnComposer() {
         setAutomaticKeyboardRestore(true)
         editText.requestFocus()
-        activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+        val result = activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+        KeyboardDebug.log { "EmojiKbd showKeyboardOnComposer result=$result ${KeyboardDebug.state(editText)}" }
     }
 
     private fun reload() {

@@ -83,6 +83,7 @@ import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.ui.ColorRefreshable
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
+import im.vector.app.core.utils.KeyboardDebug
 import im.vector.app.core.utils.ToolbarConfig
 import im.vector.app.core.utils.toast
 import im.vector.app.core.vpn.VpnGateExemptActivity
@@ -769,12 +770,26 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     private fun dispatchImeState(insets: WindowInsetsCompat) {
         lastImeBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        if (KeyboardDebug.enabled && !isImeAnimating) {
+            val imeState = "${insets.isVisible(WindowInsetsCompat.Type.ime())}/$lastImeBottom"
+            if (imeState != lastLoggedImeState) {
+                KeyboardDebug.log { "${javaClass.simpleName} ime $lastLoggedImeState->$imeState ${KeyboardDebug.state(currentFocus ?: rootView)}" }
+                lastLoggedImeState = imeState
+            }
+        }
         imeStateListeners.toList().forEach { it(lastImeBottom, isImeAnimating) }
     }
+
+    private var lastLoggedImeState: String? = null
 
     private fun installRootInsetsListener() {
         insetsListenerInstalled = true
         installStatusBarStrip()
+        if (KeyboardDebug.enabled) {
+            rootView.viewTreeObserver.addOnGlobalFocusChangeListener { oldFocus, newFocus ->
+                KeyboardDebug.log { "${javaClass.simpleName} focus ${KeyboardDebug.name(oldFocus)}->${KeyboardDebug.name(newFocus)} ${KeyboardDebug.state(newFocus ?: rootView)}" }
+            }
+        }
         // Older devices use the window's adjustResize path; only API 30+ supplies native IME animation frames.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Consumed insets must not also make the composer's bottom-sheet callback resize every frame.
@@ -783,6 +798,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             ViewCompat.setWindowInsetsAnimationCallback(rootView, object : WindowInsetsAnimationCompat.Callback(dispatchMode) {
                 override fun onPrepare(animation: WindowInsetsAnimationCompat) {
                     if (animation.typeMask and WindowInsetsCompat.Type.ime() == 0) return
+                    KeyboardDebug.log { "${this@VectorBaseActivity.javaClass.simpleName} imeAnim prepare duration=${animation.durationMillis} running=${imeAnimations.size} ${KeyboardDebug.state(currentFocus ?: rootView)}" }
                     if (imeAnimations.isEmpty()) {
                         lastAnimationInsets = null
                         imeAnimationLayoutPrepared = false
@@ -832,6 +848,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
                 override fun onEnd(animation: WindowInsetsAnimationCompat) {
                     if (!imeAnimations.remove(animation)) return
+                    KeyboardDebug.log { "${this@VectorBaseActivity.javaClass.simpleName} imeAnim end duration=${animation.durationMillis} remaining=${imeAnimations.size} ${KeyboardDebug.state(currentFocus ?: rootView)}" }
                     if (!isImeAnimating) {
                         translateImeRooms = false
                         imeAnimationRooms.forEach { it.finishKeyboardAnimation() }
@@ -1136,6 +1153,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        KeyboardDebug.log { "${javaClass.simpleName} windowFocus=$hasFocus ${KeyboardDebug.state(currentFocus ?: rootView)}" }
         if (!insetsListenerInstalled) return
         val imeInset = ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
         // A system overlay can leave the held padding behind after the IME has disappeared.

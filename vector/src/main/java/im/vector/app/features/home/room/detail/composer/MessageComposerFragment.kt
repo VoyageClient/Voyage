@@ -53,6 +53,7 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.ExpandingBottomSheetBehavior
+import im.vector.app.core.utils.KeyboardDebug
 import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
@@ -878,6 +879,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
         composer.editText.focusChanges()
                 .onEach { hasFocus ->
+                    KeyboardDebug.log { "Composer focus=$hasFocus hadFocus=$composerHadFocus ${KeyboardDebug.state(composer.editText)}" }
                     // Focus lost to something that can't be typed into (a selectable message body,
                     // or nothing at all once a selection ends) still counts as ours to take back.
                     if (hasFocus) composerHadFocus = true
@@ -962,7 +964,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         views.root.post { if (view != null) emojiKeyboard().prewarm() }
         // Tapping the input returns to normal keyboard typing: dismiss the emoji panel (the soft
         // keyboard is still open behind it).
-        composer.editText.setOnTouchListener { _, _ ->
+        composer.editText.setOnTouchListener { v, event ->
+            val action = event.actionMasked
+            if (KeyboardDebug.enabled && (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+                KeyboardDebug.log { "Composer touch ${KeyboardDebug.touchAction(action)} panel=${emojiKeyboardController?.isShowing} ${KeyboardDebug.state(v)}" }
+                // The tap's own showSoftInput runs after this listener; check whether it took.
+                if (action == MotionEvent.ACTION_UP) v.postDelayed({ KeyboardDebug.log { "Composer touch settled ${KeyboardDebug.state(v)}" } }, 600L)
+            }
             if (emojiKeyboardController?.isShowing == true) emojiKeyboardController?.dismiss()
             false
         }

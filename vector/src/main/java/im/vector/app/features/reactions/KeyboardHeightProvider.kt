@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.PopupWindow
+import im.vector.app.core.utils.KeyboardDebug
 
 /**
  * Measures the on-screen soft-keyboard height across all API levels using the classic invisible-popup
@@ -92,6 +93,7 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
             navigationBarHeight = keyboardHeight
         }
         if (keyboardHeight != lastHeight) {
+            KeyboardDebug.log { "HeightProvider $lastHeight->$keyboardHeight frame=$rect screen=$screenHeight popupShowing=$isShowing" }
             lastHeight = keyboardHeight
             onKeyboardHeightChanged?.invoke(keyboardHeight)
         }

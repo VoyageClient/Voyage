@@ -109,6 +109,7 @@ import im.vector.app.core.ui.views.renderRoomAvatarBadges
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.ExpandingBottomSheetBehavior
+import im.vector.app.core.utils.KeyboardDebug
 import im.vector.app.core.utils.KeyboardStateUtils
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
 import im.vector.app.core.utils.PerfTrace
@@ -1034,6 +1035,7 @@ class TimelineFragment :
             private var userInitiated = false
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                KeyboardDebug.log { "Timeline scroll ${KeyboardDebug.scrollState(newState)} ${KeyboardDebug.state(recyclerView)}" }
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                     userInitiated = true
                 } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
