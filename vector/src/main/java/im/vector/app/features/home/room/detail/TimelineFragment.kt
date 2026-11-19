@@ -1106,10 +1106,10 @@ class TimelineFragment :
             // Snap to the newest loaded row right away: the restart's list replacement takes a
             // moment, and leaving the viewport deep in the list shows a page of stale rows first.
             views.timelineRecyclerView.stopScroll()
-            layoutManager.scrollToPosition(0)
+            layoutManager.scrollToPositionWithOffset(0, 0)
             timelineViewModel.timeline?.restartWithEventId(null)
         } else {
-            layoutManager.scrollToPosition(0)
+            layoutManager.scrollToPositionWithOffset(0, 0)
         }
     }
 

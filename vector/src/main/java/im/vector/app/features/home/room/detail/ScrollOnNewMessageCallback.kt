@@ -64,8 +64,7 @@ class ScrollOnNewMessageCallback(
         if (isJumping()) return
         if (position != 0) return
         if (SystemClock.uptimeMillis() < forceScrollUntilMs && isTimelineLive()) {
-            onScrollToLatest()
-            layoutManager.scrollToPosition(0)
+            scrollToLatest()
             return
         }
         if (layoutManager.findFirstVisibleItemPosition() > 1 || !isTimelineLive()) {
@@ -80,9 +79,14 @@ class ScrollOnNewMessageCallback(
             while (newTimelineEventIds.lastOrNull() != firstNewItemIds) {
                 newTimelineEventIds.removeLastOrNull()
             }
-            onScrollToLatest()
-            layoutManager.scrollToPosition(0)
+            scrollToLatest()
         }
+    }
+
+    private fun scrollToLatest() {
+        onScrollToLatest()
+        // scrollToPosition() only brings the row into view, keeping the reader's partial scroll offset.
+        layoutManager.scrollToPositionWithOffset(0, 0)
     }
 
     companion object {
