@@ -877,8 +877,6 @@
     <string name="settings_discovery_no_terms_title">Identitäts-Server hat keine Nutzungsbedingungen</string>
     <string name="settings_discovery_no_terms">Der Identitäts-Server, den du ausgewählt hast, hat keine Nutzungsbedingungen. Fahre nur fort, wenn du den Betreibenden des Dienstes vertraust</string>
     <string name="settings_text_message_sent">Eine Textnachricht wurde an %s gesendet. Bitte gib den Verifizierungscode ein, den sie enthält.</string>
-    <string name="labs_allow_extended_logging">Aktiviere ausführliche Logs.</string>
-    <string name="labs_allow_extended_logging_summary">Ausführliche Protokolle werden bei der Entwicklung der App helfen. Auch wenn dies aktiviert ist, werden keine Nachrichteninhalte oder andere privaten Daten aufgezeichnet.</string>
     <string name="error_terms_not_accepted">Bitte erneut versuchen, nachdem du die Nutzungsbedingungen deines Heim-Servers akzeptiert hast.</string>
     <string name="room_widget_permission_webview_shared_info_title">Bei Benutzung könnten Cookies gesetzt werden und es könnten Daten mit %s geteilt werden:</string>
     <string name="room_widget_permission_shared_info_title">Bei Benutzung könnten Daten mit %s geteilt werden:</string>
@@ -3808,4 +3806,6 @@
     <string name="video_editor_convert_to_animation">In animiertes Bild umwandeln</string>
     <string name="video_editor_converting_to_animation">Wird in animiertes Bild umgewandelt…</string>
     <string name="video_editor_convert_to_animation_failed">Dieses Video konnte nicht in ein animiertes Bild umgewandelt werden</string>
+    <string name="settings_enable_logging">Logging aktivieren</string>
+    <string name="settings_enable_logging_summary">Ein ausführliches Log auf diesem Gerät führen, das du zur Fehlersuche über das Startmenü exportieren kannst. Beim Ausschalten werden die gespeicherten Logs gelöscht.</string>
 </resources>

@@ -860,8 +860,6 @@
     <string name="settings_text_message_sent_wrong_code">验证码不正确。</string>
     <string name="settings_discovery_disconnect_with_bound_pid">你当前在身份服务器 %1$s 上共享电子邮件地址或电话号码。你需要重新连接到 %2$s 才能停止共享它们。</string>
     <string name="settings_agree_to_terms">同意身份服务器 (%s) 服务条款使你可以通过电子邮件地址或电话号码被发现。</string>
-    <string name="labs_allow_extended_logging">启用详细日志。</string>
-    <string name="labs_allow_extended_logging_summary">详细日志将通过在你发送愤怒摇动（RageShake）时提供更多日志来帮助开发人员。即使启用，应用程序也不会记录消息内容或任何其他私人数据。</string>
     <string name="error_terms_not_accepted">接收你的家服务器条款和条件后请重试。</string>
     <string name="error_network_timeout">服务器似乎响应时间太长，这可能是由于连接不良或服务器错误引起的。请稍后再试。</string>
     <string name="a11y_open_drawer">打开导航菜单</string>
@@ -3730,4 +3728,6 @@
     <string name="video_editor_convert_to_animation">转换为动图</string>
     <string name="video_editor_converting_to_animation">正在转换为动图…</string>
     <string name="video_editor_convert_to_animation_failed">无法将此视频转换为动图</string>
+    <string name="settings_enable_logging">启用日志</string>
+    <string name="settings_enable_logging_summary">在此设备上保存详细日志，可从主页菜单导出以帮助诊断问题。关闭后将删除已保存的日志。</string>
 </resources>

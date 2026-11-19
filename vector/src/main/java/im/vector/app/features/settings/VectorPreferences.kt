@@ -324,7 +324,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY = "SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY"
         private const val SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY = "SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY"
 
-        const val SETTINGS_LABS_ALLOW_EXTENDED_LOGS = "SETTINGS_LABS_ALLOW_EXTENDED_LOGS"
+        const val SETTINGS_LOGGING_ENABLED_KEY = "SETTINGS_LOGGING_ENABLED_KEY"
         const val SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME = "SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME"
 
         /**
@@ -446,7 +446,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY,
                 SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY,
                 SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY,
-                SETTINGS_LABS_ALLOW_EXTENDED_LOGS,
+                SETTINGS_LOGGING_ENABLED_KEY,
                 SETTINGS_DEVELOPER_MODE_FAIL_FAST_PREFERENCE_KEY,
                 SETTINGS_ENABLE_MEMORY_LEAK_ANALYSIS_KEY,
 
@@ -544,7 +544,16 @@ class VectorPreferences @Inject constructor(
     }
 
     fun developerMode(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY, false)
+        return defaultPrefs.getBoolean(SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY, buildMeta.isDebug)
+    }
+
+    // Persisted rather than left to the getters' defaults so the settings switches, whose XML default
+    // can't depend on the build type, and the SDK's own read of developer mode agree with them.
+    fun seedBuildTypeDefaultsIfNeeded() {
+        val unset = listOf(SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY, SETTINGS_LOGGING_ENABLED_KEY).filterNot { defaultPrefs.contains(it) }
+        if (unset.isNotEmpty()) {
+            defaultPrefs.edit { unset.forEach { putBoolean(it, buildMeta.isDebug) } }
+        }
     }
 
     fun developerShowDebugInfo(): Boolean {
@@ -595,8 +604,8 @@ class VectorPreferences @Inject constructor(
         return developerMode() && defaultPrefs.getBoolean(SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM, false)
     }
 
-    fun labAllowedExtendedLogging(): Boolean {
-        return developerMode() && defaultPrefs.getBoolean(SETTINGS_LABS_ALLOW_EXTENDED_LOGS, false)
+    fun isLoggingEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_LOGGING_ENABLED_KEY, buildMeta.isDebug)
     }
 
     fun labAddNotificationTab(): Boolean {

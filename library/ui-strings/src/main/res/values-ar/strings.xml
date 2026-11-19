@@ -1468,8 +1468,6 @@
     <string name="settings_text_message_sent_wrong_code">رمز التحقق غير صحيح.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">تشارك حاليًا عناوين بريد إلكتروني أو أرقام هاتف على خادوم التعريف %1$s. ستحتاج لإعادة الاتصال بـ %2$s لإيقاف مشاركتها.</string>
     <string name="settings_agree_to_terms">وافِق على شروط خدمة خادوم التعريف (%s) ليتمكّن الآخرون من العثور عليك بعنوان البريد الإلكتروني أو رقم الهاتف.</string>
-    <string name="labs_allow_extended_logging">فعّل السجلات المفصّلة.</string>
-    <string name="labs_allow_extended_logging_summary">تساعد السجلات المفصّلة المطوّرين بتوفير سجلات أكثر حين ترسل تقرير RageShake. حتى عند تفعيلها، لا يسجّل التطبيق محتوى الرسائل أو أي بيانات خاصة أخرى.</string>
     <string name="error_terms_not_accepted">رجاءً أعِد المحاولة بعد قبول شروط خادوم المنزل الخاص بك وأحكامه.</string>
     <string name="error_network_timeout">يبدو أن الخادوم يستغرق وقتًا طويلًا للرد، وقد يكون سبب هذا ضعف الاتصال أو خطأ في الخادوم. رجاءً أعِد المحاولة بعد قليل.</string>
     <string name="a11y_open_drawer">افتح درج التنقل</string>
@@ -4024,4 +4022,6 @@
     <string name="video_editor_convert_to_animation">تحويل إلى صورة متحركة</string>
     <string name="video_editor_converting_to_animation">جارٍ التحويل إلى صورة متحركة…</string>
     <string name="video_editor_convert_to_animation_failed">تعذّر تحويل هذا الفيديو إلى صورة متحركة</string>
+    <string name="settings_enable_logging">تفعيل السجلات</string>
+    <string name="settings_enable_logging_summary">احتفظ بسجل مفصّل على هذا الجهاز يمكنك تصديره من القائمة الرئيسية للمساعدة في تشخيص المشكلات. إيقاف هذا الخيار يحذف السجلات المحفوظة.</string>
 </resources>

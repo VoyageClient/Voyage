@@ -878,8 +878,6 @@
     <string name="settings_text_message_sent">Un mensaje de texto ha sido enviado a %s. Porfavor escribe el código de verificación que contiene.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Actualmente estás compartiendo direcciones de correo electrónico o números de teléfono en el servidor de identidad %1$s. Necesitarás reconectarte a %2$s para dejar de compartirlos.</string>
     <string name="settings_agree_to_terms">Acepte los términos de servicio del servidor de identidad (%s) para permitir que sea descubierto por correo electrónico o número de teléfono.</string>
-    <string name="labs_allow_extended_logging">Habilitar registros extensos.</string>
-    <string name="labs_allow_extended_logging_summary">Los logs extensivos ayudarán a los desarrolladores proporcionando más información cuando envíes un \"RageShake\" (Sacudir el dispositivo). Incluso cuando esto está habilitado, la aplicación no registra el contenido de los mensajes ni ningún otro dato privado.</string>
     <string name="error_terms_not_accepted">Por favor, vuelva a intentarlo una vez que haya aceptado los términos y condiciones de su servidor.</string>
     <string name="error_network_timeout">Parece que el servidor está tardando demasiado en responder, esto puede ser causado por una mala conectividad o un error con el servidor. Por favor, inténtelo de nuevo en un rato.</string>
     <string name="a11y_open_drawer">Abrir el cajón de navegación</string>
@@ -3797,4 +3795,6 @@
     <string name="video_editor_convert_to_animation">Convertir en imagen animada</string>
     <string name="video_editor_converting_to_animation">Convirtiendo en imagen animada…</string>
     <string name="video_editor_convert_to_animation_failed">No se pudo convertir este vídeo en una imagen animada</string>
+    <string name="settings_enable_logging">Activar registros</string>
+    <string name="settings_enable_logging_summary">Guarda un registro detallado en este dispositivo que puedes exportar desde el menú de inicio para ayudar a diagnosticar problemas. Al desactivarlo se eliminan los registros guardados.</string>
 </resources>

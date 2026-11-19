@@ -826,8 +826,6 @@
     <string name="a11y_open_drawer">פתח את מגירת הניווט</string>
     <string name="error_network_timeout">נראה שלוקח יותר מדי זמן להגיב לשרת, זה יכול להיגרם מקישוריות לקויה או משגיאה בשרת. נסה שוב בעוד זמן מה.</string>
     <string name="error_terms_not_accepted">אנא נסה שוב לאחר שתקבל את התנאים וההגבלות של שרת הבית שלך.</string>
-    <string name="labs_allow_extended_logging_summary">יומני מילוליות יסייעו למפתחים על ידי אספקת יומנים נוספים כאשר אתה שולח RageShake. גם כאשר הוא מופעל, היישום אינו רושם תוכן הודעה או נתונים פרטיים אחרים.</string>
-    <string name="labs_allow_extended_logging">אפשר יומני מילוליות.</string>
     <string name="settings_agree_to_terms">הסכים לתנאי השירות של שרת הזהות (%s) כדי לאפשר לעצמך להיות גלוי באמצעות כתובת דוא\"ל או מספר טלפון.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">אתה משתף כרגע כתובות דוא\"ל או מספרי טלפון בשרת הזהות %1$s. יהיה עליך להתחבר מחדש ל- %2$s כדי להפסיק לשתף אותם.</string>
     <string name="settings_text_message_sent_wrong_code">קוד האימות אינו נכון.</string>
@@ -3932,4 +3930,6 @@
     <string name="video_editor_convert_to_animation">המר לתמונה מונפשת</string>
     <string name="video_editor_converting_to_animation">ממיר לתמונה מונפשת…</string>
     <string name="video_editor_convert_to_animation_failed">לא ניתן היה להמיר את הסרטון הזה לתמונה מונפשת</string>
+    <string name="settings_enable_logging">הפעלת רישום יומנים</string>
+    <string name="settings_enable_logging_summary">שמירת יומן מפורט במכשיר זה, שאפשר לייצא מתפריט הבית כדי לעזור באבחון בעיות. כיבוי האפשרות מוחק את היומנים השמורים.</string>
 </resources>

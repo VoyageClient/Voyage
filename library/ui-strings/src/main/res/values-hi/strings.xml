@@ -1217,8 +1217,6 @@
     <string name="settings_text_message_sent_wrong_code">सत्यापन कोड सही नहीं है।</string>
     <string name="settings_discovery_disconnect_with_bound_pid">आप अभी पहचान सर्वर %1$s पर ईमेल पते या फ़ोन नंबर शेयर कर रहे हैं। उन्हें शेयर करना बंद करने के लिए आपको %2$s से फिर से कनेक्ट करना होगा।</string>
     <string name="settings_agree_to_terms">ईमेल पते या फ़ोन नंबर से खोजे जा सकने के लिए पहचान सर्वर (%s) की सेवा की शर्तों से सहमत हों।</string>
-    <string name="labs_allow_extended_logging">विस्तृत लॉग चालू करें।</string>
-    <string name="labs_allow_extended_logging_summary">RageShake भेजते समय विस्तृत लॉग ज़्यादा लॉग देकर डेवलपर की मदद करेंगे। चालू होने पर भी, ऐप मैसेज की सामग्री या कोई अन्य निजी डेटा लॉग नहीं करता।</string>
     <string name="error_terms_not_accepted">अपने होमसर्वर के नियम और शर्तें स्वीकार करने के बाद कृपया फिर से कोशिश करें।</string>
     <string name="error_network_timeout">लगता है सर्वर जवाब देने में बहुत समय ले रहा है, ऐसा खराब कनेक्टिविटी या सर्वर की किसी त्रुटि के कारण हो सकता है। कृपया कुछ देर बाद फिर से कोशिश करें।</string>
     <string name="a11y_open_drawer">नेविगेशन ड्रॉअर खोलें</string>
@@ -3697,4 +3695,6 @@
     <string name="video_editor_convert_to_animation">एनिमेटेड इमेज में बदलें</string>
     <string name="video_editor_converting_to_animation">एनिमेटेड इमेज में बदला जा रहा है…</string>
     <string name="video_editor_convert_to_animation_failed">इस वीडियो को एनिमेटेड इमेज में बदला नहीं जा सका</string>
+    <string name="settings_enable_logging">लॉगिंग चालू करें</string>
+    <string name="settings_enable_logging_summary">इस डिवाइस पर एक विस्तृत लॉग रखें, जिसे समस्याओं का पता लगाने में मदद के लिए होम मेनू से एक्सपोर्ट किया जा सकता है। इसे बंद करने पर सहेजे गए लॉग मिट जाते हैं।</string>
 </resources>

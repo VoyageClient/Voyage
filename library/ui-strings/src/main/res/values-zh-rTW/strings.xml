@@ -835,8 +835,6 @@
     <string name="settings_text_message_sent">已傳送簡訊給 %s。請輸入簡訊中的驗證碼。</string>
     <string name="settings_discovery_disconnect_with_bound_pid">您目前正在身分伺服器 %1$s 上分享電子郵件地址或電話號碼。您將必須重新連線到 %2$s 以停止分享它們。</string>
     <string name="settings_agree_to_terms">同意身分伺服器（%s）的使用條款，讓其他人可以用您的電子郵件或電話號碼找到您。</string>
-    <string name="labs_allow_extended_logging">啟用詳細紀錄。</string>
-    <string name="labs_allow_extended_logging_summary">詳細紀錄可以協助開發者在您傳送憤怒搖晃時取得更多紀錄。即使啟用這個設定，應用程式依然不會紀錄訊息內容或任何個人資料。</string>
     <string name="error_terms_not_accepted">請在您接受您家伺服器的條款與細則前繼續重試。</string>
     <string name="error_network_timeout">看起來伺服器回應時間似乎太久了，可能您的網路連線不穩或伺服器發生錯誤所造成。請稍後再試。</string>
     <string name="a11y_open_drawer">開啟導航選單</string>
@@ -3732,4 +3730,6 @@
     <string name="video_editor_convert_to_animation">轉換為動態圖片</string>
     <string name="video_editor_converting_to_animation">正在轉換為動態圖片…</string>
     <string name="video_editor_convert_to_animation_failed">無法將此影片轉換為動態圖片</string>
+    <string name="settings_enable_logging">啟用紀錄</string>
+    <string name="settings_enable_logging_summary">在此裝置上保留詳細紀錄，可從首頁選單匯出以協助診斷問題。關閉後會刪除已儲存的紀錄。</string>
 </resources>

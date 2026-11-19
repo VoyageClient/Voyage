@@ -1366,7 +1366,6 @@
     <string name="create_new_space">新しいスペースを作成</string>
     <string name="settings_notification_keyword_contains_dot">キーワードは「.」から始めることができません</string>
     <string name="settings_notification_emails_no_emails">電子メールによる通知を受け取るには、メールアドレスをMatrixのアカウントと連携してください</string>
-    <string name="labs_allow_extended_logging">詳細なログを有効にする。</string>
     <string name="settings_agree_to_terms">メールアドレスか電話番号でアカウントを検出可能にするには、IDサーバー（%s）の利用規約への同意が必要です。</string>
     <string name="location_not_available_dialog_title">${app_name}は位置情報にアクセスできませんでした</string>
     <string name="location_not_available_dialog_content">${app_name}は位置情報にアクセスできませんでした。後でもう一度やり直してください。</string>
@@ -1536,7 +1535,6 @@
     <string name="ftue_auth_carousel_encrypted_title">安全なメッセージのやりとり。</string>
     <string name="ftue_auth_carousel_control_title">主導権を握るのは、あなたです。</string>
     <string name="preference_help_summary">${app_name}の使用に関するヘルプ</string>
-    <string name="labs_allow_extended_logging_summary">詳細なログは、イライラシェイクでログを送信する際に、より多くのログを提供することで、開発者にとっての助けになります。有効にした場合でも、メッセージの内容やその他のプライベートな情報は記録されません。</string>
     <string name="upgrade_room_warning">ルームのアップグレードは高度な作業であり、不具合や欠けている機能、セキュリティー上の脆弱性がある場合に推奨されます。
 \nアップグレードは通常、ルームがサーバー上で処理される仕方にだけ影響します。</string>
     <string name="room_settings_enable_encryption_dialog_content">一度有効にしたルームの暗号化は無効にすることはできません。暗号化されたルームで送信されたメッセージは、サーバーからは閲覧できず、そのルームのメンバーだけが閲覧できます。暗号化を有効にすると、多くのボットやブリッジが正常に動作しなくなる可能性があります。</string>
@@ -3728,4 +3726,6 @@
     <string name="video_editor_convert_to_animation">アニメーション画像に変換</string>
     <string name="video_editor_converting_to_animation">アニメーション画像に変換しています…</string>
     <string name="video_editor_convert_to_animation_failed">この動画をアニメーション画像に変換できませんでした</string>
+    <string name="settings_enable_logging">ログを有効にする</string>
+    <string name="settings_enable_logging_summary">問題の診断に役立つ詳細なログをこのデバイスに保存し、ホームメニューからエクスポートできるようにします。オフにすると保存済みのログは削除されます。</string>
 </resources>

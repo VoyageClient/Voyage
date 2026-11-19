@@ -25,7 +25,7 @@ import javax.inject.Singleton
  * otherwise rotate a quiet one away long before anyone looked at it. The tag is taken from the message
  * rather than from a list, so a new one needs nothing here — `PAGDBG …` lands in `pagdbg.txt`.
  *
- * Only planted for a debug build (see VectorApplication), alongside [org.matrix.android.sdk.api.debug.DebugLog].
+ * Planted by [AppLogging] while logging is on, alongside [org.matrix.android.sdk.api.debug.DebugLog].
  */
 @Singleton
 class DebugTagFileLogger @Inject constructor(private val context: Context) : Timber.Tree() {

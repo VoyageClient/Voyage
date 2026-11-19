@@ -834,8 +834,6 @@
     <string name="settings_text_message_sent">Un SMS a été envoyé à %s. Saisissez le code de vérification qu’il contient.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Vous partagez actuellement des adresses électroniques et des numéros de téléphone sur le serveur d’identité %1$s. Vous devrez vous reconnecter à %2$s pour arrêter de les partager.</string>
     <string name="settings_agree_to_terms">Acceptez les conditions de service du serveur d’identité (%s) pour vous permettre d’être découvrable avec une adresse électronique ou un numéro de téléphone.</string>
-    <string name="labs_allow_extended_logging">Activer les journaux verbeux.</string>
-    <string name="labs_allow_extended_logging_summary">Les journaux verbeux aideront les développeurs en fournissant plus de journaux quand vous envoyez un rapport d’anomalie. Même si cette option est activée, l’application n’envoie pas le contenu des messages ou toute autre donnée personnelle.</string>
     <string name="error_terms_not_accepted">Réessayez quand vous aurez accepté les termes et conditions de votre serveur d’accueil.</string>
     <string name="error_network_timeout">On dirait que le serveur met trop de temps à répondre. Ça peut être dû à une mauvaise connexion ou à une erreur avec le serveur. Réessayez plus tard.</string>
     <string name="a11y_open_drawer">Ouvrir le menu de navigation</string>
@@ -3809,4 +3807,6 @@
     <string name="video_editor_convert_to_animation">Convertir en image animée</string>
     <string name="video_editor_converting_to_animation">Conversion en image animée…</string>
     <string name="video_editor_convert_to_animation_failed">Impossible de convertir cette vidéo en image animée</string>
+    <string name="settings_enable_logging">Activer la journalisation</string>
+    <string name="settings_enable_logging_summary">Conserver un journal détaillé sur cet appareil, exportable depuis le menu d\'accueil pour aider à diagnostiquer les problèmes. Désactiver cette option supprime les journaux enregistrés.</string>
 </resources>

@@ -1274,8 +1274,6 @@
     <string name="settings_text_message_sent_wrong_code">যাচাইকরণ কোডটি সঠিক নয়।</string>
     <string name="settings_discovery_disconnect_with_bound_pid">আপনি বর্তমানে %1$s আইডেন্টিটি সার্ভারে ইমেল ঠিকানা বা ফোন নম্বর শেয়ার করছেন। এগুলির শেয়ার বন্ধ করতে আপনাকে আবার %2$s-এ সংযোগ করতে হবে।</string>
     <string name="settings_agree_to_terms">ইমেল ঠিকানা বা ফোন নম্বর দিয়ে খুঁজে পাওয়ার যোগ্য হতে আইডেন্টিটি সার্ভারের (%s) পরিষেবার শর্তাবলিতে সম্মত হন।</string>
-    <string name="labs_allow_extended_logging">বিস্তারিত লগ চালু করুন।</string>
-    <string name="labs_allow_extended_logging_summary">RageShake পাঠালে বিস্তারিত লগ বেশি তথ্য দিয়ে ডেভেলপারদের সাহায্য করবে। চালু থাকলেও অ্যাপ্লিকেশনটি বার্তার বিষয়বস্তু বা অন্য কোনো ব্যক্তিগত ডেটা লগ করে না।</string>
     <string name="error_terms_not_accepted">আপনার হোমসার্ভারের শর্তাবলি গ্রহণ করার পর অনুগ্রহ করে আবার চেষ্টা করুন।</string>
     <string name="error_network_timeout">মনে হচ্ছে সার্ভার উত্তর দিতে বেশি সময় নিচ্ছে, দুর্বল সংযোগ বা সার্ভারের ত্রুটির কারণে এমন হতে পারে। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।</string>
     <string name="a11y_open_drawer">নেভিগেশন ড্রয়ার খুলুন</string>
@@ -3769,4 +3767,6 @@
     <string name="video_editor_convert_to_animation">অ্যানিমেটেড ছবিতে রূপান্তর করুন</string>
     <string name="video_editor_converting_to_animation">অ্যানিমেটেড ছবিতে রূপান্তর করা হচ্ছে…</string>
     <string name="video_editor_convert_to_animation_failed">এই ভিডিওটি অ্যানিমেটেড ছবিতে রূপান্তর করা যায়নি</string>
+    <string name="settings_enable_logging">লগিং চালু করুন</string>
+    <string name="settings_enable_logging_summary">এই ডিভাইসে একটি বিস্তারিত লগ রাখুন, যা সমস্যা নির্ণয়ে সাহায্যের জন্য হোম মেনু থেকে এক্সপোর্ট করতে পারবেন। এটি বন্ধ করলে সংরক্ষিত লগ মুছে যায়।</string>
 </resources>

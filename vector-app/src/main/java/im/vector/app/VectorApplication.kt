@@ -52,8 +52,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.popup.PopupAlertManager
-import im.vector.app.features.rageshake.DebugTagFileLogger
-import im.vector.app.features.rageshake.VectorFileLogger
+import im.vector.app.features.rageshake.AppLogging
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.settings.VectorLocale
 import im.vector.app.features.settings.VectorPreferences
@@ -67,7 +66,6 @@ import org.commonmark.parser.Parser
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
-import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -102,8 +100,7 @@ class VectorApplication :
     @Inject lateinit var pinLocker: PinLocker
     @Inject lateinit var homeserverMirrorRefresher: HomeserverMirrorRefresher
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
-    @Inject lateinit var vectorFileLogger: VectorFileLogger
-    @Inject lateinit var debugTagFileLogger: DebugTagFileLogger
+    @Inject lateinit var appLogging: AppLogging
     @Inject lateinit var matrix: Matrix
     @Inject lateinit var fcmHelper: FcmHelper
     @Inject lateinit var buildMeta: BuildMeta
@@ -157,17 +154,13 @@ class VectorApplication :
         invitesAcceptor.initialize()
         vectorUncaughtExceptionHandler.activate()
 
+        vectorPreferences.seedBuildTypeDefaultsIfNeeded()
+        appLogging.apply()
         if (buildMeta.isDebug) {
-            Timber.plant(Timber.DebugTree())
             // Also registered per-activity (onResume), but the adb debug actions are for driving the app
             // with nothing on screen — where no activity is ever resumed to register it.
             debugReceiver.register(this)
-            // The `*DBG` traces and the per-tag files they are collected into: diagnostics for a build
-            // someone is investigating with, never something a release writes to a user's device.
-            DebugLog.enabled = true
-            Timber.plant(debugTagFileLogger)
         }
-        Timber.plant(vectorFileLogger)
 
         // Native initialization on a Glide worker can stall every sticker request behind it.
         Thread({

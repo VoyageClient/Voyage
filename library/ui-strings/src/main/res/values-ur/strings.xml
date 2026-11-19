@@ -1238,8 +1238,6 @@
     <string name="settings_text_message_sent_wrong_code">تصدیقی کوڈ درست نہیں ہے۔</string>
     <string name="settings_discovery_disconnect_with_bound_pid">آپ فی الحال شناختی سرور %1$s پر ای میل پتے یا فون نمبر شیئر کر رہے ہیں۔ ان کا اشتراک روکنے کے لیے آپ کو %2$s سے دوبارہ جڑنا ہوگا۔</string>
     <string name="settings_agree_to_terms">ای میل پتے یا فون نمبر کے ذریعے قابلِ دریافت ہونے کے لیے شناختی سرور (%s) کی سروس کی شرائط سے اتفاق کریں۔</string>
-    <string name="labs_allow_extended_logging">تفصیلی لاگز فعال کریں۔</string>
-    <string name="labs_allow_extended_logging_summary">تفصیلی لاگز RageShake بھیجتے وقت مزید لاگز فراہم کر کے ڈیولپرز کی مدد کریں گے۔ فعال ہونے پر بھی ایپ پیغامات کا مواد یا کوئی دوسرا نجی ڈیٹا لاگ نہیں کرتی۔</string>
     <string name="error_terms_not_accepted">اپنے منزلی خادم کی شرائط و ضوابط قبول کرنے کے بعد براہ کرم دوبارہ کوشش کریں۔</string>
     <string name="error_network_timeout">لگتا ہے سرور جواب دینے میں بہت زیادہ وقت لے رہا ہے۔ اس کی وجہ کمزور کنکشن یا سرور کی خرابی ہو سکتی ہے۔ براہ کرم کچھ دیر بعد دوبارہ کوشش کریں۔</string>
     <string name="a11y_open_drawer">نیویگیشن دراز کھولیں</string>
@@ -3709,4 +3707,6 @@
     <string name="video_editor_convert_to_animation">متحرک تصویر میں تبدیل کریں</string>
     <string name="video_editor_converting_to_animation">متحرک تصویر میں تبدیل ہو رہا ہے…</string>
     <string name="video_editor_convert_to_animation_failed">اس ویڈیو کو متحرک تصویر میں تبدیل نہیں کیا جا سکا</string>
+    <string name="settings_enable_logging">لاگنگ فعال کریں</string>
+    <string name="settings_enable_logging_summary">اس ڈیوائس پر ایک تفصیلی لاگ رکھیں جسے مسائل کی تشخیص میں مدد کے لیے ہوم مینو سے برآمد کیا جا سکتا ہے۔ اسے بند کرنے سے محفوظ لاگز حذف ہو جاتے ہیں۔</string>
 </resources>

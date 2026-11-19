@@ -9,7 +9,6 @@ package im.vector.app.features.rageshake
 
 import android.content.Context
 import android.util.Log
-import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import timber.log.Timber
 import java.io.File
@@ -27,17 +26,13 @@ import javax.inject.Singleton
 @Singleton
 class VectorFileLogger @Inject constructor(
         context: Context,
-        private val vectorPreferences: VectorPreferences
 ) : Timber.Tree() {
 
     companion object {
-        private const val SIZE_20MB = 20 * 1024 * 1024
-        private const val SIZE_50MB = 50 * 1024 * 1024
+        private const val MAX_LOG_SIZE_BYTES = 20 * 1024 * 1024
+        private const val LOG_ROTATION_COUNT = 10
         private const val MAX_PENDING_LINES = 10_000
     }
-
-    private val maxLogSizeByte = if (vectorPreferences.labAllowedExtendedLogging()) SIZE_50MB else SIZE_20MB
-    private val logRotationCount = if (vectorPreferences.labAllowedExtendedLogging()) 15 else 7
 
     private val logger = Logger.getLogger(context.packageName).apply {
         tryOrNull {
@@ -46,7 +41,8 @@ class VectorFileLogger @Inject constructor(
         }
     }
 
-    private val fileHandler: FileHandler?
+    @Volatile
+    private var fileHandler: FileHandler? = null
     private val cacheDirectory = File(context.cacheDir, "logs")
     private var fileNamePrefix = "logs"
 
@@ -59,7 +55,9 @@ class VectorFileLogger @Inject constructor(
             Log.ASSERT to "WTF/ "
     )
 
-    init {
+    @Synchronized
+    fun open() {
+        if (fileHandler != null) return
         if (!cacheDirectory.exists()) {
             cacheDirectory.mkdirs()
         }
@@ -72,12 +70,27 @@ class VectorFileLogger @Inject constructor(
         fileHandler = tryOrNull("Failed to initialize FileLogger") {
             FileHandler(
                     cacheDirectory.absolutePath + "/" + fileNamePrefix + ".%g.txt",
-                    maxLogSizeByte,
-                    logRotationCount
+                    MAX_LOG_SIZE_BYTES,
+                    LOG_ROTATION_COUNT,
+                    // Without append every process start rotates, so a few background wake-ups push a
+                    // session's log out behind files holding nothing but the startup banner.
+                    true
             )
                     .also { it.formatter = LogFormatter() }
                     .also { logger.addHandler(it) }
         }
+    }
+
+    @Synchronized
+    fun close() {
+        val handler = fileHandler ?: return
+        fileHandler = null
+        logger.removeHandler(handler)
+        tryOrNull { handler.close() }
+    }
+
+    fun deleteLogFiles() {
+        cacheDirectory.listFiles()?.forEach { tryOrNull { it.delete() } }
     }
 
     // One writer thread: the handler serializes every write on its own lock anyway, and a task per line on
@@ -92,21 +105,11 @@ class VectorFileLogger @Inject constructor(
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         fileHandler ?: return
-        if (skipLog(priority)) return
         writer.execute {
             if (t != null) {
                 logToFile(t)
             }
             logToFile(prioPrefixes[priority] ?: "$priority ", tag ?: "Tag", message)
-        }
-    }
-
-    private fun skipLog(priority: Int): Boolean {
-        return if (vectorPreferences.labAllowedExtendedLogging()) {
-            false
-        } else {
-            // Exclude verbose logs
-            priority < Log.DEBUG
         }
     }
 

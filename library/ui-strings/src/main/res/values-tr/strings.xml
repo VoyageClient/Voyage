@@ -682,7 +682,6 @@
     <string name="soft_logout_clear_data_notice">Uyarı: Kişisel verileriniz (şifreleme anahtarlarınız dahil) bu cihazda depolanır.
 \n
 \nEğer bu cihazı artık kullanmayacaksanız ya da başka bir hesapta oturum açmak istiyorsanız onları temizleyin.</string>
-    <string name="labs_allow_extended_logging_summary">Ayrıntılı günlükler, telefonunuzu öfkeyle salladığınızda daha fazla günlük göndererek geliştiriciye yardım edecektir. Etkin olsa bile, uygulama mesaj içeriklerini veya başka özel verileri günlüğe kaydetmeyecektir.</string>
     <string name="error_network_timeout">Sunucunun yanıt vermesi uzun sürmüş gibi görünüyor. Bu durum, kötü bağlantıdan ya da sunucuyla ilgili bir sorundan meydana gelmiş olabilir. Bir süre sonra tekrar deneyin.</string>
     <string name="login_reset_password_warning_content">Parolanızı değiştirmek, tüm oturumlarınızdaki uçtan uca şifreleme anahtarlarını sıfırlayarak şifreli sohbet geçmişini okunamaz hale getirir. Parolanızı sıfırlamadan önce Anahtar Yedeklemeyi ayarlayın veya oda anahtarlarınızı başka bir oturumdan dışa aktarın.</string>
     <string name="room_settings_permissions_title">Oda izinleri</string>
@@ -1363,7 +1362,6 @@
     </plurals>
     <string name="a11y_close_keys_backup_banner">Anahtarları yedekleme başlığını kapatın</string>
     <string name="error_terms_not_accepted">Lütfen ev sunucunuzun hüküm ve koşullarını kabul ettikten sonra yeniden deneyin.</string>
-    <string name="labs_allow_extended_logging">Ayrıntılı günlükleri etkinleştirin.</string>
     <string name="settings_agree_to_terms">E-posta adresi veya telefon numarası ile keşfedilebilmeniz için kimlik sunucusunu (%s) Hizmet Şartları\'nı kabul edin.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Şu anda %1$s kimlik sunucusunda e-posta adreslerini veya telefon numaralarını paylaşıyorsunuz. Bunları paylaşmayı durdurmak için %2$s\'a yeniden bağlanmanız gerekecek.</string>
     <string name="settings_text_message_sent">%s\'e bir kısa mesaj gönderildi. Lütfen içerdiği doğrulama kodunu girin.</string>
@@ -3767,4 +3765,6 @@
     <string name="video_editor_convert_to_animation">Hareketli görsele dönüştür</string>
     <string name="video_editor_converting_to_animation">Hareketli görsele dönüştürülüyor…</string>
     <string name="video_editor_convert_to_animation_failed">Bu video hareketli görsele dönüştürülemedi</string>
+    <string name="settings_enable_logging">Günlük kaydını etkinleştir</string>
+    <string name="settings_enable_logging_summary">Sorunları teşhis etmeye yardımcı olmak için bu cihazda ana menüden dışa aktarabileceğiniz ayrıntılı bir günlük tutar. Kapatıldığında kaydedilmiş günlükler silinir.</string>
 </resources>

@@ -1708,10 +1708,6 @@
     <string name="settings_discovery_disconnect_with_bound_pid">You are currently sharing email addresses or phone numbers on the identity server %1$s. You will need to reconnect to %2$s to stop sharing them.</string>
     <string name="settings_agree_to_terms">Agree to the identity server (%s) Terms of Service to allow yourself to be discoverable by email address or phone number.</string>
 
-    <string name="labs_allow_extended_logging">Enable verbose logs.</string>
-    <string name="labs_allow_extended_logging_summary">Verbose logs will help developers by providing more logs when you send a RageShake. Even when enabled, the application does not log message contents or any other private data.</string>
-
-
     <string name="error_terms_not_accepted">Please retry once you have accepted the terms and conditions of your homeserver.</string>
 
     <string name="error_network_timeout">Looks like the server is taking too long to respond, this can be caused by either poor connectivity or an error with the server. Please try again in a while.</string>
@@ -2077,6 +2073,8 @@
     <string name="settings_backup_import_action">Import and restart</string>
     <string name="settings_developer_mode">Developer mode</string>
     <string name="settings_developer_mode_summary">The developer mode activates hidden features and may also make the application less stable. For developers only!</string>
+    <string name="settings_enable_logging">Enable logging</string>
+    <string name="settings_enable_logging_summary">Keep a detailed log on this device that you can export from the home menu to help diagnose problems. Turning this off deletes the saved logs.</string>
     <string name="settings">Settings</string>
     <string name="devices_current_device">Current session</string>
     <string name="devices_other_devices">Other sessions</string>

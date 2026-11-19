@@ -925,8 +925,6 @@
     <string name="settings_text_message_sent_wrong_code">O código de verificação não está correto.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Você está atualmente compartilhando endereços de e-mail ou números de telefone no servidor de identidade %1$s. Você vai precisar reconectar-se a %2$s para parar de compartilhá-los.</string>
     <string name="settings_agree_to_terms">Concorde com os Termos de Serviço do servidor de identidade (%s) para permitir que você seja descoberto por email ou pelo número do celular.</string>
-    <string name="labs_allow_extended_logging">Habilitar verbose logs.</string>
-    <string name="labs_allow_extended_logging_summary">Verbose logs vão ajudar desenvolvedoras(es) ao prover mais logs quando você enviar uma RageShake. Mesmo quando habilitado, o aplicativo não registra conteúdos de mensagem ou quaisquer outros dados privados.</string>
     <string name="error_terms_not_accepted">Por favor retente uma vez que você tenha aceitado os termos e condições de seu servidorcasa.</string>
     <string name="error_network_timeout">Parece que o servidor está demorando muito para responder, isto pode ser causado por ou má conectividade ou um erro com o servidor. Por favor tente de novo daqui a pouco.</string>
     <string name="a11y_open_drawer">Abrir a gaveta de navegação</string>
@@ -3809,4 +3807,6 @@
     <string name="video_editor_convert_to_animation">Converter em imagem animada</string>
     <string name="video_editor_converting_to_animation">Convertendo em imagem animada…</string>
     <string name="video_editor_convert_to_animation_failed">Não foi possível converter este vídeo em imagem animada</string>
+    <string name="settings_enable_logging">Ativar logs</string>
+    <string name="settings_enable_logging_summary">Mantém um log detalhado neste dispositivo, que você pode exportar pelo menu inicial para ajudar a diagnosticar problemas. Desativar apaga os logs salvos.</string>
 </resources>

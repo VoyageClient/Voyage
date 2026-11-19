@@ -10,11 +10,11 @@ package org.matrix.android.sdk.api.debug
 import timber.log.Timber
 
 /**
- * The `*DBG` diagnostic traces, which a release build must not pay for at all.
+ * The `*DBG` diagnostic traces, which must cost nothing while logging is off.
  *
- * [enabled] is off until the app turns it on, which it does only for a debug build. The message is a
- * lambda so that a release build does not build the string either — several of these sit on paths that
- * run per timeline bind or per media decode, where the concatenation alone is the cost that matters.
+ * [enabled] follows the app's logging setting. The message is a lambda so that the string is not built
+ * either while it is off — several of these sit on paths that run per timeline bind or per media decode,
+ * where the concatenation alone is the cost that matters.
  */
 object DebugLog {
 

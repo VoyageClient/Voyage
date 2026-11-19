@@ -966,8 +966,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="a11y_open_drawer">Buka laci navigasi</string>
     <string name="error_network_timeout">Sepertinya server terlalu lama merespons, hal ini dapat disebabkan oleh konektivitas yang buruk atau kesalahan pada server. Silakan coba lagi dalam beberapa saat.</string>
     <string name="error_terms_not_accepted">Silakan coba lagi setelah Anda menerima syarat dan ketentuan homeserver Anda.</string>
-    <string name="labs_allow_extended_logging_summary">Catatan verbose akan membantu pengembang dengan menyediakan lebih banyak catat saat Anda mengirim RageShake. Bahkan ketika diaktifkan, aplikasi tidak mencatat isi pesan atau data pribadi lainnya.</string>
-    <string name="labs_allow_extended_logging">Aktifkan catatan verbose.</string>
     <string name="settings_text_message_sent_wrong_code">Kode verifikasi salah.</string>
     <string name="settings_text_message_sent_hint">Kode</string>
     <string name="settings_text_message_sent">Sebuah pesan teks telah dikirim ke %s. Silakan masukkan kode verifikasi yang ada di dalamnya.</string>
@@ -3730,4 +3728,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="video_editor_convert_to_animation">Konversi ke gambar animasi</string>
     <string name="video_editor_converting_to_animation">Mengonversi ke gambar animasi…</string>
     <string name="video_editor_convert_to_animation_failed">Tidak dapat mengonversi video ini ke gambar animasi</string>
+    <string name="settings_enable_logging">Aktifkan pencatatan</string>
+    <string name="settings_enable_logging_summary">Simpan catatan terperinci di perangkat ini yang dapat Anda ekspor dari menu beranda untuk membantu mendiagnosis masalah. Menonaktifkannya akan menghapus catatan yang tersimpan.</string>
 </resources>

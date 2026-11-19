@@ -815,7 +815,6 @@
     <string name="settings_text_message_sent">Текстовое сообщение отправлено %s. Введите код проверки, который он содержит.</string>
     <string name="settings_discovery_disconnect_with_bound_pid">В настоящее время вы делитесь адресами электронной почты или телефонными номерами на сервере обнаружения %1$s. Вам нужно повторно подключиться к %2$s, чтобы прекратить делиться ими.</string>
     <string name="settings_agree_to_terms">Примите Условия использования сервера обнаружения (%s), чтобы разрешить обнаружение по адресу электронной почты или номеру телефона.</string>
-    <string name="labs_allow_extended_logging">Включить подробные логи.</string>
     <string name="a11y_open_drawer">Откройте панель навигации</string>
     <string name="a11y_create_menu_open">Откройте меню создания комнаты</string>
     <string name="login_error_no_homeserver_found">Это недействительный адрес сервера Matrix</string>
@@ -856,7 +855,6 @@
     <string name="room_list_quick_actions_leave">Покинуть комнату</string>
     <string name="room_join_rules_public">%1$s сделал(а) комнату доступной для всех, у кого есть ссылка.</string>
     <string name="room_join_rules_invite">%1$s сделал(а) комнату доступной только по приглашению.</string>
-    <string name="labs_allow_extended_logging_summary">Подробные логи помогут разработчикам, предоставив больше информации, когда вы отправляете \"Яростное встряхивание\". Даже когда они разрешены, приложение не записывает ваши сообщения и другие приватные данные.</string>
     <string name="a11y_create_menu_close">Закройте меню создание комнаты…</string>
     <string name="a11y_jump_to_bottom">Вниз</string>
     <string name="attachment_type_sticker">Стикер</string>
@@ -3963,4 +3961,6 @@
     <string name="video_editor_convert_to_animation">Преобразовать в анимацию</string>
     <string name="video_editor_converting_to_animation">Преобразование в анимацию…</string>
     <string name="video_editor_convert_to_animation_failed">Не удалось преобразовать это видео в анимированное изображение</string>
+    <string name="settings_enable_logging">Включить логирование</string>
+    <string name="settings_enable_logging_summary">Вести подробный лог на этом устройстве, который можно экспортировать из главного меню для диагностики проблем. При отключении сохранённые логи удаляются.</string>
 </resources>

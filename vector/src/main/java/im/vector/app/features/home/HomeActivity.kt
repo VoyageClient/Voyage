@@ -587,6 +587,7 @@ class HomeActivity :
 
     override fun handlePrepareMenu(menu: Menu) {
         menu.findItem(R.id.menu_home_init_sync).isVisible = vectorPreferences.developerMode()
+        menu.findItem(R.id.menu_home_export_logs).isVisible = vectorPreferences.isLoggingEnabled()
     }
 
     override fun handleMenuItemSelected(item: MenuItem): Boolean {

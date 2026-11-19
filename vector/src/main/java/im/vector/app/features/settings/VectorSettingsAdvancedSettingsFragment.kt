@@ -19,6 +19,7 @@ import im.vector.app.core.utils.FrameJankWatcher
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.home.NightlyProxy
+import im.vector.app.features.rageshake.AppLogging
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +35,7 @@ class VectorSettingsAdvancedSettingsFragment :
 
     @Inject lateinit var nightlyProxy: NightlyProxy
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var appLogging: AppLogging
 
     private val hiddenThreadPreviewListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == "SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY" ||
@@ -53,6 +55,10 @@ class VectorSettingsAdvancedSettingsFragment :
         setupNightlySection()
         setupDevToolsSection()
         setupPerfLoggingToggle()
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_LOGGING_ENABLED_KEY)?.setOnPreferenceChangeListener { _, newValue ->
+            appLogging.apply(newValue as Boolean)
+            true
+        }
     }
 
     override fun onStart() {
