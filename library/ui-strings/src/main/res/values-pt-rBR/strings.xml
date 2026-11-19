@@ -3805,4 +3805,5 @@
     <string name="send_file_step_retrying_upload">Tentando enviar novamente…</string>
     <string name="send_file_step_waiting_for_server">Aguardando o servidor…</string>
     <string name="send_file_step_sending_unknown_size">Enviando arquivo…</string>
+    <string name="image_editor_color_eyedropper">Escolher uma cor da imagem</string>
 </resources>

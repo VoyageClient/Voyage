@@ -4024,6 +4024,7 @@
     <string name="image_editor_draw">Draw</string>
     <string name="image_editor_brush_size">Brush size</string>
     <string name="image_editor_color_custom">Custom color</string>
+    <string name="image_editor_color_eyedropper">Pick a color from the image</string>
     <string name="image_editor_rotate_left">Rotate 90° counterclockwise</string>
     <string name="image_editor_rotate_right">Rotate 90° clockwise</string>
     <string name="editor_undo">Undo</string>

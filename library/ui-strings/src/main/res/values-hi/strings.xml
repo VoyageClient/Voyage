@@ -3693,4 +3693,5 @@
     <string name="send_file_step_retrying_upload">अपलोड का फिर से प्रयास किया जा रहा है…</string>
     <string name="send_file_step_waiting_for_server">सर्वर की प्रतीक्षा की जा रही है…</string>
     <string name="send_file_step_sending_unknown_size">फ़ाइल भेजी जा रही है…</string>
+    <string name="image_editor_color_eyedropper">छवि से रंग चुनें</string>
 </resources>

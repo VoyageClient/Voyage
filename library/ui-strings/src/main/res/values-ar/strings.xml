@@ -4020,4 +4020,5 @@
     <string name="send_file_step_retrying_upload">تجري إعادة محاولة الرفع…</string>
     <string name="send_file_step_waiting_for_server">ينتظر استجابة الخادم…</string>
     <string name="send_file_step_sending_unknown_size">يجري إرسال الملف…</string>
+    <string name="image_editor_color_eyedropper">اختيار لون من الصورة</string>
 </resources>

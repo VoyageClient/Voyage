@@ -74,4 +74,5 @@
     <string name="settings_code_palette_summary">Colours for code blocks and inline code, and for the syntax highlighting of code that names its language.</string>
     <string name="settings_appearance_summary">Theme, colours, font size, bubbles and avatars</string>
     <string name="settings_appearance_category_avatars_colors">Avatars &amp; colours</string>
+    <string name="image_editor_color_eyedropper">Pick a colour from the image</string>
 </resources>

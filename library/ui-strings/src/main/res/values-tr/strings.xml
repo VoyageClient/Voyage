@@ -3763,4 +3763,5 @@
     <string name="send_file_step_retrying_upload">Yükleme yeniden deneniyor…</string>
     <string name="send_file_step_waiting_for_server">Sunucu bekleniyor…</string>
     <string name="send_file_step_sending_unknown_size">Dosya gönderiliyor…</string>
+    <string name="image_editor_color_eyedropper">Görüntüden renk seç</string>
 </resources>

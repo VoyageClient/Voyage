@@ -3928,4 +3928,5 @@
     <string name="send_file_step_retrying_upload">מנסה להעלות שוב…</string>
     <string name="send_file_step_waiting_for_server">ממתין לשרת…</string>
     <string name="send_file_step_sending_unknown_size">שולח קובץ…</string>
+    <string name="image_editor_color_eyedropper">בחירת צבע מהתמונה</string>
 </resources>

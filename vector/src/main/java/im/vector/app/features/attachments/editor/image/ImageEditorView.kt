@@ -25,6 +25,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
 import androidx.core.graphics.withMatrix
 import im.vector.app.features.attachments.ZoomPanGesture
 import im.vector.app.features.attachments.editor.AngleSnap
@@ -88,8 +90,20 @@ class ImageEditorView @JvmOverloads constructor(
             field = value
             selectCensor(-1)
             abandonStroke()
+            eyedropperActive = false
             invalidate()
         }
+
+    /** While set, a touch samples the image's color instead of editing; it unsets itself once one is picked. */
+    var eyedropperActive = false
+        set(value) {
+            field = value
+            eyedropperSampling = false
+            invalidate()
+        }
+
+    /** Raised with the opaque color the eyedropper was released over. */
+    var onColorSampled: ((Int) -> Unit)? = null
 
     /** Raised when the view changes tool on its own, so the host can re-style its buttons. */
     var onToolChanged: ((Tool) -> Unit)? = null
@@ -316,6 +330,19 @@ class ImageEditorView @JvmOverloads constructor(
     private var lastStrokeScreenX = 0f
     private var lastStrokeScreenY = 0f
 
+    private var eyedropperSampling = false
+    private var eyedropperColor = Color.BLACK
+    private var eyedropperX = 0f
+    private var eyedropperY = 0f
+    private val samplePoint = FloatArray(2)
+    private val samplePixel by lazy { createBitmap(1, 1) }
+    private val sampleCanvas by lazy { Canvas(samplePixel) }
+    private val loupePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val loupeRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val loupeRadius = dp(28f)
+    private val loupeOffset = dp(72f)
+    private val reticleRadius = dp(6f)
+
     private val twist = TwistTracker()
     private var twistNeedsBaseline = false
     private var unsnappedAngle = 0f
@@ -342,6 +369,7 @@ class ImageEditorView @JvmOverloads constructor(
         // An unfinished box can count as an edit even when it has no visible area.
         if (dragMode == DragMode.CENSOR_CREATE) discardPendingCensor()
         abandonStroke()
+        eyedropperSampling = false
         clearSnapGuides()
         if (tool == Tool.ROTATE) {
             twist.begin(event)
@@ -364,7 +392,7 @@ class ImageEditorView @JvmOverloads constructor(
         onCensorSelectionChanged?.invoke(censors.getOrNull(index)?.color)
     }
 
-    private enum class DragMode { NONE, PAN, CROP_MOVE, CROP_RESIZE, CENSOR_MOVE, CENSOR_RESIZE, CENSOR_CREATE, STROKE }
+    private enum class DragMode { NONE, PAN, CROP_MOVE, CROP_RESIZE, CENSOR_MOVE, CENSOR_RESIZE, CENSOR_CREATE, STROKE, EYEDROPPER }
 
     fun setBitmap(value: Bitmap) {
         setAnimatedDrawable(null)
@@ -769,17 +797,9 @@ class ImageEditorView @JvmOverloads constructor(
             canvas.rotate(animatedRotation, width / 2f, height / 2f)
         }
 
-        val drawable = animatedDrawable
-        if (drawable != null) {
-            val saved = canvas.save()
-            canvas.concat(drawMatrix)
-            drawable.draw(canvas)
-            canvas.restoreToCount(saved)
-        } else {
-            bitmap?.let { canvas.drawBitmap(it, drawMatrix, bitmapPaint) }
-            drawDetail(canvas)
-            scheduleDetail()
-        }
+        if (animatedDrawable == null) maxBitmapSize = min(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
+        drawPicture(canvas)
+        if (animatedDrawable == null) scheduleDetail()
         drawAnnotations(canvas)
 
         val cropScreen = crop.toScreen()
@@ -813,6 +833,69 @@ class ImageEditorView @JvmOverloads constructor(
         if (snapInSource) inSourceSpace(canvas) { drawSnapGuides(canvas, sourceRect) } else drawSnapGuides(canvas, imageRect)
 
         if (spinning) canvas.restore()
+        if (eyedropperSampling) drawLoupe(canvas)
+    }
+
+    private fun drawPicture(canvas: Canvas) {
+        val drawable = animatedDrawable
+        if (drawable != null) {
+            canvas.withMatrix(drawMatrix) { drawable.draw(this) }
+        } else {
+            bitmap?.let { canvas.drawBitmap(it, drawMatrix, bitmapPaint) }
+            drawDetail(canvas)
+        }
+    }
+
+    /** The image and its annotations at screen point ([x], [y]), made opaque, or null off the image. */
+    private fun sampleColor(x: Float, y: Float): Int? {
+        if (!drawMatrix.invert(screenToImage)) return null
+        samplePoint[0] = x
+        samplePoint[1] = y
+        screenToImage.mapPoints(samplePoint)
+        if (samplePoint[0] !in 0f..imageWidth.toFloat() || samplePoint[1] !in 0f..imageHeight.toFloat()) return null
+        samplePixel.eraseColor(Color.TRANSPARENT)
+        val canvas = sampleCanvas
+        val saved = canvas.save()
+        try {
+            canvas.translate(-x, -y)
+            drawPicture(canvas)
+            drawAnnotations(canvas)
+        } catch (_: IllegalArgumentException) {
+            // A hardware bitmap (API 26+) cannot be drawn onto a software canvas.
+            return null
+        } finally {
+            canvas.restoreToCount(saved)
+        }
+        return samplePixel[0, 0] or 0xFF000000.toInt()
+    }
+
+    private fun updateEyedropper(x: Float, y: Float) {
+        eyedropperX = x
+        eyedropperY = y
+        val color = sampleColor(x, y)
+        eyedropperSampling = color != null
+        if (color != null) eyedropperColor = color
+    }
+
+    /** Held clear of the finger, above it unless that would leave the view. */
+    private fun drawLoupe(canvas: Canvas) {
+        val above = eyedropperY - loupeOffset
+        val cy = if (above - loupeRadius >= 0f) above else eyedropperY + loupeOffset
+        val cx = eyedropperX.coerceIn(loupeRadius, (width - loupeRadius).coerceAtLeast(loupeRadius))
+        loupePaint.color = eyedropperColor
+        canvas.drawCircle(cx, cy, loupeRadius, loupePaint)
+        drawContrastRing(canvas, cx, cy, loupeRadius, dp(3f))
+        drawContrastRing(canvas, eyedropperX, eyedropperY, reticleRadius, dp(1.5f))
+    }
+
+    /** White inside a thin dark edge, so it reads on light and dark images alike. */
+    private fun drawContrastRing(canvas: Canvas, cx: Float, cy: Float, radius: Float, stroke: Float) {
+        loupeRingPaint.color = 0x99000000.toInt()
+        loupeRingPaint.strokeWidth = stroke + dp(2f)
+        canvas.drawCircle(cx, cy, radius, loupeRingPaint)
+        loupeRingPaint.color = Color.WHITE
+        loupeRingPaint.strokeWidth = stroke
+        canvas.drawCircle(cx, cy, radius, loupeRingPaint)
     }
 
     private inline fun inSourceSpace(canvas: Canvas, block: () -> Unit) {
@@ -823,7 +906,6 @@ class ImageEditorView @JvmOverloads constructor(
     }
 
     private fun drawDetail(canvas: Canvas) {
-        maxBitmapSize = min(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
         val current = detail ?: return
         val w = imageWidth.toFloat()
         val h = imageHeight.toFloat()
@@ -1027,7 +1109,10 @@ class ImageEditorView @JvmOverloads constructor(
                 lastTouchY = event.y
                 lastSourceX = sx
                 lastSourceY = sy
-                dragMode = when (tool) {
+                dragMode = if (eyedropperActive) {
+                    updateEyedropper(event.x, event.y)
+                    DragMode.EYEDROPPER
+                } else when (tool) {
                     Tool.CROP -> beginCropDrag(event.x, event.y, sx, sy, allowCensorPick = true)
                     Tool.ROTATE -> beginCropDrag(event.x, event.y, sx, sy, allowCensorPick = false)
                     Tool.CENSOR -> beginCensorDrag(sx, sy)
@@ -1067,6 +1152,14 @@ class ImageEditorView @JvmOverloads constructor(
                     }
                 }
                 if (dragMode == DragMode.STROKE) finishStroke()
+                if (dragMode == DragMode.EYEDROPPER) {
+                    val picked = eyedropperSampling && event.actionMasked == MotionEvent.ACTION_UP
+                    eyedropperSampling = false
+                    if (picked) {
+                        eyedropperActive = false
+                        onColorSampled?.invoke(eyedropperColor)
+                    }
+                }
                 if (dragMode == DragMode.CROP_MOVE || dragMode == DragMode.CROP_RESIZE) rememberCrop()
                 dragMode = DragMode.NONE
                 clearSnapGuides()
@@ -1264,6 +1357,7 @@ class ImageEditorView @JvmOverloads constructor(
                     lastStrokeScreenY = y
                 }
             }
+            DragMode.EYEDROPPER -> updateEyedropper(x, y)
             DragMode.NONE -> Unit
         }
     }

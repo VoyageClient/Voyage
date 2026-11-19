@@ -3726,4 +3726,5 @@
     <string name="send_file_step_retrying_upload">正在重试上传…</string>
     <string name="send_file_step_waiting_for_server">正在等待服务器…</string>
     <string name="send_file_step_sending_unknown_size">正在发送文件…</string>
+    <string name="image_editor_color_eyedropper">从图片中取色</string>
 </resources>

@@ -3705,4 +3705,5 @@
     <string name="send_file_step_retrying_upload">اپ لوڈ کی دوبارہ کوشش ہو رہی ہے…</string>
     <string name="send_file_step_waiting_for_server">سرور کا انتظار ہے…</string>
     <string name="send_file_step_sending_unknown_size">فائل بھیجی جا رہی ہے…</string>
+    <string name="image_editor_color_eyedropper">تصویر سے رنگ منتخب کریں</string>
 </resources>

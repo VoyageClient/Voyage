@@ -189,9 +189,12 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         colorBar = EditorColorBar(
                 container = views.imageEditorColorRow,
                 dialogContext = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                onEyedropper = { editor.eyedropperActive = true },
         ) { color ->
+            editor.eyedropperActive = false
             if (editor.tool == ImageEditorView.Tool.DRAW) editor.brushColor = color else editor.applyCensorColor(color)
         }
+        editor.onColorSampled = { colorBar.resumeCustomPicker(it) }
         views.imageEditorBrushSize.max = (MAX_BRUSH_DP - MIN_BRUSH_DP).toInt()
         views.imageEditorBrushSize.progress = (editor.brushSizeDp - MIN_BRUSH_DP).toInt()
         views.imageEditorBrushSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -459,7 +462,14 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (saving) exportJob?.cancel() else super.onBackPressed()
+        when {
+            saving -> exportJob?.cancel()
+            views.imageEditorView.eyedropperActive -> {
+                views.imageEditorView.eyedropperActive = false
+                colorBar.resumeCustomPicker(null)
+            }
+            else -> super.onBackPressed()
+        }
     }
 
     data class Output(

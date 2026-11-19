@@ -3724,4 +3724,5 @@
     <string name="send_file_step_retrying_upload">アップロードを再試行しています…</string>
     <string name="send_file_step_waiting_for_server">サーバーの応答を待っています…</string>
     <string name="send_file_step_sending_unknown_size">ファイルを送信しています…</string>
+    <string name="image_editor_color_eyedropper">画像から色を選択</string>
 </resources>
