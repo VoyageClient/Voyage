@@ -113,7 +113,7 @@ interface RelationService {
     ): Cancelable
 
     /**
-     * Edit a text message body. Limited to "m.text" contentType.
+     * Edit a text message body, including a reply's or a thread message's; the relation stays on the original.
      * @param targetEvent The event to edit
      * @param msgType the message type
      * @param newBodyText The edited body in plain text
@@ -127,23 +127,6 @@ interface RelationService {
             newBodyText: CharSequence,
             newFormattedBodyText: CharSequence? = null,
             newBodyAutoMarkdown: Boolean,
-            compatibilityBodyText: String = "* $newBodyText"
-    ): Cancelable
-
-    /**
-     * Edit a reply. This is a special case because replies contains fallback text as a prefix.
-     * This method will take the new body (stripped from fallbacks) and re-add them before sending.
-     * @param replyToEdit The event to edit
-     * @param originalTimelineEvent the message that this reply (being edited) is relating to
-     * @param newBodyText The plain text edited body (stripped from in reply to content)
-     * @param newFormattedBodyText The formatted edited body (stripped from in reply to content)
-     * @param compatibilityBodyText The text that will appear on clients that don't support yet edition
-     */
-    fun editReply(
-            replyToEdit: TimelineEvent,
-            originalTimelineEvent: TimelineEvent,
-            newBodyText: CharSequence,
-            newFormattedBodyText: String? = null,
             compatibilityBodyText: String = "* $newBodyText"
     ): Cancelable
 

@@ -102,7 +102,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
-import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
 import org.matrix.android.sdk.api.session.room.model.toContentOver
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
@@ -112,7 +111,6 @@ import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -238,7 +236,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
         if (targetEvent.root.senderId == session.myUserId) {
             val messageContent = targetEvent.getVectorLastMessageContent()
-            val inReplyTo = targetEvent.getRelationContent()?.inReplyTo?.eventId
             offloadSend {
                 // The substitution runs on the editable text, so re-run the send-time preparation on
                 // the result the way the original send did — mention tagging, emote shortcode tagging,
@@ -253,17 +250,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                 val withMentions = spliceMentionSpans(action.newBody, oldFormatted) { mentionNamesOf(room, it) }
                 val newText = emoteShortcodeProcessor.process(room.roomId, withMentions)
                 val quote = maybeBuildQuoteRunsForEdit(newText, null, oldFormatted)
-                val repliedTo = inReplyTo?.let { room.getTimelineEvent(it) }
                 if (messageContent is MessageWithAttachmentContent) {
                     room.relationService().editMediaCaption(
                             targetEvent,
-                            quote?.first ?: newText,
-                            quote?.second ?: room.sendService().computeFormattedHtml(newText, autoMarkdown)
-                    )
-                } else if (repliedTo != null) {
-                    room.relationService().editReply(
-                            targetEvent,
-                            repliedTo,
                             quote?.first ?: newText,
                             quote?.second ?: room.sendService().computeFormattedHtml(newText, autoMarkdown)
                     )
@@ -1353,7 +1342,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 isInThreadTimeline = state.isInThreadTimeline()
                         )
                     }
-                    if (handleEditCommand(room, parsedCommand, action.text, editMode, state.rootThreadEventId)) return@launch
+                    if (handleEditCommand(room, parsedCommand, action.text, editMode)) return@launch
                     if (parsedCommand !is ParsedCommand.ErrorNotACommand) {
                         // Action command (e.g. /myroomnick): run it via the Regular path (which executes
                         // it without sending any text); the command consumed the input, so the edit ends.
@@ -1370,12 +1359,12 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 room, editPrefixSend?.second ?: action.text, editPrefixSend?.first ?: editAutoTarget, editMode,
                                 restoreMode = SendMode.Edit(editMode.timelineEvent, action.text),
                         ) { text, formatted ->
-                            applyEditContent(room, editMode, state.rootThreadEventId, text, formatted, autoMarkdown = false, typedText = null)
+                            applyEditContent(room, editMode, text, formatted, autoMarkdown = false, typedText = null)
                         }
                         return@launch
                     }
                     applyEditContent(
-                            room, editMode, state.rootThreadEventId,
+                            room, editMode,
                             action.text, action.formattedText, action.autoMarkdown,
                             typedText = action.text,
                     )
@@ -1877,7 +1866,7 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     /**
      * Applies [text]/[formattedText] as an edit of [editMode]'s event, covering every special case
-     * (reply edits, media captions, PGP re-encryption, no-op detection). [typedText] is the raw
+     * (media captions, PGP re-encryption, no-op detection). [typedText] is the raw
      * composer text on a plain edit send, enabling greentext runs and the preserve-if-untouched
      * check; command- or translation-produced content passes null. Does not post MessageSent or pop
      * the draft — callers own that.
@@ -1885,7 +1874,6 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun applyEditContent(
             room: Room,
             editMode: SendMode.Edit,
-            rootThreadEventId: String?,
             text: CharSequence,
             formattedText: String?,
             autoMarkdown: Boolean,
@@ -1896,14 +1884,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         // finished sending since (local echo swapped for the remote event).
         val targetEvent = room.getTimelineEvent(editMode.timelineEvent.eventId)
                 ?: editMode.timelineEvent
-        val relationContent = targetEvent.getRelationContent()
-        val inReplyTo = if (rootThreadEventId != null) {
-            // In a thread, only a reply-within-the-thread counts as a reply edit.
-            relationContent?.takeIf { it.shouldRenderInThread() }?.inReplyTo?.eventId
-        } else {
-            relationContent?.inReplyTo?.eventId
-        }
-
         val targetContent = targetEvent.getVectorLastMessageContent()
         val targetFormatted = (targetContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
                 ?: (targetContent as? MessageWithAttachmentContent)?.getFormattedCaption()
@@ -1911,84 +1891,74 @@ class MessageComposerViewModel @AssistedInject constructor(
         val editText = greentext?.first ?: text
         val editFormatted = greentext?.second ?: formattedText
         val editAutoMarkdown = greentext == null && autoMarkdown
-        if (inReplyTo != null) {
-            // TODO check if same content?
-            room.getTimelineEvent(inReplyTo)?.let {
-                room.relationService().editReply(targetEvent, it, editText, editFormatted)
+        val messageContent = targetContent
+        if (messageContent is MessageWithAttachmentContent) {
+            // Media event: edit/add/remove its caption. Empty text removes it.
+            val existingCaption = if (editFormatted != null) {
+                messageContent.getFormattedCaption().orEmpty()
+            } else {
+                messageContent.getCaption().orEmpty()
             }
-        } else {
-            val messageContent = targetContent
-            if (messageContent is MessageWithAttachmentContent) {
-                // Media event: edit/add/remove its caption. Empty text removes it.
-                val existingCaption = if (editFormatted != null) {
-                    messageContent.getFormattedCaption().orEmpty()
-                } else {
-                    messageContent.getCaption().orEmpty()
-                }
-                val newCaption = (editFormatted ?: editText).toString()
-                if (existingCaption != newCaption) {
-                    if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
-                        // Encrypt the edited caption rather than leaking it as plaintext.
-                        val pgpFormatted = pgpFormattedFor(room, editText, editFormatted?.toString(), editAutoMarkdown)
-                        viewModelScope.launch(Dispatchers.IO) {
-                            when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
-                                is PgpRoomEncryptor.Outcome.Encrypted ->
-                                    room.relationService().editMediaCaption(targetEvent, outcome.armoredBody, outcome.armoredFormatted)
-                                else ->
-                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
-                            }
+            val newCaption = (editFormatted ?: editText).toString()
+            if (existingCaption != newCaption) {
+                if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
+                    // Encrypt the edited caption rather than leaking it as plaintext.
+                    val pgpFormatted = pgpFormattedFor(room, editText, editFormatted?.toString(), editAutoMarkdown)
+                    viewModelScope.launch(Dispatchers.IO) {
+                        when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
+                            is PgpRoomEncryptor.Outcome.Encrypted ->
+                                room.relationService().editMediaCaption(targetEvent, outcome.armoredBody, outcome.armoredFormatted)
+                            else ->
+                                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
                         }
-                    } else {
-                        room.relationService().editMediaCaption(
-                                targetEvent,
-                                editText,
-                                editFormatted ?: room.sendService().computeFormattedHtml(editText, editAutoMarkdown),
-                        )
                     }
                 } else {
-                    Timber.w("Same caption, do not send edition")
-                }
-            } else if (typedText != null && typedText.toString() == computeEditableContent(editMode.timelineEvent).toString()) {
-                // Preserve-if-untouched: the editable text is unchanged from what we loaded, so keep the
-                // original (possibly richer) formatted body rather than re-send a lossy plain version.
-                Timber.w("Edit content untouched, preserving original message")
-            } else if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
-                // Re-encrypt the edited body rather than re-sending it as plaintext.
-                val pgpFormatted = pgpFormattedFor(room, editText, editFormatted, editAutoMarkdown)
-                viewModelScope.launch(Dispatchers.IO) {
-                    when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
-                        is PgpRoomEncryptor.Outcome.Encrypted ->
-                            room.relationService().editTextMessage(
-                                    targetEvent,
-                                    msgTypeOverride ?: messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
-                                    outcome.armoredBody,
-                                    outcome.armoredFormatted,
-                                    false,
-                            )
-                        else ->
-                            _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
-                    }
+                    room.relationService().editMediaCaption(
+                            targetEvent,
+                            editText,
+                            editFormatted ?: room.sendService().computeFormattedHtml(editText, editAutoMarkdown),
+                    )
                 }
             } else {
-                val existingBody: String
-                val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
-                    existingBody = messageContent.formattedBody ?: ""
-                    existingBody != editFormatted
-                } else {
-                    existingBody = messageContent?.body ?: ""
-                    existingBody != editText
+                Timber.w("Same caption, do not send edition")
+            }
+        } else if (typedText != null && typedText.toString() == computeEditableContent(editMode.timelineEvent).toString()) {
+            // Preserve-if-untouched: the editable text is unchanged from what we loaded, so keep the
+            // original (possibly richer) formatted body rather than re-send a lossy plain version.
+            Timber.w("Edit content untouched, preserving original message")
+        } else if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
+            // Re-encrypt the edited body rather than re-sending it as plaintext.
+            val pgpFormatted = pgpFormattedFor(room, editText, editFormatted, editAutoMarkdown)
+            viewModelScope.launch(Dispatchers.IO) {
+                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
+                    is PgpRoomEncryptor.Outcome.Encrypted ->
+                        room.relationService().editTextMessage(
+                                targetEvent,
+                                msgTypeOverride ?: messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
+                                outcome.armoredBody,
+                                outcome.armoredFormatted,
+                                false,
+                        )
+                    else ->
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
                 }
-                if (needsEdit || (msgTypeOverride != null && msgTypeOverride != messageContent?.msgType)) {
-                    room.relationService().editTextMessage(
-                            targetEvent,
-                            msgTypeOverride ?: messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
-                            editText,
-                            editFormatted,
-                            editAutoMarkdown
-                    )
-                } else {
-                    Timber.w("Same message content, do not send edition")
-                }
+            }
+        } else {
+            val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
+                messageContent.formattedBody.orEmpty() != editFormatted
+            } else {
+                messageContent?.body.orEmpty() != editText.toString()
+            }
+            if (needsEdit || (msgTypeOverride != null && msgTypeOverride != messageContent?.msgType)) {
+                room.relationService().editTextMessage(
+                        targetEvent,
+                        msgTypeOverride ?: messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
+                        editText,
+                        editFormatted,
+                        editAutoMarkdown
+                )
+            } else {
+                Timber.w("Same message content, do not send edition")
             }
         }
     }
@@ -2004,10 +1974,9 @@ class MessageComposerViewModel @AssistedInject constructor(
             parsedCommand: ParsedCommand,
             originalText: CharSequence,
             editMode: SendMode.Edit,
-            rootThreadEventId: String?,
     ): Boolean {
         fun edit(text: CharSequence, formatted: String? = null, msgType: String? = null) {
-            applyEditContent(room, editMode, rootThreadEventId, text, formatted, autoMarkdown = false, typedText = null, msgTypeOverride = msgType)
+            applyEditContent(room, editMode, text, formatted, autoMarkdown = false, typedText = null, msgTypeOverride = msgType)
             _viewEvents.post(MessageComposerViewEvents.MessageSent)
             popDraft(room, editMode)
         }
@@ -2067,7 +2036,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         room, parsedCommand.message, parsedCommand.targetLanguage, editMode,
                         restoreMode = SendMode.Edit(editMode.timelineEvent, originalText),
                 ) { text, formatted ->
-                    applyEditContent(room, editMode, rootThreadEventId, text, formatted, autoMarkdown = false, typedText = null)
+                    applyEditContent(room, editMode, text, formatted, autoMarkdown = false, typedText = null)
                 }
                 true
             }

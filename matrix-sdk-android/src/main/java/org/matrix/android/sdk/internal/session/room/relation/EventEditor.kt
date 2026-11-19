@@ -18,13 +18,11 @@ package org.matrix.android.sdk.internal.session.room.relation
 
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Cancelable
 import org.matrix.android.sdk.api.util.NoOpCancellable
-import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
@@ -52,14 +50,9 @@ internal class EventEditor @Inject constructor(
         val remoteId = localEchoRepository.getRemoteEchoId(targetEvent.eventId)
         if (remoteId == null && targetEvent.root.sendState.hasFailed()) {
             // We create a new in memory event for the EventSenderProcessor but we keep the eventId of the failed event.
-            val editedEvent = if (newBodyFormattedText != null) {
-                val content = TextContent(newBodyText.toString(), newBodyFormattedText.toString())
-                eventFactory.createFormattedTextEvent(roomId, content, msgType, mentionSource = newBodyText)
-            } else {
-                eventFactory.createTextEvent(roomId, msgType, newBodyText, newBodyAutoMarkdown)
-            }.copy(
-                    eventId = targetEvent.eventId
-            )
+            val editedEvent = eventFactory
+                    .createUnsentTextReplacement(roomId, targetEvent.root, msgType, newBodyText, newBodyFormattedText, newBodyAutoMarkdown)
+                    .copy(eventId = targetEvent.eventId)
             return sendFailedEvent(targetEvent, editedEvent)
         }
         // Relate to the id of the row we hold, not the remote id, since the aggregation is keyed by it.
@@ -123,44 +116,6 @@ internal class EventEditor @Inject constructor(
     private fun sendReplaceEvent(editedEvent: Event): Cancelable {
         localEchoRepository.createLocalEcho(editedEvent)
         return eventSenderProcessor.postEvent(editedEvent)
-    }
-
-    fun editReply(
-            replyToEdit: TimelineEvent,
-            originalTimelineEvent: TimelineEvent,
-            newBodyText: CharSequence,
-            newBodyFormattedText: String?,
-            compatibilityBodyText: String
-    ): Cancelable {
-        val roomId = replyToEdit.roomId
-        val remoteId = localEchoRepository.getRemoteEchoId(replyToEdit.eventId)
-        if (remoteId == null && replyToEdit.root.sendState.hasFailed()) {
-            // We create a new in memory event for the EventSenderProcessor but we keep the eventId of the failed event.
-            val editedEvent = eventFactory.createReplyTextEvent(
-                    roomId = roomId,
-                    eventReplied = originalTimelineEvent,
-                    replyText = newBodyText,
-                    replyTextFormatted = newBodyFormattedText,
-                    autoMarkdown = false,
-                    showInThread = false
-            )?.copy(
-                    eventId = replyToEdit.eventId
-            ) ?: return NoOpCancellable
-            updateFailedEchoWithEvent(roomId, replyToEdit.eventId, editedEvent)
-            return eventSenderProcessor.postEvent(editedEvent)
-        }
-        val event = eventFactory.createReplaceTextOfReply(
-                roomId,
-                replyToEdit,
-                originalTimelineEvent,
-                newBodyText,
-                newBodyFormattedText,
-                true,
-                MessageType.MSGTYPE_TEXT,
-                compatibilityBodyText,
-                targetEventId = replyToEdit.eventId
-        )
-        return sendReplaceEvent(event)
     }
 
     private fun updateFailedEchoWithEvent(roomId: String, failedEchoEventId: String, editedEvent: Event) {

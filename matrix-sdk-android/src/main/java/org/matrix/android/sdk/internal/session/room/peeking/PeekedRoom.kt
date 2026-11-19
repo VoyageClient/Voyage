@@ -437,14 +437,6 @@ internal class PeekedRoom(
                 compatibilityBodyText: String,
         ): Cancelable = readOnly()
 
-        override fun editReply(
-                replyToEdit: TimelineEvent,
-                originalTimelineEvent: TimelineEvent,
-                newBodyText: CharSequence,
-                newFormattedBodyText: String?,
-                compatibilityBodyText: String,
-        ): Cancelable = readOnly()
-
         // Only the latest edit is aggregated while peeking, so history is that edit + the original.
         override suspend fun fetchEditHistory(eventId: String): List<Event> = dataSource.editHistory(eventId)
 

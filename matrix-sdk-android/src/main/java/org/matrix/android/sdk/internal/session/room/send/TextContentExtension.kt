@@ -35,13 +35,16 @@ internal fun TextContent.toMessageTextContent(
         selfUserId: String? = null,
         mentionSource: CharSequence? = null,
         literalMentions: List<IntRange> = emptyList(),
+        extraUserIds: List<String> = emptyList(),
 ): MessageTextContent {
     return MessageTextContent(
             msgType = msgType,
             format = MessageFormat.FORMAT_MATRIX_HTML.takeIf { formattedText != null },
             body = text,
             formattedBody = formattedText,
-            mentions = IntentionalMentions.build(mentionSource ?: text, formattedText, selfUserId = selfUserId, literalMentions = literalMentions),
+            mentions = IntentionalMentions.build(
+                    mentionSource ?: text, formattedText, extraUserIds = extraUserIds, selfUserId = selfUserId, literalMentions = literalMentions
+            ),
     )
 }
 

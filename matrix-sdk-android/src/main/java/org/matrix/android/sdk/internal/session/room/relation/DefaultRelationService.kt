@@ -148,16 +148,6 @@ internal class DefaultRelationService @AssistedInject constructor(
         return eventEditor.editTextMessage(targetEvent, msgType, newBodyText, newFormattedBodyText, newBodyAutoMarkdown, compatibilityBodyText)
     }
 
-    override fun editReply(
-            replyToEdit: TimelineEvent,
-            originalTimelineEvent: TimelineEvent,
-            newBodyText: CharSequence,
-            newFormattedBodyText: String?,
-            compatibilityBodyText: String
-    ): Cancelable {
-        return eventEditor.editReply(replyToEdit, originalTimelineEvent, newBodyText, newFormattedBodyText, compatibilityBodyText)
-    }
-
     override suspend fun fetchEditHistory(eventId: String): List<Event> {
         val remoteId = remoteIdOf(eventId) ?: return emptyList()
         return fetchEditHistoryTask.execute(FetchEditHistoryTask.Params(roomId, remoteId))

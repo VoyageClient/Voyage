@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
@@ -171,24 +172,54 @@ class LocalEchoEventFactoryTests {
     }
 
     @Test
-    fun `a markdown reply and its edit send quote blocks expanded in the plain body`() {
+    fun `a markdown reply sends quote blocks expanded in the plain body`() {
         every { fakeMarkdownParser.instance.expandQuoteFences("<<< hi") } returns "> hi"
         val replied = createTimelineEvent("Text", null)
 
         val reply = localEchoEventFactory.createReplyTextContent(replied, "<<< hi", null, autoMarkdown = true, showInThread = false)
         assertEquals("> hi", reply?.body)
+    }
 
-        val edit = localEchoEventFactory.createReplaceTextOfReply(
-                roomId = A_ROOM_ID,
-                eventReplaced = replied,
-                originalEvent = replied,
-                replyText = "<<< hi",
-                replyTextFormatted = null,
-                autoMarkdown = true,
-                msgType = MessageType.MSGTYPE_TEXT,
-                compatibilityText = "* <<< hi",
+    @Test
+    fun `an unsent reply rebuilt with new text stays a reply that mentions the replied-to sender`() {
+        val repliedId = "\$aRepliedEventIdAbcdefghijklmnopqrstuvwxyz0"
+        every { fakeLocalEchoRepository.instance.getEvent(A_ROOM_ID, repliedId) } returns Event(eventId = repliedId, senderId = "@alice:example.org")
+        val original = A_START_EVENT.copy(
+                type = EventType.MESSAGE,
+                content = mapOf(
+                        "msgtype" to MessageType.MSGTYPE_EMOTE,
+                        "body" to "waves",
+                        "m.relates_to" to mapOf("m.in_reply_to" to mapOf("event_id" to repliedId)),
+                ),
         )
-        assertEquals("> hi", edit.newContent()?.get("body"))
+
+        val rebuilt = localEchoEventFactory.createUnsentTextReplacement(A_ROOM_ID, original, MessageType.MSGTYPE_EMOTE, "*waves*", null, autoMarkdown = true)
+
+        val content = rebuilt.content.toModel<MessageTextContent>()!!
+        assertEquals(MessageType.MSGTYPE_EMOTE, content.msgType)
+        assertEquals("<b>waves</b>", rebuilt.content?.get("formatted_body"))
+        assertEquals(repliedId, content.relatesTo?.inReplyTo?.eventId)
+        assertEquals(listOf("@alice:example.org"), content.mentions?.userIds)
+    }
+
+    @Test
+    fun `an unsent thread message rebuilt with new text stays in its thread`() {
+        val rootId = "\$aThreadRootEventIdAbcdefghijklmnopqrstuvwx0"
+        val original = A_START_EVENT.copy(
+                type = EventType.MESSAGE,
+                content = mapOf(
+                        "msgtype" to MessageType.MSGTYPE_NOTICE,
+                        "body" to "old",
+                        "m.relates_to" to mapOf("rel_type" to RelationType.THREAD, "event_id" to rootId, "is_falling_back" to true),
+                ),
+        )
+
+        val rebuilt = localEchoEventFactory.createUnsentTextReplacement(A_ROOM_ID, original, MessageType.MSGTYPE_NOTICE, "new", null, autoMarkdown = true)
+
+        val content = rebuilt.content.toModel<MessageContent>()!!
+        assertEquals("new", content.body)
+        assertEquals(RelationType.THREAD, content.relatesTo?.type)
+        assertEquals(rootId, content.relatesTo?.eventId)
     }
 
     @Test
@@ -208,13 +239,12 @@ class LocalEchoEventFactoryTests {
         val reply = localEchoEventFactory.createReplyTextContent(replied, source, null, autoMarkdown = true, showInThread = false)
         assertEquals("Example", reply?.body)
 
-        val edit = localEchoEventFactory.createReplaceTextOfReply(
+        val edit = localEchoEventFactory.createReplaceTextEvent(
                 roomId = A_ROOM_ID,
-                eventReplaced = replied,
-                originalEvent = replied,
-                replyText = source,
-                replyTextFormatted = null,
-                autoMarkdown = true,
+                targetEventId = AN_EVENT_ID,
+                newBodyText = source,
+                newBodyFormattedText = null,
+                newBodyAutoMarkdown = true,
                 msgType = MessageType.MSGTYPE_TEXT,
                 compatibilityText = "* Example",
         )

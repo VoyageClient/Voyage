@@ -160,6 +160,36 @@ internal class LocalEchoEventFactory @Inject constructor(
         return createMessageEvent(roomId, content, additionalContent)
     }
 
+    /**
+     * Rebuild the unsent message [original] around new text, keeping its reply or thread relation and
+     * the mention of the replied-to sender.
+     */
+    fun createUnsentTextReplacement(
+            roomId: String,
+            original: Event,
+            msgType: String,
+            newBodyText: CharSequence,
+            newBodyFormattedText: CharSequence?,
+            autoMarkdown: Boolean,
+    ): Event {
+        val relatesTo = original.getClearContent().toModel<MessageContent>()?.relatesTo
+        val content = if (newBodyFormattedText == null && msgType != MessageType.MSGTYPE_TEXT && msgType != MessageType.MSGTYPE_EMOTE) {
+            MessageTextContent(msgType = msgType, body = newBodyText.toString(), relatesTo = relatesTo)
+        } else {
+            val repliedSenderId = relatesTo?.inReplyTo?.eventId?.let { localEchoRepository.getEvent(roomId, it)?.senderId }
+            val textContent = newBodyFormattedText?.let { TextContent(newBodyText.toString(), it.toString()) }
+                    ?: createTextContent(newBodyText, autoMarkdown)
+            textContent.toMessageTextContent(
+                    msgType,
+                    selfUserId = userId,
+                    mentionSource = newBodyText,
+                    literalMentions = literalMentions(newBodyText),
+                    extraUserIds = listOfNotNull(repliedSenderId),
+            ).copy(relatesTo = relatesTo)
+        }
+        return createMessageEvent(roomId, content, null)
+    }
+
     fun createReplaceTextEvent(
             roomId: String,
             targetEventId: String,
@@ -486,45 +516,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                 type = EventType.BEACON_LOCATION_DATA.unstable,
                 content = content.toContent().plus(additionalContent.orEmpty()),
                 unsignedData = UnsignedData(age = null, transactionId = localId)
-        )
-    }
-
-    fun createReplaceTextOfReply(
-            roomId: String,
-            eventReplaced: TimelineEvent,
-            @Suppress("UNUSED_PARAMETER")
-            originalEvent: TimelineEvent,
-            replyText: CharSequence,
-            replyTextFormatted: String?,
-            autoMarkdown: Boolean,
-            msgType: String,
-            compatibilityText: String,
-            additionalContent: Content? = null,
-            targetEventId: String? = null,
-    ): Event {
-        // Reply relations stay on the original event; edits contain only the replacement text.
-        val plainBody = replyText.toString()
-        val parsed = if (replyTextFormatted == null && autoMarkdown && !isPgpArmoredBody(plainBody)) {
-            markdownParser.parse(replyText)
-        } else null
-        val htmlBody = replyTextFormatted ?: parsed?.formattedText
-        val isFormatted = htmlBody != null
-
-        return createMessageEvent(
-                roomId,
-                MessageTextContent(
-                        msgType = msgType,
-                        body = compatibilityText,
-                        relatesTo = RelationDefaultContent(RelationType.REPLACE, targetEventId ?: eventReplaced.root.eventId),
-                        newContent = MessageTextContent(
-                                msgType = msgType,
-                                format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
-                                body = markdownBody(plainBody, parsed),
-                                formattedBody = if (isFormatted) htmlBody else null,
-                        )
-                                .toContent()
-                ),
-                additionalContent,
         )
     }
 
