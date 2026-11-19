@@ -23,7 +23,6 @@ import org.matrix.android.sdk.api.session.search.MatrixSearchQuery
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomSearchTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.search.index.LocalEventSearchTask
@@ -35,7 +34,7 @@ internal class DefaultSearchService @Inject constructor(
         private val eventIndexer: EventIndexer,
         private val stores: SessionStores,
         private val peekedRoomManager: PeekedRoomManager,
-        private val peekRoomSearchTask: PeekRoomSearchTask,
+        private val messagesCrawlSearchTask: MessagesCrawlSearchTask,
 ) : SearchService {
 
     override fun parseQuery(searchTerm: String): MatrixSearchQuery {
@@ -60,19 +59,20 @@ internal class DefaultSearchService @Inject constructor(
         // A peeked (un-joined) room: the server refuses /search without membership, so crawl
         // /messages and match locally.
         if (peekedRoomManager.get(roomId) != null) {
-            return peekRoomSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+            return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
         }
 
-        // The local index answers: encrypted rooms (the server cannot search them), unencrypted
-        // rooms unless the user opted for server search, filter-only queries (the server requires
-        // a search term), and rooms no longer joined (the server only searches current rooms).
-        val useLocalIndex = eventIndexer.isEnabled() &&
-                (stores.roomSummary.isEncrypted(roomId) ||
-                        eventIndexer.includesUnencryptedRooms() ||
-                        query.tokens.isEmpty() ||
-                        stores.room.get(roomId)?.membership != Membership.JOIN)
-        if (useLocalIndex) {
+        // The local index answers for the rooms it holds: encrypted ones (the server cannot search
+        // them), and unencrypted ones unless the user opted for server search.
+        val encrypted = stores.roomSummary.isEncrypted(roomId)
+        if (eventIndexer.isEnabled() && (encrypted || eventIndexer.includesUnencryptedRooms())) {
             return localEventSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+        }
+        // The server needs a search term and only searches current rooms; an unencrypted room's history
+        // can still be crawled and matched here instead.
+        val joined = stores.room.get(roomId)?.membership == Membership.JOIN
+        if (!encrypted && (query.tokens.isEmpty() || !joined)) {
+            return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
         }
         if (query.tokens.isEmpty()) {
             return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())

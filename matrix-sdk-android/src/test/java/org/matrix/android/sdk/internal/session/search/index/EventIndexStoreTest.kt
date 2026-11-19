@@ -118,12 +118,55 @@ class EventIndexStoreTest {
                     indexable("\$encrypted", ts = 300, msgtype = "m.text").copy(contentText = "hello", encrypted = true),
             ))
 
-            store.search(ROOM, "hello", 10, 0).map { it.event_id to it.encrypted } shouldBeEqualTo
+            store.search(ROOM, "hello", Long.MAX_VALUE, "", Long.MIN_VALUE, 10).map { it.event_id to it.encrypted } shouldBeEqualTo
                     listOf("\$encrypted" to 1L, "\$clear" to 0L, "\$old" to null)
         } finally {
             store.onSessionReleased()
         }
         Unit
+    }
+
+    @Test
+    fun `search pages matches newest first by keyset, above the floor`() = withStore("event-index-search-test") { store ->
+        store.addEvents(listOf(
+                indexable("\$new", ts = 600, msgtype = "m.text").copy(contentText = "hello there"),
+                indexable("\$tieB", ts = 400, msgtype = "m.text").copy(contentText = "hello"),
+                indexable("\$tieA", ts = 400, msgtype = "m.text").copy(contentText = "say hello"),
+                indexable("\$miss", ts = 300, msgtype = "m.text").copy(contentText = "goodbye"),
+                indexable("\$old", ts = 100, msgtype = "m.text").copy(contentText = "hello again"),
+                indexable("\$other", ts = 500, msgtype = "m.text", roomId = "!other:example.org").copy(contentText = "hello"),
+        ))
+
+        val first = store.search(ROOM, "hello", Long.MAX_VALUE, "", Long.MIN_VALUE, 2)
+        first.map { it.event_id } shouldBeEqualTo listOf("\$new", "\$tieB")
+
+        // Rows inserted above the cursor while paging don't shift what comes next.
+        store.addEvents(listOf(indexable("\$late", ts = 500, msgtype = "m.text").copy(contentText = "hello")))
+        val last = first.last()
+        store.search(ROOM, "hello", last.origin_server_ts, last.event_id, Long.MIN_VALUE, 10).map { it.event_id } shouldBeEqualTo
+                listOf("\$tieA", "\$old")
+
+        store.search(ROOM, "hello", 600, "", 200, 10).map { it.event_id } shouldBeEqualTo listOf("\$late", "\$tieB", "\$tieA")
+        store.search(ROOM, "", Long.MAX_VALUE, "", 300, 10).map { it.event_id } shouldBeEqualTo
+                listOf("\$new", "\$late", "\$tieB", "\$tieA", "\$miss")
+    }
+
+    @Test
+    fun `a decrypted event replaces its undecrypted stub, but nothing else`() = withStore("event-index-stub-test") { store ->
+        val stub = indexable("\$utd", ts = 100, msgtype = EventIndexStore.UNDECRYPTED_MSGTYPE).copy(encrypted = true)
+        store.addEvents(listOf(stub, indexable("\$clear", ts = 200, msgtype = "m.text").copy(contentText = "hello"))) shouldBeEqualTo 2
+
+        // A second stub for the same event changes nothing.
+        store.addEvents(listOf(stub.copy(eventJson = "{\"again\":true}"))) shouldBeEqualTo 0
+        store.eventJson("\$utd") shouldBeEqualTo "{}"
+
+        val decrypted = indexable("\$utd", ts = 100, msgtype = "m.text").copy(contentText = "secret", eventJson = "{\"clear\":true}", encrypted = true)
+        store.addEvents(listOf(decrypted)) shouldBeEqualTo 0
+        store.search(ROOM, "secret", Long.MAX_VALUE, "", Long.MIN_VALUE, 10).map { it.event_id } shouldBeEqualTo listOf("\$utd")
+
+        // An already indexed clear event is not overwritten by a later feed.
+        store.addEvents(listOf(indexable("\$clear", ts = 200, msgtype = "m.text").copy(contentText = "changed")))
+        store.search(ROOM, "hello", Long.MAX_VALUE, "", Long.MIN_VALUE, 10).map { it.event_id } shouldBeEqualTo listOf("\$clear")
     }
 
     @Test

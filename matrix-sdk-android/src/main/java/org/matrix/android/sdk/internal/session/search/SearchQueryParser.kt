@@ -10,8 +10,10 @@ package org.matrix.android.sdk.internal.session.search
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
+import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.search.SearchFilters
@@ -183,6 +185,50 @@ internal fun searchMsgTypes(clearType: String, clearContent: Content?): List<Str
     }
     else -> emptyList()
 }
+
+/** Whether search covers events of [clearType]: those the timeline shows as a message or notice. */
+internal fun isSearchable(clearType: String, msgtypes: List<String>): Boolean = when {
+    clearType == EventType.MESSAGE -> msgtypes.isNotEmpty() && msgtypes.none { it.startsWith("m.key.verification") }
+    else -> clearType == EventType.STICKER || clearType in EventType.POLL_START.values || clearType in SEARCH_NOTICE_TYPES
+}
+
+/** The text an event is searched by. */
+internal fun searchableText(clearType: String, clearContent: Content?): String? = when {
+    clearType == EventType.MESSAGE || clearType == EventType.STICKER -> clearContent?.get("body") as? String
+    // A poll has no body: its question and answers are what the user would search for.
+    clearType in EventType.POLL_START.values -> {
+        clearContent.toModel<MessagePollContent>()?.getBestPollCreationInfo()?.let { poll ->
+            val answers = poll.answers.orEmpty().mapNotNull { it.getBestAnswer() }
+            (listOfNotNull(poll.question?.getBestQuestion()) + answers).joinToString(" ").takeIf { it.isNotBlank() }
+        }
+    }
+    clearType == EventType.STATE_ROOM_NAME -> clearContent?.get("name") as? String
+    clearType == EventType.STATE_ROOM_TOPIC -> clearContent?.get("topic") as? String
+    else -> null
+}
+
+/** Rendered as timeline notices: no text to match (bar a room name or topic), but found by the date and sender filters. */
+internal val SEARCH_NOTICE_TYPES: Set<String> = setOf(
+        EventType.STATE_ROOM_NAME,
+        EventType.STATE_ROOM_TOPIC,
+        EventType.STATE_ROOM_AVATAR,
+        EventType.STATE_ROOM_MEMBER,
+        EventType.STATE_ROOM_THIRD_PARTY_INVITE,
+        EventType.STATE_ROOM_CANONICAL_ALIAS,
+        EventType.STATE_ROOM_JOIN_RULES,
+        EventType.STATE_ROOM_HISTORY_VISIBILITY,
+        EventType.STATE_ROOM_GUEST_ACCESS,
+        EventType.STATE_ROOM_SERVER_ACL,
+        EventType.STATE_ROOM_POWER_LEVELS,
+        EventType.STATE_ROOM_PINNED_EVENT,
+        EventType.STATE_ROOM_ENCRYPTION,
+        EventType.STATE_ROOM_TOMBSTONE,
+        EventType.STATE_ROOM_CREATE,
+) + EventType.STATE_ROOM_BANNER.values +
+        EventType.STATE_ROOM_POLICY.values +
+        EventType.STATE_ROOM_PREDECESSOR.values +
+        EventType.STATE_ROOM_BEACON_INFO.values +
+        EventType.POLL_END.values
 
 private val MEDIA_MSGTYPES = setOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_VIDEO, MessageType.MSGTYPE_AUDIO, MessageType.MSGTYPE_FILE)
 

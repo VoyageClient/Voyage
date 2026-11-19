@@ -31,9 +31,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
@@ -52,8 +50,11 @@ import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.redaction.PreservedContent
 import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
+import org.matrix.android.sdk.internal.session.search.SEARCH_NOTICE_TYPES
 import org.matrix.android.sdk.internal.session.search.extractMentionedUserIds
+import org.matrix.android.sdk.internal.session.search.isSearchable
 import org.matrix.android.sdk.internal.session.search.searchMsgTypes
+import org.matrix.android.sdk.internal.session.search.searchableText
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
@@ -304,7 +305,7 @@ internal class EventIndexer @Inject constructor(
 
     /**
      * Build the index entry for an event whose clear type/content are known.
-     * Returns null for events we don't index (matches element-web's isValidEvent()).
+     * Returns null for events we don't index (see [isSearchable]).
      */
     private fun toIndexable(event: Event, clearType: String, clearContent: Content?): IndexableEvent? {
         val eventId = event.eventId
@@ -314,25 +315,19 @@ internal class EventIndexer @Inject constructor(
         // otherwise index sent messages twice — once per id).
         if (LocalEcho.isLocalEchoId(eventId)) return null
         if (event.isRedacted()) return redactedStubOf(event, eventId, roomId, clearType)
+        if (clearType == EventType.ENCRYPTED) return undecryptedStubOf(event, eventId, roomId)
         val msgtypes = searchMsgTypes(clearType, clearContent)
-        val text = when {
-            clearType == EventType.MESSAGE -> {
-                if (msgtypes.isEmpty() || msgtypes.any { it.startsWith("m.key.verification") }) return null
-                clearContent?.get("body") as? String
-            }
-            clearType == EventType.STICKER -> clearContent?.get("body") as? String
-            clearType in EventType.POLL_START.values -> pollText(clearContent)
-            clearType == EventType.STATE_ROOM_NAME -> clearContent?.get("name") as? String
-            clearType == EventType.STATE_ROOM_TOPIC -> clearContent?.get("topic") as? String
-            else -> return null
-        }
-        // Media events stay findable through has: even without a text body (usually the filename).
-        if (text.isNullOrBlank() && msgtypes.none { it in MEDIA_MSGTYPES }) return null
+        if (!isSearchable(clearType, msgtypes)) return null
+        val text = searchableText(clearType, clearContent)
+        // Media events stay findable through has: even without a text body (usually the filename), and
+        // timeline notices through the date and sender filters.
+        if (text.isNullOrBlank() && msgtypes.none { it in MEDIA_MSGTYPES } && clearType !in SEARCH_NOTICE_TYPES) return null
         val mentions = if (clearType == EventType.MESSAGE) extractMentionedUserIds(clearContent) else emptyList()
         val clearEvent = Event(
                 type = clearType,
                 eventId = eventId,
                 content = clearContent,
+                prevContent = event.prevContent,
                 originServerTs = event.originServerTs,
                 senderId = event.senderId,
                 stateKey = event.stateKey,
@@ -355,25 +350,47 @@ internal class EventIndexer @Inject constructor(
 
     /** An event already redacted when the sweep or the crawler reached it: a row with nothing to match. */
     private fun redactedStubOf(event: Event, eventId: String, roomId: String, clearType: String): IndexableEvent? {
-        if (clearType != EventType.MESSAGE && clearType != EventType.STICKER && clearType !in EventType.POLL_START.values) return null
+        val json = when (clearType) {
+            EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED, in EventType.POLL_START.values -> eventAdapter.toJson(event.redactedStub(null))
+            // The server keeps what a redacted state event still needs to render (e.g. its membership).
+            in SEARCH_NOTICE_TYPES -> eventAdapter.toJson(event.copy(roomId = roomId))
+            else -> return null
+        }
         return IndexableEvent(
                 eventId = eventId,
                 roomId = roomId,
                 sender = event.senderId,
                 originServerTs = event.originServerTs ?: 0L,
                 contentText = "",
-                eventJson = eventAdapter.toJson(event.redactedStub(null)),
+                eventJson = json,
                 msgtype = null,
                 mentions = null,
                 encrypted = event.isEncrypted(),
         )
     }
 
-    // A poll has no body: its question and answers are what the user would search for.
-    private fun pollText(clearContent: Content?): String? {
-        val poll = clearContent.toModel<MessagePollContent>()?.getBestPollCreationInfo() ?: return null
-        val answers = poll.answers.orEmpty().mapNotNull { it.getBestAnswer() }
-        return (listOfNotNull(poll.question?.getBestQuestion()) + answers).joinToString(" ").takeIf { it.isNotBlank() }
+    /** Kept as the wire event until a decryption replaces it (see [EventIndexStore.addEvents]). */
+    private fun undecryptedStubOf(event: Event, eventId: String, roomId: String): IndexableEvent {
+        val wireEvent = Event(
+                type = EventType.ENCRYPTED,
+                eventId = eventId,
+                content = event.content,
+                originServerTs = event.originServerTs,
+                senderId = event.senderId,
+                roomId = roomId,
+                unsignedData = event.unsignedData,
+        )
+        return IndexableEvent(
+                eventId = eventId,
+                roomId = roomId,
+                sender = event.senderId,
+                originServerTs = event.originServerTs ?: 0L,
+                contentText = "",
+                eventJson = eventAdapter.toJson(wireEvent),
+                msgtype = EventIndexStore.UNDECRYPTED_MSGTYPE,
+                mentions = null,
+                encrypted = true,
+        )
     }
 
     private fun toIndexable(event: Event): IndexableEvent? =
@@ -461,7 +478,8 @@ internal class EventIndexer @Inject constructor(
      * A room needs a FULL backward crawl until one has completed (reached the start of its
      * history): merely having indexed events proves nothing, since the sweep seeds the index with
      * whatever was cached locally and the dedup stop condition would end a plain crawl right
-     * there. Once fully crawled, only shallow gap-heal crawls are needed when the live token moves.
+     * there. Gap-heal crawls are needed whenever the live token moved, also while a full crawl is still
+     * working its way down from an older live token.
      */
     private suspend fun bootstrapRoomCheckpoints(roomId: String): List<IndexCheckpoint> {
         val liveToken: String? = database.awaitDbTransaction(dbDispatcher) {
@@ -469,20 +487,15 @@ internal class EventIndexer @Inject constructor(
         }
         if (liveToken == null) return emptyList()
         val existingBackwards = indexStore.loadCheckpoints().filter { it.roomId == roomId && it.backwards }
-        val fullyCrawled = indexStore.isRoomFullyCrawled(roomId)
-        // Already covered by a pending crawl of the right depth.
-        if (if (fullyCrawled) existingBackwards.isNotEmpty() else existingBackwards.any { it.fullCrawl }) {
-            return emptyList()
-        }
+        val needsFullCrawl = !indexStore.isRoomFullyCrawled(roomId) && existingBackwards.none { it.fullCrawl }
+        val needsGapHeal = !needsFullCrawl && existingBackwards.none { !it.fullCrawl } && indexStore.getCrawledToken(roomId) != liveToken
         val checkpoints = when {
-            !fullyCrawled -> listOfNotNull(
+            needsFullCrawl -> listOfNotNull(
                     IndexCheckpoint(roomId, liveToken, backwards = true, fullCrawl = true),
                     IndexCheckpoint(roomId, liveToken, backwards = false, fullCrawl = false)
                             .takeIf { !indexStore.isRoomIndexed(roomId) },
             )
-            indexStore.getCrawledToken(roomId) != liveToken -> listOf(
-                    IndexCheckpoint(roomId, liveToken, backwards = true, fullCrawl = false),
-            )
+            needsGapHeal -> listOf(IndexCheckpoint(roomId, liveToken, backwards = true, fullCrawl = false))
             else -> return emptyList()
         }
         indexStore.setCrawledToken(roomId, liveToken)
@@ -501,35 +514,24 @@ internal class EventIndexer @Inject constructor(
     }
 
     /**
-     * Search-driven backfill: synchronously crawl up to [maxBatches] batches of [roomId]'s older
-     * history so a search can look beyond what background crawling has indexed so far.
+     * Crawl one batch of [roomId]'s history now, for a reader that needs the index further back than the
+     * background crawl has got. A failed fetch is thrown, not swallowed.
      *
      * @return true while the room still has uncrawled history.
      */
-    suspend fun backfillRoom(roomId: String, maxBatches: Int): Boolean {
-        if (!enabled.get()) return false
-        repeat(maxBatches) {
-            val outcome = backfillStep(roomId, propagateFailure = false) ?: return false
-            if (outcome == CrawlOutcome.RETRY) return roomHasMoreHistory(roomId)
-        }
-        return roomHasMoreHistory(roomId)
-    }
-
-    /** A single [backfillRoom] batch for a caller with its own retry UI: a failed fetch is thrown, not swallowed. */
     suspend fun backfillRoomOrThrow(roomId: String): Boolean {
         if (!enabled.get()) return false
-        backfillStep(roomId, propagateFailure = true) ?: return false
-        return roomHasMoreHistory(roomId)
-    }
-
-    private suspend fun backfillStep(roomId: String, propagateFailure: Boolean): CrawlOutcome? = crawlMutex.withLock {
-        if (indexStore.isRoomFullyCrawled(roomId)) return@withLock null
-        val backwards = indexStore.loadCheckpoints().filter { it.roomId == roomId && it.backwards }
-        val checkpoint = backwards.firstOrNull { it.fullCrawl }
-                ?: backwards.firstOrNull()
-                ?: bootstrapRoomCheckpoints(roomId).firstOrNull { it.backwards }
-                ?: return@withLock null
-        crawlCheckpoint(checkpoint, propagateFailure)
+        val crawled = crawlMutex.withLock {
+            val backwards = indexStore.loadCheckpoints().filter { it.roomId == roomId && it.backwards }
+            // A gap heal first: until it is done, [completeSince] vouches for nothing.
+            val checkpoint = backwards.firstOrNull { !it.fullCrawl }
+                    ?: backwards.firstOrNull()
+                    ?: (if (indexStore.isRoomFullyCrawled(roomId)) null else bootstrapRoomCheckpoints(roomId).firstOrNull { it.backwards })
+                    ?: return@withLock false
+            crawlCheckpoint(checkpoint, propagateFailure = true)
+            true
+        }
+        return crawled && roomHasMoreHistory(roomId)
     }
 
     /**
@@ -537,6 +539,9 @@ internal class EventIndexer @Inject constructor(
      * found cached, which can skip whole stretches the crawl has yet to fill in.
      */
     suspend fun completeSince(roomId: String): Long {
+        if (!enabled.get()) return Long.MIN_VALUE
+        // A pending gap heal: some stretch since the last crawl is missing, and where is unknown.
+        if (indexStore.loadCheckpoints().any { it.roomId == roomId && it.backwards && !it.fullCrawl }) return Long.MAX_VALUE
         if (indexStore.isRoomFullyCrawled(roomId) || !roomHasMoreHistory(roomId)) return Long.MIN_VALUE
         return indexStore.getCrawlFrontier(roomId) ?: Long.MAX_VALUE
     }
@@ -584,7 +589,8 @@ internal class EventIndexer @Inject constructor(
                 val result = try {
                     cryptoService.get().decryptEvent(event, "")
                 } catch (failure: Throwable) {
-                    // Missing keys: skip, like element-web's crawler.
+                    // Missing keys: keep a stub, which a later decryption replaces.
+                    toIndexable(event)?.let { indexables.add(it) }
                     continue
                 }
                 val clearType = result.clearEvent["type"] as? String ?: continue
@@ -602,7 +608,11 @@ internal class EventIndexer @Inject constructor(
         }
 
         indexStore.removeCheckpoint(checkpoint)
-        val newToken = response.end ?: return CrawlOutcome.DONE
+        // The spec omits `end` on the page that reaches the start of the history, so no empty page follows.
+        val newToken = response.end ?: run {
+            if (checkpoint.backwards) indexStore.markRoomFullyCrawled(checkpoint.roomId)
+            return CrawlOutcome.DONE
+        }
         // If every decryptable event of the batch was already indexed we caught up with a previous
         // crawl — stop unless this is a full-history crawl.
         if (!checkpoint.fullCrawl && indexables.isNotEmpty() && added == 0) {
@@ -613,12 +623,9 @@ internal class EventIndexer @Inject constructor(
     }
 
     companion object {
-        private val INDEXABLE_TYPES = setOf(
-                EventType.MESSAGE,
-                EventType.STICKER,
-                EventType.STATE_ROOM_NAME,
-                EventType.STATE_ROOM_TOPIC,
-        )
+        // ENCRYPTED: an event that failed to decrypt at insert time; it is indexed again once it decrypts.
+        private val INDEXABLE_TYPES: Set<String> = setOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) +
+                EventType.POLL_START.values + SEARCH_NOTICE_TYPES
 
         private val MEDIA_MSGTYPES = setOf(
                 MessageType.MSGTYPE_IMAGE,
@@ -629,7 +636,7 @@ internal class EventIndexer @Inject constructor(
         )
 
         // Bump whenever toIndexable stores something new that a filter relies on.
-        private const val INDEX_FORMAT_VERSION = 2
+        private const val INDEX_FORMAT_VERSION = 3
 
         private const val EVENTS_PER_CRAWL = 100
         private const val CRAWL_DELAY_MS = 3000L

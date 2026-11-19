@@ -7,6 +7,9 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
+import kotlinx.coroutines.CancellationException
+import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -19,6 +22,7 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.search.ParsedSearchQuery
 import org.matrix.android.sdk.internal.session.search.unwrapReplaceForSearch
+import timber.log.Timber
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event as IndexedEventRow
 
@@ -31,40 +35,30 @@ internal class LocalEventSearchTask @Inject constructor(
         private val indexStore: EventIndexStore,
         private val eventIndexer: EventIndexer,
         private val stores: SessionStores,
+        private val cryptoService: dagger.Lazy<CryptoService>,
 ) {
 
     suspend fun search(query: ParsedSearchQuery, searchTerm: String, roomId: String, nextBatch: String?, limit: Int): SearchResult {
-        if (query.tokens.isEmpty() && !query.hasFilters) {
+        val emptyRange = query.afterTs != null && query.beforeTs != null && query.afterTs >= query.beforeTs
+        if (query.tokens.isEmpty() && !query.hasFilters || emptyRange) {
             return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
         }
-        // SQL prefilters on the most selective (longest) token — or scans the whole room for
-        // filter-only queries. The full match happens in Kotlin, so the pagination token counts
-        // candidates consumed, not matches.
+        // SQL prefilters on the most selective (longest) token, and on the date bounds; the full match
+        // happens in Kotlin.
         val prefilter = query.tokens.maxByOrNull { it.length }.orEmpty()
-        var consumed = parseToken(nextBatch, searchTerm)
+        val lowerBound = query.afterTs ?: Long.MIN_VALUE
+        var cursor = Cursor.parse(nextBatch, searchTerm) ?: Cursor(query.beforeTs ?: Long.MAX_VALUE, "")
         val rows = ArrayList<IndexedEventRow>(limit)
-        var moreHistory: Boolean? = null
-        var backfillBudget = MAX_BACKFILL_BATCHES
+        // Only what lies above this is vouched for: below it are just the stretches the sweep found
+        // cached, with gaps the crawl has yet to fill.
+        var floor = eventIndexer.completeSince(roomId)
+        var backfills = 0
+        var exhausted = false
 
         while (rows.size < limit) {
-            val candidates = indexStore.search(roomId, prefilter, SCAN_BATCH_SIZE, consumed)
-            if (candidates.isEmpty()) {
-                // The index has no further candidates; it may simply not have crawled far enough
-                // back yet — fetch older history from the server on demand (bounded per call).
-                // With an after: bound, stop once the indexed history already reaches past it:
-                // everything a deeper crawl could add would be older still.
-                if (query.afterTs != null && (indexStore.oldestTsInRoom(roomId) ?: Long.MAX_VALUE) < query.afterTs) {
-                    moreHistory = false
-                    break
-                }
-                if (moreHistory == null) moreHistory = eventIndexer.roomHasMoreHistory(roomId)
-                if (moreHistory != true || backfillBudget <= 0) break
-                moreHistory = eventIndexer.backfillRoom(roomId, 1)
-                backfillBudget--
-                continue
-            }
+            val candidates = indexStore.search(roomId, prefilter, cursor.ts, cursor.eventId, maxOf(floor, lowerBound), SCAN_BATCH_SIZE)
             for (candidate in candidates) {
-                consumed++
+                cursor = Cursor(candidate.origin_server_ts, candidate.event_id)
                 val matched = query.matches(
                         text = candidate.content_text,
                         sender = candidate.sender,
@@ -78,6 +72,24 @@ internal class LocalEventSearchTask @Inject constructor(
                     if (rows.size >= limit) break
                 }
             }
+            if (rows.size >= limit || candidates.size == SCAN_BATCH_SIZE) continue
+            if (floor <= lowerBound) {
+                exhausted = true
+                break
+            }
+            // Read down to the floor: crawl further back (bounded per call; the next page goes on).
+            if (backfills >= MAX_BACKFILL_BATCHES) break
+            backfills++
+            floor = try {
+                eventIndexer.backfillRoomOrThrow(roomId)
+                eventIndexer.completeSince(roomId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (failure: Throwable) {
+                // Offline, say: answer from whatever is cached, however patchy, rather than fail the search.
+                Timber.w(failure, "LocalEventSearchTask: backfill failed, searching the cached index")
+                Long.MIN_VALUE
+            }
         }
 
         val roomEncrypted by lazy { stores.roomSummary.isEncrypted(roomId) }
@@ -88,7 +100,12 @@ internal class LocalEventSearchTask @Inject constructor(
             val localRoot = localRootEntity?.asDomain()
             // NULL: indexed before the flag existed.
             val wasEncrypted = row.encrypted?.let { it != 0L } ?: localRoot?.isEncrypted() ?: roomEncrypted
-            val event = if (wasEncrypted && !clearEvent.isRedacted()) clearEvent.asDecrypted(localRoot?.mxDecryptionResult) else clearEvent
+            val event = when {
+                clearEvent.isRedacted() -> clearEvent
+                clearEvent.type == EventType.ENCRYPTED -> clearEvent.alsoTryDecrypt(localRoot?.mxDecryptionResult)
+                wasEncrypted -> clearEvent.asDecrypted(localRoot?.mxDecryptionResult)
+                else -> clearEvent
+            }
             event.threadDetails = localRootEntity
                     ?.takeIf { it.isRootThread || it.isThread() }
                     ?.let { localRoot?.threadDetails }
@@ -106,9 +123,9 @@ internal class LocalEventSearchTask @Inject constructor(
             EventAndSender(event, senderItem)
         }
         return SearchResult(
-                // Keep paginating while the index has more matches OR the room has uncrawled
-                // history left — the next page will backfill further.
-                nextBatch = if (rows.size >= limit || moreHistory == true) makeToken(consumed, searchTerm) else null,
+                // Keep paginating while the index has more matches or the floor has yet to reach the
+                // lower bound; the next page crawls further.
+                nextBatch = if (rows.size >= limit || !exhausted) cursor.encode(searchTerm) else null,
                 highlights = query.tokens,
                 // The index returns newest-first; the UI expects the server mapping, which reverses.
                 results = results.reversed(),
@@ -125,13 +142,35 @@ internal class LocalEventSearchTask @Inject constructor(
         }
     }
 
-    private fun makeToken(offset: Int, term: String) = "$offset:${term.hashCode()}"
+    /**
+     * A row kept while the event could not be decrypted: the keys may have arrived since. A success also
+     * replaces the row, so the event becomes searchable by its text.
+     */
+    private suspend fun Event.alsoTryDecrypt(localResult: OlmDecryptionResult?): Event {
+        if (localResult != null) return also { it.mxDecryptionResult = localResult }
+        val result = tryOrNull { cryptoService.get().decryptEvent(this, "") } ?: return this
+        mxDecryptionResult = OlmDecryptionResult(
+                payload = result.clearEvent,
+                senderKey = result.senderCurve25519Key,
+                keysClaimed = result.claimedEd25519Key?.let { mapOf("ed25519" to it) },
+                forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
+                verificationState = result.messageVerificationState,
+        )
+        eventIndexer.onEventsDecrypted(listOf(this to result))
+        return this
+    }
 
-    /** The UI can replay a token from a previous term; only honour it for the same term. */
-    private fun parseToken(token: String?, term: String): Int {
-        val parts = token?.split(':') ?: return 0
-        if (parts.size != 2 || parts[1] != term.hashCode().toString()) return 0
-        return parts[0].toIntOrNull() ?: 0
+    /** Keyset position: the last row read. Only honoured for the term it was made for, as the UI can replay an old one. */
+    private data class Cursor(val ts: Long, val eventId: String) {
+        fun encode(term: String) = "${term.hashCode()}|$ts|$eventId"
+
+        companion object {
+            fun parse(token: String?, term: String): Cursor? {
+                val parts = token?.split('|', limit = 3) ?: return null
+                if (parts.size != 3 || parts[0] != term.hashCode().toString()) return null
+                return Cursor(parts[1].toLongOrNull() ?: return null, parts[2])
+            }
+        }
     }
 
     companion object {

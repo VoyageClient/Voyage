@@ -100,11 +100,20 @@ DELETE FROM indexed_event WHERE event_id LIKE ?;
 deleteRoom:
 DELETE FROM indexed_event WHERE room_id = ?;
 
+-- Newest first, keyset-paginated below (beforeTs, beforeId) and no older than floorTs: an OFFSET would skip
+-- whatever the crawler inserts above the cursor while a search pages.
 search:
 SELECT * FROM indexed_event
-WHERE room_id = ? AND content_text LIKE ? ESCAPE '\'
-ORDER BY origin_server_ts DESC
-LIMIT ? OFFSET ?;
+WHERE room_id = :roomId
+  AND (origin_server_ts < :beforeTs OR (origin_server_ts = :beforeTs AND event_id < :beforeId))
+  AND origin_server_ts >= :floorTs
+  AND content_text LIKE :pattern ESCAPE '\'
+ORDER BY origin_server_ts DESC, event_id DESC
+LIMIT :limit;
+
+-- A row kept for an event that could not be decrypted when it was indexed (see EventIndexStore.UNDECRYPTED_MSGTYPE).
+isUndecryptedStub:
+SELECT 1 FROM indexed_event WHERE event_id = ? AND msgtype = ? LIMIT 1;
 
 -- Mentions screen, across every room. The crawler reaches history the session store never received
 -- (anything that arrived while the client was offline), so these are its deeper archive; the caller
@@ -112,9 +121,6 @@ LIMIT ? OFFSET ?;
 selectByContentLike:
 SELECT * FROM indexed_event WHERE content_text LIKE ? ESCAPE '\'
 ORDER BY origin_server_ts DESC LIMIT ?;
-
-oldestTsInRoom:
-SELECT origin_server_ts FROM indexed_event WHERE room_id = ? ORDER BY origin_server_ts ASC LIMIT 1;
 
 -- The room's attachments, newest first, keyset-paginated below (beforeTs, beforeId) and no older than
 -- floorTs. A keyset rather than an OFFSET because the crawler keeps inserting rows while the list pages.

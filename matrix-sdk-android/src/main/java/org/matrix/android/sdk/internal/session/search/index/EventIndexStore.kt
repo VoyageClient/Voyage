@@ -111,13 +111,31 @@ internal class EventIndexStore @Inject constructor(
 
     private val queries get() = database().eventIndexQueries
 
-    /** @return how many of [events] were new to the index. */
+    /**
+     * Fills gaps only, except that a decrypted event replaces the stub kept while it could not be decrypted.
+     * @return how many of [events] were new to the index.
+     */
     suspend fun addEvents(events: List<IndexableEvent>): Int = withContext(dispatcher) {
         var added = 0
         queries.transaction {
             events.forEach { event ->
                 val exists = queries.eventExists(event.eventId).executeAsOneOrNull() != null
-                if (!exists) {
+                val replacesStub = exists && event.msgtype != UNDECRYPTED_MSGTYPE &&
+                        queries.isUndecryptedStub(event.eventId, UNDECRYPTED_MSGTYPE).executeAsOneOrNull() != null
+                if (replacesStub) {
+                    queries.upsertEvent(
+                            event.eventId,
+                            event.roomId,
+                            event.sender,
+                            event.originServerTs,
+                            event.contentText,
+                            event.eventJson,
+                            event.msgtype,
+                            event.mentions,
+                            if (event.encrypted) 1L else 0L,
+                    )
+                    recordMentionHit(event)
+                } else if (!exists) {
                     queries.insertEvent(
                             event.eventId,
                             event.roomId,
@@ -196,9 +214,10 @@ internal class EventIndexStore @Inject constructor(
         queries.deleteLocalEchoes("\$local.%")
     }
 
-    suspend fun search(roomId: String, searchTerm: String, limit: Int, offset: Int): List<Indexed_event> =
+    /** Rows of [roomId] holding [searchTerm], newest first, below the (beforeTs, beforeId) cursor and from floorTs on. */
+    suspend fun search(roomId: String, searchTerm: String, beforeTs: Long, beforeId: String, floorTs: Long, limit: Int): List<Indexed_event> =
             withContext(dispatcher) {
-                queries.search(roomId, likePattern(searchTerm), limit.toLong(), offset.toLong()).executeAsList()
+                queries.search(roomId, beforeTs, beforeId, floorTs, likePattern(searchTerm), limit.toLong()).executeAsList()
             }
 
     /** Everything indexed that mentions us, by our id or by `@room`, newest first. */
@@ -229,10 +248,6 @@ internal class EventIndexStore @Inject constructor(
     suspend fun byContentLike(pattern: String, limit: Int): List<IndexedRow> = withContext(dispatcher) {
         queries.selectByContentLike(pattern, limit.toLong()).executeAsList()
                 .map { IndexedRow(roomId = it.room_id, sender = it.sender, eventJson = it.event_json) }
-    }
-
-    suspend fun oldestTsInRoom(roomId: String): Long? = withContext(dispatcher) {
-        queries.oldestTsInRoom(roomId).executeAsOneOrNull()
     }
 
     suspend fun uploads(roomId: String, beforeTs: Long, beforeId: String, floorTs: Long, limit: Int): List<SelectUploads> =
@@ -333,6 +348,12 @@ internal class EventIndexStore @Inject constructor(
     }
 
     companion object {
+        /**
+         * The msgtype of a row kept for an event that could not be decrypted: it still answers date and sender
+         * filters, renders as the timeline shows it, and is replaced once the event decrypts. No has: value maps to it.
+         */
+        const val UNDECRYPTED_MSGTYPE = "m.room.encrypted"
+
         private const val DIRECTION_BACKWARDS = "b"
         private const val DIRECTION_FORWARDS = "f"
         private const val KEY_SWEEP_WATERMARK = "sweep_watermark"

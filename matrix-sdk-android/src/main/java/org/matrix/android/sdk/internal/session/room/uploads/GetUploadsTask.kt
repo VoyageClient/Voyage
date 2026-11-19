@@ -125,15 +125,16 @@ internal class DefaultGetUploadsTask @Inject constructor(
             // What the index vouches for has run out: crawl further back, unless history has too.
             if (floor == Long.MIN_VALUE || backfills >= MAX_BACKFILL_BATCHES) break
             backfills++
-            try {
+            val moreHistory = try {
                 eventIndexer.backfillRoomOrThrow(roomId)
             } catch (failure: Throwable) {
                 if (events.isEmpty()) throw failure
                 break
             }
             val newFloor = eventIndexer.completeSince(roomId)
-            // A crawl that can't get any further would otherwise have the list ask again forever.
-            if (newFloor == floor) {
+            // A crawl that can't get any further would otherwise have the list ask again forever. One that
+            // can may still leave the floor in place for a batch, while it heals a gap.
+            if (newFloor == floor && !moreHistory) {
                 stuck = true
                 break
             }
