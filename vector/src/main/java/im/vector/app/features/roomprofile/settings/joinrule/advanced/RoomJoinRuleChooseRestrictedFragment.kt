@@ -22,6 +22,7 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentSpaceRestrictedSelectBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
+import im.vector.app.features.themes.ThemeUtils
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -58,6 +59,7 @@ class RoomJoinRuleChooseRestrictedFragment :
         views.okButton.debouncedClicks {
             parentFragmentManager.popBackStack()
         }
+        vectorBaseActivity.tintNavigationBarStrip(ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
     }
 
     override fun onDestroyView() {

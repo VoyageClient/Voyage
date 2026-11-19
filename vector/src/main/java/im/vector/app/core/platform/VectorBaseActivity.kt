@@ -987,7 +987,9 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
      * a full-width strip carried the colour out past it into a region the screen above leaves bare.
      */
     fun tintNavigationBarStrip(@ColorInt color: Int) {
-        (systemBarStrips().getDrawable(NAVIGATION_STRIP) as ColorDrawable).color = color
+        val strip = systemBarStrips().getDrawable(NAVIGATION_STRIP) as ColorDrawable
+        if (strip.color == color) return
+        strip.color = color
         logSystemBarsOnChange("navTint") { SystemBarDebug.color(color) }
         updateSystemBarStrips()
     }

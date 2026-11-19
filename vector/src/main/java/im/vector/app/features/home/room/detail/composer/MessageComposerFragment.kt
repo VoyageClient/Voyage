@@ -258,7 +258,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             // The layout defaults to the timeline color for the modern composer; classic is toolbar-colored
             // all the way up to its separator, so the two must not differ or the seam shows as a band.
             views.composerLayout.setBackgroundColor(background)
-            vectorBaseActivity.tintNavigationBarStrip(background)
             attachmentTypeSelector.applyClassicComposerStyle()
         }
 

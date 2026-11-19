@@ -25,6 +25,7 @@ import im.vector.app.databinding.FragmentJoinRulesRecyclerBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedActions
 import im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedViewModel
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import javax.inject.Inject
@@ -87,6 +88,7 @@ class RoomJoinRuleFragment :
         views.genericRecyclerView.configureWith(controller, hasFixedSize = true)
         controller.interactionListener = this
         views.cancelButton.debouncedClicks { requireActivity().finish() }
+        vectorBaseActivity.tintNavigationBarStrip(ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
     }
 
     override fun onDestroyView() {

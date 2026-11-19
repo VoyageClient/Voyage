@@ -392,12 +392,14 @@ class TimelineFragment :
             tintNavigationBar()
         }
 
-    // The classic composer tints the navigation bar to its own color; with the emoji panel or the
-    // timeline above the bar instead, it follows that surface.
+    // The navigation-bar strip continues whichever surface sits at the bottom of the screen.
     private fun tintNavigationBar() {
+        val coversScreen = views.roomNotFound.isVisible || lazyLoadedViews.inviteView(false)?.isVisible == true
         vectorBaseActivity.tintNavigationBarStrip(
                 when {
-                    timelineViewModel.selection.isActive || isEmojiPanelDrawn -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+                    coversScreen -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+                    views.roomPreviewJoinBar.isVisible -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+                    timelineViewModel.selection.isActive || isEmojiPanelDrawn || !views.composerContainer.isVisible -> ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
                     vectorPreferences.useClassicComposer() -> ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
                     else -> Color.TRANSPARENT
                 }
@@ -471,6 +473,7 @@ class TimelineFragment :
                 .allowBack()
         PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
         setupSelection()
+        tintNavigationBar()
         vectorBaseActivity.excludeFromGlobalColorRefresh(views.timelineRecyclerView)
         setupNotificationView()
         setupJumpToReadMarkerView()
@@ -2074,11 +2077,13 @@ class TimelineFragment :
         } else if (mainState.asyncInviter.complete) {
             vectorBaseActivity.finish()
         }
+        tintNavigationBar()
         updateLiveLocationIndicator(mainState.isSharingLiveLocation)
     }
 
     private fun handleRoomSummaryFailure(asyncRoomSummary: Fail<RoomSummary>) {
         views.roomNotFound.isVisible = true
+        tintNavigationBar()
         views.roomNotFoundText.text = when (asyncRoomSummary.error) {
             is RoomNotFound -> {
                 getString(
