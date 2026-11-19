@@ -3709,4 +3709,6 @@
     <string name="video_editor_convert_to_animation_failed">اس ویڈیو کو متحرک تصویر میں تبدیل نہیں کیا جا سکا</string>
     <string name="settings_enable_logging">لاگنگ فعال کریں</string>
     <string name="settings_enable_logging_summary">اس ڈیوائس پر ایک تفصیلی لاگ رکھیں جسے مسائل کی تشخیص میں مدد کے لیے ہوم مینو سے برآمد کیا جا سکتا ہے۔ اسے بند کرنے سے محفوظ لاگز حذف ہو جاتے ہیں۔</string>
+    <string name="settings_readable_name_colors_title">نام کے رنگ پڑھنے کے قابل رکھیں</string>
+    <string name="settings_readable_name_colors_summary">منتخب کیے گئے نام کے وہ رنگ جو موجودہ تھیم پر پڑھنا مشکل ہوں، انہیں تھوڑا ہلکا یا گہرا کریں۔</string>
 </resources>

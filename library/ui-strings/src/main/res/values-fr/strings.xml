@@ -3809,4 +3809,6 @@
     <string name="video_editor_convert_to_animation_failed">Impossible de convertir cette vidéo en image animée</string>
     <string name="settings_enable_logging">Activer la journalisation</string>
     <string name="settings_enable_logging_summary">Conserver un journal détaillé sur cet appareil, exportable depuis le menu d\'accueil pour aider à diagnostiquer les problèmes. Désactiver cette option supprime les journaux enregistrés.</string>
+    <string name="settings_readable_name_colors_title">Garder les couleurs de nom lisibles</string>
+    <string name="settings_readable_name_colors_summary">Éclaircir ou assombrir légèrement les couleurs de nom choisies qui seraient difficiles à lire avec le thème actuel.</string>
 </resources>

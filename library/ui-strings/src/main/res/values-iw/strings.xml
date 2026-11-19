@@ -3932,4 +3932,6 @@
     <string name="video_editor_convert_to_animation_failed">לא ניתן היה להמיר את הסרטון הזה לתמונה מונפשת</string>
     <string name="settings_enable_logging">הפעלת רישום יומנים</string>
     <string name="settings_enable_logging_summary">שמירת יומן מפורט במכשיר זה, שאפשר לייצא מתפריט הבית כדי לעזור באבחון בעיות. כיבוי האפשרות מוחק את היומנים השמורים.</string>
+    <string name="settings_readable_name_colors_title">שמור על צבעי שמות קריאים</string>
+    <string name="settings_readable_name_colors_summary">הבהר או הכהה מעט צבעי שמות שנבחרו שיהיה קשה לקרוא בערכת הנושא הנוכחית.</string>
 </resources>

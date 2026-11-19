@@ -3413,6 +3413,8 @@
     <string name="profile_color_summary_custom_named">Custom (%1$s, %2$s)</string>
     <string name="settings_show_others_profile_colors_title">Show other users\' profile colors</string>
     <string name="settings_show_others_profile_colors_summary">Use the name color a user set in their profile or in a room. Your own color is always shown.</string>
+    <string name="settings_readable_name_colors_title">Keep name colors readable</string>
+    <string name="settings_readable_name_colors_summary">Slightly lighten or darken chosen name colors that would be hard to read on the current theme.</string>
     <string name="profile_color_name_azure">Azure</string>
     <string name="profile_color_name_grape">Grape</string>
     <string name="profile_color_name_element_green">Element Green</string>

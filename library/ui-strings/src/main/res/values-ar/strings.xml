@@ -4024,4 +4024,6 @@
     <string name="video_editor_convert_to_animation_failed">تعذّر تحويل هذا الفيديو إلى صورة متحركة</string>
     <string name="settings_enable_logging">تفعيل السجلات</string>
     <string name="settings_enable_logging_summary">احتفظ بسجل مفصّل على هذا الجهاز يمكنك تصديره من القائمة الرئيسية للمساعدة في تشخيص المشكلات. إيقاف هذا الخيار يحذف السجلات المحفوظة.</string>
+    <string name="settings_readable_name_colors_title">اجعل ألوان الأسماء سهلة القراءة</string>
+    <string name="settings_readable_name_colors_summary">فتّح أو اغمق قليلًا ألوان الأسماء المختارة التي يصعب قراءتها في السمة الحالية.</string>
 </resources>

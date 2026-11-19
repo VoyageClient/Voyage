@@ -3808,4 +3808,6 @@
     <string name="video_editor_convert_to_animation_failed">Dieses Video konnte nicht in ein animiertes Bild umgewandelt werden</string>
     <string name="settings_enable_logging">Logging aktivieren</string>
     <string name="settings_enable_logging_summary">Ein ausführliches Log auf diesem Gerät führen, das du zur Fehlersuche über das Startmenü exportieren kannst. Beim Ausschalten werden die gespeicherten Logs gelöscht.</string>
+    <string name="settings_readable_name_colors_title">Namensfarben lesbar halten</string>
+    <string name="settings_readable_name_colors_summary">Gewählte Namensfarben, die im aktuellen Design schwer lesbar wären, leicht aufhellen oder abdunkeln.</string>
 </resources>

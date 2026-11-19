@@ -125,6 +125,7 @@ class VectorSettingsAppearanceFragment :
             true
         }
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_READABLE_NAME_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
         bindPalettePreferences()
         bindCodePalettePreference()
         bindDefaultAvatarPreferences()

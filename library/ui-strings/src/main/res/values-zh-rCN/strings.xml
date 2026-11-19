@@ -3730,4 +3730,6 @@
     <string name="video_editor_convert_to_animation_failed">无法将此视频转换为动图</string>
     <string name="settings_enable_logging">启用日志</string>
     <string name="settings_enable_logging_summary">在此设备上保存详细日志，可从主页菜单导出以帮助诊断问题。关闭后将删除已保存的日志。</string>
+    <string name="settings_readable_name_colors_title">保持名称颜色易于阅读</string>
+    <string name="settings_readable_name_colors_summary">将在当前主题下难以阅读的所选名称颜色稍微调亮或调暗。</string>
 </resources>

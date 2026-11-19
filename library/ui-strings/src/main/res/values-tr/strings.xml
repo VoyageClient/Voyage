@@ -3767,4 +3767,6 @@
     <string name="video_editor_convert_to_animation_failed">Bu video hareketli görsele dönüştürülemedi</string>
     <string name="settings_enable_logging">Günlük kaydını etkinleştir</string>
     <string name="settings_enable_logging_summary">Sorunları teşhis etmeye yardımcı olmak için bu cihazda ana menüden dışa aktarabileceğiniz ayrıntılı bir günlük tutar. Kapatıldığında kaydedilmiş günlükler silinir.</string>
+    <string name="settings_readable_name_colors_title">Ad renklerini okunabilir tut</string>
+    <string name="settings_readable_name_colors_summary">Mevcut temada okunması zor olacak seçilmiş ad renklerini biraz aç veya koyulaştır.</string>
 </resources>

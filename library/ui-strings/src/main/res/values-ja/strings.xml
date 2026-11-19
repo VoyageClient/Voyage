@@ -3728,4 +3728,6 @@
     <string name="video_editor_convert_to_animation_failed">この動画をアニメーション画像に変換できませんでした</string>
     <string name="settings_enable_logging">ログを有効にする</string>
     <string name="settings_enable_logging_summary">問題の診断に役立つ詳細なログをこのデバイスに保存し、ホームメニューからエクスポートできるようにします。オフにすると保存済みのログは削除されます。</string>
+    <string name="settings_readable_name_colors_title">名前の色を読みやすく保つ</string>
+    <string name="settings_readable_name_colors_summary">選択した名前の色のうち、現在のテーマで読みにくくなるものを少し明るくまたは暗くします。</string>
 </resources>

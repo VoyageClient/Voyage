@@ -3732,4 +3732,6 @@
     <string name="video_editor_convert_to_animation_failed">無法將此影片轉換為動態圖片</string>
     <string name="settings_enable_logging">啟用紀錄</string>
     <string name="settings_enable_logging_summary">在此裝置上保留詳細紀錄，可從首頁選單匯出以協助診斷問題。關閉後會刪除已儲存的紀錄。</string>
+    <string name="settings_readable_name_colors_title">保持名稱色彩易於閱讀</string>
+    <string name="settings_readable_name_colors_summary">將在目前主題下難以閱讀的所選名稱色彩稍微調亮或調暗。</string>
 </resources>

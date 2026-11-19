@@ -3809,4 +3809,6 @@
     <string name="video_editor_convert_to_animation_failed">Não foi possível converter este vídeo em imagem animada</string>
     <string name="settings_enable_logging">Ativar logs</string>
     <string name="settings_enable_logging_summary">Mantém um log detalhado neste dispositivo, que você pode exportar pelo menu inicial para ajudar a diagnosticar problemas. Desativar apaga os logs salvos.</string>
+    <string name="settings_readable_name_colors_title">Manter as cores de nome legíveis</string>
+    <string name="settings_readable_name_colors_summary">Clarear ou escurecer levemente as cores de nome escolhidas que seriam difíceis de ler no tema atual.</string>
 </resources>

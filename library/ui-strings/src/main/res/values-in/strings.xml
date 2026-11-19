@@ -3730,4 +3730,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="video_editor_convert_to_animation_failed">Tidak dapat mengonversi video ini ke gambar animasi</string>
     <string name="settings_enable_logging">Aktifkan pencatatan</string>
     <string name="settings_enable_logging_summary">Simpan catatan terperinci di perangkat ini yang dapat Anda ekspor dari menu beranda untuk membantu mendiagnosis masalah. Menonaktifkannya akan menghapus catatan yang tersimpan.</string>
+    <string name="settings_readable_name_colors_title">Jaga agar warna nama tetap terbaca</string>
+    <string name="settings_readable_name_colors_summary">Sedikit terangkan atau gelapkan warna nama pilihan yang akan sulit dibaca pada tema saat ini.</string>
 </resources>

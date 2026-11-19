@@ -115,6 +115,12 @@
             android:summary="@string/settings_show_others_profile_colors_summary"
             android:title="@string/settings_show_others_profile_colors_title" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_READABLE_NAME_COLORS_KEY"
+            android:summary="@string/settings_readable_name_colors_summary"
+            android:title="@string/settings_readable_name_colors_title" />
+
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_CODE_PALETTE_KEY"
             android:persistent="false"

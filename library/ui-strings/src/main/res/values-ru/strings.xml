@@ -3963,4 +3963,6 @@
     <string name="video_editor_convert_to_animation_failed">Не удалось преобразовать это видео в анимированное изображение</string>
     <string name="settings_enable_logging">Включить логирование</string>
     <string name="settings_enable_logging_summary">Вести подробный лог на этом устройстве, который можно экспортировать из главного меню для диагностики проблем. При отключении сохранённые логи удаляются.</string>
+    <string name="settings_readable_name_colors_title">Сохранять читаемость цветов имён</string>
+    <string name="settings_readable_name_colors_summary">Слегка осветлять или затемнять выбранные цвета имён, которые трудно читать в текущей теме.</string>
 </resources>

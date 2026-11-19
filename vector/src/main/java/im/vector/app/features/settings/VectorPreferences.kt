@@ -239,6 +239,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_PEOPLE_COLOR_PALETTE_KEY = "SETTINGS_PEOPLE_COLOR_PALETTE_KEY"
         const val SETTINGS_ROOM_COLOR_PALETTE_KEY = "SETTINGS_ROOM_COLOR_PALETTE_KEY"
         const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
+        const val SETTINGS_READABLE_NAME_COLORS_KEY = "SETTINGS_READABLE_NAME_COLORS_KEY"
         const val SETTINGS_PEOPLE_AVATAR_STYLE_KEY = "SETTINGS_PEOPLE_AVATAR_STYLE_KEY"
         const val SETTINGS_ROOM_AVATAR_STYLE_KEY = "SETTINGS_ROOM_AVATAR_STYLE_KEY"
         private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
@@ -664,6 +665,10 @@ class VectorPreferences @Inject constructor(
 
     fun showOthersProfileColors(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY, true)
+    }
+
+    fun correctNameColorContrast(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_READABLE_NAME_COLORS_KEY, true)
     }
 
     // The cross-signing state the security settings resolved last time, per account: reading it from the

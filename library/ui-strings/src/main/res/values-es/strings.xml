@@ -3797,4 +3797,6 @@
     <string name="video_editor_convert_to_animation_failed">No se pudo convertir este vídeo en una imagen animada</string>
     <string name="settings_enable_logging">Activar registros</string>
     <string name="settings_enable_logging_summary">Guarda un registro detallado en este dispositivo que puedes exportar desde el menú de inicio para ayudar a diagnosticar problemas. Al desactivarlo se eliminan los registros guardados.</string>
+    <string name="settings_readable_name_colors_title">Mantener legibles los colores de nombre</string>
+    <string name="settings_readable_name_colors_summary">Aclarar u oscurecer ligeramente los colores de nombre elegidos que serían difíciles de leer con el tema actual.</string>
 </resources>

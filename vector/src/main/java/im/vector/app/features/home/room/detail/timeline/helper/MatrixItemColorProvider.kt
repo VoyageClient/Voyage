@@ -10,9 +10,11 @@ package im.vector.app.features.home.room.detail.timeline.helper
 import android.graphics.Color
 import android.os.SystemClock
 import androidx.annotation.ColorInt
+import androidx.core.graphics.ColorUtils
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.colorpicker.ColorPalette
+import im.vector.app.core.utils.ReadableColor
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.ui.styles.R
@@ -45,8 +47,10 @@ class MatrixItemColorProvider @Inject constructor(
     // fetch; a list binding hundreds of avatars cannot afford that per bind. Cleared with [cache],
     // and invalidate() runs whenever a color may have changed, including when a fetched profile
     // color lands, so a cached miss is never final.
-    private val resolvedCache = ConcurrentHashMap<String, Int>()
+    private val resolvedCache = ConcurrentHashMap<String, Optional<Int>>()
     private val hexCache = ConcurrentHashMap<String, Int>()
+    private val readableCache = ConcurrentHashMap<Int, Int>()
+    @Volatile private var readableGrounds: List<Int>? = null
     private val uncachedProfileIds = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
     private val changedProfileIds = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
     private val changedProfileIdsByGeneration = LinkedHashMap<Long, Set<String>>()
@@ -83,6 +87,7 @@ class MatrixItemColorProvider @Inject constructor(
     private fun invalidate(fade: Boolean) {
         cache.clear()
         resolvedCache.clear()
+        readableCache.clear()
         cacheSignature = null
         if (fade) {
             profileFadeGeneration = _changes.value + 1
@@ -159,12 +164,17 @@ class MatrixItemColorProvider @Inject constructor(
         // Turning names off is a request for no chosen colors at all, so profile colors and per-user
         // overrides stop applying too; the settings screens still read them through resolveHex.
         if (namesAreUncolored()) return defaultColor(matrixItem, light)
+        return chosenColor(matrixItem, light) ?: defaultColor(matrixItem, light)
+    }
+
+    @ColorInt
+    private fun chosenColor(matrixItem: MatrixItem, light: Boolean): Int? {
         ensureCacheSignature(light)
         // Keyed by the carried preference too: the same user can hold a different color per room.
         val key = "${matrixItem.id}|${(matrixItem as? MatrixItem.UserItem)?.colorPreference}"
-        resolvedCache[key]?.let { return it }
-        val color = resolveHex(matrixItem, light)?.let { hexToColor(it) } ?: defaultColor(matrixItem, light)
-        resolvedCache[key] = color
+        resolvedCache[key]?.let { return it.getOrNull() }
+        val color = resolveHex(matrixItem, light)?.let { hexToColor(it) }
+        resolvedCache[key] = Optional.from(color)
         return color
     }
 
@@ -175,7 +185,29 @@ class MatrixItemColorProvider @Inject constructor(
     @ColorInt
     fun getNameColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
         if (namesAreUncolored()) return colorProvider.getColorFromAttribute(R.attr.vctr_content_primary)
-        return resolveColor(matrixItem, light)
+        val chosen = chosenColor(matrixItem, light) ?: return defaultColor(matrixItem, light)
+        return if (vectorPreferences.correctNameColorContrast()) readableNameColor(chosen) else chosen
+    }
+
+    // Only chosen colors are corrected: the palettes are already designed per theme.
+    @ColorInt
+    private fun readableNameColor(@ColorInt color: Int): Int {
+        val grounds = nameGrounds()
+        if (grounds != readableGrounds) {
+            readableCache.clear()
+            readableGrounds = grounds
+        }
+        return readableCache.getOrPut(color) {
+            ReadableColor.ensureContrast(color, grounds.toIntArray(), MIN_NAME_CONTRAST)
+        }
+    }
+
+    // Names sit on the timeline background, and on the incoming bubble when bubbles are on.
+    private fun nameGrounds(): List<Int> {
+        val window = colorProvider.getColorFromAttribute(android.R.attr.colorBackground)
+        if (!vectorPreferences.useMessageBubblesLayout()) return listOf(window)
+        val bubble = colorProvider.getColorFromAttribute(R.attr.sc_message_bg_incoming)
+        return listOf(window, ColorUtils.compositeColors(bubble, window))
     }
 
     /** Whether display names get a color of their own, rather than plain text. */
@@ -348,6 +380,9 @@ class MatrixItemColorProvider @Inject constructor(
 
     companion object {
         private const val PROFILE_COLOR_FADE_MS = 220L
+
+        // WCAG's large-text bar; the modern palette already clears it on every theme's bubbles.
+        private const val MIN_NAME_CONTRAST = 3.0
 
         fun toHex(@ColorInt color: Int): String = String.format(Locale.ROOT, "#%06X", color and 0xFFFFFF)
     }

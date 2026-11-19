@@ -3769,4 +3769,6 @@
     <string name="video_editor_convert_to_animation_failed">এই ভিডিওটি অ্যানিমেটেড ছবিতে রূপান্তর করা যায়নি</string>
     <string name="settings_enable_logging">লগিং চালু করুন</string>
     <string name="settings_enable_logging_summary">এই ডিভাইসে একটি বিস্তারিত লগ রাখুন, যা সমস্যা নির্ণয়ে সাহায্যের জন্য হোম মেনু থেকে এক্সপোর্ট করতে পারবেন। এটি বন্ধ করলে সংরক্ষিত লগ মুছে যায়।</string>
+    <string name="settings_readable_name_colors_title">নামের রং পড়ার উপযোগী রাখুন</string>
+    <string name="settings_readable_name_colors_summary">বেছে নেওয়া যে নামের রং বর্তমান থিমে পড়তে কষ্ট হবে, সেগুলো সামান্য হালকা বা গাঢ় করুন।</string>
 </resources>
