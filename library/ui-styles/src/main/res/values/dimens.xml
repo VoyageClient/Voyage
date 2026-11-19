@@ -13,6 +13,8 @@
          cached avatar while both request this one size. -->
     <dimen name="room_avatar_decode_size">56dp</dimen>
     <dimen name="typing_avatar_size">20dp</dimen>
+    <!-- The idle typing row is the only spacing between the newest message and the composer. -->
+    <dimen name="typing_idle_height">16dp</dimen>
     <dimen name="item_event_message_state_size">16dp</dimen>
 
     <dimen name="item_event_message_media_button_size">32dp</dimen>

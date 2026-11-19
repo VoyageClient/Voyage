@@ -7,6 +7,8 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -45,13 +47,19 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
             ViewCompat.animate(this).cancel()
             val duration = 100L
             if (typingUsers.isEmpty()) {
+                if (!isVisible) {
+                    setIdle(true)
+                    return
+                }
                 ViewCompat.animate(this).translationY(height.toFloat())
                         .alpha(0f)
                         .setDuration(duration)
                         .withEndAction {
                             isInvisible = true
+                            setIdle(true)
                         }.start()
             } else {
+                setIdle(false)
                 isVisible = true
 
                 translationY = height.toFloat()
@@ -62,6 +70,21 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
                         .setDuration(duration)
                         .start()
             }
+        }
+    }
+
+    // RecyclerView lays out an invisible or gone item at its full measured height, so the idle row
+    // has to shrink explicitly to give its space back to the timeline.
+    private fun View.setIdle(idle: Boolean) {
+        val params = layoutParams ?: return
+        val height = if (idle) {
+            resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.typing_idle_height)
+        } else {
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        if (params.height != height) {
+            params.height = height
+            layoutParams = params
         }
     }
 

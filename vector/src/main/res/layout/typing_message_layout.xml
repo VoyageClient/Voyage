@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="2dp">
+    android:paddingTop="2dp"
+    android:paddingBottom="4dp">
 
     <!-- This is a LinearLayout which will contain avatars of the typing users -->
     <im.vector.app.core.ui.views.TypingMessageAvatar
