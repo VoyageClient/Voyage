@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -55,29 +56,7 @@ internal class SqlTimelineEchoTest {
         every { loader.chunkSnapshotNewest(chunkId, any()) } returns listOf(previous)
         every { loader.chunkSnapshotAfter(chunkId, any(), any()) } returns emptyList()
         every { loader.chunkEventCountFrom(chunkId, any(), any()) } returns 1L
-        val timeline = SqlTimeline(
-                roomId = roomId,
-                initialEventId = null,
-                settings = TimelineSettings(initialSize = 1),
-                coroutineDispatchers = MatrixCoroutineDispatchers(read, read, main, read, read),
-                stores = db.stores,
-                snapshotLoader = loader,
-                paginationTask = mockk(relaxed = true),
-                fetchThreadTimelineTask = mockk(relaxed = true),
-                contextOfEventTask = mockk(relaxed = true),
-                fetchEventTokenTask = mockk(relaxed = true),
-                fetchRoomStartTask = mockk(relaxed = true),
-                database = db.database,
-                sessionDispatcher = read,
-                readDispatcher = read,
-                eventDecryptor = mockk(relaxed = true),
-                timelineInput = TimelineInput(),
-                clock = mockk(relaxed = true),
-                redactionSignal = TimelineRedactionSignal(),
-                decryptionSignal = TimelineDecryptionSignal(),
-                loadRoomMembersTask = mockk(relaxed = true),
-                slidingSyncRoomSubscriptions = mockk(relaxed = true),
-        )
+        val timeline = timeline(db, roomId, loader, main, read)
         val snapshots = mutableListOf<List<String>>()
         timeline.addListener(object : Timeline.Listener {
             override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
@@ -139,6 +118,91 @@ internal class SqlTimelineEchoTest {
             db.close()
         }
     }
+
+    @Test
+    fun `listeners learn events are new before the snapshot that shows them`() = runTest {
+        val db = FakeSessionDatabase()
+        val roomId = "!room:example.org"
+        val chunkId = db.stores.chunk.insert(roomId, null, null, true, true, null, false)
+        val main = StandardTestDispatcher(testScheduler, "main")
+        val read = StandardTestDispatcher(testScheduler, "read")
+        val previous = message(roomId, "\$previous", 1L)
+        val incoming = message(roomId, "\$incoming", 2L)
+        val echo = message(roomId, "\$local.echo", 3L)
+        val loader = mockk<SqlChunkSnapshotLoader>()
+        every { loader.chunkChangesFlow(chunkId) } returns emptyFlow()
+        every { loader.sendingChangesFlow(roomId) } returns emptyFlow()
+        every { loader.ignoredUserIdsFlow() } returns emptyFlow()
+        every { loader.annotationSummaryChangesFlow(roomId) } returns emptyFlow()
+        every { loader.readReceiptChangesFlow(roomId) } returns emptyFlow()
+        every { loader.sendingEvents(roomId) } returns emptyList()
+        every { loader.chunkEventCount(chunkId) } returns 1L
+        every { loader.chunkSnapshotNewest(chunkId, any()) } returns listOf(previous)
+        every { loader.chunkSnapshotAfter(chunkId, any(), any()) } returns emptyList()
+        every { loader.chunkEventCountFrom(chunkId, any(), any()) } returns 1L
+        val timeline = timeline(db, roomId, loader, main, read)
+        val calls = mutableListOf<String>()
+        timeline.addListener(object : Timeline.Listener {
+            override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+                calls.add("shown ${snapshot.first().eventId}")
+            }
+
+            override fun onNewTimelineEvents(eventIds: List<String>) {
+                calls.add("new ${eventIds.joinToString()}")
+            }
+        })
+        try {
+            timeline.start(null)
+            runCurrent()
+            calls.clear()
+
+            every { loader.chunkEventCountFrom(chunkId, any(), any()) } returns 2L
+            every { loader.chunkSnapshotAfter(chunkId, any(), any()) } returnsMany listOf(listOf(incoming), emptyList())
+            timeline.onNewTimelineEvents(roomId, listOf(incoming.eventId))
+            runCurrent()
+            assertEquals("new ${incoming.eventId}", calls.firstOrNull())
+            assertTrue("Synced event never shown: $calls", "shown ${incoming.eventId}" in calls)
+
+            calls.clear()
+            timeline.onLocalEchoCreated(roomId, echo)
+            runCurrent()
+            assertEquals(listOf("new ${echo.eventId}", "shown ${echo.eventId}"), calls)
+        } finally {
+            timeline.dispose()
+            runCurrent()
+            db.close()
+        }
+    }
+
+    private fun timeline(
+            db: FakeSessionDatabase,
+            roomId: String,
+            loader: SqlChunkSnapshotLoader,
+            main: CoroutineDispatcher,
+            read: CoroutineDispatcher,
+    ) = SqlTimeline(
+            roomId = roomId,
+            initialEventId = null,
+            settings = TimelineSettings(initialSize = 1),
+            coroutineDispatchers = MatrixCoroutineDispatchers(read, read, main, read, read),
+            stores = db.stores,
+            snapshotLoader = loader,
+            paginationTask = mockk(relaxed = true),
+            fetchThreadTimelineTask = mockk(relaxed = true),
+            contextOfEventTask = mockk(relaxed = true),
+            fetchEventTokenTask = mockk(relaxed = true),
+            fetchRoomStartTask = mockk(relaxed = true),
+            database = db.database,
+            sessionDispatcher = read,
+            readDispatcher = read,
+            eventDecryptor = mockk(relaxed = true),
+            timelineInput = TimelineInput(),
+            clock = mockk(relaxed = true),
+            redactionSignal = TimelineRedactionSignal(),
+            decryptionSignal = TimelineDecryptionSignal(),
+            loadRoomMembersTask = mockk(relaxed = true),
+            slidingSyncRoomSubscriptions = mockk(relaxed = true),
+    )
 
     private fun message(roomId: String, eventId: String, timestamp: Long) = TimelineEvent(
             root = Event(eventId = eventId, roomId = roomId, type = EventType.MESSAGE, originServerTs = timestamp),

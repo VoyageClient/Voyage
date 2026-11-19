@@ -13,6 +13,7 @@ import com.airbnb.epoxy.EpoxyControllerAdapter
 import com.airbnb.epoxy.EpoxyModel
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
+import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -58,6 +59,31 @@ class ScrollOnNewMessageCallbackTest {
 
         verify(exactly = 1) { layout.scrollToPositionWithOffset(0, 0) }
         verify(exactly = 0) { layout.scrollToPosition(any()) }
+    }
+
+    @Test
+    fun `a new message landing above the typing spacer scrolls to the bottom`() {
+        val callback = callback()
+        every { adapter.getModelAtPosition(0) } returns mockk<TypingItem_>(relaxed = true)
+        every { adapter.getModelAtPosition(1) } returns newItem
+        callback.addNewTimelineEventIds(listOf("\$new"))
+
+        callback.onInserted(1, 1)
+
+        verify(exactly = 1) { layout.scrollToPositionWithOffset(0, 0) }
+    }
+
+    @Test
+    fun `an insertion above the newest message does not scroll`() {
+        val callback = callback()
+        val newest = mockk<EpoxyModel<*>>(relaxed = true, moreInterfaces = arrayOf(ItemWithEvents::class))
+        every { adapter.getModelAtPosition(0) } returns newest
+        every { adapter.getModelAtPosition(1) } returns newItem
+        callback.addNewTimelineEventIds(listOf("\$new"))
+
+        callback.onInserted(1, 1)
+
+        verify(exactly = 0) { layout.scrollToPositionWithOffset(any(), any()) }
     }
 
     @Test

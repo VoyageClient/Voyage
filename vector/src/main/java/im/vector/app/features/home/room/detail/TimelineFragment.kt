@@ -18,6 +18,7 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.text.method.LinkMovementMethod
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -1090,6 +1091,10 @@ class TimelineFragment :
     }
 
     private fun jumpToBottom() {
+        TimelineScrollDebug.log {
+            "jumpToBottom live=${timelineViewModel.timeline?.isLive} ${TimelineScrollDebug.state(views.timelineRecyclerView, layoutManager)} " +
+                    "caller=${TimelineScrollDebug.caller()}"
+        }
         timelineViewModel.cancelPendingNavigation()
         clearReplyJumpSource()
         scrollOnHighlightedEventCallback.cancel()
@@ -1575,8 +1580,32 @@ class TimelineFragment :
                     focusedChildVisible: Boolean,
             ): Boolean = immediate && super.requestChildRectangleOnScreen(parent, child, rect, immediate, focusedChildVisible)
 
+            private var lastLayoutTrace: String? = null
+
+            override fun scrollToPositionWithOffset(position: Int, offset: Int) {
+                TimelineScrollDebug.log { "lm.scrollToPositionWithOffset($position, $offset) caller=${TimelineScrollDebug.caller()}" }
+                super.scrollToPositionWithOffset(position, offset)
+            }
+
+            override fun scrollToPosition(position: Int) {
+                TimelineScrollDebug.log { "lm.scrollToPosition($position) caller=${TimelineScrollDebug.caller()}" }
+                super.scrollToPosition(position)
+            }
+
+            override fun onRestoreInstanceState(state: Parcelable?) {
+                TimelineScrollDebug.log { "lm.onRestoreInstanceState caller=${TimelineScrollDebug.caller()}" }
+                super.onRestoreInstanceState(state)
+            }
+
             override fun onLayoutCompleted(state: RecyclerView.State) {
                 super.onLayoutCompleted(state)
+                if (DebugLog.enabled && view != null) {
+                    val trace = TimelineScrollDebug.state(views.timelineRecyclerView, this)
+                    if (trace != lastLayoutTrace) {
+                        lastLayoutTrace = trace
+                        TimelineScrollDebug.log { "layout itemCount=${state.itemCount} structureChanged=${state.didStructureChange()} $trace" }
+                    }
+                }
                 updateJumpToReadMarkerViewVisibility()
                 jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibilityWithDelay()
             }
@@ -1673,6 +1702,35 @@ class TimelineFragment :
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) updateJumpToReadMarkerViewVisibility()
             }
         })
+
+        if (DebugLog.enabled) {
+            views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                private var draggedDy = 0
+
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_DRAGGING) draggedDy = 0
+                    TimelineScrollDebug.log {
+                        "scrollState=$newState userDy=$draggedDy ${TimelineScrollDebug.state(recyclerView, layoutManager)}"
+                    }
+                }
+
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if (recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                        draggedDy += dy
+                    } else if (dy != 0) {
+                        TimelineScrollDebug.log { "idle scroll dy=$dy ${TimelineScrollDebug.state(recyclerView, layoutManager)}" }
+                    }
+                }
+            })
+            views.timelineRecyclerView.addOnLayoutChangeListener { v, _, top, _, bottom, _, oldTop, _, oldBottom ->
+                if (bottom - top != oldBottom - oldTop || top != oldTop) {
+                    TimelineScrollDebug.log {
+                        "rv bounds $oldTop..$oldBottom -> $top..$bottom (h ${oldBottom - oldTop}->${bottom - top}) " +
+                                TimelineScrollDebug.state(v as RecyclerView, layoutManager)
+                    }
+                }
+            }
+        }
 
         // onScrolled fires ~once per frame during a fling, so a large gap between callbacks is a dropped frame.
         if (PerfTrace.isEnabled) {

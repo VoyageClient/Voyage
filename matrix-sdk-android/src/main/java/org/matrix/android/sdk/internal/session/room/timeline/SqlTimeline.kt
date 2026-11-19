@@ -1445,6 +1445,7 @@ internal class SqlTimeline(
             if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) return@launch
             uiEchoManager.onLocalEchoCreated(timelineEvent)
             uiEchoRevision.incrementAndGet()
+            notifyNewTimelineEvents(listOf(timelineEvent.eventId))
             // A DB-flow rebuild may already have picked the echo up from the sending table.
             if (builtEvents.none { it.eventId == timelineEvent.eventId }) {
                 builtEvents = listOf(timelineEvent) + builtEvents
@@ -1498,8 +1499,22 @@ internal class SqlTimeline(
             // Sync notifies inside its write transaction; wait for the committed ranges.
             withContext(sessionDispatcher) { Unit }
             if (requestedSeed != seedGeneration.get() || requestedNavigation != navigationGeneration.get()) return@launch
+            withContext(coroutineDispatchers.main) {
+                if (liveEdgeLoaded && newestShownEventId == null) {
+                    notifyNewTimelineEvents(eventIds)
+                } else {
+                    DebugLog.i { "SCROLLDBG sdk new events $eventIds not announced liveEdgeLoaded=$liveEdgeLoaded newestShown=$newestShownEventId" }
+                }
+            }
             rebuildSnapshot()
         }
+    }
+
+    // Must reach listeners before the snapshot that shows these events: the UI only follows a
+    // row inserted at the bottom to the live edge when it already knows the row is new.
+    private fun notifyNewTimelineEvents(eventIds: List<String>) {
+        DebugLog.i { "SCROLLDBG sdk new events $eventIds listeners=${listeners.size}" }
+        listeners.forEach { tryOrNull { it.onNewTimelineEvents(eventIds) } }
     }
 
     /**

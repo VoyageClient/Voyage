@@ -80,6 +80,7 @@ import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.MediaCaption
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.TimelineFragment
+import im.vector.app.features.home.room.detail.TimelineScrollDebug
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
 import im.vector.app.features.home.room.detail.composer.sed.SED_MATCH_TIMEOUT_MS
@@ -718,6 +719,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
             }
             emojiKeyboardController?.dismiss()
+            TimelineScrollDebug.log {
+                "send tapped jumpToBottomOnSend=${vectorPreferences.jumpToBottomOnSend()} sed=$sedOutcome composerH=${views.root.height}"
+            }
             if (vectorPreferences.jumpToBottomOnSend()) {
                 timelineViewModel.handle(RoomDetailAction.JumpToBottom)
             }

@@ -15,13 +15,13 @@ import im.vector.app.core.utils.Debouncer
 /**
  * Show or hide the jumpToBottomView, depending on the scrolling and if the timeline is displaying the more recent event
  * - When user scrolls up (i.e. going to the past): hide
- * - When user scrolls down: show if not displaying last event
- * - When user stops scrolling: show if not displaying last event
+ * - When user scrolls down: show if the end of the newest message isn't on screen
+ * - When user stops scrolling: show if the end of the newest message isn't on screen
  */
 class JumpToBottomViewVisibilityManager(
         private val jumpToBottomView: FloatingActionButton,
         private val debouncer: Debouncer,
-        recyclerView: RecyclerView,
+        private val recyclerView: RecyclerView,
         private val layoutManager: LinearLayoutManager,
         // With a forward-bounded window (jumped deep into history) position 0 isn't the live edge,
         // so "at position <= 1" must not hide the FAB.
@@ -67,8 +67,7 @@ class JumpToBottomViewVisibilityManager(
 
     /** Without the debounce, for a jump the user just asked for: the answer is known immediately. */
     fun maybeShowJumpToBottomViewVisibility() {
-        val firstVis = layoutManager.findFirstVisibleItemPosition()
-        val show = firstVis > 1 || !isTimelineLive()
+        val show = !TimelineLiveEdge.isAtLiveEdge(recyclerView, layoutManager) || !isTimelineLive()
         if (show) {
             jumpToBottomView.show()
         } else {
