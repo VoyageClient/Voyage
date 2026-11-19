@@ -31,6 +31,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollResponseSummaryRefresher
+import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineRedactionSignal
@@ -48,6 +49,7 @@ internal class RedactionEventProcessor @Inject constructor(
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val timelineRedactionSignal: TimelineRedactionSignal,
         private val pollResponseSummaryRefresher: PollResponseSummaryRefresher,
+        private val roomMemberEventHandler: SqlRoomMemberEventHandler,
 ) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
@@ -142,6 +144,7 @@ internal class RedactionEventProcessor @Inject constructor(
         }
         if (typeToPrune == EventType.STATE_ROOM_MEMBER && stateKey != null) {
             stores.timelineEvent.clearSenderInfoForMembershipEvent(eventToPrune.eventId)
+            refreshMemberIfCurrent(stores, roomId, stateKey, pruneDbId, eventToPrune.eventId)
         }
         // The prune only wrote the event table, which the timeline's chunk flow doesn't watch — an open
         // room would keep showing the old content (the redaction's own chunk insert races the prune).
@@ -156,6 +159,14 @@ internal class RedactionEventProcessor @Inject constructor(
             previewInvalidation.onPreviewChanged(previewRoomId)
             stores.roomSummary.touch(previewRoomId)
         }
+    }
+
+    // The member row is a denormalized copy of the current member event: without this it keeps the
+    // redacted name and avatar wherever members are listed (read receipts, member list, mentions).
+    private fun refreshMemberIfCurrent(stores: SessionStores, roomId: String, userId: String, prunedDbId: Long, eventId: String) {
+        if (stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.eventId != eventId) return
+        val pruned = stores.event.getById(prunedDbId)?.asDomain() ?: return
+        roomMemberEventHandler.handle(stores, roomId, pruned, isInitialSync = false)
     }
 
     /**

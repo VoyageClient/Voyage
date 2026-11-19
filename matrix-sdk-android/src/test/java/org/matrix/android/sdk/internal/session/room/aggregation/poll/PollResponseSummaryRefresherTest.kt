@@ -120,7 +120,8 @@ class PollResponseSummaryRefresherTest {
                 eventIndexer = mockk(relaxed = true),
                 previewInvalidation = mockk(relaxed = true),
                 timelineRedactionSignal = mockk(relaxed = true),
-                pollResponseSummaryRefresher = refresher
+                pollResponseSummaryRefresher = refresher,
+                roomMemberEventHandler = mockk(relaxed = true),
         )
         processor.prune(db.stores, Event(roomId = roomId, eventId = "redaction", redacts = "vote"))
         assertEquals(0, summary().totalVotes)

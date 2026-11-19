@@ -33,9 +33,10 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
         return readReceiptsSummaryEntity.readReceipts.map { receipt ->
             // A receipt can name someone with no usable member row: the timeline's member load is still
             // in flight, or they have since left (leave events carry no profile). Fall back to the cached
-            // global profile, then to the bare user id, rather than dropping the receipt.
+            // global profile, then to the bare user id, rather than dropping the receipt. A current member
+            // without a name is authoritative: they set none, or their member event was redacted.
             val member = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId)?.asDomain()
-            val user = member?.takeIf { !it.displayName.isNullOrBlank() }
+            val user = member?.takeIf { it.membership.isActive() || !it.displayName.isNullOrBlank() }
                     ?: globalProfileOf(receipt.userId, member)
                     ?: member
                     ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
