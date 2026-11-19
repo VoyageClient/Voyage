@@ -165,8 +165,9 @@ class ForwardedMessagePresenter @Inject constructor(
 
     private fun footer(description: Description): CharSequence {
         val text = SpannableStringBuilder(
-                listOfNotNull(description.roomName?.prepareForDisplay() ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
+                listOfNotNull(description.roomName ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
                         .joinToString(stringProvider.getString(CommonStrings.forwarded_footer_separator))
+                        .prepareForDisplay()
         )
         text.setSpan(ForegroundColorSpan(secondaryColor()), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         text.setSpan(AbsoluteSizeSpan(captionSize()), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

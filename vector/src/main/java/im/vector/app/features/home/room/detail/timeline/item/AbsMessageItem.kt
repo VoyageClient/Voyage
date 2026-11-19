@@ -288,10 +288,11 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         }
         bindForwardedIcon(header)
 
-        val roomName = forwardedInfo.roomName?.prepareForDisplay() ?: context.getString(CommonStrings.forwarded_unknown_room)
+        val roomName = forwardedInfo.roomName ?: context.getString(CommonStrings.forwarded_unknown_room)
         footer?.isVisible = true
         footer?.text = listOfNotNull(roomName, forwardedInfo.formattedDate)
                 .joinToString(context.getString(CommonStrings.forwarded_footer_separator))
+                .prepareForDisplay()
 
         if (bar != null) {
             bar.isVisible = true
