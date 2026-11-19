@@ -12,21 +12,24 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import im.vector.app.features.command.Command
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
 import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 
-// A path after the id makes it an event permalink, not a mention.
-private fun mentionAnchor(sigils: String) = Regex(
-        """<a\s+[^>]*href="https://matrix\.to/#/([$sigils][^"?/]+)(?:\?[^"]*)?"[^>]*>([^<]*)</a>""",
-        RegexOption.IGNORE_CASE
-)
+private val ANCHOR = Regex("""<a\s+[^>]*href="([^"]*)"[^>]*>([^<]*)</a>""", RegexOption.IGNORE_CASE)
 
-private val MENTION_ANCHOR = mentionAnchor("@#!")
+// An event permalink is not a mention.
+private fun mentionTargetOf(href: String): String? = when (val link = PermalinkParser.parse(href)) {
+    is PermalinkData.UserLink -> link.userId
+    is PermalinkData.RoomLink -> link.roomIdOrAlias.takeIf { link.eventId == null }
+    else -> null
+}
 
 // Only ids the composer pills again when pasted; a bare room id does not.
-private val PASTEABLE_MENTION_ANCHOR = mentionAnchor("@#")
+private fun isPasteableMention(id: String) = !id.startsWith('!')
 
 // Drafts and edit prefills carry pills as matrix.to markdown links, so a link the user wrote themselves
 // gets a word joiner after its "](" to keep the composer from reading it back as a pill.
@@ -79,7 +82,7 @@ fun spliceMentionLinks(
 fun spliceMentionIds(body: String, formattedBody: String?): String {
     val out = StringBuilder()
     var cursor = 0
-    forEachMention(body, formattedBody, { emptyList() }, PASTEABLE_MENTION_ANCHOR) { start, name, id ->
+    forEachMention(body, formattedBody, { emptyList() }, ::isPasteableMention) { start, name, id ->
         out.append(body, cursor, start).append(id)
         cursor = start + name.length
     }
@@ -357,16 +360,17 @@ private inline fun forEachMention(
         body: String,
         formattedBody: String?,
         displayNamesOf: (String) -> List<String>,
-        anchors: Regex = MENTION_ANCHOR,
+        accepts: (String) -> Boolean = { true },
         onMatch: (start: Int, name: String, id: String) -> Unit,
 ) {
-    if (formattedBody == null || body.isEmpty() || !formattedBody.contains("matrix.to/#/")) return
+    if (formattedBody == null || body.isEmpty() || !formattedBody.contains("<a", ignoreCase = true)) return
     var cursor = 0
-    anchors.findAll(formattedBody).forEach { match ->
-        val id = match.groupValues[1]
+    ANCHOR.findAll(formattedBody).forEach { match ->
+        val href = match.groupValues[1].unescapeHtml()
+        val id = mentionTargetOf(href)?.takeIf(accepts) ?: return@forEach
         if (ExplicitLinks.isExplicitTag(match.value.substringBefore('>'))) {
             // Not a mention. Step over its markdown source so a later mention's name isn't found in its label.
-            val target = body.indexOf("https://matrix.to/#/$id", cursor)
+            val target = body.indexOf(href, cursor)
             if (target >= 0) cursor = body.indexOf(')', target).takeIf { it >= 0 }?.plus(1) ?: cursor
             return@forEach
         }

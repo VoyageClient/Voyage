@@ -39,6 +39,24 @@ class TranslationExceptionsTest {
     }
 
     @Test
+    fun `a mention pill from another host or a matrix uri keeps its label`() {
+        listOf("https://link.example.org/#/@alice:example.org", "matrix:u/alice:example.org").forEach { href ->
+            val html = "Hallo <a href=\"$href\">Alice Liebe</a>"
+            val exceptions = TranslationExceptions.forReceivedHtml(html)
+            exceptions.text shouldNotContain "Liebe"
+            exceptions.restore(exceptions.text.replace("Hallo", "Hello")) shouldBeEqualTo "Hello <a href=\"$href\">Alice Liebe</a>"
+        }
+    }
+
+    @Test
+    fun `a bare matrix uri keeps its query`() {
+        val uri = "matrix:roomid/abc/e/def?via=example.org&amp;via=other.org"
+        val exceptions = TranslationExceptions.forReceivedHtml("Schau $uri")
+        exceptions.text shouldNotContain "via"
+        exceptions.restore(exceptions.text.replace("Schau", "Look")) shouldBeEqualTo "Look $uri"
+    }
+
+    @Test
     fun `a plain body url keeps its query`() {
         val url = "https://matrix.to/#/!room:example.org/\$event?via=example.org&via=other.org"
         val exceptions = TranslationExceptions.forReceived("Schau $url")

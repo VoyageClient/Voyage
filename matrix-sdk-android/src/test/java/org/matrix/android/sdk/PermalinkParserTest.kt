@@ -20,6 +20,7 @@ import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
+import org.matrix.android.sdk.api.session.permalinks.MatrixToConverter
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 
@@ -122,5 +123,45 @@ class PermalinkParserTest {
         Assert.assertTrue(PermalinkParser.parse("matrix:r/room:example.org/x/event") is PermalinkData.FallbackLink)
         // An event only lives under a room
         Assert.assertTrue(PermalinkParser.parse("matrix:u/alice:example.org/e/abcdef") is PermalinkData.FallbackLink)
+    }
+
+    @Test
+    fun testParseMatrixUriDomainlessRoomIdWithEvent() {
+        val roomId = "Q8wzLKa3vTnR2bXcPmE7uYdJf0sHgWiN5oV1kZ9tA6c"
+        val eventId = "Xb3nH7qLpR2wKs9vTgYcM4eJd0aFz6NiUoB1lE8xS5y"
+        val parsedLink = PermalinkParser.parse("matrix:roomid/$roomId/e/$eventId?via=example.org&via=example.com")
+        Assert.assertTrue("Should be parsed as room link but was ${parsedLink::class.java}", parsedLink is PermalinkData.RoomLink)
+        parsedLink as PermalinkData.RoomLink
+        Assert.assertEquals("!$roomId", parsedLink.roomIdOrAlias)
+        Assert.assertEquals("\$$eventId", parsedLink.eventId)
+        Assert.assertEquals(listOf("example.org", "example.com"), parsedLink.viaParameters)
+    }
+
+    @Test
+    fun testParseMatrixToLayoutOnOtherHost() {
+        val user = PermalinkParser.parse("https://link.example.org/#/@alice:example.org")
+        Assert.assertEquals("@alice:example.org", (user as PermalinkData.UserLink).userId)
+
+        val alias = PermalinkParser.parse("https://example.org/chat/#/%23room%3Aexample.org")
+        Assert.assertEquals("#room:example.org", (alias as PermalinkData.RoomLink).roomIdOrAlias)
+
+        val event = PermalinkParser.parse("https://link.example.org/#/!room:example.org/\$event:example.org?via=example.org")
+        event as PermalinkData.RoomLink
+        Assert.assertEquals("!room:example.org", event.roomIdOrAlias)
+        Assert.assertEquals("\$event:example.org", event.eventId)
+        Assert.assertEquals(listOf("example.org"), event.viaParameters)
+    }
+
+    @Test
+    fun testWebPermalinkNeedsAMatrixId() {
+        Assert.assertTrue(MatrixToConverter.isWebPermalink("https://link.example.org/#/@alice:example.org"))
+        Assert.assertTrue(MatrixToConverter.isWebPermalink("http://chat.example.org/#/room/#room:example.org"))
+        Assert.assertTrue(MatrixToConverter.isWebPermalink("https://chat.example.org/#/user/@alice:example.org"))
+        Assert.assertFalse(MatrixToConverter.isWebPermalink("https://example.org/#/settings"))
+        Assert.assertFalse(MatrixToConverter.isWebPermalink("https://example.org/#/@alice"))
+        Assert.assertFalse(MatrixToConverter.isWebPermalink("https://example.org/#/%E0%A4%A"))
+        Assert.assertFalse(MatrixToConverter.isWebPermalink("https://example.org/@alice:example.org"))
+        Assert.assertFalse(MatrixToConverter.isWebPermalink("ftp://example.org/#/@alice:example.org"))
+        Assert.assertTrue(PermalinkParser.parse("https://example.org/#/settings") is PermalinkData.FallbackLink)
     }
 }

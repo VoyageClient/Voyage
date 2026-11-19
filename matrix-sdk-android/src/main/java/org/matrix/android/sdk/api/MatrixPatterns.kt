@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api
 
 import org.matrix.android.sdk.BuildConfig
+import org.matrix.android.sdk.api.session.permalinks.MatrixToConverter
 import org.matrix.android.sdk.internal.util.removeInvalidRoomNameChars
 import org.matrix.android.sdk.internal.util.replaceSpaceChars
 import timber.log.Timber
@@ -72,7 +73,7 @@ object MatrixPatterns {
     const val SEP_REGEX = "/"
 
     // regex pattern to find MSC2312 matrix: URIs, e.g. matrix:r/room:example.org/e/$abcdef?via=example.org
-    private const val MATRIX_URI_REGEX = "matrix:(//)?(u|r|roomid)/[A-Z0-9._~%!$&'*+;=:@/?-]+"
+    private const val MATRIX_URI_REGEX = "matrix:(//)?(u|r|roomid|user|room)/[A-Z0-9._~%!$&'*+;=:@/?-]+"
     private val PATTERN_CONTAIN_MATRIX_URI = MATRIX_URI_REGEX.toRegex(RegexOption.IGNORE_CASE)
 
     private val PATTERN_CONTAIN_MATRIX_TO_PERMALINK = PERMALINK_BASE_REGEX.toRegex(RegexOption.IGNORE_CASE)
@@ -152,7 +153,8 @@ object MatrixPatterns {
         return str != null &&
                 (PATTERN_CONTAIN_MATRIX_TO_PERMALINK.containsMatchIn(str) ||
                         PATTERN_CONTAIN_APP_PERMALINK.containsMatchIn(str) ||
-                        PATTERN_CONTAIN_MATRIX_URI.containsMatchIn(str))
+                        PATTERN_CONTAIN_MATRIX_URI.containsMatchIn(str) ||
+                        MatrixToConverter.isWebPermalink(str))
     }
 
     /**

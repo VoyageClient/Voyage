@@ -62,7 +62,9 @@ class EventTextRenderer @AssistedInject constructor(
     // String[] per call was a measurable hotspot when scrolling chatty rooms. Matrix permalinks use a
     // `…/#/<id>[/<eventId>]` fragment whose `!`, `$`, `:` chars Patterns.WEB_URL truncates (turning a
     // message link into a room link), so match the whole `#/…` run up to whitespace instead.
-    private val permalinkRegex by lazy { Regex("""https?://[^\s/]+/#/\S+""") }
+    private val permalinkRegex by lazy {
+        Regex("""https?://[^\s/#]+(?:/[^\s#]*)?#/\S+|(?<![A-Za-z0-9+.-])matrix:(?://)?(?:u|r|roomid|user|room)/\S+""", RegexOption.IGNORE_CASE)
+    }
     private val supportedPermalinkHosts: Array<String> by lazy {
         context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
     }

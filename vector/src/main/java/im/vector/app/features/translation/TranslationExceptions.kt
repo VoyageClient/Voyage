@@ -49,7 +49,7 @@ class TranslationExceptions private constructor(
 
         private const val EMOJI = """(?:[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|[\x{2300}-\x{23FF}]|[\x{2B00}-\x{2BFF}]""" +
                 """|\x{FE0F}|\x{200D}|\x{20E3}|[\x{1F3FB}-\x{1F3FF}])+"""
-        private const val URL = """(?:https?|matrix|mxc)://\S+"""
+        private const val URL = """(?:(?:https?|matrix|mxc)://|matrix:(?:u|r|roomid|user|room)/)\S+"""
         private const val MATRIX_ID = """[@#!][^\s:]+:[A-Za-z0-9.\-]+(?::\d+)?"""
         private const val SHORTCODE = """:[A-Za-z0-9_+\-]+:"""
 
@@ -60,10 +60,11 @@ class TranslationExceptions private constructor(
         private val ISOLATED = Regex("(?:$URL|$MATRIX_ID)")
 
         // Chunks of a formatted body that must survive verbatim: whole code/pre blocks, whole
-        // matrix.to mention pills (their display name included), every other tag, bare URLs in the
+        // permalink mention pills (their display name included), every other tag, bare URLs in the
         // text (whole, so an escaped `&amp;via=` stays attached), and entities.
         private val HTML_CHUNK = Regex(
-                """<(code|pre)\b[^>]*>.*?</\1\s*>|<a\b[^>]*matrix\.to[^>]*>.*?</a\s*>|<[^>]+>|(?:https?|matrix|mxc)://[^\s<]+|&[#A-Za-z0-9]+;""",
+                """<(code|pre)\b[^>]*>.*?</\1\s*>|<a\b[^>]*href=["'](?:[^"'#]*#/|matrix:)[^>]*>.*?</a\s*>|<[^>]+>""" +
+                        """|(?:(?:https?|matrix|mxc)://|matrix:(?:u|r|roomid|user|room)/)[^\s<]+|&[#A-Za-z0-9]+;""",
                 setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
         )
 

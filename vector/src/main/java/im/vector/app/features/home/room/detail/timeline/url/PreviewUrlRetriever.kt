@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.cache.CacheStrategy
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.permalinks.MatrixToConverter
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
 
@@ -115,7 +116,7 @@ class PreviewUrlRetriever(
     }
 
     private fun canShowUrlPreview(url: String): Boolean {
-        return blockedDomains.all { !url.startsWith(it) }
+        return blockedDomains.all { !url.startsWith(it) } && !MatrixToConverter.isWebPermalink(url)
     }
 
     fun doNotShowPreviewUrlFor(eventId: String, url: String) {

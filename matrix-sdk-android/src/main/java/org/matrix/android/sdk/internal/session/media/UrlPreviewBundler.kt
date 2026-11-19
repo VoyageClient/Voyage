@@ -17,6 +17,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.permalinks.MatrixToConverter
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
@@ -224,5 +225,5 @@ internal class UrlPreviewBundler @Inject constructor(
 
     // matrix.to links are permalinks to rooms, events and users: there is nothing to preview, and
     // fetching one would tell that server which permalinks are being sent.
-    private fun isNotPreviewable(url: String) = url.startsWith("https://matrix.to/")
+    private fun isNotPreviewable(url: String) = url.startsWith("https://matrix.to/") || MatrixToConverter.isWebPermalink(url)
 }

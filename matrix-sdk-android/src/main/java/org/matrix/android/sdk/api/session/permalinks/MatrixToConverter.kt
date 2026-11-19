@@ -16,6 +16,10 @@
 
 package org.matrix.android.sdk.api.session.permalinks
 
+import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.extensions.tryOrNull
+import java.net.URLDecoder
+
 /**
  * Mapping of an input URI to a matrix.to compliant URI.
  */
@@ -40,9 +44,23 @@ object MatrixToConverter {
                 val path = SUPPORTED_PATHS.first { it in uriString }
                 PermalinkService.MATRIX_TO_URL_BASE + uriString.substringAfter(path)
             }
-            // URL is not supported
-            else -> null
+            else -> webPermalinkPath(uriString)?.let { PermalinkService.MATRIX_TO_URL_BASE + it }
         }
+    }
+
+    /**
+     * Whether [uriString] is a permalink in matrix.to's layout served from another host (a client's own
+     * link domain, an Element Web instance), e.g. https://link.example.org/#/@alice:example.org.
+     */
+    fun isWebPermalink(uriString: String): Boolean = webPermalinkPath(uriString) != null
+
+    // Any web page can have a `#/` fragment, so only one naming a valid user, room or alias counts.
+    private fun webPermalinkPath(uriString: String): String? {
+        if (!uriString.startsWith("https://", ignoreCase = true) && !uriString.startsWith("http://", ignoreCase = true)) return null
+        val fragment = uriString.substringAfter('#', "")
+        val path = WEB_FRAGMENT_PREFIXES.firstOrNull { fragment.startsWith(it) }?.let { fragment.substring(it.length) } ?: return null
+        val id = tryOrNull { URLDecoder.decode(path.substringBefore('?').substringBefore('/'), "UTF-8") } ?: return null
+        return path.takeIf { MatrixPatterns.isUserId(id) || MatrixPatterns.isRoomId(id) || MatrixPatterns.isRoomAlias(id) }
     }
 
     /**
@@ -91,4 +109,6 @@ object MatrixToConverter {
             "/#/user/",
             "/#/group/"
     )
+
+    private val WEB_FRAGMENT_PREFIXES = listOf("/room/", "/user/", "/")
 }

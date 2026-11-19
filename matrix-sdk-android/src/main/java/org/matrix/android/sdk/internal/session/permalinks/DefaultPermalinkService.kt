@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.permalinks
 
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.permalinks.MatrixToConverter
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.internal.util.uriHost
 import javax.inject.Inject
@@ -57,6 +58,7 @@ internal class DefaultPermalinkService @Inject constructor(
     override fun isPermalinkSupported(supportedHosts: Array<String>, url: String): Boolean {
         return url.startsWith(PermalinkService.MATRIX_TO_URL_BASE) ||
                 url.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) ||
-                supportedHosts.any { url.uriHost() == it }
+                supportedHosts.any { url.uriHost() == it } ||
+                MatrixToConverter.isWebPermalink(url)
     }
 }

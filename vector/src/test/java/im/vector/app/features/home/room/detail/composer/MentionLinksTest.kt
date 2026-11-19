@@ -33,6 +33,15 @@ class MentionLinksTest {
     }
 
     @Test
+    fun `given a mention linked from another host or as a matrix URI, when splicing, then it is recognised like matrix_to`() {
+        spliceMentionLinks("hi Alice", """hi <a href="https://link.example.org/#/@alice:example.org">Alice</a>""") shouldBeEqualTo "hi [Alice]($alice)"
+        spliceMentionLinks("hi Alice", """hi <a href="matrix:u/alice:example.org">Alice</a>""") shouldBeEqualTo "hi [Alice]($alice)"
+        spliceMentionIds("My Room hi", """<a href="https://link.example.org/#/%23room%3Aexample.org">My Room</a> hi""") shouldBeEqualTo "#room:example.org hi"
+        spliceMentionIds("see this", """see <a href="https://link.example.org/#/!abc:example.org/${'$'}event">this</a>""") shouldBeEqualTo "see this"
+        spliceMentionIds("see Alice", """see <a href="https://example.org/#/settings">Alice</a>""") shouldBeEqualTo "see Alice"
+    }
+
+    @Test
     fun `given a mention written straight against a word, when splicing, then it is still found`() {
         spliceMentionLinks("Aliceb hi", """<a href="$alice">Alice</a>b hi""") shouldBeEqualTo "[Alice]($alice)b hi"
         spliceMentionLinks("xAlice hi", """x<b><a href="$alice">Alice</a></b> hi""") shouldBeEqualTo "x[Alice]($alice) hi"
