@@ -484,8 +484,15 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
             userId: String,
             deviceId: String,
             deviceIdentityKey: String,
-            chainIndex: Int
+            chainIndex: Int,
+            needsReshare: Boolean = false,
     )
+
+    /**
+     * Mark every session shared with this device as needing to be sent again, because it opened a new
+     * Olm session to us and may not have been able to decrypt what came over the old one.
+     */
+    fun flagSharedSessionsForReshare(deviceIdentityKey: String)
 
     /**
      * Query for information on this session sharing history.
@@ -495,7 +502,7 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
      * In found is false, chainIndex is null
      */
     fun getSharedSessionInfo(roomId: String?, sessionId: String, deviceInfo: CryptoDeviceInfo): SharedSessionResult
-    data class SharedSessionResult(val found: Boolean, val chainIndex: Int?)
+    data class SharedSessionResult(val found: Boolean, val chainIndex: Int?, val needsReshare: Boolean = false)
 
     fun getSharedWithInfo(roomId: String?, sessionId: String): MXUsersDevicesMap<Int>
     // Dev tools

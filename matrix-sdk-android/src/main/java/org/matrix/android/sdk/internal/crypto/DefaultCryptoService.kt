@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_OLM
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.listeners.ProgressListener
@@ -62,6 +63,7 @@ import org.matrix.android.sdk.api.session.crypto.model.RoomKeyShareRequest
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
@@ -89,6 +91,7 @@ import org.matrix.android.sdk.internal.crypto.dehydration.DefaultDehydratedDevic
 import org.matrix.android.sdk.internal.crypto.keysbackup.DefaultKeysBackupService
 import org.matrix.android.sdk.internal.crypto.model.MXKey.Companion.KEY_SIGNED_CURVE_25519_TYPE
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
+import org.matrix.android.sdk.internal.crypto.model.toDebugString
 import org.matrix.android.sdk.internal.crypto.model.toRest
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
@@ -772,7 +775,15 @@ internal class DefaultCryptoService @Inject constructor(
             if (safeAlgorithm != null) {
                 val t0 = clock.epochMillis()
                 Timber.tag(loggerTag.value).v("encryptEventContent() starts")
-                val content = safeAlgorithm.encryptEventContent(eventContent, eventType, userIds, stateKey)
+                val content = try {
+                    safeAlgorithm.encryptEventContent(eventContent, eventType, userIds, stateKey)
+                } catch (failure: Throwable) {
+                    DebugLog.e {
+                        "E2EDBG stage=encrypt-failed room=$roomId type=$eventType afterMs=${clock.epochMillis() - t0} " +
+                                "error=${E2eDebug.error(failure)} unknownDevices=${(failure as? MXCryptoError.UnknownDevice)?.deviceList?.toDebugString()}"
+                    }
+                    throw failure
+                }
                 Timber.tag(loggerTag.value).v("## CRYPTO | encryptEventContent() : succeeds after ${clock.epochMillis() - t0} ms")
                 return@withContext MXEncryptEventContentResult(content, EventType.ENCRYPTED)
             } else {
@@ -782,6 +793,7 @@ internal class DefaultCryptoService @Inject constructor(
                         algorithm ?: MXCryptoError.NO_MORE_ALGORITHM_REASON
                 )
                 Timber.tag(loggerTag.value).e("encryptEventContent() : failed $reason")
+                DebugLog.e { "E2EDBG stage=encrypt-failed room=$roomId type=$eventType error=no-encryptor($reason)" }
                 throw Failure.CryptoError(MXCryptoError.Base(MXCryptoError.ErrorType.UNABLE_TO_ENCRYPT, reason))
             }
         }
@@ -917,6 +929,11 @@ internal class DefaultCryptoService @Inject constructor(
             Timber.tag(loggerTag.value).w("Ignoring a history_not_shared withheld message from $senderId")
             return
         }
+        DebugLog.w {
+            "E2EDBG stage=withheld-received from=$senderId|${withHeldContent.fromDevice} code=${withHeldContent.codeString} " +
+                    "reason=${withHeldContent.reason} room=${withHeldContent.roomId} session=${withHeldContent.sessionId} " +
+                    "senderKey=${withHeldContent.senderKey}"
+        }
         val withHeldSessionId = withHeldContent.sessionId ?: return
         val withHeldAlgorithm = withHeldContent.algorithm ?: return
         val withHeldRoomId = withHeldContent.roomId ?: return
@@ -992,6 +1009,9 @@ internal class DefaultCryptoService @Inject constructor(
         withContext(coroutineDispatchers.io) {
             val userIds = getRoomUserIds(roomId)
             setEncryptionInRoom(roomId, event.content?.get("algorithm")?.toString(), true, userIds)
+            event.content.toModel<EncryptionEventContent>()
+                    ?.takeIf { it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM }
+                    ?.let { cryptoStore.setAlgorithmInfo(roomId, it) }
         }
     }
 

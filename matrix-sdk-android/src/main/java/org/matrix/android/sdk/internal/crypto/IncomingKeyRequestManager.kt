@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.keyshare.GossipingRequestListener
@@ -206,10 +207,26 @@ internal class IncomingKeyRequestManager @Inject constructor(
 
     private suspend fun handleIncomingRequest(request: ValidMegolmRequestBody) {
         // We don't want to download keys, if we don't know the device yet we won't share any how?
+        val isOurSession = request.senderKey == olmDevice.deviceCurve25519Key
+        val sharedInfo = if (isOurSession && DebugLog.enabled) {
+            cryptoStore.getUserDevice(request.requestingUserId, request.requestingDeviceId)
+                    ?.let { cryptoStore.getSharedSessionInfo(request.roomId, request.sessionId, it) }
+        } else null
+        DebugLog.w {
+            val summary = if (isOurSession) {
+                "-> a device cannot decrypt a message WE sent; " +
+                        "sharedWithIt=${sharedInfo?.found} fromIndex=${sharedInfo?.chainIndex} pendingResend=${sharedInfo?.needsReshare}"
+            } else {
+                "senderKey=${request.senderKey}"
+            }
+            "E2EDBG stage=key-request-received from=${request.requestingUserId}|${request.requestingDeviceId} " +
+                    "room=${request.roomId} session=${request.sessionId} ourSession=$isOurSession $summary"
+        }
         val requestingDevice =
                 cryptoStore.getUserDevice(request.requestingUserId, request.requestingDeviceId)
                         ?: return Unit.also {
                             Timber.tag(loggerTag.value).d("Ignoring key request: ${request.shortDbgString()}")
+                            DebugLog.w { "E2EDBG stage=key-request-ignored reason=unknown-device req=${request.shortDbgString()}" }
                         }
 
         cryptoStore.saveIncomingKeyRequestAuditTrail(
@@ -251,6 +268,7 @@ internal class IncomingKeyRequestManager @Inject constructor(
         } else {
             if (cryptoConfig.limitRoomKeyRequestsToMyDevices) {
                 Timber.tag(loggerTag.value).v("Ignore request from other user as per crypto config: ${request.shortDbgString()}")
+                DebugLog.w { "E2EDBG stage=key-request-ignored reason=limited-to-my-devices req=${request.shortDbgString()}" }
                 return
             }
             Timber.tag(loggerTag.value).v("handling request from other user: megolm session ${request.sessionId}")
@@ -305,6 +323,7 @@ internal class IncomingKeyRequestManager @Inject constructor(
     private suspend fun sendWithheldForRequest(request: ValidMegolmRequestBody, code: WithHeldCode) {
         Timber.tag(loggerTag.value)
                 .w("Send withheld $code for req: ${request.shortDbgString()}")
+        DebugLog.w { "E2EDBG stage=key-request-refused code=${code.value} req=${request.shortDbgString()}" }
         val withHeldContent = RoomKeyWithHeldContent(
                 roomId = request.roomId,
                 senderKey = request.senderKey,
@@ -426,6 +445,10 @@ internal class IncomingKeyRequestManager @Inject constructor(
             sendToDeviceTask.execute(sendToDeviceParams)
             Timber.tag(loggerTag.value)
                     .i("successfully re-shared session ${validRequest.sessionId} to ${requestingDevice.shortDebugString()}")
+            DebugLog.i {
+                "E2EDBG stage=key-request-answered to=${E2eDebug.device(requestingDevice)} room=${validRequest.roomId} " +
+                        "session=${validRequest.sessionId} fromIndex=${chainIndex ?: "earliest"}"
+            }
             cryptoStore.saveForwardKeyAuditTrail(
                     validRequest.roomId,
                     validRequest.sessionId,
@@ -439,6 +462,10 @@ internal class IncomingKeyRequestManager @Inject constructor(
         } catch (failure: Throwable) {
             Timber.tag(loggerTag.value)
                     .e(failure, "fail to re-share session ${validRequest.sessionId} to ${requestingDevice.shortDebugString()}")
+            DebugLog.w {
+                "E2EDBG stage=key-request-answer-failed to=${E2eDebug.device(requestingDevice)} " +
+                        "session=${validRequest.sessionId} error=${E2eDebug.error(failure)}"
+            }
             false
         }
     }

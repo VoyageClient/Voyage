@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_OLM
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
@@ -187,6 +188,7 @@ internal class EventDecryptor @Inject constructor(
             val info = WedgedDeviceInfo(senderId, senderKey)
             if (!wedgedDevices.contains(info)) {
                 Timber.tag(loggerTag.value).d("Marking device from $senderId key:$senderKey as wedged")
+                DebugLog.w { "E2EDBG stage=olm-wedged sender=$senderId senderKey=$senderKey -> a new Olm session will be forced after this sync" }
                 wedgedDevices.add(info)
             }
         }
@@ -205,6 +207,7 @@ internal class EventDecryptor @Inject constructor(
                 val lastForcedDate = lastNewSessionForcedDates[it] ?: 0
                 if (now - lastForcedDate < DefaultCryptoService.CRYPTO_MIN_FORCE_SESSION_PERIOD_MILLIS) {
                     Timber.tag(loggerTag.value).d("Unwedging, New session for $it already forced with device at $lastForcedDate")
+                    DebugLog.i { "E2EDBG stage=olm-unwedge-rate-limited sender=${it.userId} senderKey=${it.senderKey} lastForcedAgoMs=${now - lastForcedDate}" }
                     return@filter false
                 }
                 // let's already mark that we tried now
@@ -265,6 +268,14 @@ internal class EventDecryptor @Inject constructor(
                                     withContext(coroutineDispatchers.io) {
                                         sendToDeviceTask.executeRetry(sendToDeviceParams, remainingRetry = SEND_TO_DEVICE_RETRY_COUNT)
                                     }
+                                    DebugLog.i {
+                                        val sentTo = sessionToUse.map.values.flatMap { it.values }.map { it.deviceInfo }
+                                        val unmatched = wedgedList.filter { wedged ->
+                                            deviceList[wedged.userId].orEmpty().none { it.identityKey() == wedged.senderKey }
+                                        }
+                                        "E2EDBG stage=olm-unwedged dummySentTo=${E2eDebug.devices(sentTo)} " +
+                                                "noDeviceForKey=${unmatched.map { "${it.userId}|${it.senderKey}" }}"
+                                    }
 
                                     deviceList.values.flatten().forEach { deviceInfo ->
                                         wedgedMutex.withLock {
@@ -277,6 +288,10 @@ internal class EventDecryptor @Inject constructor(
                                 } catch (failure: Throwable) {
                                     deviceList.flatMap { it.value }.joinToString { it.shortDebugString() }.let {
                                         Timber.tag(loggerTag.value).e(failure, "## Failed to unwedge devices: $it}")
+                                    }
+                                    DebugLog.w {
+                                        "E2EDBG stage=olm-unwedge-failed devices=${E2eDebug.devices(deviceList.values.flatten())} " +
+                                                "error=${E2eDebug.error(failure)}"
                                     }
                                 }
                             }

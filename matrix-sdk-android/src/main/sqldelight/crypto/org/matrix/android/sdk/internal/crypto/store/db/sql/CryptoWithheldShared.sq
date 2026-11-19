@@ -19,7 +19,8 @@ CREATE TABLE shared_session (
     user_id TEXT,
     device_id TEXT,
     device_identity_key TEXT,
-    chain_index INTEGER
+    chain_index INTEGER,
+    needs_reshare INTEGER
 );
 
 CREATE INDEX shared_session_session_id ON shared_session(session_id);
@@ -62,5 +63,9 @@ SELECT * FROM shared_session
 WHERE room_id IS ? AND session_id = ? AND algorithm = ?;
 
 sharedInsert:
-INSERT INTO shared_session(room_id, algorithm, session_id, user_id, device_id, device_identity_key, chain_index)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO shared_session(room_id, algorithm, session_id, user_id, device_id, device_identity_key, chain_index, needs_reshare)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- A device that opened a new Olm session to us may have lost the room keys sent over the old one.
+sharedFlagReshareForIdentityKey:
+UPDATE shared_session SET needs_reshare = 1 WHERE device_identity_key = ?;

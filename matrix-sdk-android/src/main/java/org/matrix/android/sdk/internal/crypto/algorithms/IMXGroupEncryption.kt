@@ -30,25 +30,7 @@ internal interface IMXGroupEncryption {
      * discard historical conversations, by winding forward any stored ratchet values,
      * or discarding sessions altogether.
      */
-    fun discardSessionKey()
+    suspend fun discardSessionKey()
 
     suspend fun preshareKey(userIds: List<String>)
-
-    /**
-     * Re-shares a session key with devices if the key has already been
-     * sent to them.
-     *
-     * @param groupSessionId The id of the outbound session to share.
-     * @param userId The id of the user who owns the target device.
-     * @param deviceId The id of the target device.
-     * @param senderKey The key of the originating device for the session.
-     *
-     * @return true in case of success
-     */
-    suspend fun reshareKey(
-            groupSessionId: String,
-            userId: String,
-            deviceId: String,
-            senderKey: String
-    ): Boolean
 }

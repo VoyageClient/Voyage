@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.crypto
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -329,6 +330,7 @@ internal class MXOlmDevice @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.tag(loggerTag.value).e(e, "## createInboundSession() : the session creation failed")
+                DebugLog.w { "E2EDBG stage=olm-inbound-session-failed senderKey=$theirDeviceIdentityKey error=${E2eDebug.error(e)}" }
                 return null
             }
 
@@ -357,8 +359,16 @@ internal class MXOlmDevice @Inject constructor(
                 olmSessionWrapper.onMessageReceived(clock.epochMillis())
 
                 olmSessionStore.storeSession(olmSessionWrapper, theirDeviceIdentityKey)
+                // A new Olm session may mean the device could not decrypt the old one (it unwedged it), so
+                // room keys we sent over the old one are resent with our next message, as the Rust SDK does.
+                store.flagSharedSessionsForReshare(theirDeviceIdentityKey)
+                DebugLog.i {
+                    "E2EDBG stage=olm-inbound-session-created senderKey=$theirDeviceIdentityKey session=${olmSession.sessionIdentifier()} " +
+                            "-> room keys shared with this device will be resent"
+                }
             } catch (e: Exception) {
                 Timber.tag(loggerTag.value).e(e, "## createInboundSession() : decryptMessage failed")
+                DebugLog.w { "E2EDBG stage=olm-inbound-session-decrypt-failed senderKey=$theirDeviceIdentityKey error=${E2eDebug.error(e)}" }
             }
 
             val res = HashMap<String, String>()

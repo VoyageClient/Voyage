@@ -432,12 +432,22 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun deleteInviteAccepted(roomId: String) = bundleStore.deleteInviteAccepted(roomId)
 
-    override fun markedSessionAsShared(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String, chainIndex: Int) =
-            roomStore.markedSessionAsShared(roomId, sessionId, userId, deviceId, deviceIdentityKey, chainIndex)
+    override fun markedSessionAsShared(
+            roomId: String?,
+            sessionId: String,
+            userId: String,
+            deviceId: String,
+            deviceIdentityKey: String,
+            chainIndex: Int,
+            needsReshare: Boolean,
+    ) = roomStore.markedSessionAsShared(roomId, sessionId, userId, deviceId, deviceIdentityKey, chainIndex, needsReshare)
+
+    override fun flagSharedSessionsForReshare(deviceIdentityKey: String) = roomStore.flagSharedSessionsForReshare(deviceIdentityKey)
 
     override fun getSharedSessionInfo(roomId: String?, sessionId: String, deviceInfo: CryptoDeviceInfo): IMXCryptoStore.SharedSessionResult {
         val row = roomStore.getSharedSession(roomId, sessionId, deviceInfo.userId, deviceInfo.deviceId, deviceInfo.identityKey())
-        return if (row != null) IMXCryptoStore.SharedSessionResult(true, row.chain_index?.toInt()) else IMXCryptoStore.SharedSessionResult(false, null)
+                ?: return IMXCryptoStore.SharedSessionResult(false, null)
+        return IMXCryptoStore.SharedSessionResult(true, row.chain_index?.toInt(), row.needs_reshare == 1L)
     }
 
     override fun getSharedWithInfo(roomId: String?, sessionId: String): MXUsersDevicesMap<Int> {

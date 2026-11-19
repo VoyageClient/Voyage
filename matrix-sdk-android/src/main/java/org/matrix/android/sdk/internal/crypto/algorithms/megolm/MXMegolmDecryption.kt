@@ -18,6 +18,8 @@ package org.matrix.android.sdk.internal.crypto.algorithms.megolm
 
 import dagger.Lazy
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
@@ -28,6 +30,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.internal.crypto.E2eDebug
 import org.matrix.android.sdk.internal.crypto.MXOlmDevice
 import org.matrix.android.sdk.internal.crypto.OutgoingKeyRequestManager
 import org.matrix.android.sdk.internal.crypto.algorithms.IMXDecrypting
@@ -114,6 +117,7 @@ internal class MXMegolmDecryption(
                             }
                         },
                         { throwable ->
+                            traceDecryptionFailure(event, encryptedEventContent, roomId, sessionId, senderKey, throwable, requestKeysOnFail)
                             (throwable as? MXCryptoError)?.let { liveEventManager.get().dispatchLiveEventDecryptionFailed(event, it) }
                             if (throwable is MXCryptoError.OlmError) {
                                 // TODO Check the value of .message
@@ -176,6 +180,28 @@ internal class MXMegolmDecryption(
                 )
     }
 
+    private fun traceDecryptionFailure(
+            event: Event,
+            content: EncryptedEventContent,
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            throwable: Throwable,
+            requestKeys: Boolean,
+    ) {
+        if (!DebugLog.enabled) return
+        val firstKnownIndex = tryOrNull { olmDevice.getInboundGroupSession(sessionId, senderKey, roomId).wrapper.session.firstKnownIndex }
+        val withheld = cryptoStore.getWithHeldMegolmSession(roomId, sessionId)
+        val knownDevice = cryptoStore.deviceWithIdentityKey(senderKey)
+        DebugLog.w {
+            "E2EDBG stage=utd room=$roomId event=${event.eventId} sender=${event.senderId} senderDevice=${content.deviceId} " +
+                    "senderKey=$senderKey senderKeyKnownAs=${knownDevice?.let { "${it.userId}|${it.deviceId}" }} session=$sessionId " +
+                    "eventIndex=${E2eDebug.megolmMessageIndex(content.ciphertext)} " +
+                    "haveSessionFromIndex=${firstKnownIndex ?: "none"} withheld=${withheld?.let { "${it.code?.value}(${it.reason})" }} " +
+                    "keyRequest=$requestKeys error=${E2eDebug.error(throwable)}"
+        }
+    }
+
     /**
      * Helper for the real decryptEvent and for _retryDecryption. If
      * requestKeysOnFail is true, we'll send an m.room_key_request when we fail
@@ -217,12 +243,18 @@ internal class MXMegolmDecryption(
         val sessionKey = roomKeyContent.sessionKey
         if (roomId.isNullOrEmpty() || sessionId.isNullOrEmpty() || sessionKey.isNullOrEmpty()) {
             Timber.tag(loggerTag.value).e("onRoomKeyEvent() :  Key event is missing fields")
+            DebugLog.w { "E2EDBG stage=room-key-ignored reason=missing-fields from=${event.senderId} senderKey=$eventSenderKey" }
             return
+        }
+        DebugLog.i {
+            "E2EDBG stage=room-key-received type=${event.getDecryptedType()} room=$roomId session=$sessionId from=${event.senderId} " +
+                    "fromDevice=${fromDevice?.deviceId} senderKey=$eventSenderKey forced=$forceAccept"
         }
         if (event.getDecryptedType() == EventType.FORWARDED_ROOM_KEY) {
             if (!cryptoStore.isKeyGossipingEnabled()) {
                 Timber.tag(loggerTag.value)
                         .i("onRoomKeyEvent(), ignore forward adding as per crypto config : ${roomKeyContent.roomId}|${roomKeyContent.sessionId}")
+                DebugLog.w { "E2EDBG stage=room-key-ignored reason=key-gossiping-disabled room=$roomId session=$sessionId" }
                 return
             }
             Timber.tag(loggerTag.value).i("onRoomKeyEvent(), forward adding key : ${roomKeyContent.roomId}|${roomKeyContent.sessionId}")
@@ -264,6 +296,7 @@ internal class MXMegolmDecryption(
                 unrequestedForwardManager.onUnRequestedKeyForward(roomId, event, clock.epochMillis())
                 // Ignore unsolicited
                 Timber.tag(loggerTag.value).w("Ignoring forwarded_room_key_event for $sessionId that was not requested")
+                DebugLog.w { "E2EDBG stage=room-key-ignored reason=unrequested-forward-parked room=$roomId session=$sessionId" }
                 return
             }
 
@@ -271,6 +304,7 @@ internal class MXMegolmDecryption(
             val sessionThatIsSharing = cryptoStore.deviceWithIdentityKey(eventSenderKey)
             if (sessionThatIsSharing == null) {
                 Timber.tag(loggerTag.value).w("Ignoring forwarded_room_key from unknown device with identity $eventSenderKey")
+                DebugLog.w { "E2EDBG stage=room-key-ignored reason=forward-from-unknown-device room=$roomId session=$sessionId" }
                 return
             }
             val isOwnDevice = myUserId == sessionThatIsSharing.userId
@@ -286,6 +320,10 @@ internal class MXMegolmDecryption(
                 Timber.tag(loggerTag.value)
                         .w("Ignoring forwarded_room_key device:$eventSenderKey, ownVerified:{$isOwnDevice&&$isDeviceVerified}," +
                                 " fromInitiator:$isFromSessionInitiator")
+                DebugLog.w {
+                    "E2EDBG stage=room-key-ignored reason=forward-not-trusted room=$roomId session=$sessionId " +
+                            "ownDevice=$isOwnDevice verified=$isDeviceVerified fromInitiator=$isFromSessionInitiator"
+                }
                 return
             }
         } else {
@@ -310,6 +348,14 @@ internal class MXMegolmDecryption(
                 trusted = trusted
         ).also {
             Timber.tag(loggerTag.value).v(".. onRoomKeyEvent addInboundGroupSession ${roomKeyContent.sessionId} result: $it")
+            DebugLog.i {
+                val result = when (it) {
+                    is MXOlmDevice.AddSessionResult.Imported -> "imported(fromIndex=${it.ratchetIndex})"
+                    is MXOlmDevice.AddSessionResult.NotImportedHigherIndex -> "kept-existing(offeredIndex=${it.newIndex})"
+                    else -> "not-imported"
+                }
+                "E2EDBG stage=room-key-stored room=$roomId session=$sessionId initiatorKey=$sessionInitiatorSenderKey result=$result"
+            }
         }
 
         when (addSessionResult) {

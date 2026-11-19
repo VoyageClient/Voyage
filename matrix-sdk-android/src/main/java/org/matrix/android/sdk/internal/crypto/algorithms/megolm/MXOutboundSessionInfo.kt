@@ -34,44 +34,47 @@ internal class MXOutboundSessionInfo(
     // Number of times this session has been used
     var useCount: Int = 0
 
-    fun needsRotation(rotationPeriodMsgs: Int, rotationPeriodMs: Int): Boolean {
-        var needsRotation = false
+    private val withheldNoticesSent = HashSet<String>()
+
+    /** @return why the session must be replaced, or null if it can still be used. */
+    fun rotationReason(rotationPeriodMsgs: Long, rotationPeriodMs: Long): String? {
         val sessionLifetime = clock.epochMillis() - creationTime
-
-        if (useCount >= rotationPeriodMsgs || sessionLifetime >= rotationPeriodMs) {
-            Timber.v("## needsRotation() : Rotating megolm session after $useCount, ${sessionLifetime}ms")
-            needsRotation = true
-        }
-
-        return needsRotation
+        return when {
+            useCount >= rotationPeriodMsgs -> "used $useCount/$rotationPeriodMsgs times"
+            sessionLifetime >= rotationPeriodMs -> "${sessionLifetime}ms old (limit ${rotationPeriodMs}ms)"
+            else -> null
+        }?.also { Timber.v("## rotationReason() : Rotating megolm session, $it") }
     }
 
     /**
      * Determine if this session has been shared with devices which it shouldn't have been.
      *
      * @param devicesInRoom the devices map
-     * @return true if we have shared the session with devices which aren't in devicesInRoom.
+     * @return the first user or user|device we shared the session with that is no longer in devicesInRoom, or null.
      */
-    fun sharedWithTooManyDevices(devicesInRoom: MXUsersDevicesMap<CryptoDeviceInfo>): Boolean {
+    fun sharedWithDeviceNoLongerInRoom(devicesInRoom: MXUsersDevicesMap<CryptoDeviceInfo>): String? {
         val sharedWithDevices = sharedWithHelper.sharedWithDevices()
         val userIds = sharedWithDevices.userIds
 
         for (userId in userIds) {
             if (null == devicesInRoom.getUserDeviceIds(userId)) {
-                Timber.v("## sharedWithTooManyDevices() : Starting new session because we shared with $userId")
-                return true
+                Timber.v("## sharedWithDeviceNoLongerInRoom() : Starting new session because we shared with $userId")
+                return userId
             }
 
             val deviceIds = sharedWithDevices.getUserDeviceIds(userId)
 
             for (deviceId in deviceIds!!) {
                 if (null == devicesInRoom.getObject(userId, deviceId)) {
-                    Timber.v("## sharedWithTooManyDevices() : Starting new session because we shared with $userId:$deviceId")
-                    return true
+                    Timber.v("## sharedWithDeviceNoLongerInRoom() : Starting new session because we shared with $userId:$deviceId")
+                    return "$userId|$deviceId"
                 }
             }
         }
 
-        return false
+        return null
     }
+
+    /** True the first time a withheld code is reported for this device in this session. */
+    fun takeWithheldNotice(userId: String, deviceId: String, code: String): Boolean = withheldNoticesSent.add("$userId|$deviceId|$code")
 }

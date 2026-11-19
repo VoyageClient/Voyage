@@ -20,9 +20,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
+import org.matrix.android.sdk.internal.crypto.E2eDebug
 import org.matrix.android.sdk.internal.crypto.MXOlmDevice
 import org.matrix.android.sdk.internal.crypto.model.MXKey
 import org.matrix.android.sdk.internal.crypto.model.MXOlmSessionResult
@@ -39,7 +41,8 @@ private val loggerTag = LoggerTag("EnsureOlmSessionsForDevicesAction", LoggerTag
 internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
         private val olmDevice: MXOlmDevice,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
-        private val oneTimeKeysForUsersDeviceTask: ClaimOneTimeKeysForUsersDeviceTask
+        private val oneTimeKeysForUsersDeviceTask: ClaimOneTimeKeysForUsersDeviceTask,
+        private val olmSessionFailures: OlmSessionFailures,
 ) {
 
     private val ensureMutex = Mutex()
@@ -70,10 +73,18 @@ internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
                     // is there a session that as been already used?
                     val sessionId = olmDevice.getSessionId(key)
                     if (sessionId.isNullOrEmpty()) {
+                        if (olmSessionFailures.isBackingOff(deviceInfo)) {
+                            DebugLog.i {
+                                "E2EDBG stage=olm-claim-backoff device=${E2eDebug.device(deviceInfo)} " +
+                                        "retryInMs=${olmSessionFailures.retryInMillis(deviceInfo)}"
+                            }
+                            return@forEach
+                        }
                         Timber.tag(loggerTag.value).d("Found no existing olm session ${deviceInfo.shortDebugString()} add to claim list")
                         devicesToCreateSessionWith.add(deviceInfo)
                     } else {
                         Timber.tag(loggerTag.value).d("using olm session $sessionId for (${deviceInfo.userId}|$deviceId)")
+                        olmSessionFailures.onSuccess(deviceInfo)
                         val olmSessionResult = MXOlmSessionResult(deviceInfo, sessionId)
                         results.setObject(userId, deviceId, olmSessionResult)
                     }
@@ -84,6 +95,7 @@ internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
                 // no session to create
                 return results
             }
+            DebugLog.i { "E2EDBG stage=olm-claim forced=$force devices=${E2eDebug.devices(devicesToCreateSessionWith)}" }
             val usersDevicesToClaim = MXUsersDevicesMap<String>().apply {
                 devicesToCreateSessionWith.forEach {
                     setObject(it.userId, it.deviceId, MXKey.KEY_SIGNED_CURVE_25519_TYPE)
@@ -92,8 +104,16 @@ internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
 
             // Let's now claim one time keys
             val claimParams = ClaimOneTimeKeysForUsersDeviceTask.Params(usersDevicesToClaim.map)
-            val oneTimeKeysForUsers = withContext(coroutineDispatchers.io) {
-                oneTimeKeysForUsersDeviceTask.executeRetry(claimParams, ONE_TIME_KEYS_RETRY_COUNT)
+            val oneTimeKeysForUsers = try {
+                withContext(coroutineDispatchers.io) {
+                    oneTimeKeysForUsersDeviceTask.executeRetry(claimParams, ONE_TIME_KEYS_RETRY_COUNT)
+                }
+            } catch (failure: Throwable) {
+                DebugLog.w { "E2EDBG stage=olm-claim-failed devices=${E2eDebug.devices(devicesToCreateSessionWith)} error=${E2eDebug.error(failure)}" }
+                throw failure
+            }
+            oneTimeKeysForUsers.failures?.takeIf { it.isNotEmpty() }?.let { failures ->
+                DebugLog.w { "E2EDBG stage=olm-claim-server-failures servers=${failures.keys}" }
             }
             val oneTimeKeys = MXUsersDevicesMap<MXKey>()
             for ((userId, mapByUserId) in oneTimeKeysForUsers.oneTimeKeys.orEmpty()) {
@@ -113,19 +133,33 @@ internal class EnsureOlmSessionsForDevicesAction @Inject constructor(
                 val deviceId = deviceInfo.deviceId
                 // Did we get an OTK
                 val oneTimeKey = oneTimeKeys.getObject(userId, deviceId)
-                if (oneTimeKey == null) {
+                val failure = if (oneTimeKey == null) {
                     Timber.tag(loggerTag.value).d("No otk for ${deviceInfo.shortDebugString()}")
+                    "no-one-time-key"
                 } else if (oneTimeKey.type != MXKey.KEY_SIGNED_CURVE_25519_TYPE) {
                     Timber.tag(loggerTag.value).d("Bad otk type (${oneTimeKey.type}) for ${deviceInfo.shortDebugString()}")
+                    "bad-key-type(${oneTimeKey.type})"
                 } else {
                     val olmSessionId = verifyKeyAndStartSession(oneTimeKey, userId, deviceInfo)
                     if (olmSessionId != null) {
                         val olmSessionResult = MXOlmSessionResult(deviceInfo, olmSessionId)
                         results.setObject(userId, deviceId, olmSessionResult)
+                        null
                     } else {
                         Timber
                                 .tag(loggerTag.value)
                                 .d("## CRYPTO | cant unwedge failed to create outbound ${deviceInfo.shortDebugString()}")
+                        "session-creation-failed"
+                    }
+                }
+                if (failure == null) {
+                    olmSessionFailures.onSuccess(deviceInfo)
+                    DebugLog.i { "E2EDBG stage=olm-session-created device=${E2eDebug.device(deviceInfo)} forced=$force" }
+                } else {
+                    olmSessionFailures.onFailure(deviceInfo)
+                    DebugLog.w {
+                        "E2EDBG stage=olm-session-unavailable device=${E2eDebug.device(deviceInfo)} reason=$failure " +
+                                "nextRetryInMs=${olmSessionFailures.retryInMillis(deviceInfo)}"
                     }
                 }
             }

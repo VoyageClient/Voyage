@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.sync.handler
 
 import dagger.Lazy
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_OLM
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
@@ -28,6 +29,7 @@ import org.matrix.android.sdk.api.session.events.model.content.OlmEventContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.internal.crypto.DefaultCryptoService
+import org.matrix.android.sdk.internal.crypto.E2eDebug
 import org.matrix.android.sdk.internal.crypto.tasks.toDeviceTracingId
 import org.matrix.android.sdk.internal.crypto.verification.DefaultVerificationService
 import org.matrix.android.sdk.internal.session.sync.ProgressReporter
@@ -55,6 +57,13 @@ internal class CryptoSyncHandler @Inject constructor(
                         Timber.tag(loggerTag.value).e("handleToDeviceEvent() : Warning: Unable to decrypt to-device event : ${event.content}")
                     } else {
                         Timber.tag(loggerTag.value).d("received to-device ${event.getClearType()} from:${event.senderId} msgid:${event.toDeviceTracingId()}")
+                        if (event.isEncrypted() && event.mxDecryptionResult != null) {
+                            DebugLog.i {
+                                val note = if (event.getClearType() == EventType.DUMMY) " -> sender recreated its Olm session with us" else ""
+                                "E2EDBG stage=to-device-decrypted type=${event.getClearType()} from=${event.senderId} " +
+                                        "senderKey=${event.content.toModel<OlmEventContent>()?.senderKey} msgid=${event.toDeviceTracingId()}$note"
+                            }
+                        }
                         verificationService.onToDeviceEvent(event)
                         cryptoService.get().onToDeviceEvent(event)
                     }
@@ -104,8 +113,13 @@ internal class CryptoSyncHandler @Inject constructor(
                     it.identityKey() == senderKey
                 }?.deviceId ?: senderKey
                 Timber.e("## CRYPTO | Failed to decrypt to device event from ${event.senderId}|$deviceId reason:<${event.mCryptoError ?: exception}>")
+                DebugLog.w {
+                    "E2EDBG stage=to-device-utd from=${event.senderId}|$deviceId senderKey=$senderKey msgid=${event.toDeviceTracingId()} " +
+                            "error=${E2eDebug.error(exception)} -> anything it carried (room key, secret, verification) is lost"
+                }
             } catch (failure: Throwable) {
                 Timber.e(failure, "## CRYPTO | Failed to decrypt to device event from ${event.senderId}")
+                DebugLog.w { "E2EDBG stage=to-device-utd from=${event.senderId} msgid=${event.toDeviceTracingId()} error=${E2eDebug.error(failure)}" }
             }
 
             if (null != result) {

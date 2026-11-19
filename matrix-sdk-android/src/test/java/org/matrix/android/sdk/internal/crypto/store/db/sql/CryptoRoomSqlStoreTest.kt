@@ -83,11 +83,38 @@ class CryptoRoomSqlStoreTest {
 
     @Test
     fun `shared session mark and lookup`() {
-        store.markedSessionAsShared("!r:hs", "sess1", "@b:hs", "DEV", "ik1", 5)
+        store.markedSessionAsShared("!r:hs", "sess1", "@b:hs", "DEV", "ik1", 5, needsReshare = false)
 
         store.getSharedSession("!r:hs", "sess1", "@b:hs", "DEV", "ik1")!!.chain_index shouldBeEqualTo 5L
         store.getSharedSession("!r:hs", "sess1", "@b:hs", "DEV", "other") shouldBe null
         store.getSharedSessions("!r:hs", "sess1").size shouldBeEqualTo 1
+    }
+
+    @Test
+    fun `a pending share keeps its index once delivered`() {
+        store.markedSessionAsShared("!r:hs", "sess1", "@b:hs", "DEV", "ik1", 3, needsReshare = true)
+        store.getSharedSession("!r:hs", "sess1", "@b:hs", "DEV", "ik1")!!.needs_reshare shouldBeEqualTo 1L
+
+        store.markedSessionAsShared("!r:hs", "sess1", "@b:hs", "DEV", "ik1", 7, needsReshare = false)
+
+        store.getSharedSession("!r:hs", "sess1", "@b:hs", "DEV", "ik1")!!.let {
+            it.chain_index shouldBeEqualTo 3L
+            it.needs_reshare shouldBeEqualTo 0L
+        }
+        store.getSharedSessions("!r:hs", "sess1").size shouldBeEqualTo 1
+    }
+
+    @Test
+    fun `a new Olm session flags every share to that device only`() {
+        store.markedSessionAsShared("!r:hs", "sess1", "@b:hs", "DEV", "ik1", 0, needsReshare = false)
+        store.markedSessionAsShared("!r2:hs", "sess2", "@b:hs", "DEV", "ik1", 4, needsReshare = false)
+        store.markedSessionAsShared("!r:hs", "sess1", "@c:hs", "OTHER", "ik2", 0, needsReshare = false)
+
+        store.flagSharedSessionsForReshare("ik1")
+
+        store.getSharedSession("!r:hs", "sess1", "@b:hs", "DEV", "ik1")!!.needs_reshare shouldBeEqualTo 1L
+        store.getSharedSession("!r2:hs", "sess2", "@b:hs", "DEV", "ik1")!!.needs_reshare shouldBeEqualTo 1L
+        store.getSharedSession("!r:hs", "sess1", "@c:hs", "OTHER", "ik2")!!.needs_reshare shouldBeEqualTo 0L
     }
 
     @Test

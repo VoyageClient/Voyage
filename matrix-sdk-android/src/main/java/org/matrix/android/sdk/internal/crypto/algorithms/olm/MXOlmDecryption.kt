@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.crypto.algorithms.olm
 
 import kotlinx.coroutines.sync.withLock
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
@@ -232,6 +233,9 @@ internal class MXOlmDecryption(
                     // Decryption failed, but it was a prekey message matching this
                     // session, so it should have worked.
                     Timber.tag(loggerTag.value).e("## decryptMessage() : Error decrypting prekey message with existing session id $sessionId:TODO")
+                    DebugLog.w {
+                        "E2EDBG stage=olm-decrypt-failed senderKey=$theirDeviceIdentityKey reason=prekey-matched-session-but-failed session=$sessionId"
+                    }
                     return null
                 }
             }
@@ -245,6 +249,10 @@ internal class MXOlmDecryption(
                 Timber.tag(loggerTag.value).e("## decryptMessage() : No existing sessions")
             } else {
                 Timber.tag(loggerTag.value).e("## decryptMessage() : Error decrypting non-prekey message with existing sessions")
+            }
+            DebugLog.w {
+                "E2EDBG stage=olm-decrypt-failed senderKey=$theirDeviceIdentityKey reason=no-session-matches type=$messageType " +
+                        "sessionsTried=${sessionIds.size} -> the sender's Olm session with us is wedged"
             }
 
             return null

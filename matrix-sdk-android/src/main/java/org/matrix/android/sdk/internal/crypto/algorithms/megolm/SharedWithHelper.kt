@@ -30,14 +30,15 @@ internal class SharedWithHelper(
         return cryptoStore.getSharedWithInfo(roomId, sessionId)
     }
 
-    fun markedSessionAsShared(deviceInfo: CryptoDeviceInfo, chainIndex: Int) {
+    fun markedSessionAsShared(deviceInfo: CryptoDeviceInfo, chainIndex: Int, needsReshare: Boolean) {
         cryptoStore.markedSessionAsShared(
                 roomId = roomId,
                 sessionId = sessionId,
                 userId = deviceInfo.userId,
                 deviceId = deviceInfo.deviceId,
                 deviceIdentityKey = deviceInfo.identityKey() ?: "",
-                chainIndex = chainIndex
+                chainIndex = chainIndex,
+                needsReshare = needsReshare,
         )
     }
 }

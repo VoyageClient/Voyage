@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.OutgoingKeyRequest
@@ -449,6 +450,7 @@ internal class OutgoingKeyRequestManager @Inject constructor(
             if (knownIndex != null && knownIndex <= request.fromIndex) {
                 // we found the key in backup with good enough index, so we can just mark as cancelled, no need to send request
                 Timber.tag(loggerTag.value).v("Megolm session $sessionId successfully restored from backup, do not send request")
+                DebugLog.i { "E2EDBG stage=key-from-backup room=$roomId session=$sessionId fromIndex=$knownIndex neededIndex=${request.fromIndex}" }
                 cryptoStore.deleteOutgoingRoomKeyRequest(request.requestId)
                 return
             }
@@ -478,11 +480,16 @@ internal class OutgoingKeyRequestManager @Inject constructor(
                 sendToDeviceTask.executeRetry(params, 3)
             }
             Timber.tag(loggerTag.value).d("Key request sent for $sessionId in room $roomId to ${request.recipients}")
+            DebugLog.i {
+                "E2EDBG stage=key-request-sent room=$roomId session=$sessionId neededIndex=${request.fromIndex} " +
+                        "senderKey=${request.requestBody?.senderKey} to=${request.recipients}"
+            }
             // The request was sent, so update state
             cryptoStore.updateOutgoingRoomKeyRequestState(request.requestId, OutgoingRoomKeyRequestState.SENT)
             // TODO update the audit trail
         } catch (failure: Throwable) {
             Timber.tag(loggerTag.value).v("Failed to request $sessionId targets:${request.recipients}")
+            DebugLog.w { "E2EDBG stage=key-request-send-failed room=$roomId session=$sessionId error=${E2eDebug.error(failure)}" }
         }
     }
 

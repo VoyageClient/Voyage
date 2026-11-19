@@ -99,7 +99,15 @@ internal class CryptoRoomSqlStore(private val database: CryptoSqlDatabase) {
 
     // ==================== Shared sessions ====================
 
-    fun markedSessionAsShared(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String, chainIndex: Int) {
+    fun markedSessionAsShared(
+            roomId: String?,
+            sessionId: String,
+            userId: String,
+            deviceId: String,
+            deviceIdentityKey: String,
+            chainIndex: Int,
+            needsReshare: Boolean,
+    ) {
         // Replace rather than append: the table has no unique constraint, so re-sharing a session to
         // the same device would otherwise accumulate a row per share. The earliest index is kept —
         // a device that received the session at index 5 can still decrypt from 5 after a re-share.
@@ -110,9 +118,13 @@ internal class CryptoRoomSqlStore(private val database: CryptoSqlDatabase) {
                     ?.chain_index
             val earliest = minOf(chainIndex.toLong(), existing ?: Long.MAX_VALUE)
             wsQueries.sharedDeleteExact(roomId, sessionId, MXCRYPTO_ALGORITHM_MEGOLM, userId, deviceId, deviceIdentityKey)
-            wsQueries.sharedInsert(roomId, MXCRYPTO_ALGORITHM_MEGOLM, sessionId, userId, deviceId, deviceIdentityKey, earliest)
+            wsQueries.sharedInsert(
+                    roomId, MXCRYPTO_ALGORITHM_MEGOLM, sessionId, userId, deviceId, deviceIdentityKey, earliest, if (needsReshare) 1L else 0L
+            )
         }
     }
+
+    fun flagSharedSessionsForReshare(deviceIdentityKey: String) = wsQueries.sharedFlagReshareForIdentityKey(deviceIdentityKey)
 
     fun getSharedSession(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String?): Shared_session? =
             wsQueries.sharedSelectExact(roomId, sessionId, MXCRYPTO_ALGORITHM_MEGOLM, userId, deviceId, deviceIdentityKey).executeAsOneOrNull()
