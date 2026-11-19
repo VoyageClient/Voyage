@@ -71,6 +71,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
+import org.matrix.android.sdk.api.session.room.model.toContentOver
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
@@ -117,6 +118,9 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     } else {
         null
     }
+
+    private fun currentPowerLevels(): Content? =
+            room?.stateService()?.getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)?.content
 
     init {
         PerfTrace.time("member.profile.vm.init") {
@@ -766,7 +770,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         } else {
             val newPowerLevelsContent = (roomPowerLevels.powerLevelsContent ?: PowerLevelsContent())
                     .setUserPowerLevel(state.userId, action.newValue.value)
-                    .toContent()
+                    .toContentOver(currentPowerLevels())
             viewModelScope.launch {
                 _viewEvents.post(RoomMemberProfileViewEvents.Loading())
                 try {
@@ -830,7 +834,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         if (room == null) return@withState
         val userId = initialState.userId
         val restoreLevel = MuteLevels.levelToRestore(content, userId, state.muteRestore)
-        val mutedContent = content.setUserPowerLevel(userId, MuteLevels.mutedLevel(content)).toContent()
+        val mutedContent = content.setUserPowerLevel(userId, MuteLevels.mutedLevel(content)).toContentOver(currentPowerLevels())
         viewModelScope.launch {
             _viewEvents.post(RoomMemberProfileViewEvents.Loading())
             try {
@@ -855,7 +859,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun handleUnmuteAction() = withState { state ->
         val content = state.roomPowerLevels?.powerLevelsContent ?: return@withState
         if (room == null) return@withState
-        val newContent = content.setUserPowerLevel(initialState.userId, MuteLevels.unmuteLevel(content, state.muteRestore)).toContent()
+        val newContent = content.setUserPowerLevel(initialState.userId, MuteLevels.unmuteLevel(content, state.muteRestore))
+                .toContentOver(currentPowerLevels())
         viewModelScope.launch {
             _viewEvents.post(RoomMemberProfileViewEvents.Loading())
             try {

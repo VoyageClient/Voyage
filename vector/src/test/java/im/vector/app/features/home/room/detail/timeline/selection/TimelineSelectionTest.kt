@@ -84,9 +84,15 @@ class TimelineSelectionTest {
     fun `unsent and non-message events are not selectable`() {
         TimelineSelection.isSelectable(anEvent("\$a", sendState = SendState.SENDING)) shouldBeEqualTo false
         TimelineSelection.isSelectable(anEvent("\$b", type = EventType.STATE_ROOM_NAME)) shouldBeEqualTo false
-        TimelineSelection.isSelectable(anEvent("\$poll", type = EventType.POLL_START.unstable)) shouldBeEqualTo false
         TimelineSelection.isSelectable(anEvent("\$c")) shouldBeEqualTo true
         TimelineSelection.isSelectable(anEvent("\$sticker", type = EventType.STICKER)) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `polls and undecryptable messages are selectable`() {
+        TimelineSelection.isSelectable(anEvent("\$poll", type = EventType.POLL_START.unstable)) shouldBeEqualTo true
+        TimelineSelection.isSelectable(anEvent("\$ended", type = EventType.POLL_END.stable)) shouldBeEqualTo true
+        TimelineSelection.isSelectable(anEvent("\$utd", type = EventType.ENCRYPTED)) shouldBeEqualTo true
     }
 
     private fun anEvent(

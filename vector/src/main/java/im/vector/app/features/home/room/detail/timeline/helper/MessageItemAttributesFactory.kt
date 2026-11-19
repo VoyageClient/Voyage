@@ -59,7 +59,10 @@ class MessageItemAttributesFactory @Inject constructor(
                 emojiTypeFace = emojiCompatFontProvider.typeface,
                 decryptionErrorMessage = stringProvider.getString(CommonStrings.encrypted_message),
                 // Keep the spans: toString() would leave each pill as the bare placeholder char it draws over.
-                threadSummaryFormatted = displayableEventFormatter.formatThreadSummary(threadDetails?.threadSummaryLatestEvent),
+                threadSummaryFormatted = displayableEventFormatter.formatThreadSummary(
+                        event = threadDetails?.threadSummaryLatestEvent,
+                        sender = threadDetails?.threadSummarySenderInfo,
+                ),
                 threadSummaryRedacted = threadDetails?.threadSummaryLatestEvent?.isRedacted() == true,
                 threadDetails = threadDetails,
                 reactionsSummaryEvents = reactionsSummaryEvents,

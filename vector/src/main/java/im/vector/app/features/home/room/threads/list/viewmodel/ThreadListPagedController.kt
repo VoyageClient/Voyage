@@ -45,11 +45,13 @@ class ThreadListPagedController @Inject constructor(
         // leave a bare tofu where the mention should be.
         val lastMessageFormatted = displayableEventFormatter.formatThreadSummary(
                 event = item.latestEvent,
-                latestEdition = item.threadEditions.latestThreadEdition
+                latestEdition = item.threadEditions.latestThreadEdition,
+                sender = item.latestThreadSenderInfo,
         )
         val rootMessageFormatted = displayableEventFormatter.formatThreadSummary(
                 event = item.rootEvent,
-                latestEdition = item.threadEditions.rootThreadEdition
+                latestEdition = item.threadEditions.rootThreadEdition,
+                sender = item.rootThreadSenderInfo,
         )
 
         return ThreadListItem_()

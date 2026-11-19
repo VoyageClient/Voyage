@@ -34,6 +34,7 @@ import im.vector.app.features.share.forwardedSenderDisplayName
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -65,8 +66,10 @@ class ForwardedMessagePresenter @Inject constructor(
     )
 
     /** Null when [event] isn't a forward. */
-    fun describe(event: TimelineEvent): Description? {
-        val content = event.root.getClearContent()
+    fun describe(event: TimelineEvent): Description? = describe(event.root)
+
+    fun describe(event: Event): Description? {
+        val content = event.getClearContent()
         if (!content.isForward()) return null
         val info = content.getForwardedInfo()
         val session = activeSessionHolder.get().getSafeActiveSession()
@@ -189,8 +192,11 @@ class ForwardedMessagePresenter @Inject constructor(
     }
 
     /** [body] as an emote, by the original sender when [event] is a forward and otherwise by [ownName]. */
-    fun emoteBody(event: TimelineEvent, body: CharSequence, ownName: CharSequence, ownItem: MatrixItem): CharSequence {
-        val origin = origin(event) ?: return body.asEmoteBody(ownName, SenderNameSpan(ownItem, matrixItemColorProvider))
+    fun emoteBody(event: TimelineEvent, body: CharSequence, ownName: CharSequence, ownItem: MatrixItem): CharSequence =
+            emoteBody(event.root, body, ownName, ownItem)
+
+    fun emoteBody(event: Event, body: CharSequence, ownName: CharSequence, ownItem: MatrixItem): CharSequence {
+        val origin = describe(event)?.origin ?: return body.asEmoteBody(ownName, SenderNameSpan(ownItem, matrixItemColorProvider))
         return body.asEmoteBody(origin.name, origin.user?.let { SenderNameSpan(it, matrixItemColorProvider) }, boldSender = true)
     }
 

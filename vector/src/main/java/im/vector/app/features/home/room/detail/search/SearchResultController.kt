@@ -40,6 +40,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.room.model.EditAggregatedSummary
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -165,10 +166,10 @@ class SearchResultController @Inject constructor(
             }
             lastDate = eventDate
 
-            val timelineEvent = event.toTimelineEvent(
+            val timelineEvent = (data.originals[eventId] ?: event).toTimelineEvent(
                     eventAndSender.sender?.displayName,
                     eventAndSender.sender?.avatarUrl,
-                    data.pollSummaries[eventId],
+                    data.annotations[eventId].withEdit(data.fetchedEdits[eventId]),
             )
             val params = TimelineItemFactoryParams(
                     event = timelineEvent,
@@ -181,6 +182,17 @@ class SearchResultController @Inject constructor(
             model.id("search-$eventId")
             model.addTo(this)
         }
+    }
+
+    private fun EventAnnotationsSummary?.withEdit(edit: Event?): EventAnnotationsSummary? {
+        if (edit == null || this?.editSummary != null) return this
+        val summary = EditAggregatedSummary(
+                latestEdit = edit,
+                sourceEvents = listOfNotNull(edit.eventId),
+                localEchos = emptyList(),
+                lastEditTs = edit.originServerTs ?: 0L,
+        )
+        return (this ?: EventAnnotationsSummary()).copy(editSummary = summary)
     }
 
     private fun Calendar.isSameDayAs(other: Calendar) =

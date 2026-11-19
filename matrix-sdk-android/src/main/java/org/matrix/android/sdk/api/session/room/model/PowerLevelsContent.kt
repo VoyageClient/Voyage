@@ -18,6 +18,8 @@ package org.matrix.android.sdk.api.session.room.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent.Companion.NOTIFICATIONS_ROOM_KEY
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 
@@ -125,3 +127,11 @@ fun PowerLevelsContent?.usersDefaultOrDefault() = this?.usersDefault ?: UserPowe
 fun PowerLevelsContent?.stateDefaultOrDefault() = this?.stateDefault ?: UserPowerLevel.Moderator.value
 
 fun PowerLevelsContent?.notificationLevelOrDefault(key: String) = this?.notificationLevel(key) ?: defaultNotificationLevel(key)
+
+internal val POWER_LEVELS_CONTENT_KEYS = setOf(
+        "ban", "kick", "invite", "redact", "events_default", "events", "users_default", "users", "state_default", "notifications",
+)
+
+/** This content laid over [current], keeping the keys the model doesn't know rather than deleting them from the room. */
+fun PowerLevelsContent.toContentOver(current: Content?): Content =
+        current.orEmpty().filterKeys { it !in POWER_LEVELS_CONTENT_KEYS } + toContent()

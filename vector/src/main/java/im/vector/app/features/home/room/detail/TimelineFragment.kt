@@ -169,6 +169,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.item.MessageLocationItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
+import im.vector.app.features.home.room.detail.timeline.item.PollItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
@@ -267,8 +268,10 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
@@ -2669,6 +2672,7 @@ class TimelineFragment :
             is MessageImageVideoItem,
             is MessageGalleryItem,
             is MessageTextItem,
+            is PollItem,
             is MessageLocationItem -> (model as AbsMessageItem<*>).attributes.informationData
             else -> return null
         }
@@ -2891,7 +2895,7 @@ class TimelineFragment :
 
     private fun onShareActionClicked(action: EventSharedAction.Share) {
         when (action.messageContent) {
-            is MessageTextContent -> shareText(requireContext(), action.messageContent.body)
+            is MessageTextContent, is MessageEmoteContent, is MessageNoticeContent -> shareText(requireContext(), action.messageContent.body)
             is MessageLocationContent -> {
                 action.messageContent.toLocationData()?.let {
                     openLocation(requireActivity(), it.latitude, it.longitude)

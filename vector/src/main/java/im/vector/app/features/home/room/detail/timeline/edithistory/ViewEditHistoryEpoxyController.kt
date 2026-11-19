@@ -66,9 +66,11 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 import org.matrix.android.sdk.api.util.TextContent
 import java.util.Calendar
@@ -233,7 +235,11 @@ class ViewEditHistoryEpoxyController @Inject constructor(
                 ?.let { @Suppress("UNCHECKED_CAST") (it as Map<String, Any>) }
                 ?: getClearContent()
                 ?: return null
-        val messageContent = if (type == EventType.STICKER) content.toModel<MessageStickerContent>() else content.toModel<MessageContent>()
+        val messageContent = when (type) {
+            EventType.STICKER -> content.toModel<MessageStickerContent>()
+            EventType.MESSAGE -> content.toMessageContentWithFallbacks()
+            else -> content.toModel<MessageContent>()
+        }
         messageContent ?: return null
         val root = Event(
                 type = type,
@@ -343,11 +349,7 @@ class ViewEditHistoryEpoxyController @Inject constructor(
     }
 
     private fun TimelineEvent.carriesMedia(): Boolean {
-        val content = if (root.getClearType() == EventType.STICKER) {
-            root.getClearContent().toModel<MessageStickerContent>()
-        } else {
-            root.getClearContent().toModel<MessageContent>()
-        }
+        val content = getLastMessageContent()
         return content is MessageWithAttachmentContent || content is MessageGalleryContent
     }
 

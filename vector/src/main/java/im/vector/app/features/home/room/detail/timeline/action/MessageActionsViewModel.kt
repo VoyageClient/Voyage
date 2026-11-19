@@ -646,7 +646,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_POLL_END,
             MessageType.MSGTYPE_STICKER_LOCAL -> event.root.threadDetails?.isRootThread ?: false
-            else -> false
+            else -> messageContent.isUnknownWithBody() && event.root.threadDetails?.isRootThread == true
         }
     }
 
@@ -725,6 +725,7 @@ internal fun TimelineEvent.canBeEditedBy(myUserId: String, canSendMessage: Boole
     return when (messageContent?.msgType) {
         MessageType.MSGTYPE_TEXT,
         MessageType.MSGTYPE_EMOTE,
+        MessageType.MSGTYPE_NOTICE,
         // Media: edit/add a caption.
         MessageType.MSGTYPE_IMAGE,
         MessageType.MSGTYPE_VIDEO,

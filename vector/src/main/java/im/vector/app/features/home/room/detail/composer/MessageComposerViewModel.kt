@@ -90,7 +90,6 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
-import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
@@ -104,6 +103,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
+import org.matrix.android.sdk.api.session.room.model.toContentOver
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
@@ -1707,11 +1707,11 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleSetUserPowerLevel(room: Room, setUserPowerLevel: ParsedCommand.SetUserPowerLevel) {
-        val newPowerLevelsContent = room.getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)
-                ?.content
+        val current = room.getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)?.content
+        val newPowerLevelsContent = current
                 ?.toModel<PowerLevelsContent>()
                 ?.setUserPowerLevel(setUserPowerLevel.userId, setUserPowerLevel.powerLevel)
-                ?.toContent()
+                ?.toContentOver(current)
                 ?: return
 
         launchSlashCommandFlowSuspendable(room, setUserPowerLevel) {
@@ -1830,20 +1830,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun getMyRoomMemberContent(room: Room): RoomMemberContent? {
-        return room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(session.myUserId))
-                ?.content
-                ?.toModel<RoomMemberContent>()
-    }
-
     private fun handleChangeDisplayNameForRoomSlashCommand(room: Room, changeDisplayName: ParsedCommand.ChangeDisplayNameForRoom) {
         launchSlashCommandFlowSuspendable(room, changeDisplayName) {
-            getMyRoomMemberContent(room)
-                    ?.copy(displayName = changeDisplayName.displayName)
-                    ?.toContent()
-                    ?.let {
-                        room.stateService().sendStateEvent(EventType.STATE_ROOM_MEMBER, session.myUserId, it)
-                    }
+            room.stateService().updateMyRoomDisplayName(changeDisplayName.displayName)
         }
     }
 
@@ -1855,12 +1844,7 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleChangeAvatarForRoomSlashCommand(room: Room, changeAvatar: ParsedCommand.ChangeAvatarForRoom) {
         launchSlashCommandFlowSuspendable(room, changeAvatar) {
-            getMyRoomMemberContent(room)
-                    ?.copy(avatarUrl = changeAvatar.url)
-                    ?.toContent()
-                    ?.let {
-                        room.stateService().sendStateEvent(EventType.STATE_ROOM_MEMBER, session.myUserId, it)
-                    }
+            room.stateService().resetMyRoomAvatar(changeAvatar.url)
         }
     }
 

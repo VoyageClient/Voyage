@@ -634,9 +634,13 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes
     ): MessageTextItem? {
+        messageTranslationStore.get(informationData.eventId)?.let { translation ->
+            return buildTranslatedItem(translation, informationData, highlight, callback, attributes)
+        }
         // For compatibility reason we should display the body
+        val body = messageContent.body.withoutPerMessageProfileFallback(informationData)
         return buildMessageTextItem(
-                messageContent.body.withoutPerMessageProfileFallback(informationData),
+                if (messageContent.relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(body) else body,
                 false,
                 informationData,
                 highlight,

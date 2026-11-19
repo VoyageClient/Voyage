@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.search.SearchFilters
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.DateArgumentParser
@@ -175,13 +176,20 @@ internal fun searchMsgTypes(clearType: String, clearContent: Content?): List<Str
     clearType == EventType.MESSAGE -> {
         val msgtype = clearContent?.get(MessageContent.MSG_TYPE_JSON_KEY) as? String
         when {
-            msgtype == null -> emptyList()
-            MessageType.isGalleryMsgType(msgtype) -> listOf(msgtype) + galleryItemTypes(clearContent)
-            else -> listOf(msgtype)
+            MessageType.isGalleryMsgType(msgtype) -> listOfNotNull(msgtype) + galleryItemTypes(clearContent)
+            msgtype != null && msgtype in MEDIA_MSGTYPES -> listOf(msgtype)
+            else -> listOfNotNull(msgtype) + listOfNotNull(MessageType.MSGTYPE_FILE.takeIf { clearContent.readsAsFile() })
         }
     }
     else -> emptyList()
 }
+
+private val MEDIA_MSGTYPES = setOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_VIDEO, MessageType.MSGTYPE_AUDIO, MessageType.MSGTYPE_FILE)
+
+// A message the timeline shows as a file although its msgtype names none; parsed only when it carries one.
+private fun Content?.readsAsFile(): Boolean =
+        this != null && (this["url"] is String || this["file"] is Map<*, *>) &&
+                toMessageContentWithFallbacks()?.msgType == MessageType.MSGTYPE_FILE
 
 private fun galleryItemTypes(clearContent: Content?): List<String> =
         (clearContent?.get(MessageGalleryContent.ITEMS_JSON_KEY) as? List<*>)

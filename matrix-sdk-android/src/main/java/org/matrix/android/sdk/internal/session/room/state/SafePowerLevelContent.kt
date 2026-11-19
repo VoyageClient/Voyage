@@ -20,6 +20,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.POWER_LEVELS_CONTENT_KEYS
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.util.JsonDict
 
@@ -41,8 +42,9 @@ internal data class SafePowerLevelContent(
         @Json(name = "notifications") val notifications: Map<String, Int>?
 )
 
+// Keys the model doesn't know pass through: dropping them would strip them from the room.
 internal fun JsonDict.toSafePowerLevelsContentDict(): JsonDict {
-    return toModel<PowerLevelsContent>()
+    val safe = toModel<PowerLevelsContent>()
             ?.let { content ->
                 SafePowerLevelContent(
                         ban = content.ban,
@@ -58,5 +60,6 @@ internal fun JsonDict.toSafePowerLevelsContentDict(): JsonDict {
                 )
             }
             ?.toContent()
-            ?: emptyMap()
+            ?: return emptyMap()
+    return filterKeys { it !in POWER_LEVELS_CONTENT_KEYS } + safe
 }

@@ -46,6 +46,7 @@ import org.matrix.android.sdk.api.session.room.model.message.forwardedDisplayCon
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.message.isForward
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -157,6 +158,8 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
         in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
         in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
+        EventType.MESSAGE -> (root.getClearContent().forwardedDisplayContent(EventType.MESSAGE) ?: getLastEditNewContent() ?: root.getClearContent())
+                ?.toMessageContentWithFallbacks()
         else -> (root.getClearContent().forwardedDisplayContent(root.getClearType()) ?: getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
@@ -169,27 +172,11 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
     if (root.getClearType() == EventType.STICKER) return getLastStickerEditNewContent()
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
-    return when {
-        isReply() -> {
-            // Modern reply edits carry only the new text in new_content — no m.in_reply_to,
-            // no <mx-reply>. Re-attach the original event's relatesTo (which still carries
-            // m.in_reply_to.event_id) so the renderer continues to treat the edited event as
-            // a reply; the mx-reply header is then synthesised dynamically by
-            // ProcessBodyOfReplyToEventUseCase. We intentionally do NOT call
-            // ensureCorrectFormattedBodyInTextReply here: that legacy helper grafts the
-            // original event's <mx-reply> block onto the new content using
-            // `messageTextContent.body` (plain markdown source) as the replacement payload,
-            // which overwrites the HTML formattedBody and makes links / formatting render as
-            // raw text. Legacy edits with mx-reply still embedded render fine because
-            // ProcessBodyOfReplyToEventUseCase.stripExistingMxReply strips and re-synthesises
-            // the header from cached state.
-            val originalRelatesTo = root.getClearContent().toModel<MessageContent>()?.relatesTo
-            val lastMessageContent = lastContent.toModel<MessageTextContent>()
-            lastMessageContent?.copy(relatesTo = lastMessageContent.relatesTo ?: originalRelatesTo)?.toContent()
-                    ?: lastContent
-        }
-        else -> lastContent
-    }
+    // A reply edit's new_content has no m.in_reply_to; re-attach the original's so it still renders as a
+    // reply. Done on the raw map, as any content model would drop the fields of the msgtypes it doesn't know.
+    if (lastContent == null || !isReply() || lastContent["m.relates_to"] != null) return lastContent
+    val originalRelatesTo = root.getClearContent().toModel<MessageContent>()?.relatesTo ?: return lastContent
+    return lastContent + ("m.relates_to" to originalRelatesTo.toContent())
 }
 
 // A sticker edit has no msgtype to parse the generic content model with.

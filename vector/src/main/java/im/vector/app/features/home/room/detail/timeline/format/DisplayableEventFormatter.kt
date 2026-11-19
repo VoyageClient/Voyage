@@ -40,6 +40,7 @@ import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getMsgType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -47,9 +48,13 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
 class DisplayableEventFormatter @Inject constructor(
@@ -247,15 +252,23 @@ class DisplayableEventFormatter @Inject constructor(
         }
     }
 
+    // Styled like the timeline's emote: italic, led by the sender's name in their color.
+    private fun CharSequence.asThreadSummaryEmote(event: Event, sender: SenderInfo?): CharSequence {
+        val item = sender?.toMatrixItem() ?: MatrixItem.UserItem(event.senderId.orEmpty())
+        return forwardedMessages.emoteBody(event, this, sender?.disambiguatedDisplayName ?: item.id, item)
+    }
+
     fun formatThreadSummary(
             event: Event?,
-            latestEdition: String? = null
+            latestEdition: String? = null,
+            sender: SenderInfo? = null,
     ): CharSequence {
         event ?: return ""
 
         // There event have been edited
         if (latestEdition != null) {
-            return renderFormattedPreview(event.roomId, latestEdition, event.roomMentionSource())
+            val rendered = renderFormattedPreview(event.roomId, latestEdition, event.roomMentionSource())
+            return if (event.getMsgType() == MessageType.MSGTYPE_EMOTE) rendered.asThreadSummaryEmote(event, sender) else rendered
         }
 
         // The event have been redacted
@@ -271,16 +284,18 @@ class DisplayableEventFormatter @Inject constructor(
 
         return when (event.getClearType()) {
             EventType.MESSAGE -> {
-                (event.getClearContent().toModel() as? MessageContent)?.let { messageContent ->
+                event.getClearContent()?.toMessageContentWithFallbacks()?.let { messageContent ->
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT,
-                        MessageType.MSGTYPE_NOTICE -> {
+                        MessageType.MSGTYPE_NOTICE,
+                        MessageType.MSGTYPE_EMOTE -> {
                             val preview = messageContent.previewText()
-                            if (preview.formattedBody != null) {
+                            val rendered = if (preview.formattedBody != null) {
                                 renderFormattedPreview(event.roomId, preview.formattedBody, event.roomMentionSource())
                             } else {
                                 renderPlainPreview(event.roomId, preview.body, event.roomMentionSource())
                             }
+                            if (messageContent.msgType == MessageType.MSGTYPE_EMOTE) rendered.asThreadSummaryEmote(event, sender) else rendered
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
                             stringProvider.getString(CommonStrings.verification_request_room_list_preview)

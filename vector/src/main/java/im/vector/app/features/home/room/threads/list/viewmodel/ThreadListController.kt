@@ -54,11 +54,14 @@ class ThreadListController @Inject constructor(
                     val lastRootThreadEdition = timelineEvent.root.threadDetails?.lastRootThreadEdition
                     // Keep the spans: a pill is a placeholder char PillImageSpan draws over, so toString()
                     // would leave a bare tofu where the mention should be.
-                    val lastMessageFormatted = displayableEventFormatter
-                            .formatThreadSummary(timelineEvent.root.threadDetails?.threadSummaryLatestEvent)
+                    val lastMessageFormatted = displayableEventFormatter.formatThreadSummary(
+                            event = timelineEvent.root.threadDetails?.threadSummaryLatestEvent,
+                            sender = timelineEvent.root.threadDetails?.threadSummarySenderInfo,
+                    )
                     val rootMessageFormatted = displayableEventFormatter.formatThreadSummary(
                             event = timelineEvent.root,
-                            latestEdition = lastRootThreadEdition
+                            latestEdition = lastRootThreadEdition,
+                            sender = timelineEvent.senderInfo,
                     )
                     threadListItem {
                         id(timelineEvent.eventId)

@@ -26,8 +26,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.isEdition
 import org.matrix.android.sdk.api.session.events.model.isPollStart
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
 
@@ -41,7 +46,7 @@ class SearchViewModel @AssistedInject constructor(
 
     private var currentTask: Job? = null
 
-    private val observedPolls = HashSet<String>()
+    private val observedResults = HashSet<String>()
 
     private var nextBatch: String? = null
 
@@ -61,22 +66,51 @@ class SearchViewModel @AssistedInject constructor(
         }
     }
 
-    private fun observePolls(results: List<EventAndSender>) {
+    private fun observeResults(results: List<EventAndSender>) {
         val room = room ?: return
-        results.mapNotNull { result -> result.event.eventId?.takeIf { result.event.isPollStart() } }
-                .filter { observedPolls.add(it) }
-                .forEach { pollEventId ->
-                    room.relationService().getEventAnnotationsSummaryFlow(pollEventId)
-                            .onEach { summary ->
-                                summary.getOrNull()?.let { setState { copy(pollSummaries = pollSummaries + (pollEventId to it)) } }
-                            }
-                            .launchIn(viewModelScope)
+        results.filter { result -> result.event.eventId?.let { observedResults.add(it) } == true }
+                .forEach { result ->
+                    val hit = result.event
+                    val eventId = hit.eventId ?: return@forEach
+                    // Only a poll's aggregation changes while it's on screen, as votes come in.
+                    if (hit.isPollStart()) {
+                        room.relationService().getEventAnnotationsSummaryFlow(eventId)
+                                .onEach { summary -> summary.getOrNull()?.let { onAnnotations(eventId, it) } }
+                                .launchIn(viewModelScope)
+                    }
                     viewModelScope.launch(Dispatchers.IO) {
-                        if (room.relationService().getEventAnnotationsSummary(pollEventId)?.pollResponseSummary == null) {
-                            tryOrNull { room.relationService().fetchPollResponses(pollEventId) }
+                        val stored = room.relationService().getEventAnnotationsSummary(eventId)
+                        if (hit.isPollStart()) {
+                            if (stored?.pollResponseSummary == null) tryOrNull { room.relationService().fetchPollResponses(eventId) }
+                        } else {
+                            stored?.let { onAnnotations(eventId, it) }
                         }
+                        resolveEdit(room, hit, editIsStored = stored?.editSummary != null)
                     }
                 }
+    }
+
+    private fun onAnnotations(eventId: String, summary: EventAnnotationsSummary) {
+        setState { copy(annotations = annotations + (eventId to summary)) }
+    }
+
+    /**
+     * Search hits carry no edit aggregation, so an edit the room doesn't hold is fetched: the one the server
+     * marks as the latest, else the hit itself when what matched was an edit, whose original is then shown.
+     */
+    private suspend fun resolveEdit(room: Room, hit: Event, editIsStored: Boolean) {
+        val eventId = hit.eventId ?: return
+        val hitIsEdit = hit.isEdition()
+        val original = when {
+            !hitIsEdit -> hit
+            else -> room.getTimelineEvent(eventId)?.root ?: tryOrNull { session.eventService().getEvent(room.roomId, eventId) } ?: return
+        }
+        if (hitIsEdit) setState { copy(originals = originals + (eventId to original)) }
+        if (editIsStored) return
+        val edit = original.unsignedData?.relations?.replaces?.eventId
+                ?.let { tryOrNull { session.eventService().getEvent(room.roomId, it) } }
+                ?: hit.takeIf { hitIsEdit }
+        edit?.takeIf { it.senderId == original.senderId }?.let { setState { copy(fetchedEdits = fetchedEdits + (eventId to it)) } }
     }
 
     private fun handleSearchWith(action: SearchAction.SearchWith) {
@@ -156,7 +190,7 @@ class SearchViewModel @AssistedInject constructor(
         // Note: We do not care about the highlights for the moment, but it will be the same algorithm
 
         nextBatch = searchResult.nextBatch
-        observePolls(searchResult.results.orEmpty())
+        observeResults(searchResult.results.orEmpty())
 
         setState {
             copy(

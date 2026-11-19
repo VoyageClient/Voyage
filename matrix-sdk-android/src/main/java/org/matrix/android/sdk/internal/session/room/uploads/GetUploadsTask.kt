@@ -21,7 +21,9 @@ import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isEdition
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -29,7 +31,9 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.uploads.GetUploadsResult
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -38,7 +42,9 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterFactory
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
+import org.matrix.android.sdk.internal.session.room.timeline.SqlTimelineEventDataSource
 import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
@@ -64,6 +70,8 @@ internal class DefaultGetUploadsTask @Inject constructor(
         private val cryptoService: dagger.Lazy<CryptoService>,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
+        private val eventDataSource: SqlTimelineEventDataSource,
+        private val getEventTask: GetEventTask,
 ) : GetUploadsTask {
 
     private class Page(val events: List<Event>, val nextToken: String, val hasMore: Boolean)
@@ -169,7 +177,34 @@ internal class DefaultGetUploadsTask @Inject constructor(
         return true
     }
 
-    private fun toUploadEvents(roomId: String, events: List<Event>): List<UploadEvent> {
+    /**
+     * The content each upload shows now, for those an edit has replaced: from the stored aggregation, else an
+     * edit in this page, else the edit the server bundles. Only the sender's own edits count.
+     */
+    private suspend fun latestEditedContents(roomId: String, events: List<Event>): Map<String, Content> {
+        val inPage = events.filter { it.isEdition() && !it.isRedacted() }
+                .sortedBy { it.originServerTs ?: 0L }
+                .associateBy { it.getRelationContent()?.eventId }
+        val contents = HashMap<String, Content>()
+        events.forEach { event ->
+            val eventId = event.eventId ?: return@forEach
+            if (event.isRedacted() || event.isEdition()) return@forEach
+            val stored = eventDataSource.getTimelineEvent(roomId, eventId)?.getLastEditNewContent()
+            val edit = if (stored == null) {
+                inPage[eventId] ?: event.unsignedData?.relations?.replaces?.eventId
+                        ?.let { tryOrNull { getEventTask.execute(GetEventTask.Params(roomId, it)) } }
+            } else {
+                null
+            }
+            @Suppress("UNCHECKED_CAST")
+            val newContent = stored ?: edit?.takeIf { it.senderId == event.senderId }?.getClearContent()?.get("m.new_content") as? Content
+            newContent?.let { contents[eventId] = it }
+        }
+        return contents
+    }
+
+    private suspend fun toUploadEvents(roomId: String, events: List<Event>): List<UploadEvent> {
+        val editedContents = latestEditedContents(roomId, events)
         val cacheOfSenderInfos = mutableMapOf<String, SenderInfo>()
 
         // One scan of the member table, not one per sender: isUniqueDisplayName() counts matches over
@@ -197,7 +232,7 @@ internal class DefaultGetUploadsTask @Inject constructor(
                 )
             }
 
-            val clearContent = event.getClearContent()
+            val clearContent = editedContents[eventId] ?: event.getClearContent()
             val gallery = clearContent?.toModel<MessageContent>() as? MessageGalleryContent
             if (gallery != null) {
                 gallery.galleryItems().mapIndexed { index, item ->
@@ -213,7 +248,7 @@ internal class DefaultGetUploadsTask @Inject constructor(
                 val messageWithAttachmentContent = if (event.isSticker()) {
                     clearContent?.toModel<MessageStickerContent>()
                 } else {
-                    clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent
+                    clearContent?.toMessageContentWithFallbacks() as? MessageWithAttachmentContent
                 } ?: return@flatMap emptyList()
                 listOf(
                         UploadEvent(

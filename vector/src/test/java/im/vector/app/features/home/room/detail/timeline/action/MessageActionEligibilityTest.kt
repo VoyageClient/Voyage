@@ -28,6 +28,7 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageDefaultContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -121,6 +122,25 @@ class MessageActionEligibilityTest {
         eligibility.canReplyInThread(event, content, canSendMessage = false, isFromThreadTimeline = false) shouldBeEqualTo false
         eligibility.canReplyInThread(event, content, canSendMessage = true, isFromThreadTimeline = true) shouldBeEqualTo false
         eligibility.canReplyInThread(event, content, canSendMessage = true, isFromThreadTimeline = false) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `unknown message types with a body can be copied`() {
+        val content = MessageDefaultContent(msgType = "org.example.custom", body = "A sample message")
+        eligibility.canCopy(content.msgType, content) shouldBeEqualTo true
+        eligibility.canCopy(content.msgType, content.copy(body = "")) shouldBeEqualTo false
+        eligibility.canCopy("", content.copy(msgType = "")) shouldBeEqualTo false
+    }
+
+    @Test
+    fun `unknown message types with a body can be forwarded and start a thread`() {
+        val content = MessageDefaultContent(msgType = "org.example.custom", body = "A sample message")
+        every { preferences.areThreadMessagesEnabled() } returns true
+        eligibility.canForward(event(content)) shouldBeEqualTo true
+        eligibility.canReplyInThread(event(content), content, canSendMessage = true, isFromThreadTimeline = false) shouldBeEqualTo true
+        val blank = content.copy(body = "")
+        eligibility.canForward(event(blank)) shouldBeEqualTo false
+        eligibility.canReplyInThread(event(blank), blank, canSendMessage = true, isFromThreadTimeline = false) shouldBeEqualTo false
     }
 
     @Test

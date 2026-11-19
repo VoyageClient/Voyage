@@ -14,6 +14,7 @@ import org.junit.Test
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageDefaultContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
@@ -92,6 +93,16 @@ class CheckIfCanReplyEventUseCaseTest {
 
             result shouldBeEqualTo true
         }
+    }
+
+    @Test
+    fun `given an unknown or missing message type when use case is executed then result is true`() {
+        val event = givenAnEvent(EventType.MESSAGE)
+        val messageContent = MessageDefaultContent(msgType = "org.example.custom", body = "A sample message")
+        val actionPermissions = givenActionPermissions(canSendMessage = true)
+
+        checkIfCanReplyEventUseCase.execute(event, messageContent, actionPermissions) shouldBeEqualTo true
+        checkIfCanReplyEventUseCase.execute(event, messageContent.copy(msgType = ""), actionPermissions) shouldBeEqualTo true
     }
 
     @Test

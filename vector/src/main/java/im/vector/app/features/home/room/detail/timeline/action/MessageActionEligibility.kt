@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageDefaultContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -80,6 +81,7 @@ class MessageActionEligibility @Inject constructor(
             MessageType.MSGTYPE_EMOTE,
             MessageType.MSGTYPE_LOCATION -> return true
         }
+        if (messageContent is MessageDefaultContent) return messageContent.isUnknownWithBody()
         if (messageContent is MessageGalleryContent) return messageContent.galleryCaption() != null
         return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
     }
@@ -104,7 +106,7 @@ class MessageActionEligibility @Inject constructor(
             MessageType.MSGTYPE_GALLERY,
             MessageType.MSGTYPE_GALLERY_STABLE,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
+            else -> event.getVectorLastMessageContent().isUnknownWithBody()
         }
     }
 
@@ -135,7 +137,7 @@ class MessageActionEligibility @Inject constructor(
             MessageType.MSGTYPE_LOCATION,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
+            else -> messageContent.isUnknownWithBody()
         }
     }
 
@@ -260,3 +262,7 @@ class MessageActionEligibility @Inject constructor(
                     vectorPreferences.arePerMessageProfilesEnabled()
             ).senderName
 }
+
+// The timeline shows an unknown msgtype as its body, so it takes the actions plain text does. Content with no
+// msgtype is shown the same way but, as in Element Web, is malformed and takes none of them.
+internal fun MessageContent?.isUnknownWithBody(): Boolean = this is MessageDefaultContent && msgType.isNotEmpty() && body.isNotBlank()

@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.action
 
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageDefaultContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
@@ -39,7 +40,8 @@ class CheckIfCanReplyEventUseCase @Inject constructor() {
             MessageType.MSGTYPE_BEACON_INFO,
             MessageType.MSGTYPE_LOCATION,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
-            else -> false
+            // Shown as its body, with or without a msgtype, so previewed the same way.
+            else -> messageContent is MessageDefaultContent
         }
     }
 }

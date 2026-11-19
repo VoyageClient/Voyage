@@ -11,6 +11,7 @@ import dagger.Lazy
 import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isRedacted
@@ -19,6 +20,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
@@ -59,7 +61,7 @@ class PreservedAttachmentResolver @Inject constructor(
     /** The same set shaped for the uploads panel. */
     suspend fun uploads(roomId: String): List<UploadEvent> {
         return revealedAttachments(roomId).mapNotNull { (event, sender) ->
-            val content = event.content.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return@mapNotNull null
+            val content = event.content.toAttachmentContent(event.type) ?: return@mapNotNull null
             UploadEvent(
                     root = event,
                     eventId = event.eventId.orEmpty(),
@@ -90,9 +92,7 @@ class PreservedAttachmentResolver @Inject constructor(
                 }
                 .mapNotNull { preserved ->
                     // Only real attachments: the preservation store also holds plain text messages.
-                    // MessageContent, not MessageWithAttachmentContent: only the former has a Moshi
-                    // adapter (polymorphic on msgtype), the latter is a bare interface and never parses.
-                    preserved.content.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return@mapNotNull null
+                    preserved.content.toAttachmentContent(preserved.clearType) ?: return@mapNotNull null
                     val event = Event(
                             type = preserved.clearType?.takeIf { it.isNotEmpty() } ?: EventType.MESSAGE,
                             eventId = preserved.eventId,
@@ -110,4 +110,10 @@ class PreservedAttachmentResolver @Inject constructor(
                     )
                 }
     }
+}
+
+// Parsed as MessageContent, the only one with a Moshi adapter; a message also gets the timeline's fallbacks.
+private fun Content?.toAttachmentContent(type: String?): MessageWithAttachmentContent? {
+    val isMessage = type.isNullOrEmpty() || type == EventType.MESSAGE
+    return (if (isMessage) this?.toMessageContentWithFallbacks() else toModel<MessageContent>()) as? MessageWithAttachmentContent
 }

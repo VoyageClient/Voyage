@@ -75,13 +75,16 @@ class TimelineSelection(private val isRevealed: (TimelineEvent) -> Boolean = { f
 
     companion object {
         /**
-         * Messages and stickers: polls and undecryptable events can be neither copied nor forwarded. A
-         * deleted one only while its recovered content is [revealed], which is what copy and forward use.
+         * Messages, stickers, polls and undecryptable messages; the toolbar offers each action only where every
+         * selected one supports it. A deleted one only while its recovered content is [revealed].
          */
         fun isSelectable(event: TimelineEvent, revealed: Boolean = false): Boolean =
                 event.root.sendState == SendState.SYNCED &&
                         (!event.root.isRedacted() || revealed) &&
-                        event.root.getClearType().let { it == EventType.MESSAGE || it == EventType.STICKER }
+                        event.root.getClearType() in SELECTABLE_TYPES
+
+        private val SELECTABLE_TYPES = setOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) +
+                EventType.POLL_START.values + EventType.POLL_END.values
 
         /** Oldest first, matching how they read in the timeline. */
         fun inTimelineOrder(events: Collection<TimelineEvent>): List<TimelineEvent> =

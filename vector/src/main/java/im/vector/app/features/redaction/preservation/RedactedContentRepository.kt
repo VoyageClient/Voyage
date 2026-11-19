@@ -22,10 +22,12 @@ import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.redaction.PreservationOrigin
 import org.matrix.android.sdk.api.session.redaction.PreservedEventContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.toMessageContentWithFallbacks
 import timber.log.Timber
 import java.util.Collections
 import javax.inject.Inject
@@ -187,7 +189,8 @@ class RedactedContentRepository @Inject constructor(
         // MSC2815 hands back the content, not the media. Synapse doesn't purge attachments with the
         // redaction, so the mxc url usually still resolves right now — grab a copy before whatever
         // retention job eventually does remove it.
-        content.toModel<MessageContent>()?.let { mediaPreserver.get().preserveAsync(roomId, eventId, it) }
+        val messageContent = if (event.getClearType() == EventType.MESSAGE) content.toMessageContentWithFallbacks() else content.toModel<MessageContent>()
+        messageContent?.let { mediaPreserver.get().preserveAsync(roomId, eventId, it) }
         _contentResolved.tryEmit(eventId)
     }
 
