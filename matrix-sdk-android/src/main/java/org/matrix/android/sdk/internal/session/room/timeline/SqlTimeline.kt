@@ -390,6 +390,7 @@ internal class SqlTimeline(
     }
 
     override fun restartWithEventId(eventId: String?) {
+        Timber.i("DATEDBG timeline $timelineID in $roomId restarts at ${eventId ?: "the live edge"} built=${builtEvents.size} chunks=$loadedChunkIds")
         cancelPendingNavigation()
         val request = navigationGeneration.get()
         navigationJob = timelineScope.launch {
@@ -1447,7 +1448,13 @@ internal class SqlTimeline(
             if (isThreadTimeline && !belongsToThread(timelineEvent)) return@launch
             // Forward-bounded window: the live edge isn't shown, so prepending the echo would place
             // it next to old history. Sending triggers a jump-to-bottom restart which shows it.
-            if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) return@launch
+            if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) {
+                Timber.i(
+                        "DATEDBG timeline $timelineID in $roomId: echo ${timelineEvent.eventId} not shown inline, " +
+                                "liveEdgeLoaded=$liveEdgeLoaded newestShown=$newestShownEventId chunks=$loadedChunkIds"
+                )
+                return@launch
+            }
             uiEchoManager.onLocalEchoCreated(timelineEvent)
             uiEchoRevision.incrementAndGet()
             notifyNewTimelineEvents(listOf(timelineEvent.eventId))
@@ -1551,7 +1558,9 @@ internal class SqlTimeline(
     }
 
     private suspend fun reseedAtLiveEdge(chunkId: Long) {
-        Timber.i("SYNCDBG timeline $timelineID in $roomId follows the new live range $chunkId from ${loadedChunkIds.firstOrNull()} built=${builtEvents.size}")
+        val reseed = "timeline $timelineID in $roomId follows the new live range $chunkId from ${loadedChunkIds.firstOrNull()} built=${builtEvents.size}"
+        Timber.i("SYNCDBG $reseed")
+        Timber.i("DATEDBG $reseed")
         pendingShowEventId = null
         oldestShownEventId = null
         newestShownEventId = null

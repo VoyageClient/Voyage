@@ -197,6 +197,9 @@ internal class SlidingSyncTask @Inject constructor(
             unsyncedRoomTracker.markMissed(joiningSync)
             failedCatchUps.removeAll(joiningSync.toSet())
         }
+        // Read before translating: a tracked room delivered with messages comes out of it un-tracked and split off
+        // behind a gap, which in an open room leaves the reader on a lone new message.
+        val trackedBeforeTranslation = unsyncedRoomTracker.trackedRoomIds()
         val translated = MatrixPerf.time("resp.translate") {
             translator.toSyncResponse(
                     response = slidingResponse,
@@ -207,7 +210,7 @@ internal class SlidingSyncTask @Inject constructor(
             )
         }
         val reopened = requestedOpenRooms.filter {
-            it in openRooms && it !in caughtUpOpenRooms && (!syncedByLists(it) || unsyncedRoomTracker.isTracked(it))
+            it in openRooms && it !in caughtUpOpenRooms && (!syncedByLists(it) || it in trackedBeforeTranslation)
         }
         // A fresh connection delivers every room anyway, which un-tracks the ones it syncs.
         val backlog = if (isInitialSync || coverageIncomplete) {

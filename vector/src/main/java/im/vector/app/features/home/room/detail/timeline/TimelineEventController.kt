@@ -121,6 +121,9 @@ class TimelineEventController @Inject constructor(
 ) : EpoxyController(backgroundHandler, backgroundHandler), Timeline.Listener, EpoxyController.Interceptor {
 
     private companion object {
+        // Rows from the live edge whose day separators DATEDBG reports.
+        private const val DATE_LOG_DEPTH = 15
+
         // Keeps a pass under ~0.5s (~13ms/model build + ~150ms fixed epoxy overhead), so a message sent
         // while a bulk reveal is trickling in waits at most one short pass to render.
         private const val MAX_MODEL_BUILDS_PER_PASS = 20
@@ -759,6 +762,11 @@ class TimelineEventController @Inject constructor(
     }
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+        val head = snapshot.take(3).joinToString { "${it.eventId}(${it.root.sendState})" }
+        if ("${snapshot.size} $head" != loggedSnapshotHead) {
+            loggedSnapshotHead = "${snapshot.size} $head"
+            Timber.i("DATEDBG ${partialState.roomSummary?.roomId} snapshot size=${snapshot.size} newest=$head paused=${isPaused.get()}")
+        }
         if (isPaused.get()) {
             pendingPausedSnapshot = snapshot
         } else {
@@ -854,7 +862,32 @@ class TimelineEventController @Inject constructor(
                 models.add(buildDaySeparatorItem(it.root.originServerTs, idPrefix = "top_"))
             }
         }
+        logDaySeparators(renderCount, topRenderedPosition, topRenderedHasDay)
         return models
+    }
+
+    private var loggedDaySeparators: String? = null
+    @Volatile private var loggedSnapshotHead: String? = null
+
+    /** Change-only: which of the newest rows carry a day separator, and why. */
+    private fun logDaySeparators(renderCount: Int, topRenderedPosition: Int, topRenderedHasDay: Boolean) {
+        val separators = (0 until minOf(renderCount, DATE_LOG_DEPTH)).mapNotNull { position ->
+            modelCache[position]?.formattedDayModel ?: return@mapNotNull null
+            val event = currentSnapshot.getOrNull(position) ?: return@mapNotNull null
+            val older = currentSnapshot.nextOrNull(position)
+            "p$position ${event.eventId}(${event.root.getClearType()},${event.root.sendState},ts=${event.root.originServerTs}) " +
+                    "older=${older?.eventId}(${older?.root?.getClearType()},ts=${older?.root?.originServerTs})"
+        }
+        val top = if (topRenderedPosition in 0 until DATE_LOG_DEPTH && !topRenderedHasDay) "p$topRenderedPosition" else null
+        val signature = "$separators top=$top cut=${renderCount < modelCache.size} inviteCutoff=${hasReachedInvite && hasUTD}"
+        if (signature == loggedDaySeparators) return
+        loggedDaySeparators = signature
+        Timber.i(
+                "DATEDBG ${partialState.roomSummary?.roomId} snapshot=${currentSnapshot.size} rendered=$renderCount/${modelCache.size} " +
+                        "unbuilt=$hasUnbuiltEvents invite=$hasReachedInvite utd=$hasUTD newest=" +
+                        currentSnapshot.take(3).joinToString { "${it.eventId}(${it.root.sendState})" } +
+                        " separators=$separators topSeparator=$top"
+        )
     }
 
     private inner class CollapsedReceipts {

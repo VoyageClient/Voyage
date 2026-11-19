@@ -21,6 +21,7 @@ import com.airbnb.epoxy.EpoxyControllerAdapter
 import com.google.android.material.color.MaterialColors
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
+import timber.log.Timber
 
 /** Telegram-style date pill: stands in for the top day divider while scrolling; the next divider pushes it up. */
 class FloatingDateHeader(
@@ -135,6 +136,7 @@ class FloatingDateHeader(
 
     private fun setShown(show: Boolean) {
         if (show == shown) return
+        Timber.i("DATEDBG floating date ${if (show) "shown" else "hidden"} text=${view.text} topPosition=$lastTopPosition dayPosition=$topDayPosition")
         shown = show
         animateTo(if (show) 1f else 0f)
     }

@@ -194,6 +194,16 @@ class SlidingSyncTaskTest {
     }
 
     @Test
+    fun `an open synced room still missing messages is caught up rather than split behind a gap`() = runBlocking {
+        scope = RoomSyncScope.ALL
+        every { stores.syncToken.getUnsyncedRooms() } returns "$roomId\t\t0"
+        subscriptions.acquire(roomId)
+
+        assertEquals(catchUpTimeline, sync().rooms!!.join[roomId]!!.timeline)
+        coVerify(exactly = 1) { fetcher.fetch(roomId, any()) }
+    }
+
+    @Test
     fun `an initial delivery is not fetched again`() = runBlocking {
         response = response.copy(rooms = mapOf(roomId to messageRoom().copy(initial = true)))
         subscriptions.acquire(roomId)
