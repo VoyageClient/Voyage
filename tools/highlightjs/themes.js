@@ -20,7 +20,10 @@ const NAMED_COLORS = {
     white: 0xffffffff, black: 0xff000000, red: 0xffff0000, green: 0xff008000, blue: 0xff0000ff, navy: 0xff000080,
     gray: 0xff808080, grey: 0xff808080, silver: 0xffc0c0c0, maroon: 0xff800000, purple: 0xff800080, olive: 0xff808000,
     teal: 0xff008080, orange: 0xffffa500, yellow: 0xffffff00, fuchsia: 0xffff00ff, aqua: 0xff00ffff, lime: 0xff00ff00,
+    gold: 0xffffd700,
 };
+
+const withAlpha = (color, opacity) => ((Math.round(((color >>> 24) / 255) * opacity * 255) << 24) | (color & 0xffffff)) >>> 0;
 
 function parseColor(value) {
     value = value.trim().toLowerCase().replace(/\s*!important$/, "");
@@ -56,12 +59,13 @@ function parseCss(file, layer) {
             if (colon < 0) continue;
             const prop = decl.slice(0, colon).trim().toLowerCase();
             const value = decl.slice(colon + 1).trim();
-            if (prop === "color") {
-                const c = parseColor(value);
-                if (c !== undefined && c !== null) style.c = c;
-            } else if (prop === "background" || prop === "background-color") {
-                const c = parseColor(value.split(/\s+/)[0]);
-                if (c !== undefined && c !== "inherit") style.b = c;
+            if (prop === "color" || prop === "background" || prop === "background-color") {
+                const c = parseColor(prop === "color" ? value : /^(\w+\([^)]*\)|\S+)/.exec(value)[1]);
+                if (c === undefined) throw new Error(`${file}: unknown color "${value}"`);
+                if (prop === "color" && c !== null) style.c = c;
+                if (prop !== "color" && c !== "inherit") style.b = c;
+            } else if (prop === "opacity") {
+                style.op = Number(value);
             } else if (prop === "font-weight") {
                 style.w = /bold|[6-9]00/.test(value);
             } else if (prop === "font-style") {
@@ -94,7 +98,16 @@ function parseCss(file, layer) {
             rules.push(Object.assign({ s: chain, l: layer }, style));
         }
     }
-    return { rules, base };
+    // base16 fades operators with `opacity` in a rule of their own, on the color an earlier rule gave them.
+    rules.forEach((rule, i) => {
+        if (rule.op === undefined) return;
+        const key = JSON.stringify(rule.s);
+        const color = typeof rule.c === "number" ? rule.c
+            : rules.slice(0, i).reverse().find((r) => typeof r.c === "number" && JSON.stringify(r.s) === key)?.c;
+        if (color !== undefined) rule.c = withAlpha(color, rule.op);
+        delete rule.op;
+    });
+    return { rules: rules.filter((r) => Object.keys(r).length > 2), base };
 }
 
 const css11 = (name, layer = 0) => parseCss(path.join(hljs11, "styles", name + ".css"), layer);
@@ -117,12 +130,12 @@ const ELEMENT_DARK = [
 // scopes playing each part.
 function telegram(colors) {
     const kinds = {
-        keyword: ["hljs-keyword", "hljs-built_in", "hljs-type", "hljs-meta", "hljs-section", "hljs-selector-tag", "hljs-name", "hljs-doctag"],
+        keyword: ["hljs-keyword", "hljs-built_in", "hljs-type", "hljs-meta", "hljs-section", "hljs-selector-tag", "hljs-name", "hljs-doctag", "hljs-deletion"],
         operator: ["hljs-operator", "hljs-punctuation"],
         constant: ["hljs-literal", "hljs-symbol", "hljs-bullet", "hljs-attr", "hljs-attribute", "hljs-variable", "hljs-template-variable"],
         string: ["hljs-string", "hljs-regexp", "hljs-char", "hljs-addition"],
         number: ["hljs-number"],
-        comment: ["hljs-comment", "hljs-quote", "hljs-deletion"],
+        comment: ["hljs-comment", "hljs-quote"],
         function: ["hljs-title"],
     };
     const rules = [];
@@ -140,21 +153,39 @@ const TELEGRAM_DARK = telegram({
     number: (-10887465) >>> 0, comment: 2147483647, function: (-27776) >>> 0,
 });
 
+// Markdown's *emphasis* and **strong** keep their meaning in themes that only recolor them (monokai, Telegram).
+const MARKUP = [
+    { s: [["hljs-emphasis"]], l: -1, i: true },
+    { s: [["hljs-strong"]], l: -1, w: true },
+];
+
+// Diff lines in the palette's own green and red, where its theme leaves them plain, swaps them or colors them
+// as something else (vs: additions red; monokai: deletions as comments).
+const diff = (addition, deletion) => [
+    Object.assign({ s: [["hljs-addition"]], l: 2 }, addition),
+    Object.assign({ s: [["hljs-deletion"]], l: 2 }, deletion),
+].filter((rule) => Object.keys(rule).length > 2);
+const withRules = (theme, rules) => ({ rules: theme.rules.concat(rules), base: theme.base });
+
 // xt256 is a dark terminal. Light is xterm's default black on white, each hue moved to a darker step of the
 // same 256-color cube so it stays readable there.
+const XTERM_DARK = withRules(css11("xt256"), diff({ c: 0xff00ff00 }, { c: 0xffff0000 }));
 const XTERM_ON_WHITE = {
     0xffeaeaea: 0xff000000, 0xffffffff: 0xff000000, 0xff969896: 0xff808080, 0xffda0000: 0xffaf0000,
     0xffff0000: 0xffaf0000, 0xff00ffff: 0xff008787, 0xfffff000: 0xff878700, 0xff00ff00: 0xff008700,
     0xff000fff: 0xff0000d7, 0xffff00ff: 0xffaf00af,
 };
 const XTERM_LIGHT = (() => {
-    const dark = css11("xt256");
     const onWhite = (c) => (typeof c === "number" && XTERM_ON_WHITE[c] !== undefined ? XTERM_ON_WHITE[c] : c);
     return {
-        rules: dark.rules.map((r) => Object.assign({}, r, r.c !== undefined ? { c: onWhite(r.c) } : {})),
+        rules: XTERM_DARK.rules.map((r) => Object.assign({}, r, r.c !== undefined ? { c: onWhite(r.c) } : {})),
         base: { c: 0xff000000, b: 0xffffffff },
     };
 })();
+
+const MONOKAI = withRules(css11("monokai"), diff({}, { c: 0xfff92672 }));
+// base16's dracula has no true green or red; these are Dracula's own.
+const DRACULA = withRules(css11("base16/dracula"), diff({ c: 0xff50fa7b }, { c: 0xffff5555 }));
 
 // Element Web suppresses the theme's own block colors (`.mx_EventTile_pre_container` keeps the app's), so the
 // Element palettes carry no base; Telegram draws code on the bubble's colors.
@@ -172,8 +203,16 @@ const palettes = [
         dark: { rules: css11("atom-one-dark").rules.concat(ELEMENT_DARK), base: { b: 0xff121212, o: 0xff121212 } },
     },
     { id: "GITHUB", light: css11("github"), dark: css11("github-dark") },
-    { id: "VISUAL_STUDIO", light: css11("vs"), dark: css11("vs2015") },
-    { id: "INTELLIJ", light: css11("intellij-light"), dark: css11("androidstudio") },
+    {
+        id: "VISUAL_STUDIO",
+        light: withRules(css11("vs"), diff({ c: "inherit", b: 0xffd4f0d4 }, { c: "inherit", b: 0xfff9d4d4 })),
+        dark: css11("vs2015"),
+    },
+    {
+        id: "INTELLIJ",
+        light: withRules(css11("intellij-light"), diff({}, { b: 0xfff2c4c4 })),
+        dark: withRules(css11("androidstudio"), diff({}, { c: 0xffff6b68 })),
+    },
     { id: "STACK_OVERFLOW", light: css11("stackoverflow-light"), dark: css11("stackoverflow-dark") },
     { id: "TOKYO_NIGHT", light: css11("tokyo-night-light"), dark: css11("tokyo-night-dark") },
     { id: "ROSE_PINE", light: css11("rose-pine-dawn"), dark: css11("rose-pine") },
@@ -183,9 +222,9 @@ const palettes = [
     // These are dark-only, like the themes themselves.
     { id: "NORD", light: css11("nord"), dark: css11("nord") },
     { id: "NIGHT_OWL", light: css11("night-owl"), dark: css11("night-owl") },
-    { id: "MONOKAI", light: css11("monokai"), dark: css11("monokai") },
-    { id: "DRACULA", light: css11("base16/dracula"), dark: css11("base16/dracula") },
-    { id: "XTERM", light: XTERM_LIGHT, dark: css11("xt256") },
+    { id: "MONOKAI", light: MONOKAI, dark: MONOKAI },
+    { id: "DRACULA", light: DRACULA, dark: DRACULA },
+    { id: "XTERM", light: XTERM_LIGHT, dark: XTERM_DARK },
     { id: "TELEGRAM", light: { rules: TELEGRAM_LIGHT, base: {} }, dark: { rules: TELEGRAM_DARK, base: {} } },
 ];
 
@@ -197,6 +236,6 @@ const signedColors = (style) => {
     if (typeof out.o === "number") out.o = out.o | 0;
     return out;
 };
-const variant = (theme) => ({ base: signedColors(theme.base), rules: theme.rules.map(signedColors) });
+const variant = (theme) => ({ base: signedColors(theme.base), rules: MARKUP.concat(theme.rules).map(signedColors) });
 fs.writeFileSync(outPath, JSON.stringify({ palettes: palettes.map((p) => ({ id: p.id, light: variant(p.light), dark: variant(p.dark) })) }));
 console.log(`Wrote ${palettes.length} palettes to ${outPath}`);

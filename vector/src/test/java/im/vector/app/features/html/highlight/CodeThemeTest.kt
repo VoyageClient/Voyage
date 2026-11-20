@@ -8,6 +8,8 @@
 package im.vector.app.features.html.highlight
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -29,6 +31,60 @@ class CodeThemeTest {
         CodePalette.values().forEach { palette ->
             assertTrue(palette.name, themes.themeFor(palette, light = true) != null && themes.themeFor(palette, light = false) != null)
         }
+    }
+
+    @Test
+    fun `every palette tells diff additions and deletions apart`() {
+        CodePalette.values().forEach { palette ->
+            listOf(true, false).forEach { light ->
+                val theme = themes.themeFor(palette, light)!!
+                val addition = theme.styleFor(listOf("addition"))
+                val deletion = theme.styleFor(listOf("deletion"))
+                val name = "$palette light=$light"
+                assertFalse(name, addition.isEmpty)
+                assertFalse(name, deletion.isEmpty)
+                assertNotEquals(name, addition, deletion)
+            }
+        }
+    }
+
+    @Test
+    fun `every palette keeps markdown emphasis italic and strong bold`() {
+        CodePalette.values().forEach { palette ->
+            listOf(true, false).forEach { light ->
+                val theme = themes.themeFor(palette, light)!!
+                assertTrue("$palette light=$light", theme.styleFor(listOf("emphasis")).italic)
+                assertTrue("$palette light=$light", theme.styleFor(listOf("strong")).bold)
+            }
+        }
+    }
+
+    @Test
+    fun `css colors the exporter has to translate survive`() {
+        // vs2015: `.hljs-section { color: gold }`.
+        assertEquals(0xffffd700.toInt(), themes.themeFor(CodePalette.VISUAL_STUDIO, light = false)!!.styleFor(listOf("section")).color)
+        // nord: `background-color: rgba(163, 190, 140, 0.5)`.
+        assertEquals(0x80a3be8c.toInt(), themes.themeFor(CodePalette.NORD, light = false)!!.styleFor(listOf("addition")).background)
+        // base16: `.hljs-operator { opacity: 0.7 }` on the color an earlier rule gave it.
+        assertEquals(0xb393a1a1.toInt(), themes.themeFor(CodePalette.SOLARIZED, light = false)!!.styleFor(listOf("operator")).color)
+    }
+
+    @Test
+    fun `xterm colors diffs in terminal green and red`() {
+        val dark = themes.themeFor(CodePalette.XTERM, light = false)!!
+        assertEquals(0xff00ff00.toInt(), dark.styleFor(listOf("addition")).color)
+        assertEquals(0xffff0000.toInt(), dark.styleFor(listOf("deletion")).color)
+
+        val light = themes.themeFor(CodePalette.XTERM, light = true)!!
+        assertEquals(0xff008700.toInt(), light.styleFor(listOf("addition")).color)
+        assertEquals(0xffaf0000.toInt(), light.styleFor(listOf("deletion")).color)
+    }
+
+    @Test
+    fun `visual studio light shades diff lines instead of coloring additions red`() {
+        val vs = themes.themeFor(CodePalette.VISUAL_STUDIO, light = true)!!
+        assertNull(vs.styleFor(listOf("addition")).color)
+        assertEquals(0xffd4f0d4.toInt(), vs.styleFor(listOf("addition")).background)
     }
 
     @Test
