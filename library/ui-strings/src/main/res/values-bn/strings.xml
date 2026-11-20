@@ -2960,7 +2960,6 @@
     <string name="image_editor_censor">সেন্সর করুন</string>
     <string name="image_editor_rotate">ঘোরান</string>
     <string name="image_editor_reset">রিসেট করুন</string>
-    <string name="image_editor_snap">কেন্দ্রে স্ন্যাপ করুন</string>
     <string name="image_editor_snap_off">স্ন্যাপিং বন্ধ</string>
     <string name="aspect_ratio_title">আকার অনুপাত</string>
     <string name="aspect_ratio_freeform">মুক্ত আকার</string>
@@ -3787,4 +3786,5 @@
     <string name="gradient_from_image">ছবি থেকে গ্রেডিয়েন্ট</string>
     <string name="gradient_pick_from_image">ছবি থেকে বেছে নিন</string>
     <string name="gradient_delete_confirmation">গ্রেডিয়েন্ট %1$s মুছবেন?</string>
+    <string name="image_editor_snap">স্ন্যাপ</string>
 </resources>

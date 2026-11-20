@@ -2951,7 +2951,6 @@
     <string name="image_editor_censor">遮挡</string>
     <string name="image_editor_rotate">旋转</string>
     <string name="image_editor_reset">重置</string>
-    <string name="image_editor_snap">吸附到中心</string>
     <string name="image_editor_snap_off">吸附已关闭</string>
     <string name="aspect_ratio_title">宽高比</string>
     <string name="aspect_ratio_freeform">自由</string>
@@ -3748,4 +3747,5 @@
     <string name="gradient_from_image">从图片生成渐变色</string>
     <string name="gradient_pick_from_image">从图片中取色</string>
     <string name="gradient_delete_confirmation">删除渐变色 %1$s？</string>
+    <string name="image_editor_snap">吸附</string>
 </resources>

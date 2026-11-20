@@ -2978,7 +2978,6 @@
     <string name="image_editor_censor">Цензура</string>
     <string name="image_editor_rotate">Повернуть</string>
     <string name="image_editor_reset">Сбросить</string>
-    <string name="image_editor_snap">Привязка к центру</string>
     <string name="image_editor_snap_off">Привязка выключена</string>
     <string name="aspect_ratio_title">Соотношение сторон</string>
     <string name="aspect_ratio_freeform">Свободное</string>
@@ -3981,4 +3980,5 @@
     <string name="gradient_from_image">Градиент из изображения</string>
     <string name="gradient_pick_from_image">Выбрать на изображении</string>
     <string name="gradient_delete_confirmation">Удалить градиент %1$s?</string>
+    <string name="image_editor_snap">Привязка</string>
 </resources>

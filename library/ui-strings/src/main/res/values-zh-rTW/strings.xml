@@ -2953,7 +2953,6 @@
     <string name="image_editor_censor">遮蔽</string>
     <string name="image_editor_rotate">旋轉</string>
     <string name="image_editor_reset">重設</string>
-    <string name="image_editor_snap">對齊中心</string>
     <string name="image_editor_snap_off">對齊已關閉</string>
     <string name="aspect_ratio_title">長寬比</string>
     <string name="aspect_ratio_freeform">自由</string>
@@ -3750,4 +3749,5 @@
     <string name="gradient_from_image">從圖片產生漸層色</string>
     <string name="gradient_pick_from_image">從圖片中取色</string>
     <string name="gradient_delete_confirmation">要刪除漸層色 %1$s 嗎？</string>
+    <string name="image_editor_snap">貼齊</string>
 </resources>

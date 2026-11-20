@@ -4012,7 +4012,7 @@
     <string name="image_editor_censor">Censor</string>
     <string name="image_editor_rotate">Rotate</string>
     <string name="image_editor_reset">Reset</string>
-    <string name="image_editor_snap">Snap to center</string>
+    <string name="image_editor_snap">Snap</string>
     <string name="image_editor_snap_on">Snapping to the center lines and 45° angles</string>
     <string name="image_editor_snap_off">Snapping off</string>
     <string name="aspect_ratio_title">Aspect ratio</string>

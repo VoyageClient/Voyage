@@ -3098,7 +3098,6 @@
     <string name="image_editor_censor">حجب</string>
     <string name="image_editor_rotate">دوّر</string>
     <string name="image_editor_reset">صفّر</string>
-    <string name="image_editor_snap">المحاذاة إلى المنتصف</string>
     <string name="image_editor_snap_off">المحاذاة معطّلة</string>
     <string name="aspect_ratio_title">نسبة الأبعاد</string>
     <string name="aspect_ratio_freeform">حرّة</string>
@@ -4042,4 +4041,5 @@
     <string name="gradient_from_image">تدرّج من صورة</string>
     <string name="gradient_pick_from_image">اختيار من صورة</string>
     <string name="gradient_delete_confirmation">أتريد حذف التدرّج %1$s؟</string>
+    <string name="image_editor_snap">المحاذاة</string>
 </resources>

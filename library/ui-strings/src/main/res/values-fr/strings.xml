@@ -3004,7 +3004,6 @@
     <string name="image_editor_censor">Censurer</string>
     <string name="image_editor_rotate">Pivoter</string>
     <string name="image_editor_reset">Réinitialiser</string>
-    <string name="image_editor_snap">Aligner au centre</string>
     <string name="image_editor_snap_off">Alignement désactivé</string>
     <string name="aspect_ratio_title">Format</string>
     <string name="aspect_ratio_freeform">Libre</string>
@@ -3827,4 +3826,5 @@
     <string name="gradient_from_image">Dégradé depuis une image</string>
     <string name="gradient_pick_from_image">Choisir dans une image</string>
     <string name="gradient_delete_confirmation">Supprimer le dégradé %1$s ?</string>
+    <string name="image_editor_snap">Magnétisme</string>
 </resources>

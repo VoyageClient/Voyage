@@ -2901,7 +2901,6 @@
     <string name="image_editor_censor">छिपाएं</string>
     <string name="image_editor_rotate">घुमाएं</string>
     <string name="image_editor_reset">रीसेट करें</string>
-    <string name="image_editor_snap">बीच में स्नैप करें</string>
     <string name="image_editor_snap_off">स्नैप बंद है</string>
     <string name="aspect_ratio_title">आस्पेक्ट रेशियो</string>
     <string name="aspect_ratio_freeform">मुक्त</string>
@@ -3715,4 +3714,5 @@
     <string name="gradient_from_image">छवि से ग्रेडिएंट</string>
     <string name="gradient_pick_from_image">छवि से चुनें</string>
     <string name="gradient_delete_confirmation">ग्रेडिएंट %1$s हटाएं?</string>
+    <string name="image_editor_snap">स्नैप</string>
 </resources>

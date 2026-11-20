@@ -2947,7 +2947,6 @@
     <string name="image_editor_censor">黒塗り</string>
     <string name="image_editor_rotate">回転</string>
     <string name="image_editor_reset">リセット</string>
-    <string name="image_editor_snap">中央に合わせる</string>
     <string name="image_editor_snap_off">スナップはオフです</string>
     <string name="aspect_ratio_title">アスペクト比</string>
     <string name="aspect_ratio_freeform">自由形式</string>
@@ -3746,4 +3745,5 @@
     <string name="gradient_from_image">画像からグラデーション</string>
     <string name="gradient_pick_from_image">画像から選択</string>
     <string name="gradient_delete_confirmation">グラデーション %1$s を削除しますか？</string>
+    <string name="image_editor_snap">スナップ</string>
 </resources>

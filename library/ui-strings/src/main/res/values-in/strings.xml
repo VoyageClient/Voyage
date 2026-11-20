@@ -2950,7 +2950,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_editor_censor">Sensor</string>
     <string name="image_editor_rotate">Putar</string>
     <string name="image_editor_reset">Setel ulang</string>
-    <string name="image_editor_snap">Tempelkan ke tengah</string>
     <string name="image_editor_snap_off">Penempelan mati</string>
     <string name="aspect_ratio_title">Rasio aspek</string>
     <string name="aspect_ratio_freeform">Bebas</string>
@@ -3748,4 +3747,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="gradient_from_image">Gradien dari gambar</string>
     <string name="gradient_pick_from_image">Ambil dari gambar</string>
     <string name="gradient_delete_confirmation">Hapus gradien %1$s?</string>
+    <string name="image_editor_snap">Tempelkan</string>
 </resources>

@@ -2992,7 +2992,6 @@
     <string name="image_editor_censor">Censurar</string>
     <string name="image_editor_rotate">Girar</string>
     <string name="image_editor_reset">Restablecer</string>
-    <string name="image_editor_snap">Ajustar al centro</string>
     <string name="image_editor_snap_off">Ajuste desactivado</string>
     <string name="aspect_ratio_title">Relación de aspecto</string>
     <string name="aspect_ratio_freeform">Libre</string>
@@ -3815,4 +3814,5 @@
     <string name="gradient_from_image">Degradado desde imagen</string>
     <string name="gradient_pick_from_image">Elegir de una imagen</string>
     <string name="gradient_delete_confirmation">¿Eliminar el degradado %1$s?</string>
+    <string name="image_editor_snap">Ajustar</string>
 </resources>

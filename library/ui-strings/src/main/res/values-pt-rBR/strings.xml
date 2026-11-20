@@ -3004,7 +3004,6 @@
     <string name="image_editor_censor">Censurar</string>
     <string name="image_editor_rotate">Girar</string>
     <string name="image_editor_reset">Redefinir</string>
-    <string name="image_editor_snap">Alinhar ao centro</string>
     <string name="image_editor_snap_off">Alinhamento desativado</string>
     <string name="aspect_ratio_title">Proporção</string>
     <string name="aspect_ratio_freeform">Livre</string>
@@ -3827,4 +3826,5 @@
     <string name="gradient_from_image">Degradê a partir de imagem</string>
     <string name="gradient_pick_from_image">Escolher de uma imagem</string>
     <string name="gradient_delete_confirmation">Excluir o degradê %1$s?</string>
+    <string name="image_editor_snap">Encaixar</string>
 </resources>

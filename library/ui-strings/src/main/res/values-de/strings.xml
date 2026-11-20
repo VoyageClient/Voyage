@@ -3003,7 +3003,6 @@
     <string name="image_editor_censor">Schwärzen</string>
     <string name="image_editor_rotate">Drehen</string>
     <string name="image_editor_reset">Zurücksetzen</string>
-    <string name="image_editor_snap">An Mitte ausrichten</string>
     <string name="image_editor_snap_off">Einrasten aus</string>
     <string name="aspect_ratio_title">Seitenverhältnis</string>
     <string name="aspect_ratio_freeform">Frei</string>
@@ -3826,4 +3825,5 @@
     <string name="gradient_from_image">Farbverlauf aus Bild</string>
     <string name="gradient_pick_from_image">Aus Bild wählen</string>
     <string name="gradient_delete_confirmation">Farbverlauf %1$s löschen?</string>
+    <string name="image_editor_snap">Einrasten</string>
 </resources>

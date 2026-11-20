@@ -2970,7 +2970,6 @@
     <string name="image_editor_censor">Sansürle</string>
     <string name="image_editor_rotate">Döndür</string>
     <string name="image_editor_reset">Sıfırla</string>
-    <string name="image_editor_snap">Merkeze hizala</string>
     <string name="image_editor_snap_off">Hizalama kapalı</string>
     <string name="aspect_ratio_title">En boy oranı</string>
     <string name="aspect_ratio_freeform">Serbest</string>
@@ -3785,4 +3784,5 @@
     <string name="gradient_from_image">Görüntüden renk geçişi</string>
     <string name="gradient_pick_from_image">Görüntüden seç</string>
     <string name="gradient_delete_confirmation">%1$s renk geçişi silinsin mi?</string>
+    <string name="image_editor_snap">Hizala</string>
 </resources>

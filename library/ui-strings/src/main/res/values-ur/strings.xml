@@ -2913,7 +2913,6 @@
     <string name="image_editor_censor">سنسر کریں</string>
     <string name="image_editor_rotate">گھمائیں</string>
     <string name="image_editor_reset">دوبارہ ترتیب دیں</string>
-    <string name="image_editor_snap">مرکز پر جمائیں</string>
     <string name="image_editor_snap_off">جمانا بند</string>
     <string name="aspect_ratio_title">تناسبِ ابعاد</string>
     <string name="aspect_ratio_freeform">آزاد</string>
@@ -3727,4 +3726,5 @@
     <string name="gradient_from_image">تصویر سے گریڈینٹ</string>
     <string name="gradient_pick_from_image">تصویر سے منتخب کریں</string>
     <string name="gradient_delete_confirmation">گریڈینٹ %1$s حذف کریں؟</string>
+    <string name="image_editor_snap">جمائیں</string>
 </resources>

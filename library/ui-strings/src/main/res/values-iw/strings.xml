@@ -3068,7 +3068,6 @@
     <string name="image_editor_censor">צנזר</string>
     <string name="image_editor_rotate">סובב</string>
     <string name="image_editor_reset">אפס</string>
-    <string name="image_editor_snap">הצמד למרכז</string>
     <string name="image_editor_snap_off">ההצמדה כבויה</string>
     <string name="aspect_ratio_title">יחס גובה-רוחב</string>
     <string name="aspect_ratio_freeform">חופשי</string>
@@ -3950,4 +3949,5 @@
     <string name="gradient_from_image">מעבר צבע מתמונה</string>
     <string name="gradient_pick_from_image">בחירה מתמונה</string>
     <string name="gradient_delete_confirmation">למחוק את מעבר הצבע %1$s?</string>
+    <string name="image_editor_snap">הצמדה</string>
 </resources>
