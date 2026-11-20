@@ -23,11 +23,7 @@ import im.vector.app.features.themes.BubbleThemeUtils
  * image with a different one caches something the bind then cannot use.
  */
 fun TimelineMessageLayout.mediaCornerTransformation(context: Context): Transformation<Bitmap> {
-    return if (this is TimelineMessageLayout.Bubble) {
-        cornersRadius.granularRoundedCorners()
-    } else {
-        CappedRoundedCorners(mediaCornerRadiusPx(context))
-    }
+    return CappedRoundedCorners(mediaCornerRadiusPx(context))
 }
 
 fun TimelineMessageLayout.mediaCornerRadiusPx(context: Context): Int {

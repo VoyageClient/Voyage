@@ -16,7 +16,6 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.resources.toTimestamp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.RoomDetailAction
-import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.location.live.LiveLocationMessageBannerViewState
 import im.vector.app.features.location.live.LiveLocationRunningBannerView
 import org.threeten.bp.LocalDateTime
@@ -41,8 +40,7 @@ abstract class MessageLiveLocationItem : AbsMessageLocationItem<MessageLiveLocat
     private fun bindLiveLocationBanner(holder: Holder) {
         // TODO in a future PR add check on device id to confirm that is the one that sent the beacon
         val isEmitter = currentUserId != null && currentUserId == pinMatrixItem?.id
-        val messageLayout = attributes.informationData.messageLayout
-        val viewState = buildViewState(holder, messageLayout, isEmitter)
+        val viewState = buildViewState(holder, isEmitter)
         holder.liveLocationRunningBanner.isVisible = true
         holder.liveLocationRunningBanner.render(viewState)
         holder.liveLocationRunningBanner.stopButton.setOnClickListener {
@@ -52,23 +50,9 @@ abstract class MessageLiveLocationItem : AbsMessageLocationItem<MessageLiveLocat
 
     private fun buildViewState(
             holder: Holder,
-            messageLayout: TimelineMessageLayout,
             isEmitter: Boolean
     ): LiveLocationMessageBannerViewState {
         return when {
-            messageLayout is TimelineMessageLayout.Bubble && isEmitter ->
-                LiveLocationMessageBannerViewState.Emitter(
-                        remainingTimeInMillis = getRemainingTimeOfLiveInMillis(),
-                        bottomStartCornerRadiusInDp = messageLayout.cornersRadius.bottomStartRadius,
-                        bottomEndCornerRadiusInDp = messageLayout.cornersRadius.bottomEndRadius,
-                        isStopButtonCenteredVertically = false
-                )
-            messageLayout is TimelineMessageLayout.Bubble ->
-                LiveLocationMessageBannerViewState.Watcher(
-                        bottomStartCornerRadiusInDp = messageLayout.cornersRadius.bottomStartRadius,
-                        bottomEndCornerRadiusInDp = messageLayout.cornersRadius.bottomEndRadius,
-                        formattedLocalTimeOfEndOfLive = getFormattedLocalTimeEndOfLive(),
-                )
             isEmitter -> {
                 val cornerRadius = getBannerCornerRadiusForDefaultLayout(holder)
                 LiveLocationMessageBannerViewState.Emitter(

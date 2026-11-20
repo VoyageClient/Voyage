@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.factory
 
-import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.features.home.room.detail.timeline.style.TimelineLayoutSettings
 import im.vector.app.features.home.room.detail.timeline.style.TimelineLayoutSettingsProvider
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
@@ -26,7 +25,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -42,8 +40,6 @@ class TimelineMessageLayoutFactoryTest {
     private val factory = TimelineMessageLayoutFactory(
             session = mockk<Session> { every { myUserId } returns "@me:example.org" },
             layoutSettingsProvider = settingsProvider,
-            localeProvider = mockk<LocaleProvider> { every { current() } returns Locale.US },
-            resources = mockk(relaxed = true),
             bubbleThemeUtils = bubbleThemeUtils,
             vectorPreferences = preferences,
             lightweightSettingsStorage = mockk(relaxed = true),
@@ -78,8 +74,7 @@ class TimelineMessageLayoutFactoryTest {
             factory.create(TimelineItemFactoryParams(event = event())).showTimestamp shouldBeEqualTo true
             val grouped = factory.create(TimelineItemFactoryParams(event = event(), nextDisplayableEvent = event()))
 
-            grouped.showTimestamp shouldBeEqualTo (layout == TimelineLayoutSettings.BUBBLE ||
-                    (layout == TimelineLayoutSettings.SC_BUBBLE && !singleSided))
+            grouped.showTimestamp shouldBeEqualTo (layout == TimelineLayoutSettings.SC_BUBBLE && !singleSided)
         }
     }
 

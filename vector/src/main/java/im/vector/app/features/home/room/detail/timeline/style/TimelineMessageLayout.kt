@@ -33,33 +33,6 @@ sealed interface TimelineMessageLayout : Parcelable {
     ) : TimelineMessageLayout
 
     @Parcelize
-    data class Bubble(
-            override val showAvatar: Boolean,
-            override val showDisplayName: Boolean,
-            override val showTimestamp: Boolean = true,
-            val addTopMargin: Boolean = false,
-            val isIncoming: Boolean,
-            val isPseudoBubble: Boolean,
-            val cornersRadius: CornersRadius,
-            val timestampInsideMessage: Boolean,
-            val addMessageOverlay: Boolean,
-            override val layoutRes: Int = if (isIncoming) {
-                R.layout.item_timeline_event_bubble_incoming_base
-            } else {
-                R.layout.item_timeline_event_bubble_outgoing_base
-            },
-    ) : TimelineMessageLayout {
-
-        @Parcelize
-        data class CornersRadius(
-                val topStartRadius: Float,
-                val topEndRadius: Float,
-                val bottomStartRadius: Float,
-                val bottomEndRadius: Float,
-        ) : Parcelable
-    }
-
-    @Parcelize
     data class ScBubble(
             override val showAvatar: Boolean,
             override val showDisplayName: Boolean,
@@ -101,4 +74,4 @@ sealed interface TimelineMessageLayout : Parcelable {
 
 /** True when the row already draws a bubble behind its content, so a media pill would double up. */
 val TimelineMessageLayout.drawsBubbleBackground: Boolean
-    get() = this is TimelineMessageLayout.Bubble || (this is TimelineMessageLayout.ScBubble && isRealBubble)
+    get() = this is TimelineMessageLayout.ScBubble && isRealBubble

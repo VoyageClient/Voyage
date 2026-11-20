@@ -20,7 +20,6 @@ import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
-import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.themes.ThemeUtils
 
 /**
@@ -34,33 +33,19 @@ class DefaultLiveLocationShareStatusItem : LiveLocationShareStatusItem {
             mapHeight: Int,
             messageLayout: TimelineMessageLayout
     ) {
-        val mapCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            messageLayout.cornersRadius.granularRoundedCorners()
-        } else {
-            RoundedCorners(getDefaultLayoutCornerRadiusInDp(mapImageView.resources))
-        }
         mapImageView.updateLayoutParams {
             width = mapWidth
             height = mapHeight
         }
         GlideApp.with(mapImageView)
                 .load(ContextCompat.getDrawable(mapImageView.context, R.drawable.bg_no_location_map))
-                .transform(MultiTransformation(CenterCrop(), mapCornerTransformation))
+                .transform(MultiTransformation(CenterCrop(), RoundedCorners(getDefaultLayoutCornerRadiusInDp(mapImageView.resources))))
                 .into(mapImageView)
     }
 
     override fun bindBottomBanner(bannerImageView: ImageView, messageLayout: TimelineMessageLayout) {
-        val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            GranularRoundedCorners(
-                    0f,
-                    0f,
-                    messageLayout.cornersRadius.bottomEndRadius,
-                    messageLayout.cornersRadius.bottomStartRadius
-            )
-        } else {
-            val bottomCornerRadius = getDefaultLayoutCornerRadiusInDp(bannerImageView.resources).toFloat()
-            GranularRoundedCorners(0f, 0f, bottomCornerRadius, bottomCornerRadius)
-        }
+        val bottomCornerRadius = getDefaultLayoutCornerRadiusInDp(bannerImageView.resources).toFloat()
+        val imageCornerTransformation = GranularRoundedCorners(0f, 0f, bottomCornerRadius, bottomCornerRadius)
         GlideApp.with(bannerImageView)
                 .load(ColorDrawable(ThemeUtils.getColor(bannerImageView.context, android.R.attr.colorBackground)))
                 .transform(imageCornerTransformation)

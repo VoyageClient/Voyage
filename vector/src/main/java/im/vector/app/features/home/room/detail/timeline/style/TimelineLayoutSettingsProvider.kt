@@ -17,7 +17,6 @@ class TimelineLayoutSettingsProvider @Inject constructor(
     fun getLayoutSettings(): TimelineLayoutSettings {
         return when (bubbleThemeUtils.getBubbleStyle()) {
             BubbleThemeUtils.BUBBLE_STYLE_NONE -> TimelineLayoutSettings.MODERN
-            BubbleThemeUtils.BUBBLE_STYLE_ELEMENT -> TimelineLayoutSettings.BUBBLE
             else -> TimelineLayoutSettings.SC_BUBBLE
         }
     }

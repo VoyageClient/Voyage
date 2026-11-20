@@ -117,29 +117,21 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
-        val isBubble = messageLayout is TimelineMessageLayout.Bubble
         val cornerPx = messageLayout.mediaCornerRadiusPx(holder.view.context)
         val imageCornerTransformation = messageLayout.mediaCornerTransformation(holder.view.context)
-        // Bubble layout already clips at the MessageBubbleView level. For non-bubble we apply a
-        // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
-        // WebP / APNG / GIF) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
+        // A view-level clip as well, so animated drawables (FrameAnimationDrawable / animated WebP /
+        // APNG / GIF) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
         // Transformation and is silently skipped for those.
+        val r = cornerPx.toFloat()
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            if (!isBubble) {
-                val r = cornerPx.toFloat()
-                holder.imageView.outlineProvider = object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        val capped = cappedMediaCornerRadius(r, view.width.toFloat(), view.height.toFloat())
-                        outline.setRoundRect(0, 0, view.width, view.height, capped)
-                    }
+            holder.imageView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    val capped = cappedMediaCornerRadius(r, view.width.toFloat(), view.height.toFloat())
+                    outline.setRoundRect(0, 0, view.width, view.height, capped)
                 }
-                holder.imageView.clipToOutline = true
-                holder.imageView.tag = r
-            } else {
-                holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
-                holder.imageView.clipToOutline = false
-                holder.imageView.tag = 0f
             }
+            holder.imageView.clipToOutline = true
+            holder.imageView.tag = r
         } else if (PerformanceMode.enabled) {
             // The pre-Lollipop clip runs on a per-frame software layer. In performance mode skip it:
             // static thumbnails are already rounded by Glide; animated ones just show square corners.
@@ -147,13 +139,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         } else {
             // clipToOutline is API 21+: backport the same view-level clip with identical radii so
             // animated drawables round on KitKat too (static bitmaps are already rounded by Glide).
-            if (isBubble) {
-                val radius = (messageLayout as TimelineMessageLayout.Bubble).cornersRadius
-                holder.imageView.setCornerRadii(radius.topStartRadius, radius.topEndRadius, radius.bottomEndRadius, radius.bottomStartRadius)
-            } else {
-                val r = cornerPx.toFloat()
-                holder.imageView.setCornerRadii(r, r, r, r)
-            }
+            holder.imageView.setCornerRadii(r, r, r, r)
         }
         // A just-sent message is rebound when its remote echo lands, often while the viewer holds its
         // thumbnail; only a different message may take the stand-in down.
@@ -163,11 +149,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         if (!sameMessage) holder.resetViewerHandover()
         holder.thumbnailBackdrop.backgroundCompat = GradientDrawable().apply {
             setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
-            cornerRadius = if (isBubble) {
-                (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.topStartRadius
-            } else {
-                cornerPx.toFloat()
-            }
+            cornerRadius = r
         }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
         // Same condition bindPlayButton uses: where that badge lands, the failure glyph must not.

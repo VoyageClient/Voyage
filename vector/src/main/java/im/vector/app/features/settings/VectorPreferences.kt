@@ -194,7 +194,6 @@ class VectorPreferences @Inject constructor(
         // interface
         const val SETTINGS_INTERFACE_LANGUAGE_PREFERENCE_KEY = "SETTINGS_INTERFACE_LANGUAGE_PREFERENCE_KEY"
         const val SETTINGS_INTERFACE_TEXT_SIZE_KEY = "SETTINGS_INTERFACE_TEXT_SIZE_KEY"
-        const val SETTINGS_INTERFACE_BUBBLE_KEY = "SETTINGS_INTERFACE_BUBBLE_KEY"
         const val SETTINGS_OVERRIDE_DM_DISPLAY_KEY = "SETTINGS_OVERRIDE_DM_DISPLAY_KEY"
         const val SETTINGS_SHOW_URL_PREVIEW_KEY = "SETTINGS_SHOW_URL_PREVIEW_KEY"
 
@@ -1504,7 +1503,7 @@ class VectorPreferences @Inject constructor(
      * @return true to show timeline message in bubble.
      */
     fun useMessageBubblesLayout(): Boolean {
-        // Any bubble style (Element or SchildiChat) implies bubble media sizing.
+        // Any bubble style implies bubble media sizing.
         val none = im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
         return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, none) != none
     }

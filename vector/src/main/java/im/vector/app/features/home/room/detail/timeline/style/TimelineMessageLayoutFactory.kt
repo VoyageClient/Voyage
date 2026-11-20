@@ -7,11 +7,8 @@
 
 package im.vector.app.features.home.room.detail.timeline.style
 
-import android.content.res.Resources
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
-import im.vector.app.core.resources.LocaleProvider
-import im.vector.app.core.resources.isRTL
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.home.room.detail.timeline.helper.perMessageSenderIdentity
 import im.vector.app.features.settings.VectorPreferences
@@ -38,8 +35,6 @@ import javax.inject.Inject
 class TimelineMessageLayoutFactory @Inject constructor(
         private val session: Session,
         private val layoutSettingsProvider: TimelineLayoutSettingsProvider,
-        private val localeProvider: LocaleProvider,
-        private val resources: Resources,
         private val bubbleThemeUtils: BubbleThemeUtils,
         private val vectorPreferences: VectorPreferences,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
@@ -78,18 +73,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
         )
     }
 
-    private val cornerRadius: Float by lazy {
-        resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_corner_radius).toFloat()
-    }
-
-    private val isRTL: Boolean by lazy {
-        localeProvider.isRTL()
-    }
-
     fun create(params: TimelineItemFactoryParams): TimelineMessageLayout {
         val event = params.event
         val nextDisplayableEvent = params.nextDisplayableEvent
-        val prevDisplayableEvent = params.prevDisplayableEvent
         val isSentByMe = event.root.senderId == session.myUserId
 
         val date = event.root.localDateTime()
@@ -136,40 +122,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
             }
             TimelineLayoutSettings.MODERN -> {
                 buildModernLayout(showInformation)
-            }
-            TimelineLayoutSettings.BUBBLE -> {
-                val shouldBuildBubbleLayout = event.shouldBuildBubbleLayout()
-                if (shouldBuildBubbleLayout) {
-                    val isFirstFromThisSender = nextDisplayableEvent == null || !nextDisplayableEvent.shouldBuildBubbleLayout() ||
-                            nextDisplayableEvent.rendersAsNotice(params) ||
-                            nextDisplayableEvent.senderIdentity() != event.senderIdentity() || addDaySeparator
-
-                    val isLastFromThisSender = prevDisplayableEvent == null || !prevDisplayableEvent.shouldBuildBubbleLayout() ||
-                            prevDisplayableEvent.rendersAsNotice(params) ||
-                            prevDisplayableEvent.senderIdentity() != event.senderIdentity() ||
-                            prevDisplayableEvent.root.localDateTime().toLocalDate() != date.toLocalDate()
-
-                    val cornersRadius = buildCornersRadius(
-                            isIncoming = !isSentByMe,
-                            isFirstFromThisSender = isFirstFromThisSender,
-                            isLastFromThisSender = isLastFromThisSender
-                    )
-
-                    val messageContent = event.getVectorLastMessageContent()
-                    TimelineMessageLayout.Bubble(
-                            showAvatar = showInformation && !isSentByMe,
-                            showDisplayName = showInformation && !isSentByMe,
-                            showTimestamp = vectorPreferences.showMessageTimestamps(),
-                            addTopMargin = isFirstFromThisSender && isSentByMe,
-                            isIncoming = !isSentByMe,
-                            cornersRadius = cornersRadius,
-                            isPseudoBubble = messageContent.isPseudoBubble(),
-                            timestampInsideMessage = messageContent.timestampInsideMessage(),
-                            addMessageOverlay = messageContent.shouldAddMessageOverlay(),
-                    )
-                } else {
-                    buildModernLayout(showInformation)
-                }
             }
         }
         return messageLayout
@@ -218,11 +170,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
         }
     }
 
-    private fun MessageContent?.isPseudoBubble(): Boolean {
-        if (this == null) return false
-        return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT
-    }
-
     private fun MessageContent?.isScPseudoBubble(event: TimelineEvent, ignoreReply: Boolean = false): Boolean {
         if (this == null) return false
         if (event.root.isRedacted()) return false
@@ -265,50 +212,12 @@ class TimelineMessageLayoutFactory @Inject constructor(
         }
     }
 
-    private fun MessageContent?.shouldAddMessageOverlay(): Boolean {
-        return when {
-            this == null || msgType == MessageType.MSGTYPE_BEACON_INFO -> false
-            else -> msgType in MSG_TYPES_WITH_TIMESTAMP_INSIDE_MESSAGE
-        }
-    }
-
-    private fun TimelineEvent.shouldBuildBubbleLayout(): Boolean {
-        val type = root.getClearType()
-        if (type in EVENT_TYPES_WITH_BUBBLE_LAYOUT) {
-            val messageContent = getVectorLastMessageContent()
-            return messageContent?.msgType !in MSG_TYPES_WITHOUT_BUBBLE_LAYOUT
-        }
-        return false
-    }
-
     private fun buildModernLayout(showInformation: Boolean): TimelineMessageLayout.Default {
         return TimelineMessageLayout.Default(
                 showAvatar = showInformation,
                 showDisplayName = showInformation,
                 showTimestamp = showInformation && vectorPreferences.showMessageTimestamps()
         )
-    }
-
-    private fun buildCornersRadius(
-            isIncoming: Boolean,
-            isFirstFromThisSender: Boolean,
-            isLastFromThisSender: Boolean
-    ): TimelineMessageLayout.Bubble.CornersRadius {
-        return if ((isIncoming && !isRTL) || (!isIncoming && isRTL)) {
-            TimelineMessageLayout.Bubble.CornersRadius(
-                    topStartRadius = if (isFirstFromThisSender) cornerRadius else 0f,
-                    topEndRadius = cornerRadius,
-                    bottomStartRadius = if (isLastFromThisSender) cornerRadius else 0f,
-                    bottomEndRadius = cornerRadius
-            )
-        } else {
-            TimelineMessageLayout.Bubble.CornersRadius(
-                    topStartRadius = cornerRadius,
-                    topEndRadius = if (isFirstFromThisSender) cornerRadius else 0f,
-                    bottomStartRadius = cornerRadius,
-                    bottomEndRadius = if (isLastFromThisSender) cornerRadius else 0f
-            )
-        }
     }
 
     /**

@@ -13,10 +13,8 @@ import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 
 interface TimelineMessageLayoutRenderer {
-    // Element's native renderer entry point (Default / Bubble layouts)
     fun renderMessageLayout(messageLayout: TimelineMessageLayout)
 
-    // SchildiChat bubble renderer entry points; default no-op for Element renderers
     fun <H : BaseEventItem.BaseHolder> renderMessageLayout(
             messageLayout: TimelineMessageLayout,
             bubbleDependentView: BubbleDependentView<H>,

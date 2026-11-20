@@ -89,7 +89,6 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         views = ViewMessageBubbleScBinding.bind(this)
     }
 
-    // Element's native renderer entry point - unused for SC bubbles
     override fun renderMessageLayout(messageLayout: TimelineMessageLayout) {}
 
     fun <H : VectorEpoxyHolder> customBind(
@@ -312,7 +311,6 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             // Padding for bubble content: long for side with tail, short for other sides
             val longPadding: Int
             val shortPadding: Int
-            // Element/SchildiChat keep outgoing bubbles neutral; tint them with the accent when enabled.
             val hasTail = !messageLayout.isPseudoBubble && messageLayout.showAvatar
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP && hasTail) {
                 // Pre-21 the XML layer-list can't size the tail (item gravity/size is API 23+), so draw

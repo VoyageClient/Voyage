@@ -46,7 +46,7 @@ class AvatarSizeProviderTest {
     fun `rows keep the avatar column outside DMs and other layouts`() {
         val both = provider(BubbleThemeUtils.BUBBLE_STYLE_BOTH)
         assertEquals(both.leftGuideline, both.nonMessageGuideline(isDirect = false))
-        listOf(BubbleThemeUtils.BUBBLE_STYLE_START, BubbleThemeUtils.BUBBLE_STYLE_NONE, BubbleThemeUtils.BUBBLE_STYLE_ELEMENT).forEach {
+        listOf(BubbleThemeUtils.BUBBLE_STYLE_START, BubbleThemeUtils.BUBBLE_STYLE_NONE).forEach {
             val other = provider(it)
             assertEquals(it, other.leftGuideline, other.nonMessageGuideline(isDirect = true))
         }

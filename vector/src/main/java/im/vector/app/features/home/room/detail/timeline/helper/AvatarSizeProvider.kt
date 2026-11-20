@@ -24,7 +24,6 @@ class AvatarSizeProvider @Inject constructor(
     private val avatarStyle by lazy {
         when (layoutSettingsProvider.getLayoutSettings()) {
             TimelineLayoutSettings.MODERN -> AvatarStyle.SMALL
-            TimelineLayoutSettings.BUBBLE -> AvatarStyle.BUBBLE
             TimelineLayoutSettings.SC_BUBBLE -> AvatarStyle.SMALL
         }
     }
@@ -58,7 +57,6 @@ class AvatarSizeProvider @Inject constructor(
             BIG(50, 8),
             MEDIUM(40, 8),
             SMALL(30, 8),
-            BUBBLE(28, 4),
             NONE(0, 8)
         }
     }

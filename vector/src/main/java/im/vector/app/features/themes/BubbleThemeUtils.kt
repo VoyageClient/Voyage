@@ -40,7 +40,6 @@ class BubbleThemeUtils @Inject constructor(private val context: Context) {
         const val BUBBLE_ROUNDNESS_R2 = "r2"
 
         const val BUBBLE_STYLE_NONE = "none"
-        const val BUBBLE_STYLE_ELEMENT = "element"
         const val BUBBLE_STYLE_START = "start"
         const val BUBBLE_STYLE_BOTH = "both"
 
@@ -68,7 +67,7 @@ class BubbleThemeUtils @Inject constructor(private val context: Context) {
     fun getBubbleStyle(): String {
         val bubbleStyle = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(BUBBLE_STYLE_KEY, BUBBLE_STYLE_NONE) ?: BUBBLE_STYLE_NONE
-        if (bubbleStyle !in listOf(BUBBLE_STYLE_NONE, BUBBLE_STYLE_ELEMENT, BUBBLE_STYLE_START, BUBBLE_STYLE_BOTH)) {
+        if (bubbleStyle !in listOf(BUBBLE_STYLE_NONE, BUBBLE_STYLE_START, BUBBLE_STYLE_BOTH)) {
             Timber.e("Ignoring invalid bubble style setting: $bubbleStyle")
             return BUBBLE_STYLE_NONE
         }
@@ -76,9 +75,6 @@ class BubbleThemeUtils @Inject constructor(private val context: Context) {
     }
 
     fun isBubbleEnabled(): Boolean = getBubbleStyle() != BUBBLE_STYLE_NONE
-
-    // SchildiChat-rendered bubbles (dual or single sided). "element" uses Element's own bubble renderer.
-    fun isScBubble(): Boolean = getBubbleStyle() in listOf(BUBBLE_STYLE_START, BUBBLE_STYLE_BOTH)
 
     // Element does not tint outgoing bubbles, SchildiChat keeps them neutral too. This opt-in (default on)
     // tints outgoing bubbles with the current accent colour.

@@ -25,8 +25,6 @@ import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
-import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
-import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.location.MapLoadingErrorView
 import im.vector.app.features.location.MapLoadingErrorViewState
 import im.vector.app.features.media.MediaPlaceholderDrawable
@@ -59,13 +57,7 @@ abstract class AbsMessageLocationItem<H : AbsMessageLocationItem.Holder>(
 
     private fun bindMap(holder: Holder) {
         val location = locationUrl ?: return
-        val messageLayout = attributes.informationData.messageLayout
-        val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            messageLayout.cornersRadius.granularRoundedCorners()
-        } else {
-            val dimensionConverter = DimensionConverter(holder.view.resources)
-            RoundedCorners(dimensionConverter.dpToPx(8))
-        }
+        val imageCornerTransformation = RoundedCorners(DimensionConverter(holder.view.resources).dpToPx(8))
         holder.staticMapImageView.updateLayoutParams {
             width = mapWidth
             height = mapHeight
