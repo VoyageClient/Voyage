@@ -1,0 +1,7 @@
+• Keep verbose crypto, sync and trust chatter out of logcat
+• Match the navigation-bar strip to the no-permission banner and only once it reaches the bottom
+• Keep chosen name colors readable on the current theme
+• Show the first backward page of a room as soon as it is stored
+• Drop the profile of a redacted member event from read receipts
+• Match the navigation-bar strip to the surface above it on invite and other composer-less screens
+…and 35 more
