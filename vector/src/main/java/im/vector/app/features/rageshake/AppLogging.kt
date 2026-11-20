@@ -7,6 +7,7 @@
 
 package im.vector.app.features.rageshake
 
+import android.util.Log
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.debug.DebugLog
@@ -25,7 +26,7 @@ class AppLogging @Inject constructor(
 
     private var enabled: Boolean? = null
 
-    private val logcatTree by lazy { Timber.DebugTree() }
+    private val logcatTree by lazy { LogcatTree() }
 
     @Synchronized
     fun apply(enable: Boolean = vectorPreferences.isLoggingEnabled()) {
@@ -47,5 +48,30 @@ class AppLogging @Inject constructor(
             vectorFileLogger.close()
             vectorFileLogger.deleteLogFiles()
         }
+    }
+}
+
+// Per-event chatter from these tags filled a 512 KiB logcat buffer within a minute; the file log still keeps it.
+internal class LogcatTree : Timber.DebugTree() {
+
+    public override fun isLoggable(tag: String?, priority: Int): Boolean =
+            priority >= Log.INFO || tag?.substringBefore('$') !in FILE_ONLY_TAGS
+
+    private companion object {
+        val FILE_ONLY_TAGS = setOf(
+                "CRYPTO/MXOlmDevice",
+                "CRYPTO/MXMegolmDecryption",
+                "CRYPTO/InboundGroupSessionStore",
+                "CRYPTO/EventDecryptor",
+                "CRYPTO/OutgoingKeyRequestManager",
+                "CRYPTO/IncomingKeyRequestManager",
+                "StreamEventsManager",
+                "SyncResponseHandler",
+                "DefaultProcessEventForPushTask",
+                "NotificationDrawerManager",
+                "UpdateTrustTaskBody",
+                "DefaultCrossSigningService",
+                "VerificationMessageProcessor",
+        )
     }
 }

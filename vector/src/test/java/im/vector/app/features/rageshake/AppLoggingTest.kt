@@ -7,6 +7,7 @@
 
 package im.vector.app.features.rageshake
 
+import android.util.Log
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import im.vector.app.features.settings.VectorPreferences
@@ -25,6 +26,7 @@ import org.matrix.android.sdk.api.debug.DebugLog
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLog
 import timber.log.Timber
 import java.io.File
 
@@ -107,6 +109,38 @@ class AppLoggingTest {
     }
 
     @Test
+    fun `logcat skips verbose and debug lines of chatty tags but keeps their warnings`() {
+        Timber.plant(LogcatTree())
+        ShadowLog.clear()
+
+        Timber.tag("CRYPTO/MXOlmDevice").v("## decryptGroupMessage() timeline: abc")
+        Timber.tag("CRYPTO/MXOlmDevice").d("## decryptGroupMessage() roomId: !room:example.org")
+        Timber.tag("CRYPTO/MXOlmDevice").w("## decryptGroupMessage() failed")
+        Timber.tag("TimelineFragment").v("kept")
+
+        ShadowLog.getLogs().map { it.tag to it.msg } shouldBeEqualTo listOf(
+                "CRYPTO/MXOlmDevice" to "## decryptGroupMessage() failed",
+                "TimelineFragment" to "kept",
+        )
+    }
+
+    @Test
+    fun `logcat filters a chatty class by its derived tag`() {
+        Timber.plant(LogcatTree())
+        ShadowLog.clear()
+
+        StreamEventsManager().log()
+
+        ShadowLog.getLogs().map { it.tag to it.msg } shouldBeEqualTo listOf("StreamEventsManager" to "warned")
+    }
+
+    @Test
+    fun `logcat filters a lambda inside a chatty class`() {
+        LogcatTree().isLoggable("UpdateTrustTaskBody\$updateRoomShieldInSummaries", Log.VERBOSE).shouldBeFalse()
+        LogcatTree().isLoggable("UpdateTrustTaskBodyHelper", Log.VERBOSE).shouldBeTrue()
+    }
+
+    @Test
     fun `disabling uproots everything and deletes the saved logs`() {
         val appLogging = appLogging(isDebug = false)
         appLogging.apply(true)
@@ -148,5 +182,13 @@ class AppLoggingTest {
         appLogging.apply(true)
 
         Timber.treeCount shouldBeEqualTo 2
+    }
+}
+
+// Top level, as Timber derives a nested class's tag from its outer one too.
+private class StreamEventsManager {
+    fun log() {
+        Timber.v("## dispatchLiveEventDecrypted")
+        Timber.w("warned")
     }
 }
