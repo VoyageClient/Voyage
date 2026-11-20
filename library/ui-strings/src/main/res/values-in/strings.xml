@@ -3732,4 +3732,20 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_enable_logging_summary">Simpan catatan terperinci di perangkat ini yang dapat Anda ekspor dari menu beranda untuk membantu mendiagnosis masalah. Menonaktifkannya akan menghapus catatan yang tersimpan.</string>
     <string name="settings_readable_name_colors_title">Jaga agar warna nama tetap terbaca</string>
     <string name="settings_readable_name_colors_summary">Sedikit terangkan atau gelapkan warna nama pilihan yang akan sulit dibaca pada tema saat ini.</string>
+    <string name="command_description_gradient">Mengirim pesan dengan salah satu gradien kustom Anda</string>
+    <string name="command_gradient_unknown">“%1$s” bukan gradien yang sudah diatur. Gradien yang tersedia: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” bukan gradien yang sudah diatur, dan Anda belum membuat gradien apa pun. Anda bisa membuatnya di %2$s.</string>
+    <string name="gradient_settings_title">Gradien kustom</string>
+    <string name="gradient_settings_summary">Buat gradien warna untuk digunakan dengan /gradient</string>
+    <string name="gradient_add">Tambah gradien</string>
+    <string name="gradient_new">Gradien baru</string>
+    <string name="gradient_edit">Edit gradien</string>
+    <string name="gradient_label">Label</string>
+    <string name="gradient_label_duplicate">Label ini sudah dipakai gradien lain</string>
+    <string name="gradient_add_color">Tambah warna</string>
+    <string name="gradient_color">Warna %1$d</string>
+    <string name="gradient_unsaved_message">Ada perubahan pada gradien ini yang belum disimpan. Terapkan?</string>
+    <string name="gradient_from_image">Gradien dari gambar</string>
+    <string name="gradient_pick_from_image">Ambil dari gambar</string>
+    <string name="gradient_delete_confirmation">Hapus gradien %1$s?</string>
 </resources>

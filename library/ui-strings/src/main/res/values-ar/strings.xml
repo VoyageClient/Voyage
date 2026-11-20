@@ -4026,4 +4026,20 @@
     <string name="settings_enable_logging_summary">احتفظ بسجل مفصّل على هذا الجهاز يمكنك تصديره من القائمة الرئيسية للمساعدة في تشخيص المشكلات. إيقاف هذا الخيار يحذف السجلات المحفوظة.</string>
     <string name="settings_readable_name_colors_title">اجعل ألوان الأسماء سهلة القراءة</string>
     <string name="settings_readable_name_colors_summary">فتّح أو اغمق قليلًا ألوان الأسماء المختارة التي يصعب قراءتها في السمة الحالية.</string>
+    <string name="command_description_gradient">يرسل رسالة بأحد تدرّجاتك اللونية المخصّصة</string>
+    <string name="command_gradient_unknown">«%1$s» ليس تدرّجًا لونيًا مُعدًّا. التدرّجات المتاحة: %2$s</string>
+    <string name="command_gradient_unknown_none">«%1$s» ليس تدرّجًا لونيًا مُعدًّا، ولم تُنشئ أي تدرّج بعد. يمكنك إنشاء واحد من %2$s.</string>
+    <string name="gradient_settings_title">تدرّجات لونية مخصّصة</string>
+    <string name="gradient_settings_summary">أنشئ تدرّجات لونية لاستخدامها مع /gradient</string>
+    <string name="gradient_add">إضافة تدرّج</string>
+    <string name="gradient_new">تدرّج جديد</string>
+    <string name="gradient_edit">تعديل التدرّج</string>
+    <string name="gradient_label">التسمية</string>
+    <string name="gradient_label_duplicate">هناك تدرّج يستخدم هذه التسمية بالفعل</string>
+    <string name="gradient_add_color">إضافة لون</string>
+    <string name="gradient_color">اللون %1$d</string>
+    <string name="gradient_unsaved_message">لديك تغييرات غير محفوظة على هذا التدرّج. أتريد تطبيقها؟</string>
+    <string name="gradient_from_image">تدرّج من صورة</string>
+    <string name="gradient_pick_from_image">اختيار من صورة</string>
+    <string name="gradient_delete_confirmation">أتريد حذف التدرّج %1$s؟</string>
 </resources>

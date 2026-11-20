@@ -77,4 +77,7 @@
     <string name="settings_appearance_summary">Theme, colours, font size, bubbles and avatars</string>
     <string name="settings_appearance_category_avatars_colors">Avatars &amp; colours</string>
     <string name="image_editor_color_eyedropper">Pick a colour from the image</string>
+    <string name="gradient_settings_summary">Create colour gradients to use with /gradient</string>
+    <string name="gradient_add_color">Add colour</string>
+    <string name="gradient_color">Colour %1$d</string>
 </resources>

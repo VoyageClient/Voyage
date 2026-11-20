@@ -7,7 +7,9 @@
 
 package im.vector.app.features.command
 
+import im.vector.app.features.settings.gradients.CustomGradient
 import im.vector.app.test.fakes.FakeVectorPreferences
+import io.mockk.every
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
@@ -18,6 +20,28 @@ private const val A_USER_ID = "@alice:matrix.org"
 
 class CommandParserTest {
     private val fakeVectorPreferences = FakeVectorPreferences()
+
+    @Test
+    fun parseSavedGradient() {
+        val colors = listOf(0x112233, 0xAABBCC)
+        every { fakeVectorPreferences.instance.getCustomGradients() } returns listOf(CustomGradient("sunset", colors))
+
+        test("/gradient sunset hello  world\n🤞", ParsedCommand.SendGradient("hello  world\n🤞", colors))
+        test("/GRADIENT SUNSET hello", ParsedCommand.SendGradient("hello", colors))
+        CommandParser(fakeVectorPreferences.instance).parseSlashCommand("/gradient sunset hello", null, true) shouldBeEqualTo
+                ParsedCommand.SendGradient("hello", colors)
+    }
+
+    @Test
+    fun rejectMissingGradientOrMessage() {
+        every { fakeVectorPreferences.instance.getCustomGradients() } returns listOf(CustomGradient("sunset", listOf(0, 0xFFFFFF)))
+
+        test("/gradient", ParsedCommand.ErrorSyntax(Command.GRADIENT))
+        test("/gradient sunset", ParsedCommand.ErrorSyntax(Command.GRADIENT))
+        test("/gradient sunset   ", ParsedCommand.ErrorSyntax(Command.GRADIENT))
+        test("/gradient unknown hello", ParsedCommand.ErrorUnknownGradient("unknown", listOf("sunset")))
+        test("/gradient unknown", ParsedCommand.ErrorUnknownGradient("unknown", listOf("sunset")))
+    }
 
     @Test
     fun parseSlashCommandEmpty() {

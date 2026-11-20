@@ -3699,4 +3699,20 @@
     <string name="settings_enable_logging_summary">इस डिवाइस पर एक विस्तृत लॉग रखें, जिसे समस्याओं का पता लगाने में मदद के लिए होम मेनू से एक्सपोर्ट किया जा सकता है। इसे बंद करने पर सहेजे गए लॉग मिट जाते हैं।</string>
     <string name="settings_readable_name_colors_title">नाम के रंग पढ़ने योग्य रखें</string>
     <string name="settings_readable_name_colors_summary">चुने गए नाम के जो रंग मौजूदा थीम पर पढ़ने में मुश्किल होंगे, उन्हें थोड़ा हल्का या गहरा करें।</string>
+    <string name="command_description_gradient">मैसेज को आपके किसी कस्टम ग्रेडिएंट में भेजता है</string>
+    <string name="command_gradient_unknown">“%1$s” कोई सेट किया गया ग्रेडिएंट नहीं है। उपलब्ध ग्रेडिएंट: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” कोई सेट किया गया ग्रेडिएंट नहीं है, और आपने अभी तक कोई ग्रेडिएंट नहीं बनाया है। आप %2$s में एक बना सकते हैं।</string>
+    <string name="gradient_settings_title">कस्टम ग्रेडिएंट</string>
+    <string name="gradient_settings_summary">/gradient के साथ इस्तेमाल के लिए रंग ग्रेडिएंट बनाएं</string>
+    <string name="gradient_add">ग्रेडिएंट जोड़ें</string>
+    <string name="gradient_new">नया ग्रेडिएंट</string>
+    <string name="gradient_edit">ग्रेडिएंट संपादित करें</string>
+    <string name="gradient_label">लेबल</string>
+    <string name="gradient_label_duplicate">यह लेबल पहले से किसी ग्रेडिएंट में इस्तेमाल हो रहा है</string>
+    <string name="gradient_add_color">रंग जोड़ें</string>
+    <string name="gradient_color">रंग %1$d</string>
+    <string name="gradient_unsaved_message">इस ग्रेडिएंट में कुछ बदलाव सहेजे नहीं गए हैं। उन्हें लागू करें?</string>
+    <string name="gradient_from_image">छवि से ग्रेडिएंट</string>
+    <string name="gradient_pick_from_image">छवि से चुनें</string>
+    <string name="gradient_delete_confirmation">ग्रेडिएंट %1$s हटाएं?</string>
 </resources>

@@ -33,6 +33,7 @@ import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceDraftCaption
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.list.watched.WatchedRooms
+import im.vector.app.features.html.toEmoticonHtml
 import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.imagepack.telegram.TelegramPackImporter
@@ -115,6 +116,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -899,6 +901,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.ErrorSyntax -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandError(parsedCommand.command))
                         }
+                        is ParsedCommand.ErrorUnknownGradient -> {
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknownGradient(parsedCommand.label, parsedCommand.available))
+                        }
                         is ParsedCommand.ErrorEmptySlashCommand -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown("/"))
                         }
@@ -1097,7 +1102,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.SendNotice -> {
                             // sendTextMessage only builds a formatted body for m.text/m.emote, so an
                             // m.notice with mention pills would send plain. Build the HTML ourselves.
-                            val noticeFormatted = if (containsMentionPills(parsedCommand.message)) {
+                            val noticeFormatted = if (containsPillsOrEmotes(parsedCommand.message)) {
                                 mentionsToHtml(parsedCommand.message)
                             } else {
                                 null
@@ -1128,23 +1133,28 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbow -> {
-                            sendColored(room, state.rootThreadEventId, parsedCommand.message, rainbowWithMentions(parsedCommand.message))
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, rainbowHtml(parsedCommand.message))
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbowEmote -> {
-                            val colored = rainbowWithMentions(parsedCommand.message)
+                            val colored = rainbowHtml(parsedCommand.message)
                             sendColored(room, state.rootThreadEventId, parsedCommand.message, colored, MessageType.MSGTYPE_EMOTE)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
+                        is ParsedCommand.SendGradient -> {
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, gradientHtml(parsedCommand))
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room, state.sendMode)
+                        }
                         is ParsedCommand.SendTrans -> {
-                            sendColored(room, state.rootThreadEventId, parsedCommand.message, transWithMentions(parsedCommand.message))
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, transHtml(parsedCommand.message))
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendTransEmote -> {
-                            val colored = transWithMentions(parsedCommand.message)
+                            val colored = transHtml(parsedCommand.message)
                             sendColored(room, state.rootThreadEventId, parsedCommand.message, colored, MessageType.MSGTYPE_EMOTE)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
@@ -2008,19 +2018,23 @@ class MessageComposerViewModel @AssistedInject constructor(
                 true
             }
             is ParsedCommand.SendRainbow -> {
-                edit(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message))
+                edit(parsedCommand.message.toString(), rainbowHtml(parsedCommand.message))
                 true
             }
             is ParsedCommand.SendRainbowEmote -> {
-                edit(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                edit(parsedCommand.message.toString(), rainbowHtml(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                true
+            }
+            is ParsedCommand.SendGradient -> {
+                edit(parsedCommand.message.toString(), gradientHtml(parsedCommand))
                 true
             }
             is ParsedCommand.SendTrans -> {
-                edit(parsedCommand.message.toString(), transWithMentions(parsedCommand.message))
+                edit(parsedCommand.message.toString(), transHtml(parsedCommand.message))
                 true
             }
             is ParsedCommand.SendTransEmote -> {
-                edit(parsedCommand.message.toString(), transWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                edit(parsedCommand.message.toString(), transHtml(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
                 true
             }
             is ParsedCommand.SendSpoiler -> {
@@ -2059,6 +2073,10 @@ class MessageComposerViewModel @AssistedInject constructor(
             }
             is ParsedCommand.ErrorSyntax -> {
                 _viewEvents.post(MessageComposerViewEvents.SlashCommandError(parsedCommand.command))
+                true
+            }
+            is ParsedCommand.ErrorUnknownGradient -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknownGradient(parsedCommand.label, parsedCommand.available))
                 true
             }
             is ParsedCommand.ErrorEmptySlashCommand -> {
@@ -2161,22 +2179,27 @@ class MessageComposerViewModel @AssistedInject constructor(
                 true
             }
             is ParsedCommand.SendRainbow -> {
-                reply(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message))
+                reply(parsedCommand.message.toString(), rainbowHtml(parsedCommand.message))
                 finish()
                 true
             }
             is ParsedCommand.SendRainbowEmote -> {
-                reply(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                reply(parsedCommand.message.toString(), rainbowHtml(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                finish()
+                true
+            }
+            is ParsedCommand.SendGradient -> {
+                reply(parsedCommand.message.toString(), gradientHtml(parsedCommand))
                 finish()
                 true
             }
             is ParsedCommand.SendTrans -> {
-                reply(parsedCommand.message.toString(), transWithMentions(parsedCommand.message))
+                reply(parsedCommand.message.toString(), transHtml(parsedCommand.message))
                 finish()
                 true
             }
             is ParsedCommand.SendTransEmote -> {
-                reply(parsedCommand.message.toString(), transWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                reply(parsedCommand.message.toString(), transHtml(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
                 finish()
                 true
             }
@@ -2221,6 +2244,10 @@ class MessageComposerViewModel @AssistedInject constructor(
                 _viewEvents.post(MessageComposerViewEvents.SlashCommandError(parsedCommand.command))
                 true
             }
+            is ParsedCommand.ErrorUnknownGradient -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknownGradient(parsedCommand.label, parsedCommand.available))
+                true
+            }
             is ParsedCommand.ErrorEmptySlashCommand -> {
                 _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown("/"))
                 true
@@ -2251,7 +2278,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         fun literal() = CaptionCommandResolution.Caption(caption, formatted, formatted == null && vectorPreferences.isMarkdownEnabled())
         fun captionPrefixed(prefix: String, message: CharSequence): CaptionCommandResolution.Caption {
             val plain = prefixed(prefix, message)
-            val formattedText = if (containsMentionPills(message)) prefixed(prefix, mentionsToHtml(message)) else null
+            val formattedText = if (containsPillsOrEmotes(message)) prefixed(prefix, mentionsToHtml(message)) else null
             return CaptionCommandResolution.Caption(plain, formattedText, false)
         }
         return when (val parsed = commandParser.parseSlashCommand(
@@ -2265,10 +2292,11 @@ class MessageComposerViewModel @AssistedInject constructor(
             // A caption carries no msgtype, so emote/notice fall back to their plain text.
             is ParsedCommand.SendEmote -> CaptionCommandResolution.Caption(parsed.message, null, false)
             is ParsedCommand.SendNotice -> CaptionCommandResolution.Caption(parsed.message, null, false)
-            is ParsedCommand.SendRainbow -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
-            is ParsedCommand.SendRainbowEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
-            is ParsedCommand.SendTrans -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
-            is ParsedCommand.SendTransEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
+            is ParsedCommand.SendRainbow -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowHtml(parsed.message), false)
+            is ParsedCommand.SendRainbowEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowHtml(parsed.message), false)
+            is ParsedCommand.SendGradient -> CaptionCommandResolution.Caption(parsed.message.toString(), gradientHtml(parsed), false)
+            is ParsedCommand.SendTrans -> CaptionCommandResolution.Caption(parsed.message.toString(), transHtml(parsed.message), false)
+            is ParsedCommand.SendTransEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), transHtml(parsed.message), false)
             is ParsedCommand.SendSpoiler -> CaptionCommandResolution.Caption(
                     parsed.message.toString(),
                     "<span data-mx-spoiler>${mentionsToHtml(parsed.message)}</span>",
@@ -2306,7 +2334,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         val head = lines.ifEmpty { listOf<CharSequence>("") }
         val plain = head.joinToString("\n") { ">$it" } + rest
         val styledHtml = "<font color=\"#789922\">" + head.joinToString("<br />") { "&gt;${mentionsToHtml(it)}" } + "</font>"
-        val formatted = styledHtml + mentionsToHtml(rest).replace("\n", "<br />")
+        val formatted = styledHtml + mentionsToHtml(rest)
         return plain to formatted
     }
 
@@ -2315,7 +2343,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         val head = lines.ifEmpty { listOf<CharSequence>("") }
         val plain = head.joinToString("\n") { "> $it" } + rest
         val styledHtml = "<blockquote>\n<p>" + head.joinToString("<br />") { mentionsToHtml(it) } + "</p>\n</blockquote>"
-        val formatted = styledHtml + mentionsToHtml(rest).replace("\n", "<br />")
+        val formatted = styledHtml + mentionsToHtml(rest)
         return plain to formatted
     }
 
@@ -2337,20 +2365,43 @@ class MessageComposerViewModel @AssistedInject constructor(
     // everything else keeps the pill spans so display commands can render them as proper mention links.
     private fun resolveComposerMentions(text: CharSequence): CharSequence {
         return if (commandParser.getCommand(text) in mentionIdCommands) {
-            mapPillSegments(text, onText = { it }, onPill = { id, _ -> id })
+            composerSegments(text).joinToString(separator = "") { segment ->
+                when (segment) {
+                    is ComposerSegment.Text -> segment.text
+                    is ComposerSegment.Mention -> segment.id
+                    is ComposerSegment.Emote -> segment.text
+                }
+            }
         } else {
             text
         }
     }
 
+    /** Plain composer text as HTML: escaped, with its mention pills as links and its emotes as emoticons. */
     private fun mentionsToHtml(message: CharSequence): String =
-            mapPillSegments(message, onText = { it }, onPill = { id, name -> mentionLink(id, name) })
+            composerSegments(message).joinToString(separator = "") { segment ->
+                when (segment) {
+                    is ComposerSegment.Text -> escapeHtml(segment.text).replace("\n", "<br />")
+                    is ComposerSegment.Mention -> mentionLink(segment.id, escapeHtml(segment.name))
+                    is ComposerSegment.Emote -> segment.span.toEmoticonHtml()
+                }
+            }
 
-    private fun rainbowWithMentions(message: CharSequence): String =
-            mapPillSegments(message, onText = { rainbowGenerator.generate(it) }, onPill = { id, name -> mentionLink(id, name) })
+    // The same formatted body a normal send would get (markdown included), then colored.
+    private fun coloredHtml(message: CharSequence, palette: RainbowGenerator.Palette): String {
+        val markdown = if (vectorPreferences.isMarkdownEnabled()) {
+            room?.sendService()?.computeFormattedHtml(message, autoMarkdown = true)
+        } else {
+            null
+        }
+        return rainbowGenerator.colorizeHtml(markdown ?: mentionsToHtml(message), palette)
+    }
 
-    private fun transWithMentions(message: CharSequence): String =
-            mapPillSegments(message, onText = { rainbowGenerator.generateTrans(it) }, onPill = { id, name -> mentionLink(id, name) })
+    private fun rainbowHtml(message: CharSequence) = coloredHtml(message, RainbowGenerator.Palette.Rainbow)
+
+    private fun gradientHtml(command: ParsedCommand.SendGradient) = coloredHtml(command.message, RainbowGenerator.Palette.Gradient(command.colors))
+
+    private fun transHtml(message: CharSequence) = coloredHtml(message, RainbowGenerator.Palette.Trans)
 
     private fun sendColored(room: Room, rootThreadEventId: String?, message: CharSequence, formatted: String, msgType: String = MessageType.MSGTYPE_TEXT) {
         offloadSend {
@@ -2369,31 +2420,41 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun mentionLink(id: String, name: String) = "<a href=\"https://matrix.to/#/$id\">$name</a>"
 
-    private fun containsMentionPills(text: CharSequence) =
-            (text as? Spanned)?.getSpans(0, text.length, MatrixItemSpan::class.java)?.isNotEmpty() == true
+    private fun containsPillsOrEmotes(text: CharSequence): Boolean {
+        val spanned = text as? Spanned ?: return false
+        return spanned.getSpans(0, text.length, MatrixItemSpan::class.java).isNotEmpty() ||
+                spanned.getSpans(0, text.length, MatrixEmoteSpan::class.java).isNotEmpty()
+    }
 
-    private inline fun mapPillSegments(
-            message: CharSequence,
-            onText: (String) -> String,
-            onPill: (id: String, name: String) -> String,
-    ): String {
-        val spanned = message as? Spanned
-        val spans = spanned?.getSpans(0, message.length, MatrixItemSpan::class.java)
-                ?.sortedBy { spanned.getSpanStart(it) }
-                .orEmpty()
-        if (spans.isEmpty()) return onText(message.toString())
-        return buildString {
-            var index = 0
-            spans.forEach { span ->
-                val start = spanned!!.getSpanStart(span)
-                val end = spanned.getSpanEnd(span)
-                if (start < index) return@forEach
-                if (start > index) append(onText(message.subSequence(index, start).toString()))
-                append(onPill(span.matrixItem.id, message.subSequence(start, end).toString()))
-                index = end
+    private sealed interface ComposerSegment {
+        data class Text(val text: String) : ComposerSegment
+        data class Mention(val id: String, val name: String) : ComposerSegment
+        data class Emote(val span: MatrixEmoteSpan, val text: String) : ComposerSegment
+    }
+
+    private fun composerSegments(message: CharSequence): List<ComposerSegment> {
+        val spanned = message as? Spanned ?: return listOf(ComposerSegment.Text(message.toString()))
+        val spans = (spanned.getSpans(0, message.length, MatrixItemSpan::class.java).toList<Any>() +
+                spanned.getSpans(0, message.length, MatrixEmoteSpan::class.java))
+                .sortedBy { spanned.getSpanStart(it) }
+        val segments = mutableListOf<ComposerSegment>()
+        var index = 0
+        spans.forEach { span ->
+            val start = spanned.getSpanStart(span)
+            val end = spanned.getSpanEnd(span)
+            if (start < index) return@forEach
+            if (start > index) segments += ComposerSegment.Text(message.substring(index, start))
+            val text = message.substring(start, end)
+            segments += when {
+                // @room stays raw text, as on a normal send.
+                span is MatrixItemSpan && span.matrixItem is MatrixItem.EveryoneInRoomItem -> ComposerSegment.Text(text)
+                span is MatrixItemSpan -> ComposerSegment.Mention(span.matrixItem.id, text)
+                else -> ComposerSegment.Emote(span as MatrixEmoteSpan, text)
             }
-            if (index < message.length) append(onText(message.subSequence(index, message.length).toString()))
+            index = end
         }
+        if (index < message.length) segments += ComposerSegment.Text(message.substring(index))
+        return segments
     }
 
     private val mentionIdCommands = setOf(
@@ -2498,13 +2559,13 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun replyPrefixed(prefix: String, message: CharSequence, reply: (CharSequence, String?, String) -> Unit) {
         val plain = prefixed(prefix, message)
-        val formatted = if (containsMentionPills(message)) prefixed(prefix, mentionsToHtml(message)) else null
+        val formatted = if (containsPillsOrEmotes(message)) prefixed(prefix, mentionsToHtml(message)) else null
         reply(plain, formatted, MessageType.MSGTYPE_TEXT)
     }
 
     private fun sendPrefixedMessage(room: Room, prefix: String, message: CharSequence, rootThreadEventId: String?) {
         val sequence = prefixed(prefix, message)
-        if (containsMentionPills(message)) {
+        if (containsPillsOrEmotes(message)) {
             val formatted = prefixed(prefix, mentionsToHtml(message))
             rootThreadEventId?.let {
                 room.relationService().replyInThread(rootThreadEventId = it, replyInThreadText = sequence, formattedText = formatted)

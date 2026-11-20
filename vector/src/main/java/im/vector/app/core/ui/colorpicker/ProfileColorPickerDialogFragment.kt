@@ -9,6 +9,7 @@ package im.vector.app.core.ui.colorpicker
 
 import android.app.Dialog
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
@@ -24,6 +25,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
@@ -31,6 +33,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -70,9 +73,11 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
     private var palette = ColorPalette.LEGACY
     private var customHex = DEFAULT_CUSTOM
 
-    // Selection is an identity, not a hex: a custom color equal to a palette color must still read as
-    // custom, and the default (nothing chosen) must not highlight a swatch that merely matches it.
-    private var selectedHex: String? = null
+    // Selection is an identity, not a hex: a palette and its slot, or the custom color. Palettes share
+    // colors, so the same hex on another palette is a different choice, and the default (nothing chosen)
+    // must not highlight a swatch that merely matches it.
+    private var selectedPalette: ColorPalette? = null
+    private var selectedIndex = -1
     private var selectedIsCustom = false
     private var entries: List<Entry> = emptyList()
 
@@ -92,18 +97,24 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         if (savedInstanceState != null) {
             palette = paletteOf(savedInstanceState.getString(SAVE_PALETTE))
             customHex = savedInstanceState.getString(SAVE_CUSTOM_HEX) ?: customHex
-            selectedHex = savedInstanceState.getString(SAVE_SELECTED_HEX)
+            selectedPalette = PICKABLE_PALETTES.firstOrNull { it.name == savedInstanceState.getString(SAVE_SELECTED_PALETTE) }
+            selectedIndex = savedInstanceState.getInt(SAVE_SELECTED_INDEX, -1)
             selectedIsCustom = savedInstanceState.getBoolean(SAVE_SELECTED_CUSTOM)
         } else {
             palette = paletteOf(vectorPreferences.peopleColorPalette().name)
-            // Seed from the effective user color, not a custom color chosen for an unrelated profile.
-            customHex = ColorPreference.normalizeHex(args.getString(ARG_CUSTOM_SEED)) ?: DEFAULT_CUSTOM
+            // The custom swatch only ever shows a custom color: the seed when it is in no palette, else the
+            // last custom color picked, so a palette color never poses as a saved custom one.
+            val seed = ColorPreference.normalizeHex(args.getString(ARG_CUSTOM_SEED))
+            customHex = seed?.takeIf { findSlot(PICKABLE_PALETTES, it, ::hexOf, light) == null }
+                    ?: ColorPaletteMemory.lastCustom(requireContext())
+                    ?: DEFAULT_CUSTOM
             initFromInitial(initial)
         }
         childFragmentManager.setFragmentResultListener(HSV_REQUEST_KEY, this) { _, bundle ->
             val hex = bundle.getString(HsvColorPickerDialogFragment.RESULT_HEX) ?: return@setFragmentResultListener
             customHex = hex
-            selectedHex = null
+            selectedPalette = null
+            selectedIndex = -1
             selectedIsCustom = true
             context?.let { populate(it) }
         }
@@ -112,16 +123,18 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
     /** The palettes to pick a color from: every palette except [ColorPalette.NONE]. */
     private fun paletteOf(name: String?) = PICKABLE_PALETTES.firstOrNull { it.name == name } ?: ColorPalette.LEGACY
 
-    // A set value that matches a color in any palette selects that swatch, switching to the palette it
-    // belongs to; otherwise it is treated as custom. A null value leaves nothing selected (the default).
+    // A set value that matches a palette color selects that swatch, opening on its palette: the one it
+    // was last picked from, else the settings' palette, else the first that has it. Anything else is
+    // custom, and a null value leaves nothing selected (the default).
     private fun initFromInitial(initial: String?) {
         if (initial == null) return
-        val owner = PICKABLE_PALETTES.firstOrNull { candidate ->
-            candidate.colors.any { hexOf(it.forTheme(light)) == initial }
-        }
-        if (owner != null) {
-            palette = owner
-            selectedHex = initial
+        val remembered = ColorPaletteMemory.paletteFor(requireContext(), initial)
+        val candidates = (listOfNotNull(remembered, palette) + PICKABLE_PALETTES).distinct()
+        val match = findSlot(candidates, initial, ::hexOf, light)
+        if (match != null) {
+            palette = match.first
+            selectedPalette = match.first
+            selectedIndex = match.second
         } else {
             customHex = initial
             selectedIsCustom = true
@@ -132,7 +145,8 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         super.onSaveInstanceState(outState)
         outState.putString(SAVE_PALETTE, palette.name)
         outState.putString(SAVE_CUSTOM_HEX, customHex)
-        outState.putString(SAVE_SELECTED_HEX, selectedHex)
+        outState.putString(SAVE_SELECTED_PALETTE, selectedPalette?.name)
+        outState.putInt(SAVE_SELECTED_INDEX, selectedIndex)
         outState.putBoolean(SAVE_SELECTED_CUSTOM, selectedIsCustom)
     }
 
@@ -149,23 +163,49 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             builder.setNeutralButton(label) { _, _ ->
                 setFragmentResult(args.getString(ARG_REQUEST_KEY)!!, bundleOf(RESULT_RESET to true, RESULT_THEME to args.getString(ARG_THEME)))
             }
+        } else if (args.getBoolean(ARG_SHOW_EYEDROPPER)) {
+            builder.setNeutralButton("") { _, _ ->
+                setFragmentResult(args.getString(ARG_REQUEST_KEY)!!, bundleOf(RESULT_EYEDROPPER to true))
+            }
+            // A textless button is only kept visible when it has an icon.
+            builder.setNeutralButtonIcon(AppCompatResources.getDrawable(context, R.drawable.ic_eyedropper))
         }
         return builder.create()
     }
 
     override fun onStart() {
         super.onStart()
-        (dialog as? AlertDialog)?.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(
-                ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorError)
-        )
+        val neutral = (dialog as? AlertDialog)?.getButton(AlertDialog.BUTTON_NEUTRAL) ?: return
+        if (requireArguments().getBoolean(ARG_SHOW_RESET)) {
+            neutral.setTextColor(ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorError))
+        } else if (requireArguments().getBoolean(ARG_SHOW_EYEDROPPER)) {
+            neutral.contentDescription = getString(CommonStrings.image_editor_color_eyedropper)
+            // A plain icon, so it doesn't read as a third answer beside OK and Cancel.
+            (neutral as? MaterialButton)?.apply {
+                val tint = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                icon = AppCompatResources.getDrawable(context, R.drawable.ic_eyedropper)
+                iconTint = ColorStateList.valueOf(tint)
+                iconPadding = 0
+                iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+                val touchTarget = (48 * resources.displayMetrics.density).toInt()
+                minWidth = touchTarget
+                minimumWidth = touchTarget
+            }
+        }
     }
 
     private fun deliver() {
+        val chosenPalette = selectedPalette
         val entry = when {
-            selectedIsCustom -> entries.lastOrNull { it is Entry.Custom }
-            selectedHex != null -> entries.firstOrNull { it !is Entry.Custom && it.forTheme() == selectedHex }
+            selectedIsCustom -> Entry.Custom(customHex)
+            chosenPalette != null -> paletteEntries(chosenPalette).getOrNull(selectedIndex)
             else -> null
         } ?: return
+        if (chosenPalette != null && entry is Entry.Palette) {
+            ColorPaletteMemory.remember(requireContext(), setOf(entry.onLight, entry.onDark), chosenPalette)
+        } else if (entry is Entry.Custom) {
+            ColorPaletteMemory.rememberCustom(requireContext(), customHex)
+        }
         setFragmentResult(
                 requireArguments().getString(ARG_REQUEST_KEY)!!,
                 bundleOf(
@@ -228,8 +268,8 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
     private fun hexOf(@ColorRes res: Int) = MatrixItemColorProvider.toHex(ContextCompat.getColor(requireContext(), res))
 
-    private fun paletteEntries(): List<Entry.Palette> {
-        return palette.colors.map { Entry.Palette(it.nameRes, hexOf(it.onLight), hexOf(it.onDark)) }
+    private fun paletteEntries(of: ColorPalette = palette): List<Entry.Palette> {
+        return of.colors.map { Entry.Palette(it.nameRes, hexOf(it.onLight), hexOf(it.onDark)) }
     }
 
     private fun populate(context: Context) {
@@ -244,7 +284,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
         var row: LinearLayout? = null
         var column = 0
-        entries.forEach { entry ->
+        entries.forEachIndexed { index, entry ->
             if (row == null || column == columnCount) {
                 row = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
@@ -255,7 +295,11 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             }
             val hex = entry.forTheme()
             val color = Color.parseColor(hex)
-            val selected = if (entry is Entry.Custom) selectedIsCustom else !selectedIsCustom && hex == selectedHex
+            val selected = if (entry is Entry.Custom) {
+                selectedIsCustom
+            } else {
+                !selectedIsCustom && selectedPalette == palette && selectedIndex == index
+            }
             val swatch: View = if (entry is Entry.Custom) customSwatch(context, color) else View(context).apply { setBackgroundColor(color) }
             val cell: View = if (selected) {
                 swatch.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -271,10 +315,12 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             cell.setOnClickListener {
                 if (entry is Entry.Custom) {
                     selectedIsCustom = true
-                    selectedHex = null
+                    selectedPalette = null
+                    selectedIndex = -1
                 } else {
                     selectedIsCustom = false
-                    selectedHex = hex
+                    selectedPalette = palette
+                    selectedIndex = index
                 }
                 populate(context)
             }
@@ -311,10 +357,10 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
     private fun updateSelectedLabel() {
         val label = selectedLabel ?: return
-        val paletteEntry = selectedHex?.let { hex -> entries.firstOrNull { it is Entry.Palette && it.forTheme() == hex } as? Entry.Palette }
+        val paletteEntry = selectedPalette?.let { paletteEntries(it).getOrNull(selectedIndex) }
         label.text = when {
             selectedIsCustom -> getString(CommonStrings.color_picker_selected_custom, customHex)
-            paletteEntry != null -> getString(CommonStrings.color_picker_selected_hex, getString(paletteEntry.nameRes), selectedHex!!)
+            paletteEntry != null -> getString(CommonStrings.color_picker_selected_hex, getString(paletteEntry.nameRes), paletteEntry.forTheme())
             else -> getString(CommonStrings.color_picker_selected_default, requireArguments().getString(ARG_DEFAULT_HEX).orEmpty())
         }
     }
@@ -335,9 +381,11 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         private const val ARG_DEFAULT_HEX = "defaultHex"
         private const val ARG_SHOW_RESET = "showReset"
         private const val ARG_RESET_IS_DELETE = "resetIsDelete"
+        private const val ARG_SHOW_EYEDROPPER = "showEyedropper"
         private const val SAVE_PALETTE = "ProfileColorPickerDialogFragment.palette"
         private const val SAVE_CUSTOM_HEX = "ProfileColorPickerDialogFragment.customHex"
-        private const val SAVE_SELECTED_HEX = "ProfileColorPickerDialogFragment.selectedHex"
+        private const val SAVE_SELECTED_PALETTE = "ProfileColorPickerDialogFragment.selectedPalette"
+        private const val SAVE_SELECTED_INDEX = "ProfileColorPickerDialogFragment.selectedIndex"
         private const val SAVE_SELECTED_CUSTOM = "ProfileColorPickerDialogFragment.selectedCustom"
         private const val DEFAULT_CUSTOM = "#000000"
         private const val HSV_REQUEST_KEY = "ProfileColorPickerDialogFragment.hsv"
@@ -350,6 +398,9 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         const val RESULT_RESET = "reset"
         const val RESULT_THEME = "theme"
 
+        /** Set instead of a color when the user asked to take one from an image. */
+        const val RESULT_EYEDROPPER = "eyedropper"
+
         fun newInstance(
                 requestKey: String,
                 title: String,
@@ -359,6 +410,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
                 theme: Theme = Theme.CURRENT,
                 showReset: Boolean = false,
                 resetIsDelete: Boolean = false,
+                showEyedropper: Boolean = false,
         ): ProfileColorPickerDialogFragment {
             return ProfileColorPickerDialogFragment().apply {
                 arguments = bundleOf(
@@ -370,8 +422,30 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
                         ARG_THEME to theme.name,
                         ARG_SHOW_RESET to showReset,
                         ARG_RESET_IS_DELETE to resetIsDelete,
+                        ARG_SHOW_EYEDROPPER to showEyedropper,
                 )
             }
+        }
+
+        /**
+         * The first of [candidates] with [hex] as one of its colors, and that color's slot. This theme's
+         * variant is matched first, then either one, so a stored color still finds its palette.
+         */
+        internal fun findSlot(
+                candidates: List<ColorPalette>,
+                hex: String,
+                hexOf: (Int) -> String,
+                light: Boolean,
+        ): Pair<ColorPalette, Int>? {
+            candidates.forEach { candidate ->
+                val index = candidate.colors.indexOfFirst { hexOf(it.forTheme(light)) == hex }
+                if (index >= 0) return candidate to index
+            }
+            candidates.forEach { candidate ->
+                val index = candidate.colors.indexOfFirst { hexOf(it.onLight) == hex || hexOf(it.onDark) == hex }
+                if (index >= 0) return candidate to index
+            }
+            return null
         }
 
         fun themeOf(bundle: Bundle): Theme = Theme.valueOf(bundle.getString(RESULT_THEME) ?: Theme.CURRENT.name)
@@ -380,9 +454,10 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         fun describe(context: Context, hex: String, light: Boolean, origin: Origin): String {
             val normalized = ColorPreference.normalizeHex(hex) ?: hex
             fun hexOf(@ColorRes res: Int) = MatrixItemColorProvider.toHex(ContextCompat.getColor(context, res))
-            val name = PICKABLE_PALETTES.firstNotNullOfOrNull { palette ->
-                palette.colors.firstOrNull { hexOf(it.forTheme(light)) == normalized }?.nameRes
-            }?.let { context.getString(it) }
+            val candidates = (listOfNotNull(ColorPaletteMemory.paletteFor(context, normalized)) + PICKABLE_PALETTES).distinct()
+            val name = findSlot(candidates, normalized, ::hexOf, light)?.let { (palette, index) ->
+                context.getString(palette.colors[index].nameRes)
+            }
             return when (origin) {
                 // Only our explicit palette choice is named as a palette entry; matching user colors retain their origin.
                 Origin.DEFAULT -> when (name) {

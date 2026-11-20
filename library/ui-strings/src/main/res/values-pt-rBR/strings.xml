@@ -3811,4 +3811,20 @@
     <string name="settings_enable_logging_summary">Mantém um log detalhado neste dispositivo, que você pode exportar pelo menu inicial para ajudar a diagnosticar problemas. Desativar apaga os logs salvos.</string>
     <string name="settings_readable_name_colors_title">Manter as cores de nome legíveis</string>
     <string name="settings_readable_name_colors_summary">Clarear ou escurecer levemente as cores de nome escolhidas que seriam difíceis de ler no tema atual.</string>
+    <string name="command_description_gradient">Envia uma mensagem em um dos seus degradês personalizados</string>
+    <string name="command_gradient_unknown">“%1$s” não é um degradê configurado. Degradês disponíveis: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” não é um degradê configurado, e você ainda não criou nenhum. Você pode criar um em %2$s.</string>
+    <string name="gradient_settings_title">Degradês personalizados</string>
+    <string name="gradient_settings_summary">Crie degradês de cores para usar com /gradient</string>
+    <string name="gradient_add">Adicionar degradê</string>
+    <string name="gradient_new">Novo degradê</string>
+    <string name="gradient_edit">Editar degradê</string>
+    <string name="gradient_label">Rótulo</string>
+    <string name="gradient_label_duplicate">Já existe um degradê com este rótulo</string>
+    <string name="gradient_add_color">Adicionar cor</string>
+    <string name="gradient_color">Cor %1$d</string>
+    <string name="gradient_unsaved_message">Há alterações não salvas neste degradê. Aplicá-las?</string>
+    <string name="gradient_from_image">Degradê a partir de imagem</string>
+    <string name="gradient_pick_from_image">Escolher de uma imagem</string>
+    <string name="gradient_delete_confirmation">Excluir o degradê %1$s?</string>
 </resources>

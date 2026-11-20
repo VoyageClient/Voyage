@@ -3734,4 +3734,20 @@
     <string name="settings_enable_logging_summary">在此裝置上保留詳細紀錄，可從首頁選單匯出以協助診斷問題。關閉後會刪除已儲存的紀錄。</string>
     <string name="settings_readable_name_colors_title">保持名稱色彩易於閱讀</string>
     <string name="settings_readable_name_colors_summary">將在目前主題下難以閱讀的所選名稱色彩稍微調亮或調暗。</string>
+    <string name="command_description_gradient">以你的某個自訂漸層色傳送訊息</string>
+    <string name="command_gradient_unknown">「%1$s」不是已設定的漸層色。可用的漸層色：%2$s</string>
+    <string name="command_gradient_unknown_none">「%1$s」不是已設定的漸層色，而且你還沒有建立任何漸層色。可以在 %2$s 中建立。</string>
+    <string name="gradient_settings_title">自訂漸層色</string>
+    <string name="gradient_settings_summary">建立可用於 /gradient 的漸層色</string>
+    <string name="gradient_add">新增漸層色</string>
+    <string name="gradient_new">新的漸層色</string>
+    <string name="gradient_edit">編輯漸層色</string>
+    <string name="gradient_label">標籤</string>
+    <string name="gradient_label_duplicate">已有漸層色使用此標籤</string>
+    <string name="gradient_add_color">新增色彩</string>
+    <string name="gradient_color">色彩 %1$d</string>
+    <string name="gradient_unsaved_message">此漸層色有未儲存的變更。要套用嗎？</string>
+    <string name="gradient_from_image">從圖片產生漸層色</string>
+    <string name="gradient_pick_from_image">從圖片中取色</string>
+    <string name="gradient_delete_confirmation">要刪除漸層色 %1$s 嗎？</string>
 </resources>

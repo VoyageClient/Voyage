@@ -3934,4 +3934,20 @@
     <string name="settings_enable_logging_summary">שמירת יומן מפורט במכשיר זה, שאפשר לייצא מתפריט הבית כדי לעזור באבחון בעיות. כיבוי האפשרות מוחק את היומנים השמורים.</string>
     <string name="settings_readable_name_colors_title">שמור על צבעי שמות קריאים</string>
     <string name="settings_readable_name_colors_summary">הבהר או הכהה מעט צבעי שמות שנבחרו שיהיה קשה לקרוא בערכת הנושא הנוכחית.</string>
+    <string name="command_description_gradient">שולח הודעה באחד ממעברי הצבע המותאמים אישית שלך</string>
+    <string name="command_gradient_unknown">“%1$s” אינו מעבר צבע מוגדר. מעברי צבע זמינים: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” אינו מעבר צבע מוגדר, ועדיין לא יצרת אף אחד. אפשר ליצור מעבר צבע ב־%2$s.</string>
+    <string name="gradient_settings_title">מעברי צבע מותאמים אישית</string>
+    <string name="gradient_settings_summary">יצירת מעברי צבע לשימוש עם /gradient</string>
+    <string name="gradient_add">הוספת מעבר צבע</string>
+    <string name="gradient_new">מעבר צבע חדש</string>
+    <string name="gradient_edit">עריכת מעבר צבע</string>
+    <string name="gradient_label">תווית</string>
+    <string name="gradient_label_duplicate">מעבר צבע אחר כבר משתמש בתווית הזו</string>
+    <string name="gradient_add_color">הוספת צבע</string>
+    <string name="gradient_color">צבע %1$d</string>
+    <string name="gradient_unsaved_message">יש לך שינויים שלא נשמרו במעבר הצבע הזה. להחיל אותם?</string>
+    <string name="gradient_from_image">מעבר צבע מתמונה</string>
+    <string name="gradient_pick_from_image">בחירה מתמונה</string>
+    <string name="gradient_delete_confirmation">למחוק את מעבר הצבע %1$s?</string>
 </resources>

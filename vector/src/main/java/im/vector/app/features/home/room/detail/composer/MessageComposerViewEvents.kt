@@ -28,6 +28,7 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
     data class JoinRoomCommandSuccess(val roomId: String) : SendMessageResult()
     data class SlashCommandError(val command: Command) : SendMessageResult()
     data class SlashCommandUnknown(val command: String) : SendMessageResult()
+    data class SlashCommandUnknownGradient(val label: String, val available: List<String>) : SendMessageResult()
     data class SlashCommandNotSupportedInThreads(val command: Command) : SendMessageResult()
     object SlashCommandLoading : SendMessageResult()
     data class SlashCommandResultOk(val parsedCommand: ParsedCommand) : SendMessageResult()

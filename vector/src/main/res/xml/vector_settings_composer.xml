@@ -14,6 +14,12 @@
         android:summary="@string/settings_prevent_unintended_markdown_summary"
         android:title="@string/settings_prevent_unintended_markdown" />
 
+    <im.vector.app.core.preference.VectorPreference
+        android:key="SETTINGS_CUSTOM_GRADIENTS_SCREEN_KEY"
+        android:persistent="false"
+        android:summary="@string/gradient_settings_summary"
+        android:title="@string/gradient_settings_title" />
+
     <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="true"
         android:key="SETTINGS_LINKIFY_MSC_REFERENCES_KEY"

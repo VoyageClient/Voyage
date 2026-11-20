@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/gradientMenuFromImage"
+        android:icon="@drawable/ic_image"
+        android:title="@string/gradient_from_image"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/gradientMenuDelete"
+        android:icon="@drawable/ic_recycle_bin"
+        android:title="@string/action_delete"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/gradientMenuApply"
+        android:icon="@drawable/ic_check_apply_inset"
+        android:title="@string/image_pack_apply"
+        app:showAsAction="always" />
+
+</menu>

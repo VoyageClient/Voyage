@@ -28,6 +28,7 @@ import im.vector.app.features.home.avatar.effect.AvatarEffect
 import im.vector.app.features.homeserver.ServerUrlsRepository
 import im.vector.app.features.html.highlight.CodePalette
 import im.vector.app.features.reactions.data.EmojiDataSource
+import im.vector.app.features.settings.gradients.CustomGradient
 import im.vector.app.features.settings.useragent.UserAgentSettings
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
@@ -36,6 +37,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONArray
+import org.json.JSONObject
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import timber.log.Timber
@@ -208,6 +210,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
         private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
         private const val SETTINGS_LINKIFY_MSC_REFERENCES_KEY = "SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
+        private const val SETTINGS_CUSTOM_GRADIENTS_KEY = "SETTINGS_CUSTOM_GRADIENTS"
         private const val SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY = "SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY"
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
@@ -1941,6 +1944,28 @@ class VectorPreferences @Inject constructor(
         defaultPrefs.edit {
             remove(SETTINGS_QUICK_REACTIONS_KEY)
         }
+    }
+
+    fun getCustomGradients(): List<CustomGradient> {
+        val raw = defaultPrefs.getString(SETTINGS_CUSTOM_GRADIENTS_KEY, null) ?: return emptyList()
+        val array = tryOrNull { JSONArray(raw) } ?: return emptyList()
+        return (0 until array.length()).mapNotNull { index ->
+            tryOrNull {
+                val entry = array.getJSONObject(index)
+                val colors = entry.getJSONArray("colors")
+                CustomGradient(entry.getString("label"), (0 until colors.length()).map { colors.getInt(it) })
+            }?.takeIf { it.isValid() }
+        }.distinctBy { CustomGradient.labelKey(it.label) }
+    }
+
+    fun setCustomGradients(gradients: List<CustomGradient>) {
+        require(gradients.all { it.isValid() })
+        require(gradients.map { CustomGradient.labelKey(it.label) }.distinct().size == gradients.size)
+        val array = JSONArray()
+        gradients.forEach { gradient ->
+            array.put(JSONObject().put("label", gradient.label).put("colors", JSONArray(gradient.colors)))
+        }
+        defaultPrefs.edit { putString(SETTINGS_CUSTOM_GRADIENTS_KEY, array.toString()) }
     }
 
     fun loadRoomAtFirstUnread(): Boolean {

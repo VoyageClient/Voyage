@@ -3799,4 +3799,20 @@
     <string name="settings_enable_logging_summary">Guarda un registro detallado en este dispositivo que puedes exportar desde el menú de inicio para ayudar a diagnosticar problemas. Al desactivarlo se eliminan los registros guardados.</string>
     <string name="settings_readable_name_colors_title">Mantener legibles los colores de nombre</string>
     <string name="settings_readable_name_colors_summary">Aclarar u oscurecer ligeramente los colores de nombre elegidos que serían difíciles de leer con el tema actual.</string>
+    <string name="command_description_gradient">Envía un mensaje con uno de tus degradados personalizados</string>
+    <string name="command_gradient_unknown">«%1$s» no es un degradado configurado. Degradados disponibles: %2$s</string>
+    <string name="command_gradient_unknown_none">«%1$s» no es un degradado configurado y todavía no has creado ninguno. Puedes crear uno en %2$s.</string>
+    <string name="gradient_settings_title">Degradados personalizados</string>
+    <string name="gradient_settings_summary">Crea degradados de color para usar con /gradient</string>
+    <string name="gradient_add">Añadir degradado</string>
+    <string name="gradient_new">Nuevo degradado</string>
+    <string name="gradient_edit">Editar degradado</string>
+    <string name="gradient_label">Etiqueta</string>
+    <string name="gradient_label_duplicate">Ya hay un degradado con esta etiqueta</string>
+    <string name="gradient_add_color">Añadir color</string>
+    <string name="gradient_color">Color %1$d</string>
+    <string name="gradient_unsaved_message">Tienes cambios sin guardar en este degradado. ¿Quieres aplicarlos?</string>
+    <string name="gradient_from_image">Degradado desde imagen</string>
+    <string name="gradient_pick_from_image">Elegir de una imagen</string>
+    <string name="gradient_delete_confirmation">¿Eliminar el degradado %1$s?</string>
 </resources>

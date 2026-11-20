@@ -4497,4 +4497,20 @@
     <string name="account_shadow_banned">Your account is shadow-banned</string>
     <string name="settings_shadow_ban_detection_title">Shadow-ban detection</string>
     <string name="settings_shadow_ban_detection_summary">Alert you when your account is shadow-banned</string>
+    <string name="command_description_gradient">Send a message in one of your custom gradients</string>
+    <string name="command_gradient_unknown">“%1$s” isn\'t a configured gradient. Available gradients: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” isn\'t a configured gradient, and you haven\'t created any yet. You can create one in %2$s.</string>
+    <string name="gradient_settings_title">Custom gradients</string>
+    <string name="gradient_settings_summary">Create color gradients to use with /gradient</string>
+    <string name="gradient_add">Add gradient</string>
+    <string name="gradient_new">New gradient</string>
+    <string name="gradient_edit">Edit gradient</string>
+    <string name="gradient_label">Label</string>
+    <string name="gradient_label_duplicate">A gradient already uses this label</string>
+    <string name="gradient_add_color">Add color</string>
+    <string name="gradient_color">Color %1$d</string>
+    <string name="gradient_unsaved_message">You have unsaved changes to this gradient. Apply them?</string>
+    <string name="gradient_from_image">Gradient from image</string>
+    <string name="gradient_pick_from_image">Pick from image</string>
+    <string name="gradient_delete_confirmation">Delete gradient %1$s?</string>
 </resources>

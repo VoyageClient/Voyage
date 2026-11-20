@@ -60,6 +60,7 @@ enum class Command(
     RAINBOW_EMOTE("/rainbowme", null, "<message>", CommonStrings.command_description_rainbow_emote, false, true),
     TRANS("/trans", null, "<message>", CommonStrings.command_description_trans, false, true),
     TRANS_EMOTE("/transme", null, "<message>", CommonStrings.command_description_trans_emote, false, true),
+    GRADIENT("/gradient", null, "<label> <message>", CommonStrings.command_description_gradient, false, true),
     DEVTOOLS("/devtools", null, "", CommonStrings.command_description_devtools, true, false),
     SERVER_INFO("/serverinfo", null, "[server-name|user-id]", CommonStrings.command_description_serverinfo, true, true),
     SEND_EVENT("/sendevent", null, "", CommonStrings.command_description_send_event, true, false),

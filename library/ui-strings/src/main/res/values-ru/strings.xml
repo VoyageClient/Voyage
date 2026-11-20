@@ -3965,4 +3965,20 @@
     <string name="settings_enable_logging_summary">Вести подробный лог на этом устройстве, который можно экспортировать из главного меню для диагностики проблем. При отключении сохранённые логи удаляются.</string>
     <string name="settings_readable_name_colors_title">Сохранять читаемость цветов имён</string>
     <string name="settings_readable_name_colors_summary">Слегка осветлять или затемнять выбранные цвета имён, которые трудно читать в текущей теме.</string>
+    <string name="command_description_gradient">Отправляет сообщение в одном из ваших градиентов</string>
+    <string name="command_gradient_unknown">«%1$s» — не настроенный градиент. Доступные градиенты: %2$s</string>
+    <string name="command_gradient_unknown_none">«%1$s» — не настроенный градиент, а своих градиентов у вас пока нет. Создать градиент можно в разделе %2$s.</string>
+    <string name="gradient_settings_title">Свои градиенты</string>
+    <string name="gradient_settings_summary">Создавайте цветовые градиенты для команды /gradient</string>
+    <string name="gradient_add">Добавить градиент</string>
+    <string name="gradient_new">Новый градиент</string>
+    <string name="gradient_edit">Изменить градиент</string>
+    <string name="gradient_label">Метка</string>
+    <string name="gradient_label_duplicate">Эта метка уже используется другим градиентом</string>
+    <string name="gradient_add_color">Добавить цвет</string>
+    <string name="gradient_color">Цвет %1$d</string>
+    <string name="gradient_unsaved_message">В этом градиенте есть несохранённые изменения. Применить их?</string>
+    <string name="gradient_from_image">Градиент из изображения</string>
+    <string name="gradient_pick_from_image">Выбрать на изображении</string>
+    <string name="gradient_delete_confirmation">Удалить градиент %1$s?</string>
 </resources>

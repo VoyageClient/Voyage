@@ -15,15 +15,103 @@ import org.junit.Test
 class RainbowGeneratorTest {
 
     private val rainbowGenerator = RainbowGenerator()
+    private val blackToWhite = RainbowGenerator.Palette.Gradient(listOf(0, 0xFFFFFF))
+
+    private fun rainbow(html: String) = rainbowGenerator.colorizeHtml(html, RainbowGenerator.Palette.Rainbow)
+
+    private fun trans(html: String) = rainbowGenerator.colorizeHtml(html, RainbowGenerator.Palette.Trans)
+
+    private fun gradient(html: String, colors: List<Int>) = rainbowGenerator.colorizeHtml(html, RainbowGenerator.Palette.Gradient(colors))
+
+    @Test
+    fun testCustomGradientInterpolation() {
+        assertEquals(
+                """<font color="#000000">a</font><font color="#808080">b</font><font color="#ffffff">c</font>""",
+                gradient("abc", listOf(0, 0xFFFFFF)),
+        )
+        assertEquals(
+                """<font color="#ff0000">a</font><font color="#00ff00">b</font><font color="#0000ff">c</font>""",
+                gradient("abc", listOf(0xFF0000, 0x00FF00, 0x0000FF)),
+        )
+    }
+
+    @Test
+    fun testEntitiesAreOneLetterAndLineBreaksTakeNoStep() {
+        assertEquals(
+                """<font color="#000000">&lt;</font><font color="#808080">&amp;</font><font color="#ffffff">&gt;</font><br />""",
+                gradient("&lt;&amp;&gt;<br />", listOf(0, 0xFFFFFF)),
+        )
+    }
+
+    @Test
+    fun testSelfClosingTagDoesNotSwallowTheRest() {
+        assertEquals(
+                """<font color="#000000">a</font><code/><font color="#ffffff">b</font>""",
+                rainbowGenerator.colorizeHtml("a<code/>b", blackToWhite),
+        )
+    }
+
+    @Test
+    fun testHtmlKeepsMarkup() {
+        assertEquals(
+                """<p><strong><font color="#000000">a</font></strong><em><font color="#ffffff">b</font></em></p>""",
+                rainbowGenerator.colorizeHtml("<p><strong>a</strong><em>b</em></p>", blackToWhite),
+        )
+    }
+
+    @Test
+    fun testHtmlLeavesCodeUncoloredAndUncounted() {
+        assertEquals(
+                """<font color="#000000">a</font><code>x <b>y</b></code><pre><code>z</code></pre><font color="#ffffff">b</font>""",
+                rainbowGenerator.colorizeHtml("a<code>x <b>y</b></code><pre><code>z</code></pre>b", blackToWhite),
+        )
+    }
+
+    @Test
+    fun testHtmlMentionsAndEmoticonsTakeOneStep() {
+        val mention = """<a href="https://matrix.to/#/@bob:example.org">Bob <em>B</em></a>"""
+        val emoticon = """<img data-mx-emoticon src="mxc://example.org/AbCdEf" alt=":cat:" title=":cat:" height="32" />"""
+        assertEquals(
+                """<font color="#000000">a</font>$mention<font color="#aaaaaa">b</font>$emoticon""",
+                rainbowGenerator.colorizeHtml("a${mention}b$emoticon", blackToWhite),
+        )
+    }
+
+    @Test
+    fun testHtmlOrdinaryLinksAndEntities() {
+        assertEquals(
+                """<a href="https://example.org"><font color="#000000">a</font></a><font color="#808080">&amp;</font><font color="#ffffff">b</font>""",
+                rainbowGenerator.colorizeHtml("""<a href="https://example.org">a</a>&amp;b""", blackToWhite),
+        )
+    }
+
+    @Test
+    fun testCustomGradientSingleColor() {
+        assertEquals(
+                """<font color="#abcdef">a</font> <font color="#abcdef">b</font>""",
+                gradient("a b", listOf(0xABCDEF)),
+        )
+    }
+
+    @Test
+    fun testCustomGradientEmojiAndShortMessages() {
+        val colors = listOf(0x123456, 0xFEDCBA)
+        assertEquals("", gradient("", colors))
+        assertEquals("""<font color="#123456">🤞</font>""", gradient("🤞", colors))
+        assertEquals(
+                """<font color="#123456">🤞</font><font color="#fedcba">a</font>""",
+                gradient("🤞a", colors),
+        )
+    }
 
     @Test
     fun testEmpty() {
-        assertEquals("", rainbowGenerator.generate(""))
+        assertEquals("", rainbow(""))
     }
 
     @Test
     fun testAscii1() {
-        assertEquals("""<font color="#f20d0d">a</font>""", rainbowGenerator.generate("a"))
+        assertEquals("""<font color="#f20d0d">a</font>""", rainbow("a"))
     }
 
     @Test
@@ -33,7 +121,7 @@ class RainbowGeneratorTest {
             <font color="#0df280">b</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("ab"))
+        assertEquals(expected, rainbow("ab"))
     }
 
     @Test
@@ -59,17 +147,17 @@ class RainbowGeneratorTest {
             <font color="#b30df2">!</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("This is a rainbow!"))
+        assertEquals(expected, rainbow("This is a rainbow!"))
     }
 
     @Test
     fun testEmoji1() {
-        assertEquals("""<font color="#f20d0d">🤞</font>""", rainbowGenerator.generate("\uD83E\uDD1E")) // 🤞
+        assertEquals("""<font color="#f20d0d">🤞</font>""", rainbow("\uD83E\uDD1E")) // 🤞
     }
 
     @Test
     fun testEmoji2() {
-        assertEquals("""<font color="#f20d0d">🤞</font>""", rainbowGenerator.generate("🤞"))
+        assertEquals("""<font color="#f20d0d">🤞</font>""", rainbow("🤞"))
     }
 
     @Test
@@ -79,7 +167,7 @@ class RainbowGeneratorTest {
             <font color="#0df280">🙂</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("🤞🙂"))
+        assertEquals(expected, rainbow("🤞🙂"))
     }
 
     @Test
@@ -101,7 +189,7 @@ class RainbowGeneratorTest {
             <font color="#a00df2">!</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("Hello 🤞 world!"))
+        assertEquals(expected, rainbow("Hello 🤞 world!"))
     }
 
     @Test
@@ -111,7 +199,7 @@ class RainbowGeneratorTest {
             <font color="#0df280">🤞</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("a🤞"))
+        assertEquals(expected, rainbow("a🤞"))
     }
 
     @Test
@@ -121,12 +209,12 @@ class RainbowGeneratorTest {
             <font color="#0df280">a</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generate("🤞a"))
+        assertEquals(expected, rainbow("🤞a"))
     }
 
     @Test
     fun testError1() {
-        assertEquals("<font color=\"#f20d0d\">\uD83E</font>", rainbowGenerator.generate("\uD83E"))
+        assertEquals("<font color=\"#f20d0d\">\uD83E</font>", rainbow("\uD83E"))
     }
 
     @Test
@@ -139,7 +227,7 @@ class RainbowGeneratorTest {
             <font color="#5bcefa">e</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generateTrans("abcde"))
+        assertEquals(expected, trans("abcde"))
     }
 
     @Test
@@ -160,11 +248,11 @@ class RainbowGeneratorTest {
             <font color="#5bcefa">!</font>
         """.trimIndentOneLine()
 
-        assertEquals(expected, rainbowGenerator.generateTrans("trans rights!"))
+        assertEquals(expected, trans("trans rights!"))
     }
 
     @Test
     fun testTransSingle() {
-        assertEquals("""<font color="#5bcefa">a</font>""", rainbowGenerator.generateTrans("a"))
+        assertEquals("""<font color="#5bcefa">a</font>""", trans("a"))
     }
 }

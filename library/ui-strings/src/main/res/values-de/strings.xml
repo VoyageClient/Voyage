@@ -3810,4 +3810,20 @@
     <string name="settings_enable_logging_summary">Ein ausführliches Log auf diesem Gerät führen, das du zur Fehlersuche über das Startmenü exportieren kannst. Beim Ausschalten werden die gespeicherten Logs gelöscht.</string>
     <string name="settings_readable_name_colors_title">Namensfarben lesbar halten</string>
     <string name="settings_readable_name_colors_summary">Gewählte Namensfarben, die im aktuellen Design schwer lesbar wären, leicht aufhellen oder abdunkeln.</string>
+    <string name="command_description_gradient">Sendet eine Nachricht in einem deiner eigenen Farbverläufe</string>
+    <string name="command_gradient_unknown">„%1$s“ ist kein eingerichteter Farbverlauf. Verfügbare Farbverläufe: %2$s</string>
+    <string name="command_gradient_unknown_none">„%1$s“ ist kein eingerichteter Farbverlauf, und du hast noch keinen erstellt. Du kannst einen unter %2$s erstellen.</string>
+    <string name="gradient_settings_title">Eigene Farbverläufe</string>
+    <string name="gradient_settings_summary">Farbverläufe zur Verwendung mit /gradient erstellen</string>
+    <string name="gradient_add">Farbverlauf hinzufügen</string>
+    <string name="gradient_new">Neuer Farbverlauf</string>
+    <string name="gradient_edit">Farbverlauf bearbeiten</string>
+    <string name="gradient_label">Bezeichnung</string>
+    <string name="gradient_label_duplicate">Diese Bezeichnung wird bereits von einem Farbverlauf verwendet</string>
+    <string name="gradient_add_color">Farbe hinzufügen</string>
+    <string name="gradient_color">Farbe %1$d</string>
+    <string name="gradient_unsaved_message">Du hast ungespeicherte Änderungen an diesem Farbverlauf. Übernehmen?</string>
+    <string name="gradient_from_image">Farbverlauf aus Bild</string>
+    <string name="gradient_pick_from_image">Aus Bild wählen</string>
+    <string name="gradient_delete_confirmation">Farbverlauf %1$s löschen?</string>
 </resources>

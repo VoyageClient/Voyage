@@ -3711,4 +3711,20 @@
     <string name="settings_enable_logging_summary">اس ڈیوائس پر ایک تفصیلی لاگ رکھیں جسے مسائل کی تشخیص میں مدد کے لیے ہوم مینو سے برآمد کیا جا سکتا ہے۔ اسے بند کرنے سے محفوظ لاگز حذف ہو جاتے ہیں۔</string>
     <string name="settings_readable_name_colors_title">نام کے رنگ پڑھنے کے قابل رکھیں</string>
     <string name="settings_readable_name_colors_summary">منتخب کیے گئے نام کے وہ رنگ جو موجودہ تھیم پر پڑھنا مشکل ہوں، انہیں تھوڑا ہلکا یا گہرا کریں۔</string>
+    <string name="command_description_gradient">پیغام کو آپ کے کسی حسبِ ضرورت گریڈینٹ میں بھیجتا ہے</string>
+    <string name="command_gradient_unknown">“%1$s” کوئی ترتیب دیا گیا گریڈینٹ نہیں ہے۔ دستیاب گریڈینٹ: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” کوئی ترتیب دیا گیا گریڈینٹ نہیں ہے، اور آپ نے ابھی تک کوئی گریڈینٹ نہیں بنایا۔ آپ %2$s میں ایک بنا سکتے ہیں۔</string>
+    <string name="gradient_settings_title">حسبِ ضرورت گریڈینٹ</string>
+    <string name="gradient_settings_summary">/gradient کے ساتھ استعمال کے لیے رنگوں کے گریڈینٹ بنائیں</string>
+    <string name="gradient_add">گریڈینٹ شامل کریں</string>
+    <string name="gradient_new">نیا گریڈینٹ</string>
+    <string name="gradient_edit">گریڈینٹ میں ترمیم کریں</string>
+    <string name="gradient_label">لیبل</string>
+    <string name="gradient_label_duplicate">یہ لیبل پہلے ہی کوئی گریڈینٹ استعمال کر رہا ہے</string>
+    <string name="gradient_add_color">رنگ شامل کریں</string>
+    <string name="gradient_color">رنگ %1$d</string>
+    <string name="gradient_unsaved_message">اس گریڈینٹ میں آپ کی غیر محفوظ تبدیلیاں ہیں۔ انہیں لاگو کریں؟</string>
+    <string name="gradient_from_image">تصویر سے گریڈینٹ</string>
+    <string name="gradient_pick_from_image">تصویر سے منتخب کریں</string>
+    <string name="gradient_delete_confirmation">گریڈینٹ %1$s حذف کریں؟</string>
 </resources>

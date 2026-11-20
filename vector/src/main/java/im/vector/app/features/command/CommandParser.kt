@@ -178,6 +178,18 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.RAINBOW_EMOTE)
                     }
                 }
+                Command.GRADIENT.matches(slashCommand) -> {
+                    val label = messageParts.getOrNull(1)
+                    val gradients = vectorPreferences.getCustomGradients()
+                    val gradient = gradients.firstOrNull { it.label.equals(label, ignoreCase = true) }
+                    val body = extractMessage(message)?.second
+                    when {
+                        label == null -> ParsedCommand.ErrorSyntax(Command.GRADIENT)
+                        gradient == null -> ParsedCommand.ErrorUnknownGradient(label, gradients.map { it.label })
+                        body.isNullOrBlank() -> ParsedCommand.ErrorSyntax(Command.GRADIENT)
+                        else -> ParsedCommand.SendGradient(body, gradient.colors)
+                    }
+                }
                 Command.TRANS.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         ParsedCommand.SendTrans(message)

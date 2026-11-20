@@ -1071,6 +1071,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             is MessageComposerViewEvents.SlashCommandUnknown -> {
                 displayCommandError(getString(CommonStrings.unrecognized_command, sendMessageResult.command))
             }
+            is MessageComposerViewEvents.SlashCommandUnknownGradient -> {
+                displayCommandError(unknownGradientMessage(sendMessageResult.label, sendMessageResult.available))
+            }
             is MessageComposerViewEvents.SlashCommandResultOk -> {
                 handleSlashCommandResultOk(sendMessageResult.parsedCommand)
             }
@@ -1132,6 +1135,19 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 slashCommandLoadingShown = false
             }
         }
+    }
+
+    private fun unknownGradientMessage(label: String, available: List<String>): String {
+        if (available.isNotEmpty()) {
+            return getString(CommonStrings.command_gradient_unknown, label, available.joinToString(", "))
+        }
+        val settingsPath = listOf(
+                CommonStrings.title_activity_settings,
+                CommonStrings.settings_preferences,
+                CommonStrings.settings_category_message_composer,
+                CommonStrings.gradient_settings_title,
+        ).joinToString(" → ") { getString(it) }
+        return getString(CommonStrings.command_gradient_unknown_none, label, settingsPath)
     }
 
     private fun displayCommandError(message: String) {

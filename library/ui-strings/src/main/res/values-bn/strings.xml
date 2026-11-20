@@ -3771,4 +3771,20 @@
     <string name="settings_enable_logging_summary">এই ডিভাইসে একটি বিস্তারিত লগ রাখুন, যা সমস্যা নির্ণয়ে সাহায্যের জন্য হোম মেনু থেকে এক্সপোর্ট করতে পারবেন। এটি বন্ধ করলে সংরক্ষিত লগ মুছে যায়।</string>
     <string name="settings_readable_name_colors_title">নামের রং পড়ার উপযোগী রাখুন</string>
     <string name="settings_readable_name_colors_summary">বেছে নেওয়া যে নামের রং বর্তমান থিমে পড়তে কষ্ট হবে, সেগুলো সামান্য হালকা বা গাঢ় করুন।</string>
+    <string name="command_description_gradient">আপনার কোনো কাস্টম গ্রেডিয়েন্টে একটি বার্তা পাঠায়</string>
+    <string name="command_gradient_unknown">“%1$s” কোনো সেট করা গ্রেডিয়েন্ট নয়। উপলব্ধ গ্রেডিয়েন্ট: %2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s” কোনো সেট করা গ্রেডিয়েন্ট নয়, এবং আপনি এখনও কোনো গ্রেডিয়েন্ট তৈরি করেননি। আপনি %2$s থেকে একটি তৈরি করতে পারেন।</string>
+    <string name="gradient_settings_title">কাস্টম গ্রেডিয়েন্ট</string>
+    <string name="gradient_settings_summary">/gradient দিয়ে ব্যবহারের জন্য রঙের গ্রেডিয়েন্ট তৈরি করুন</string>
+    <string name="gradient_add">গ্রেডিয়েন্ট যোগ করুন</string>
+    <string name="gradient_new">নতুন গ্রেডিয়েন্ট</string>
+    <string name="gradient_edit">গ্রেডিয়েন্ট সম্পাদনা করুন</string>
+    <string name="gradient_label">লেবেল</string>
+    <string name="gradient_label_duplicate">এই লেবেলটি ইতিমধ্যে অন্য একটি গ্রেডিয়েন্ট ব্যবহার করছে</string>
+    <string name="gradient_add_color">রং যোগ করুন</string>
+    <string name="gradient_color">রং %1$d</string>
+    <string name="gradient_unsaved_message">এই গ্রেডিয়েন্টে আপনার অসংরক্ষিত পরিবর্তন আছে। সেগুলি প্রয়োগ করবেন?</string>
+    <string name="gradient_from_image">ছবি থেকে গ্রেডিয়েন্ট</string>
+    <string name="gradient_pick_from_image">ছবি থেকে বেছে নিন</string>
+    <string name="gradient_delete_confirmation">গ্রেডিয়েন্ট %1$s মুছবেন?</string>
 </resources>

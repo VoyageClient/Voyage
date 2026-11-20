@@ -3811,4 +3811,20 @@
     <string name="settings_enable_logging_summary">Conserver un journal détaillé sur cet appareil, exportable depuis le menu d\'accueil pour aider à diagnostiquer les problèmes. Désactiver cette option supprime les journaux enregistrés.</string>
     <string name="settings_readable_name_colors_title">Garder les couleurs de nom lisibles</string>
     <string name="settings_readable_name_colors_summary">Éclaircir ou assombrir légèrement les couleurs de nom choisies qui seraient difficiles à lire avec le thème actuel.</string>
+    <string name="command_description_gradient">Envoie un message dans l\'un de vos dégradés personnalisés</string>
+    <string name="command_gradient_unknown">« %1$s » n\'est pas un dégradé configuré. Dégradés disponibles : %2$s</string>
+    <string name="command_gradient_unknown_none">« %1$s » n\'est pas un dégradé configuré, et vous n\'en avez encore créé aucun. Vous pouvez en créer un dans %2$s.</string>
+    <string name="gradient_settings_title">Dégradés personnalisés</string>
+    <string name="gradient_settings_summary">Créer des dégradés de couleurs à utiliser avec /gradient</string>
+    <string name="gradient_add">Ajouter un dégradé</string>
+    <string name="gradient_new">Nouveau dégradé</string>
+    <string name="gradient_edit">Modifier le dégradé</string>
+    <string name="gradient_label">Libellé</string>
+    <string name="gradient_label_duplicate">Un dégradé utilise déjà ce libellé</string>
+    <string name="gradient_add_color">Ajouter une couleur</string>
+    <string name="gradient_color">Couleur %1$d</string>
+    <string name="gradient_unsaved_message">Ce dégradé comporte des modifications non enregistrées. Les appliquer ?</string>
+    <string name="gradient_from_image">Dégradé depuis une image</string>
+    <string name="gradient_pick_from_image">Choisir dans une image</string>
+    <string name="gradient_delete_confirmation">Supprimer le dégradé %1$s ?</string>
 </resources>

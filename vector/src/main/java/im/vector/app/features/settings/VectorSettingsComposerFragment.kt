@@ -12,6 +12,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.dialogs.PhotoOrVideoDialog
 import im.vector.app.core.preference.VectorPreference
+import im.vector.app.features.settings.gradients.GradientListActivity
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
@@ -29,6 +30,11 @@ class VectorSettingsComposerFragment :
     }
 
     override fun bindPref() {
+        findPreference<VectorPreference>("SETTINGS_CUSTOM_GRADIENTS_SCREEN_KEY")?.setOnPreferenceClickListener {
+            startActivity(GradientListActivity.newIntent(requireContext()))
+            true
+        }
+
         // Take photo or video
         updateTakePhotoOrVideoPreferenceSummary()
         takePhotoOrVideoPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {

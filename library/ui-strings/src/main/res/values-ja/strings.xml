@@ -3730,4 +3730,20 @@
     <string name="settings_enable_logging_summary">問題の診断に役立つ詳細なログをこのデバイスに保存し、ホームメニューからエクスポートできるようにします。オフにすると保存済みのログは削除されます。</string>
     <string name="settings_readable_name_colors_title">名前の色を読みやすく保つ</string>
     <string name="settings_readable_name_colors_summary">選択した名前の色のうち、現在のテーマで読みにくくなるものを少し明るくまたは暗くします。</string>
+    <string name="command_description_gradient">作成したカスタムグラデーションでメッセージを送信</string>
+    <string name="command_gradient_unknown">「%1$s」は設定済みのグラデーションではありません。使用できるグラデーション: %2$s</string>
+    <string name="command_gradient_unknown_none">「%1$s」は設定済みのグラデーションではなく、まだグラデーションが作成されていません。%2$s で作成できます。</string>
+    <string name="gradient_settings_title">カスタムグラデーション</string>
+    <string name="gradient_settings_summary">/gradient で使うカラーグラデーションを作成</string>
+    <string name="gradient_add">グラデーションを追加</string>
+    <string name="gradient_new">新しいグラデーション</string>
+    <string name="gradient_edit">グラデーションを編集</string>
+    <string name="gradient_label">ラベル</string>
+    <string name="gradient_label_duplicate">このラベルは既に別のグラデーションで使われています</string>
+    <string name="gradient_add_color">色を追加</string>
+    <string name="gradient_color">色 %1$d</string>
+    <string name="gradient_unsaved_message">このグラデーションに未保存の変更があります。適用しますか？</string>
+    <string name="gradient_from_image">画像からグラデーション</string>
+    <string name="gradient_pick_from_image">画像から選択</string>
+    <string name="gradient_delete_confirmation">グラデーション %1$s を削除しますか？</string>
 </resources>

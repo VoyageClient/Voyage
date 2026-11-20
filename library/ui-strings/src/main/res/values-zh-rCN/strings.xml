@@ -3732,4 +3732,20 @@
     <string name="settings_enable_logging_summary">在此设备上保存详细日志，可从主页菜单导出以帮助诊断问题。关闭后将删除已保存的日志。</string>
     <string name="settings_readable_name_colors_title">保持名称颜色易于阅读</string>
     <string name="settings_readable_name_colors_summary">将在当前主题下难以阅读的所选名称颜色稍微调亮或调暗。</string>
+    <string name="command_description_gradient">以你的某个自定义渐变色发送消息</string>
+    <string name="command_gradient_unknown">“%1$s”不是已配置的渐变色。可用的渐变色：%2$s</string>
+    <string name="command_gradient_unknown_none">“%1$s”不是已配置的渐变色，而且你还没有创建任何渐变色。可以在 %2$s 中创建。</string>
+    <string name="gradient_settings_title">自定义渐变色</string>
+    <string name="gradient_settings_summary">创建可用于 /gradient 的渐变色</string>
+    <string name="gradient_add">添加渐变色</string>
+    <string name="gradient_new">新建渐变色</string>
+    <string name="gradient_edit">编辑渐变色</string>
+    <string name="gradient_label">标签</string>
+    <string name="gradient_label_duplicate">已有渐变色使用此标签</string>
+    <string name="gradient_add_color">添加颜色</string>
+    <string name="gradient_color">颜色 %1$d</string>
+    <string name="gradient_unsaved_message">此渐变色有未保存的更改。要应用吗？</string>
+    <string name="gradient_from_image">从图片生成渐变色</string>
+    <string name="gradient_pick_from_image">从图片中取色</string>
+    <string name="gradient_delete_confirmation">删除渐变色 %1$s？</string>
 </resources>

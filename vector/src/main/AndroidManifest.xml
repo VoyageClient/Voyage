@@ -309,6 +309,12 @@
         <activity android:name=".features.pin.PinActivity" />
         <activity android:name=".features.imagepack.edit.ImagePackEditActivity" />
         <activity android:name=".features.imagepack.edit.ImagePackListActivity" />
+        <activity android:name=".features.settings.gradients.GradientListActivity" />
+        <activity android:name=".features.settings.gradients.GradientEditActivity" />
+        <activity
+            android:name=".features.settings.gradients.GradientImageSamplerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
         <activity android:name=".features.roommemberprofile.mutualrooms.MutualRoomsActivity" />
         <activity android:name=".features.settings.reactions.QuickReactionsSettingsActivity" />
         <activity
