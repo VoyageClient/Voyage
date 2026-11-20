@@ -31,8 +31,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Highlights code blocks the way Element Web's CodeBlock does: a block over [MAX_HIGHLIGHT_LENGTH] stays plain,
- * and the first `language-` class highlight.js knows decides the language. Blocks naming none stay plain.
+ * Highlights code blocks the way Element Web's CodeBlock does, minus its 4096-character cap: the first `language-`
+ * class highlight.js knows decides the language. Blocks naming none stay plain.
  *
  * Parsing never runs on the main thread and is serialized (the engine isn't thread-safe); results are cached,
  * and [prepare] fills the cache while the timeline/room list models are built, so blocks draw colored at once.
@@ -69,7 +69,7 @@ class CodeBlockHighlighter @Inject constructor(
     }
 
     fun requestFor(segment: BodySegment.Code): Request? {
-        if (segment.source.length > MAX_HIGHLIGHT_LENGTH || segment.languageClasses.isEmpty()) return null
+        if (segment.languageClasses.isEmpty()) return null
         return Request(segment.source, segment.languageClasses)
     }
 
@@ -145,10 +145,8 @@ class CodeBlockHighlighter @Inject constructor(
     }
 
     private fun compute(request: Request): HljsResult {
-        val code = request.code
-        if (code.length > MAX_HIGHLIGHT_LENGTH) return PLAIN
         val advertised = request.languageClasses.firstOrNull { engine.hasLanguage(it) } ?: return PLAIN
-        return engine.highlight(code, advertised) ?: PLAIN
+        return engine.highlight(request.code, advertised) ?: PLAIN
     }
 
     fun theme(palette: CodePalette, light: Boolean): CodeTheme? = themes.themeFor(palette, light)
@@ -182,8 +180,6 @@ class CodeBlockHighlighter @Inject constructor(
     }
 
     companion object {
-        // Element Web's limit: bigger blocks aren't highlighted at all.
-        const val MAX_HIGHLIGHT_LENGTH = 4096
         private const val CACHE_SIZE = 256
         private const val WARM_UP_DELAY_MS = 10_000L
 
