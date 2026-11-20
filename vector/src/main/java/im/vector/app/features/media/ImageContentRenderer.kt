@@ -313,6 +313,7 @@ class ImageContentRenderer @Inject constructor(
                 return true
             }
             failedMediaTracker.onLoadFailed(data.url)
+            imageView.lastRender()?.uploadFrame = null
             renderFailed(imageView, data, pinSize, showGlyph, square)
             return true
         }
@@ -388,10 +389,12 @@ class ImageContentRenderer @Inject constructor(
 
     private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
 
-    private fun uploadFrame(imageView: ImageView, last: LastRender?, data: Data, mode: Mode, size: Size, fromRetryTap: Boolean): Drawable? {
-        if (fromRetryTap || last == null || last.failed || last.stableId != data.stableId) return null
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun uploadFrame(imageView: ImageView, last: LastRender?, data: Data, mode: Mode, size: Size, fromRetryTap: Boolean): Drawable? {
+        if (fromRetryTap || last == null || last.stableId != data.stableId) return null
+        // Kept through a failed load while uploading: the echo's local file may already be gone.
         last.uploadFrame?.let { return it }
-        if (!last.completed || !last.data.allowNonMxcUrls) return null
+        if (last.failed || !last.completed || !last.data.allowNonMxcUrls) return null
         var drawable = imageView.drawable ?: return null
         while (drawable is TransitionDrawable) drawable = drawable.getDrawable(drawable.numberOfLayers - 1)
         if (drawable is MediaPlaceholderDrawable) return null
@@ -749,11 +752,18 @@ class ImageContentRenderer @Inject constructor(
      * A load that fails on media still being uploaded is not a broken download — the bytes simply are
      * not anywhere we can read them yet. Stay on the waiting state, and leave no failure recorded: the
      * tracker would put the glyph up on the next bind before the fresh load had a chance to succeed.
+     * A picture already standing in for this upload stays up instead.
      */
     private fun renderStillUploading(imageView: ImageView, data: Data, e: GlideException?, showGlyph: Boolean, square: Boolean = false) {
         Timber.w(e, "Thumbnail load failed while still uploading: ${data.url}")
         imageView.setTag(R.id.image_renderer_retrying, null)
-        showLoadingNow(imageView, data, showGlyph, square)
+        val frame = imageView.lastRender()?.uploadFrame
+        if (frame == null) {
+            showLoadingNow(imageView, data, showGlyph, square)
+            return
+        }
+        DebugLog.i { "MEDIADBG upload frame kept after failed load event=${data.eventId} view=${viewId(imageView)} frame=${MediaDebug.drawable(frame)}" }
+        if (imageView.drawable !== frame) imageView.setImageDrawable(frame)
     }
 
     fun isFailed(data: Data): Boolean = failedMediaTracker.isFailed(data.url)

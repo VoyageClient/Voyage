@@ -21,6 +21,7 @@ import com.bumptech.glide.signature.ObjectKey
 import com.bumptech.glide.util.ByteBufferUtil
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.files.LocalFilesHelper
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaDebug
 import im.vector.app.features.session.coroutineScope
@@ -31,6 +32,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -138,6 +140,12 @@ class ImageContentRendererDataFetcher(
                 callback.onDataReady(buffer)
                 DebugLog.i { "MEDIADBG fetcher local done url=${data.url}" }
             }
+            return
+        }
+        // A local file that is gone (e.g. removed once its upload landed); the file service only takes homeserver urls.
+        if (data.url.isLocalMediaUri()) {
+            DebugLog.w { "MEDIADBG fetcher #$id local file gone url=${data.url}" }
+            callback.onLoadFailed(FileNotFoundException("Local media no longer readable: ${data.url}"))
             return
         }
 //        val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
