@@ -1558,6 +1558,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
         // Drop a stale voice draft before render so the recorder doesn't flicker through Draft state.
         if (currentDraft is UserDraft.Voice && !voiceDraftFileExists(room, currentDraft.content)) {
+            DebugLog.w { "DRAFTDBG restore-skipped reason=voice-attachment-missing" }
             viewModelScope.launch { room.draftService().deleteDraft() }
             setState { copy(sendMode = SendMode.Regular("", fromSharing = false)) }
             return

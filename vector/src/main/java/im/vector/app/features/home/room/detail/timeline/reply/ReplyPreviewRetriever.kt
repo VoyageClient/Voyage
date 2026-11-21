@@ -40,6 +40,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Content
@@ -204,8 +206,11 @@ class ReplyPreviewRetriever(
                     true
                 }
             }
-            if (!shouldLaunch) return
-            coroutineScope.launch(Dispatchers.IO) {
+            if (!shouldLaunch) {
+                NetworkDiagnostics.checkpoint("reply-preview-fetch-shared", roomId, eventIdToRetrieve)
+                return
+            }
+            coroutineScope.launch(Dispatchers.IO + DiagnosticContext.context("reply-preview")) {
                 val retrieveEventLock = synchronized(retrieveEventLocks) {
                     retrieveEventLocks.getOrPut(eventIdToRetrieve) { eventIdToRetrieve }
                 }
@@ -225,8 +230,11 @@ class ReplyPreviewRetriever(
                             val room = session.getRoom(roomId)
                             var timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
                             if (timelineEvent == null && mayAskServerForEvent) {
+                                NetworkDiagnostics.checkpoint("reply-preview-fetch", roomId, eventIdToRetrieve)
                                 runBlocking { session.eventService().ensureEventCached(roomId, eventIdToRetrieve) }
                                 timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
+                            } else if (timelineEvent == null) {
+                                NetworkDiagnostics.checkpoint("reply-preview-fetch-throttled", roomId, eventIdToRetrieve)
                             }
                             // The event cache is a local read, so consult it even when rate-limited for the
                             // server: a sibling reply's fetch may have cached the event without timeline rows.
@@ -249,9 +257,12 @@ class ReplyPreviewRetriever(
                         }
                     }.fold(
                             {
+                                if (it == null) NetworkDiagnostics.checkpoint("reply-preview-target-missing", roomId, eventIdToRetrieve)
                                 val asOriginal = it != null && quotesForwardAsOriginal(event.root.getClearContent(), it.root.getClearContent())
                                 // Pre-render the reply body here (off the main thread) so the view's bind is a cache hit.
-                                if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it, asOriginal)
+                                if (it != null && it.root.senderId !in ignoredUserIds) {
+                                    NetworkDiagnostics.trace("reply-preview.render", roomId) { warmReplyBodyCache(it, asOriginal) }
+                                }
                                 synchronized(data) {
                                     updateState(eventId, eventIdToRetrieve,
                                             when {
@@ -263,6 +274,7 @@ class ReplyPreviewRetriever(
                                 }
                             },
                             {
+                                NetworkDiagnostics.checkpoint("reply-preview-failed error=${it.javaClass.simpleName}", roomId, eventIdToRetrieve)
                                 synchronized(data) {
                                     updateState(eventId, eventIdToRetrieve, PreviewReplyUiState.Error(it, eventIdToRetrieve))
                                 }

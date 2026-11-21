@@ -11,6 +11,7 @@ import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.notifications.ProcessedEvent.Type.KEEP
 import im.vector.app.features.notifications.ProcessedEvent.Type.REMOVE
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import timber.log.Timber
@@ -56,6 +57,16 @@ class NotifiableEventProcessor @Inject constructor(
                     EventType.REDACTION -> REMOVE
                     else -> KEEP
                 }
+            }
+            DebugLog.i {
+                val reason = when {
+                    event is InviteNotifiableEvent && type == REMOVE -> "invite-hidden"
+                    event is NotifiableMessageEvent && event.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) -> "visible-room-or-thread"
+                    event is NotifiableMessageEvent && event.eventId in readEventIds -> "already-read"
+                    event is SimpleNotifiableEvent && event.type == EventType.REDACTION -> "redaction"
+                    else -> "eligible"
+                }
+                "NOTIFDBG event-decision event=${OperationDiagnostics.id(event.eventId)} action=$type reason=$reason"
             }
             ProcessedEvent(type, event)
         }

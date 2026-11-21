@@ -29,6 +29,8 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -50,7 +52,15 @@ class AppLoggingTest {
     fun tearDown() {
         Timber.uprootAll()
         fileLogger.close()
+        tagFileLogger.close()
         DebugLog.enabled = false
+        drainWriters()
+    }
+
+    private fun drainWriters() {
+        LogHealth.awaitIdle().shouldBeTrue()
+        tagFileLogger.writer.awaitIdle().shouldBeTrue()
+        fileLogger.writer.awaitIdle().shouldBeTrue()
     }
 
     private fun preferences(isDebug: Boolean) = VectorPreferences(
@@ -145,12 +155,14 @@ class AppLoggingTest {
         val appLogging = appLogging(isDebug = false)
         appLogging.apply(true)
         Timber.i("PAGDBG fetching page 4")
+        drainWriters()
         logsDirectory.listFiles().orEmpty().any { it.name == "pagdbg.txt" }.shouldBeTrue()
 
         appLogging.apply(false)
 
         Timber.treeCount shouldBeEqualTo 0
         DebugLog.enabled.shouldBeFalse()
+        drainWriters()
         logsDirectory.listFiles().orEmpty().toList().shouldBeEmpty()
     }
 
@@ -162,6 +174,59 @@ class AppLoggingTest {
         appLogging(isDebug = false).apply(false)
 
         Timber.treeCount shouldBeEqualTo 0
+        drainWriters()
+        logsDirectory.listFiles().orEmpty().toList().shouldBeEmpty()
+    }
+
+    @Test
+    fun `disabling never waits for a blocked category writer and queued lines stay deleted`() {
+        val appLogging = appLogging(isDebug = false)
+        appLogging.apply(true)
+        drainWriters()
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        tagFileLogger.writer.executeControl {
+            entered.countDown()
+            release.await(30, TimeUnit.SECONDS)
+        }
+        try {
+            entered.await(2, TimeUnit.SECONDS).shouldBeTrue()
+            Timber.i("TESTDBG obsolete")
+            val started = System.nanoTime()
+            appLogging.apply(false)
+            ((System.nanoTime() - started) / 1_000_000 < 2000).shouldBeTrue()
+            DebugLog.enabled.shouldBeFalse()
+        } finally {
+            release.countDown()
+        }
+        drainWriters()
+        logsDirectory.listFiles().orEmpty().toList().shouldBeEmpty()
+    }
+
+    @Test
+    fun `a pending disable cannot delete a newly enabled session`() {
+        val appLogging = appLogging(isDebug = false)
+        appLogging.apply(true)
+        drainWriters()
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        tagFileLogger.writer.executeControl {
+            entered.countDown()
+            release.await(30, TimeUnit.SECONDS)
+        }
+        try {
+            entered.await(2, TimeUnit.SECONDS).shouldBeTrue()
+            appLogging.apply(false)
+            appLogging.apply(true)
+            Timber.i("TESTDBG current session")
+        } finally {
+            release.countDown()
+        }
+        drainWriters()
+        File(logsDirectory, "testdbg.txt").readText().contains("current session").shouldBeTrue()
+        File(logsDirectory, "logs.0.txt").readText().contains("current session").shouldBeTrue()
+        appLogging.apply(false)
+        drainWriters()
         logsDirectory.listFiles().orEmpty().toList().shouldBeEmpty()
     }
 
@@ -171,6 +236,7 @@ class AppLoggingTest {
         fileLogger.close()
         fileLogger.open()
 
+        drainWriters()
         File(logsDirectory, "logs.0.txt").exists().shouldBeTrue()
         File(logsDirectory, "logs.1.txt").exists().shouldBeFalse()
     }

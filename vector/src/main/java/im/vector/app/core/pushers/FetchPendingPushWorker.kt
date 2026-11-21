@@ -23,6 +23,8 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.lib.core.utils.timer.Clock
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
 import timber.log.Timber
@@ -51,17 +53,31 @@ class FetchPendingPushWorker(
         fun clock(): Clock
     }
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = DiagnosticContext.withOrigin("push-worker") {
+        DebugLog.i { "PUSHDBG worker-start id=$id attempt=$runAttemptCount ${DiagnosticContext.describe()}" }
+        try {
+            fetchPending().also { result -> DebugLog.i { "PUSHDBG worker-end id=$id result=${result.javaClass.simpleName} ${DiagnosticContext.describe()}" } }
+        } catch (failure: Throwable) {
+            DebugLog.w { "PUSHDBG worker-failed id=$id error=${failure.javaClass.simpleName} ${DiagnosticContext.describe()}" }
+            throw failure
+        }
+    }
+
+    private suspend fun fetchPending(): Result {
         val deps = EntryPointAccessors.fromApplication(applicationContext, Dependencies::class.java)
         deps.foregroundServiceManager().stopAll()
 
-        val sessionId = inputData.getString(SESSION_ID) ?: return Result.failure()
+        val sessionId = inputData.getString(SESSION_ID) ?: run {
+            DebugLog.w { "PUSHDBG missing-session id=$id" }
+            return Result.failure()
+        }
         val store = deps.pushRequestStore()
         val clock = deps.clock()
 
         store.removeOlderThan(clock.epochMillis() - HISTORY_RETENTION_MS)
         val requests = store.getPending(sessionId, clock.epochMillis() - PENDING_WINDOW_MS)
         if (requests.isEmpty()) {
+            DebugLog.i { "PUSHDBG worker-skip reason=no-pending id=$id" }
             Timber.tag(loggerTag.value).d("No pending push to fetch")
             return Result.success()
         }
@@ -69,6 +85,7 @@ class FetchPendingPushWorker(
         val session = deps.activeSessionHolder().getSafeActiveSession()
                 ?.takeIf { it.sessionId == sessionId }
         if (session == null) {
+            DebugLog.i { "PUSHDBG worker-skip reason=inactive-account pending=${requests.size} id=$id" }
             // Another account is active: its own registration will bring these in when it returns.
             Timber.tag(loggerTag.value).w("Session $sessionId is not active, keeping ${requests.size} push(es) pending")
             return Result.success()
@@ -80,6 +97,7 @@ class FetchPendingPushWorker(
             pushHandler.resolveAndNotify(session, request).fold(
                     onSuccess = { request.copy(status = PushRequestStatus.SUCCESS, failureReason = null) },
                     onFailure = { throwable ->
+                        DebugLog.w { "PUSHDBG resolve-failed error=${throwable.javaClass.simpleName} retryable=${throwable.isRetryable()} retries=${request.retries} ${DiagnosticContext.describe()}" }
                         if (throwable.isRetryable()) {
                             request.copy(
                                     status = PushRequestStatus.PENDING,
@@ -100,6 +118,10 @@ class FetchPendingPushWorker(
         session.syncService().requireBackgroundSync()
 
         val stillPending = updated.any { it.status == PushRequestStatus.PENDING && it.retries < MAX_RETRIES }
+        DebugLog.i {
+            "PUSHDBG batch pending=${updated.count { it.status == PushRequestStatus.PENDING }} " +
+                    "succeeded=${updated.count { it.status == PushRequestStatus.SUCCESS }} failed=${updated.count { it.status == PushRequestStatus.FAILED }} retry=$stillPending"
+        }
         return if (stillPending) Result.retry() else Result.success()
     }
 

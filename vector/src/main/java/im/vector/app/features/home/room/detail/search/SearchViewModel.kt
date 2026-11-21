@@ -24,6 +24,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -156,7 +158,7 @@ class SearchViewModel @AssistedInject constructor(
 
         currentTask?.cancel()
 
-        currentTask = viewModelScope.launch {
+        currentTask = viewModelScope.launch(DiagnosticContext.context("search-ui")) {
             try {
                 val result = session.searchService().search(
                         searchTerm = state.searchTerm,
@@ -168,8 +170,10 @@ class SearchViewModel @AssistedInject constructor(
                         includeProfile = true,
                         limit = 20
                 )
-                onSearchResultSuccess(result)
+                DebugLog.i { "SEARCHDBG ui-result queryLength=${state.searchTerm.length} resultCount=${result.results.orEmpty().size} hasNext=${result.nextBatch != null} ${DiagnosticContext.describe()}" }
+                onSearchResultSuccess(result, state.searchTerm)
             } catch (failure: Throwable) {
+                DebugLog.i { "SEARCHDBG ui-ended reason=${if (failure is CancellationException) "canceled-or-superseded" else "failed"} error=${failure.javaClass.simpleName} ${DiagnosticContext.describe()}" }
                 if (failure is CancellationException) return@launch
 
                 _viewEvents.post(SearchViewEvents.Failure(failure))
@@ -182,7 +186,8 @@ class SearchViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onSearchResultSuccess(searchResult: SearchResult) = withState { state ->
+    private fun onSearchResultSuccess(searchResult: SearchResult, requestedTerm: String) = withState { state ->
+        DebugLog.i { "SEARCHDBG ui-apply stale=${state.searchTerm != requestedTerm} incoming=${searchResult.results.orEmpty().size} existing=${state.searchResult.size}" }
         // An edited message can match as both its original and its (remapped) edit event; keep one.
         val accumulatedResult = searchResult.results.orEmpty().plus(state.searchResult)
                 .distinctBy { it.event.eventId }

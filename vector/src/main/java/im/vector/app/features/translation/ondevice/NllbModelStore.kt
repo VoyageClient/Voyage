@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -63,6 +64,8 @@ class NllbModelStore @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val client = OkHttpClient.Builder()
+            .eventListenerFactory(NetworkDiagnostics)
+            .addInterceptor(NetworkDiagnostics)
             .addInterceptor(vpnGateInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

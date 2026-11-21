@@ -30,6 +30,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.auth.AuthenticationService
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOption
@@ -71,46 +73,63 @@ class ActiveSessionHolder @Inject constructor(
     private val pendingReleaseSessionIds = java.util.Collections.newSetFromMap<String>(java.util.concurrent.ConcurrentHashMap())
 
     fun setActiveSession(session: Session) {
-        Timber.w("setActiveSession of ${session.myUserId}")
-        val previous = activeSessionReference.get()
-        if (previous != null && previous.sessionId != session.sessionId) {
-            // Detach the previous session's listeners and queue it for release, but skip the
-            // "empty" data-source emission — we're about to publish the new session anyway,
-            // avoiding observer flicker.
-            detachAndPendForRelease(previous)
-            stopAppLevelHandlers()
-        }
-        activeSessionReference.set(session)
-        activeSessionDataSource.post(session.toOption())
-        lastActiveSessionStore.set(session.sessionId)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "active-session-set")
+        try {
+            Timber.w("setActiveSession of ${session.myUserId}")
+            val previous = activeSessionReference.get()
+            diagnosticSpan?.event("switch", "previous=${OperationDiagnostics.id(previous?.sessionId)} next=${OperationDiagnostics.id(session.sessionId)}")
+            if (previous != null && previous.sessionId != session.sessionId) {
+                // Detach the previous session's listeners and queue it for release, but skip the
+                // "empty" data-source emission — we're about to publish the new session anyway,
+                // avoiding observer flicker.
+                detachAndPendForRelease(previous)
+                stopAppLevelHandlers()
+            }
+            activeSessionReference.set(session)
+            activeSessionDataSource.post(session.toOption())
+            lastActiveSessionStore.set(session.sessionId)
 
-        keyRequestHandler.start(session)
-        incomingVerificationRequestHandler.start(session)
-        session.addListener(sessionListener)
-        pushRuleTriggerListener.startWithSession(session)
-        imageManager.onSessionStarted(session)
-        guardServiceStarter.start()
+            keyRequestHandler.start(session)
+            incomingVerificationRequestHandler.start(session)
+            session.addListener(sessionListener)
+            pushRuleTriggerListener.startWithSession(session)
+            imageManager.onSessionStarted(session)
+            guardServiceStarter.start()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     suspend fun clearActiveSession() {
-        audioPlaybackController.get().stop(clearTracker = true)
-        // Do some cleanup first
-        getSafeActiveSession()?.let {
-            Timber.w("clearActiveSession of ${it.myUserId}")
-            it.removeListener(sessionListener)
-            vpnGateState.dropQueuedFor(it.sessionId)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "active-session-clear")
+        try {
+            audioPlaybackController.get().stop(clearTracker = true)
+            // Do some cleanup first
+            getSafeActiveSession()?.let {
+                Timber.w("clearActiveSession of ${it.myUserId}")
+                it.removeListener(sessionListener)
+                vpnGateState.dropQueuedFor(it.sessionId)
+            }
+
+            activeSessionReference.set(null)
+            activeSessionDataSource.post(Optional.empty())
+            lastActiveSessionStore.set(null)
+
+            keyRequestHandler.stop()
+            incomingVerificationRequestHandler.stop()
+            pushRuleTriggerListener.stop()
+            configureAndStartSessionUseCase.cancelProfileObserver()
+            unregisterUnifiedPushUseCase.execute(pushersManager = null)
+            guardServiceStarter.stop()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-
-        activeSessionReference.set(null)
-        activeSessionDataSource.post(Optional.empty())
-        lastActiveSessionStore.set(null)
-
-        keyRequestHandler.stop()
-        incomingVerificationRequestHandler.stop()
-        pushRuleTriggerListener.stop()
-        configureAndStartSessionUseCase.cancelProfileObserver()
-        unregisterUnifiedPushUseCase.execute(pushersManager = null)
-        guardServiceStarter.stop()
     }
 
     fun hasActiveSession(): Boolean {
@@ -124,6 +143,7 @@ class ActiveSessionHolder @Inject constructor(
     fun getSafeActiveSessionAsync(withSession: ((Session?) -> Unit)) {
         applicationCoroutineScope.launch(coroutineDispatchers.io) {
             val session = getOrInitializeSession()
+            DebugLog.i { "AUTHDBG session-callback session=${OperationDiagnostics.id(session?.sessionId)} stillActive=${session === activeSessionReference.get()}" }
             withSession(session)
         }
     }
@@ -151,18 +171,29 @@ class ActiveSessionHolder @Inject constructor(
      * gone, so closing it doesn't race with a query.
      */
     fun softClearForSwitch() {
-        val previous = activeSessionReference.getAndSet(null)
-        if (previous != null) detachAndPendForRelease(previous)
-        activeSessionDataSource.post(Optional.empty())
-        stopAppLevelHandlers()
-        configureAndStartSessionUseCase.cancelProfileObserver()
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "account-switch-detach")
+        try {
+            val previous = activeSessionReference.getAndSet(null)
+            if (previous != null) detachAndPendForRelease(previous)
+            activeSessionDataSource.post(Optional.empty())
+            stopAppLevelHandlers()
+            configureAndStartSessionUseCase.cancelProfileObserver()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     private fun detachAndPendForRelease(previous: Session) {
         Timber.w("detachAndPendForRelease: ${previous.myUserId}")
         runCatching { previous.syncService().stopAnyBackgroundSync() }
+                .onFailure { failure -> DebugLog.w { "AUTHDBG switch-cleanup-failed stage=background-sync session=${OperationDiagnostics.id(previous.sessionId)} error=${failure.javaClass.simpleName}" } }
         runCatching { previous.syncService().stopSync() }
+                .onFailure { failure -> DebugLog.w { "AUTHDBG switch-cleanup-failed stage=sync session=${OperationDiagnostics.id(previous.sessionId)} error=${failure.javaClass.simpleName}" } }
         runCatching { previous.removeListener(sessionListener) }
+                .onFailure { failure -> DebugLog.w { "AUTHDBG switch-cleanup-failed stage=listener session=${OperationDiagnostics.id(previous.sessionId)} error=${failure.javaClass.simpleName}" } }
         vpnGateState.dropQueuedFor(previous.sessionId)
         pendingReleaseSessionIds += previous.sessionId
     }

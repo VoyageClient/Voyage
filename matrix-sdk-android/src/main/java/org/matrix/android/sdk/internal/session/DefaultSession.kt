@@ -26,6 +26,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.SessionParams
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.federation.FederationService
 import org.matrix.android.sdk.api.session.EventStreamService
@@ -149,62 +151,90 @@ internal class DefaultSession @Inject constructor(
 
     @MainThread
     override fun open() {
-        sessionState.setIsOpen(true)
-        globalErrorHandler.listener = this
-        cryptoService.get().start()
-        mainScope.launch {
-            lifecycleObservers.forEach {
-                it.onSessionStarted(this@DefaultSession)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "session-open") { "session=${OperationDiagnostics.id(sessionId)}" }
+        try {
+            sessionState.setIsOpen(true)
+            globalErrorHandler.listener = this
+            cryptoService.get().start()
+            mainScope.launch {
+                DebugLog.i { "AUTHDBG lifecycle-callback session=${OperationDiagnostics.id(sessionId)} actualOpen=${sessionState.isOpen}" }
+                lifecycleObservers.forEach {
+                    OperationDiagnostics.run("AUTHDBG", "session-observer-start", "observer=${it.javaClass.simpleName} session=${OperationDiagnostics.id(sessionId)}") { it.onSessionStarted(this@DefaultSession) }
+                }
+                dispatchTo(sessionListeners) { session, listener ->
+                    listener.onSessionStarted(session)
+                }
             }
-            dispatchTo(sessionListeners) { session, listener ->
-                listener.onSessionStarted(session)
-            }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
     }
 
     override fun close() {
-        // Idempotent: release paths can reach an already-closed (or never-opened) session,
-        // and a second close would re-dispatch onSessionStopped to every observer.
-        if (!sessionState.isOpen) return
-        syncService.get().stopSync()
-        // timelineEventDecryptor.destroy()
-        mainScope.launch {
-            lifecycleObservers.forEach { it.onSessionStopped(this@DefaultSession) }
-            dispatchTo(sessionListeners) { session, listener ->
-                listener.onSessionStopped(session)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "session-close") { "session=${OperationDiagnostics.id(sessionId)}" }
+        try {
+            // Idempotent: release paths can reach an already-closed (or never-opened) session,
+            // and a second close would re-dispatch onSessionStopped to every observer.
+            if (!sessionState.isOpen) return
+            syncService.get().stopSync()
+            // timelineEventDecryptor.destroy()
+            mainScope.launch {
+                DebugLog.i { "AUTHDBG lifecycle-callback session=${OperationDiagnostics.id(sessionId)} actualOpen=${sessionState.isOpen}" }
+                lifecycleObservers.forEach { observer -> OperationDiagnostics.run("AUTHDBG", "session-observer-stop", "observer=${observer.javaClass.simpleName} session=${OperationDiagnostics.id(sessionId)}") { observer.onSessionStopped(this@DefaultSession) } }
+                dispatchTo(sessionListeners) { session, listener ->
+                    listener.onSessionStopped(session)
+                }
             }
+            cryptoService.get().close()
+            globalErrorHandler.listener = null
+            sessionState.setIsOpen(false)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-        cryptoService.get().close()
-        globalErrorHandler.listener = null
-        sessionState.setIsOpen(false)
     }
 
     override suspend fun clearCache() {
-        if (sessionState.isOpen) syncService.get().stopSync()
-        syncService.get().stopAnyBackgroundSync()
-        val indexService = eventIndexService.get()
-        val indexEnabled = indexService.isEnabled()
-        if (indexEnabled) indexService.setEnabled(false)
-        mainScope.launch {
-            lifecycleObservers.forEach {
-                it.onClearCache(this@DefaultSession)
-            }
-            dispatchTo(sessionListeners) { session, listener ->
-                listener.onClearCache(session)
-            }
-        }
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "session-clear-cache") { "session=${OperationDiagnostics.id(sessionId)}" }
         try {
-            withContext(NonCancellable) {
-                cacheService.get().clearCache()
-                indexService.clearIndex()
+            if (sessionState.isOpen) syncService.get().stopSync()
+            syncService.get().stopAnyBackgroundSync()
+            val indexService = eventIndexService.get()
+            val indexEnabled = indexService.isEnabled()
+            if (indexEnabled) indexService.setEnabled(false)
+            mainScope.launch {
+                DebugLog.i { "AUTHDBG lifecycle-callback session=${OperationDiagnostics.id(sessionId)} actualOpen=${sessionState.isOpen}" }
+                lifecycleObservers.forEach {
+                    it.onClearCache(this@DefaultSession)
+                }
+                dispatchTo(sessionListeners) { session, listener ->
+                    listener.onClearCache(session)
+                }
             }
+            try {
+                withContext(NonCancellable) {
+                    cacheService.get().clearCache()
+                    indexService.clearIndex()
+                }
+            } finally {
+                if (indexEnabled) indexService.setEnabled(true)
+            }
+            backgroundTaskScheduler.cancelAllTasks()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
         } finally {
-            if (indexEnabled) indexService.setEnabled(true)
+            diagnosticSpan?.finish("completed")
         }
-        backgroundTaskScheduler.cancelAllTasks()
     }
 
     override fun onGlobalError(globalError: GlobalError) {
+        DebugLog.w { "AUTHDBG global-error session=${OperationDiagnostics.id(sessionId)} type=${globalError.javaClass.simpleName}" }
         dispatchTo(sessionListeners) { session, listener ->
             listener.onGlobalError(session, globalError)
         }

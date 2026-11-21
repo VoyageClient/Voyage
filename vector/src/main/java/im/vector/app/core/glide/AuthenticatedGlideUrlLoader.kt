@@ -28,6 +28,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import java.io.IOException
 import java.io.InputStream
 import java.util.WeakHashMap
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class AuthenticatedGlideUrlLoaderFactory(private val context: Context) : ModelLoaderFactory<GlideUrl, InputStream> {
 
-    private val defaultClient = OkHttpClient()
+    private val defaultClient = OkHttpClient.Builder().eventListenerFactory(NetworkDiagnostics).addInterceptor(NetworkDiagnostics).build()
 
     override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<GlideUrl, InputStream> {
         return AuthenticatedGlideUrlLoader(context, defaultClient)
@@ -91,7 +92,9 @@ private object HttpTrace {
         traced.getOrPut(base) {
             val dispatcher = base.dispatcher()
             base.newBuilder()
-                    .eventListenerFactory { call -> Listener(call.request().tag(Long::class.javaObjectType), dispatcher) }
+                    .eventListenerFactory { call ->
+                        NetworkDiagnostics.create(call, Listener(call.request().tag(Long::class.javaObjectType), dispatcher))
+                    }
                     .build()
         }
     }

@@ -8,61 +8,143 @@
 package im.vector.app.features.rageshake
 
 import android.content.Context
-import org.matrix.android.sdk.api.extensions.tryOrNull
 import timber.log.Timber
+import java.io.BufferedWriter
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Collects every `*DBG` diagnostic trace into a file of its own under `cacheDir/logs`.
- *
- * One file per tag rather than one shared log: these traces are read days apart and a busy tag would
- * otherwise rotate a quiet one away long before anyone looked at it. The tag is taken from the message
- * rather than from a list, so a new one needs nothing here — `PAGDBG …` lands in `pagdbg.txt`.
- *
- * Planted by [AppLogging] while logging is on, alongside [org.matrix.android.sdk.api.debug.DebugLog].
- */
 @Singleton
-class DebugTagFileLogger @Inject constructor(private val context: Context) : Timber.Tree() {
+class DebugTagFileLogger @Inject constructor(context: Context) : Timber.Tree() {
+    private val directory = File(context.cacheDir, "logs")
+    private val epoch = AtomicLong()
+    @Volatile private var accepting = true
+    private val outputs = LinkedHashMap<String, Output>(16, 0.75f, true)
+    private val timestampFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US)
+    internal val writer = LogWorkQueue("diagnostic-file-logger", afterBatch = { flushOutputs() })
 
-    private val directory by lazy { File(context.cacheDir, "logs") }
-
-    // Per tag, so a chatty one does not serialise the others behind it.
-    private val locks = ConcurrentHashMap<String, Any>()
-
-    // SimpleDateFormat is not thread-safe and the per-tag locks let two tags format at once.
-    private val timestampFormat = object : ThreadLocal<SimpleDateFormat>() {
-        override fun initialValue() = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US)
-    }
-
-    private fun now(): String = timestampFormat.get()!!.format(Date())
-
-    override fun isLoggable(tag: String?, priority: Int) = true
+    override fun isLoggable(tag: String?, priority: Int) = accepting
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        val dbgTag = TAG_PATTERN.find(message)?.groupValues?.get(1) ?: return
-        val name = dbgTag.lowercase(Locale.US)
-        synchronized(locks.getOrPut(name) { Any() }) {
-            tryOrNull("Failed to write the $dbgTag log") {
-                if (!directory.exists()) directory.mkdirs()
-                val file = File(directory, "$name.txt")
-                if (file.length() > MAX_SIZE_BYTES) {
-                    File(directory, "$name.1.txt").delete()
-                    file.renameTo(File(directory, "$name.1.txt"))
-                }
-                file.appendText("${now()} $message\n")
-                t?.let { file.appendText("${now()} $dbgTag ${it.stackTraceToString()}\n") }
+        if (!accepting) return
+        val dbgTag = category(message) ?: return
+        val token = epoch.get()
+        val at = System.currentTimeMillis()
+        if (!writer.offer(message) { bounded ->
+                    if (accepting && token == epoch.get()) write(dbgTag, at, bounded)
+                }) LogHealth.record(directory, "tags", "queue-drop", writer.pendingCount)
+    }
+
+    fun open() {
+        epoch.incrementAndGet()
+        accepting = true
+    }
+
+    fun close() {
+        accepting = false
+        epoch.incrementAndGet()
+        writer.executeControl {
+            synchronized(LogHealth.storageLock) {
+                outputs.values.forEach { it.close() }
+                outputs.clear()
             }
         }
     }
 
+    internal fun afterPendingWrites(action: () -> Unit) = writer.executeControl(action)
+
+    private fun write(tag: String, at: Long, message: String) = synchronized(LogHealth.storageLock) {
+        val name = tag.lowercase(Locale.US)
+        val output = outputs.getOrPut(name) {
+            if (outputs.size >= 32) {
+                val oldest = outputs.entries.iterator()
+                oldest.next().value.close()
+                oldest.remove()
+            }
+            Output(name)
+        }
+        output.write("${timestampFormat.format(Date(at))} $message\n")
+    }
+
+    private fun flushOutputs() = synchronized(LogHealth.storageLock) { outputs.values.forEach { it.flush() } }
+
+    private inner class Output(private val name: String) {
+        private val file = File(directory, "$name.txt")
+        private var stream: BufferedWriter? = null
+        private var bytes = 0L
+        private var dirty = false
+        private var retryAfter = 0L
+
+        fun write(line: String) {
+            if (System.nanoTime() < retryAfter) {
+                LogHealth.record(directory, "tags", "write-backoff", writer.pendingCount)
+                return
+            }
+            try {
+                if (stream == null) {
+                    if (!directory.exists() && !directory.mkdirs() && !directory.exists()) throw java.io.IOException("Log directory unavailable")
+                    bytes = file.length()
+                }
+                if (bytes > MAX_SIZE_BYTES) rotate()
+                val target = stream ?: java.io.FileOutputStream(file, true).bufferedWriter(Charsets.UTF_8).also { stream = it }
+                target.write(line)
+                bytes += line.toByteArray(Charsets.UTF_8).size
+                dirty = true
+            } catch (failure: Exception) {
+                failed("write", failure)
+            }
+        }
+
+        private fun rotate() {
+            close()
+            val backup = File(directory, "$name.1.txt")
+            if (backup.exists() && !backup.delete()) throw java.io.IOException("Log rotation unavailable")
+            if (file.exists() && !file.renameTo(backup)) throw java.io.IOException("Log rotation unavailable")
+            bytes = 0
+        }
+
+        fun flush() {
+            if (!dirty) return
+            try {
+                stream?.flush()
+                dirty = false
+            } catch (failure: Exception) {
+                failed("flush", failure)
+            }
+        }
+
+        fun close() {
+            try {
+                stream?.close()
+            } catch (failure: Exception) {
+                LogHealth.record(directory, "tags", "close", failure = failure)
+            } finally {
+                stream = null
+                dirty = false
+            }
+        }
+
+        private fun failed(reason: String, failure: Exception) {
+            retryAfter = System.nanoTime() + 30_000_000_000L
+            close()
+            LogHealth.record(directory, "tags", reason, writer.pendingCount, failure)
+        }
+    }
+
     private companion object {
-        private val TAG_PATTERN = Regex("^([A-Z][A-Z0-9]*DBG)\\b")
-        private const val MAX_SIZE_BYTES = 4L * 1024 * 1024
+        const val MAX_SIZE_BYTES = 4L * 1024 * 1024
+
+        fun category(message: String): String? {
+            var end = 0
+            while (end < message.length && end <= 32 && (message[end] in 'A'..'Z' || message[end] in '0'..'9')) end++
+            if (end !in 4..32) return null
+            if (end < message.length && (message[end].isLetterOrDigit() || message[end] == '_')) return null
+            val tag = message.substring(0, end)
+            return tag.takeIf { it.endsWith("DBG") && it.first() in 'A'..'Z' && it.all { char -> char in 'A'..'Z' || char in '0'..'9' } }
+        }
     }
 }

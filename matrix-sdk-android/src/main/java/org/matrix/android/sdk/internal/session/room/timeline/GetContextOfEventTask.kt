@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterRepository
@@ -39,12 +41,21 @@ internal class DefaultGetContextOfEventTask @Inject constructor(
         private val localEchoRepository: dagger.Lazy<org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository>,
 ) : GetContextOfEventTask {
 
-    override suspend fun execute(params: GetContextOfEventTask.Params): TokenChunkEventPersistor.Result {
+    override suspend fun execute(params: GetContextOfEventTask.Params): TokenChunkEventPersistor.Result = NetworkDiagnostics.trace("context.load", params.roomId) {
         val filter = filterRepository.getRoomFilterBody()
         val eventId = localEchoRepository.get().resolveRemoteId(params.eventId) ?: params.eventId
-        val response = executeRequest(globalErrorReceiver) {
-            roomAPI.getContextOfEvent(params.roomId, eventId, 0, filter)
+        val response = NetworkDiagnostics.trace("context.fetch", params.roomId) {
+            executeRequest(globalErrorReceiver) {
+                roomAPI.getContextOfEvent(params.roomId, eventId, 0, filter)
+            }
         }
-        return tokenChunkEventPersistor.insertInDb(response, params.roomId, PaginationDirection.FORWARDS)
+        DebugLog.i {
+            "NETDBG context received room=${NetworkDiagnostics.key(params.roomId)} events=${response.events.size} state=${response.stateEvents.orEmpty().size} " +
+                    "stateTypesSampleMax256=${response.stateEvents.orEmpty().asSequence().take(256).groupingBy { it.type }.eachCount().entries.sortedByDescending { it.value }.take(8)} " +
+                    "hasBefore=${response.start != null} hasAfter=${response.end != null}"
+        }
+        NetworkDiagnostics.trace("context.persist", params.roomId) {
+            tokenChunkEventPersistor.insertInDb(response, params.roomId, PaginationDirection.FORWARDS)
+        }
     }
 }

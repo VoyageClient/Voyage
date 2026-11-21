@@ -18,6 +18,8 @@ package org.matrix.android.sdk.internal
 
 import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.data.sessionId
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.di.MatrixScope
@@ -53,8 +55,10 @@ internal class SessionManager @Inject constructor(
 
     fun releaseSession(sessionId: String) {
         val component = synchronized(sessionComponents) { sessionComponents.remove(sessionId) } ?: return
-        runCatching { component.session().close() }
-        component.sessionReleasables().forEach { runCatching { it.onSessionReleased() } }
+        runCatching { component.session().close() }.onFailure { failure -> DebugLog.w { "AUTHDBG session-close-failed session=${OperationDiagnostics.id(sessionId)} error=${failure.javaClass.simpleName}" } }
+        component.sessionReleasables().forEach { observer ->
+            runCatching { OperationDiagnostics.run("AUTHDBG", "session-release", "observer=${observer.javaClass.simpleName} session=${OperationDiagnostics.id(sessionId)}") { observer.onSessionReleased() } }
+        }
     }
 
     fun stopSession(sessionId: String) {

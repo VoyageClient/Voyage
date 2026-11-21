@@ -17,6 +17,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import timber.log.Timber
 import java.util.concurrent.Executors
 
@@ -36,18 +38,35 @@ internal suspend fun <T> Transacter.awaitDbTransaction(
         dispatcher: CoroutineDispatcher,
         body: TransactionWithReturn<T>.() -> T,
 ): T {
-    val enqueuedAt = System.currentTimeMillis()
+    val enqueuedAt = System.nanoTime()
     return withContext(dispatcher) {
-        val startedAt = System.currentTimeMillis()
-        val result = transactionWithResult(bodyWithReturn = body)
-        val finishedAt = System.currentTimeMillis()
-        val waited = startedAt - enqueuedAt
-        val ran = finishedAt - startedAt
-        // The lambda class name identifies the call site hogging (ran) or stuck behind (waited) the dispatcher.
-        if (waited > 500 || ran > 500) {
-            Timber.w("## DB: slow transaction ${body.javaClass.name}: waited ${waited}ms, ran ${ran}ms")
+        val startedAt = System.nanoTime()
+        var enteredAt: Long? = null
+        var stage = "begin"
+        var failure: Throwable? = null
+        try {
+            transactionWithResult {
+                enteredAt = System.nanoTime()
+                stage = "body"
+                body().also { stage = "commit" }
+            }
+        } catch (error: Throwable) {
+            failure = error
+            throw error
+        } finally {
+            val finishedAt = System.nanoTime()
+            val waited = (startedAt - enqueuedAt) / 1_000_000
+            val ran = (finishedAt - startedAt) / 1_000_000
+            if (waited > 500 || ran > 500) {
+                Timber.w("## DB: slow transaction ${body.javaClass.name}: waited ${waited}ms, ran ${ran}ms")
+            }
+            if (failure != null || waited > 100 || ran > 100) DebugLog.i {
+                "DBDBG transaction site=${body.javaClass.name} dispatchWaitMs=$waited " +
+                        "beginWaitMs=${((enteredAt ?: finishedAt) - startedAt) / 1_000_000} " +
+                        "bodyAndCommitMs=${enteredAt?.let { (finishedAt - it) / 1_000_000 }} stage=$stage " +
+                        "outcome=${if (failure == null) "returned" else "failed"} error=${failure?.javaClass?.simpleName} ${DiagnosticContext.describe()}"
+            }
         }
-        result
     }
 }
 

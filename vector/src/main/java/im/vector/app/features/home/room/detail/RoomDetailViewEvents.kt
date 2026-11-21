@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.io.File
@@ -34,7 +35,7 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     /** A world-readable preview failed to load; reopen the classic no-preview screen. */
     data class OpenRoomPreviewFallback(val roomPreviewData: RoomPreviewData) : RoomDetailViewEvents()
 
-    data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean, val highlightNonce: Long? = null) : RoomDetailViewEvents()
+    data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean, val highlightNonce: Long? = null, val diagnosticOrigin: DiagnosticContext.Origin? = null) : RoomDetailViewEvents()
     data class NavigateToThreadEvent(val rootThreadEventId: String, val eventId: String) : RoomDetailViewEvents()
 
     object OpenInvitePeople : RoomDetailViewEvents()

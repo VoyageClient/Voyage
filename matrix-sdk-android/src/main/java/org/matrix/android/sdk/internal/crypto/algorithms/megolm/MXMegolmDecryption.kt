@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.crypto.algorithms.megolm
 
 import dagger.Lazy
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.CryptoRecoveryDiagnostics
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -110,6 +111,7 @@ internal class MXMegolmDecryption(
                                         messageVerificationState = olmDecryptionResult.verificationState,
                                         sharedByUserId = olmDecryptionResult.sharedByUserId,
                                 ).also {
+                                    CryptoRecoveryDiagnostics.decrypted(roomId, sessionId, senderKey, event.eventId)
                                     liveEventManager.get().dispatchLiveEventDecrypted(event, it)
                                 }
                             } else {
@@ -358,6 +360,8 @@ internal class MXMegolmDecryption(
             }
         }
 
+        CryptoRecoveryDiagnostics.phase(roomId, sessionId, sessionInitiatorSenderKey,
+                if (addSessionResult is MXOlmDevice.AddSessionResult.Imported) "key-imported" else "key-kept-or-rejected")
         when (addSessionResult) {
             is MXOlmDevice.AddSessionResult.Imported -> addSessionResult.ratchetIndex
             is MXOlmDevice.AddSessionResult.NotImportedHigherIndex -> addSessionResult.newIndex

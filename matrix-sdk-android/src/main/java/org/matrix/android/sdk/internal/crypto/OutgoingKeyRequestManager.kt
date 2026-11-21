@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.crypto.MXCryptoConfig
+import org.matrix.android.sdk.api.debug.CryptoRecoveryDiagnostics
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -86,6 +87,8 @@ internal class OutgoingKeyRequestManager @Inject constructor(
 
     fun requestKeyForEvent(event: Event, force: Boolean) {
         val (targets, body) = getRoomKeyRequestTargetForEvent(event) ?: return
+        CryptoRecoveryDiagnostics.missing(body.roomId, body.sessionId, body.senderKey, event.eventId)
+        CryptoRecoveryDiagnostics.phase(body.roomId, body.sessionId, body.senderKey, "request-queued")
         val index = ratchetIndexForMessage(event) ?: 0
         postRoomKeyRequest(body, targets, index, force)
     }
@@ -220,6 +223,7 @@ internal class OutgoingKeyRequestManager @Inject constructor(
             fromDevice: String?,
             event: Event
     ) {
+        CryptoRecoveryDiagnostics.phase(roomId, sessionId, senderKey, "key-withheld")
         outgoingRequestScope.launch {
             sequencer.post {
                 Timber.tag(loggerTag.value).d("Withheld received for $sessionId from ${event.senderId}|$fromDevice")

@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -53,12 +55,20 @@ internal class DefaultPaginationTask @Inject constructor(
     // The user is watching a spinner until the page lands, so the whole fetch-and-persist round
     // counts as interactive: the persist must not queue behind a scan that started during the fetch.
     override suspend fun execute(params: PaginationTask.Params): TokenChunkEventPersistor.Result = dbPriority.interactive {
-        val chunk = executeRequest(
-                globalErrorReceiver,
-                canRetry = true
-        ) {
-            roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
+        val chunk = NetworkDiagnostics.trace("messages.fetch", params.roomId) {
+            executeRequest(
+                    globalErrorReceiver,
+                    canRetry = true
+            ) {
+                roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
+            }
         }
-        tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId, stats = params.stats)
+        DebugLog.i {
+            "NETDBG messages received room=${NetworkDiagnostics.key(params.roomId)} direction=${params.direction} limit=${params.limit} events=${chunk.events.size} " +
+                    "state=${chunk.stateEvents.orEmpty().size} tokenAdvanced=${chunk.end != null && chunk.end != params.from}"
+        }
+        NetworkDiagnostics.trace("messages.persist", params.roomId) {
+            tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId, stats = params.stats)
+        }
     }
 }

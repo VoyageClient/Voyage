@@ -19,6 +19,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.getUserOrDefault
@@ -214,8 +215,14 @@ class NotificationDrawerManager @Inject constructor(
         val eventsToRender = notifiableEventProcessor.process(
                 snapshot, currentRoomId, currentThreadId, rendered, receipts.takeIf { reconciledPersistedEvents }
         )
-        val session = currentSession ?: return@time
-        if (generation != accountGeneration.get()) return@time
+        val session = currentSession ?: run {
+            DebugLog.i { "NOTIFDBG drawer-suppressed reason=no-session" }
+            return@time
+        }
+        if (generation != accountGeneration.get()) {
+            DebugLog.i { "NOTIFDBG drawer-suppressed reason=account-changed generation=$generation current=${accountGeneration.get()}" }
+            return@time
+        }
         reconciledPersistedEvents = true
         val removed = eventsToRender.filter { it.type == ProcessedEvent.Type.REMOVE }.map { it.event }
         if (removed.isNotEmpty()) {
@@ -223,8 +230,10 @@ class NotificationDrawerManager @Inject constructor(
         }
 
         if (notificationState.hasAlreadyRendered(eventsToRender)) {
+            DebugLog.i { "NOTIFDBG drawer-suppressed reason=unchanged count=${eventsToRender.size}" }
             Timber.d("Skipping notification update due to event list not changing")
         } else {
+            DebugLog.i { "NOTIFDBG drawer-render keep=${eventsToRender.count { it.type == ProcessedEvent.Type.KEEP }} remove=${removed.size}" }
             renderEvents(session, eventsToRender)
             notificationState.clearAndAddRenderedEvents(eventsToRender.filter { it.type == ProcessedEvent.Type.KEEP })
             persistEvents()

@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.crypto.keysbackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupStateListener
@@ -36,6 +37,7 @@ internal class KeysBackupStateManager(
         set(newState) {
             Timber.v("KeysBackup: setState: $field -> $newState")
 
+            DebugLog.i { "BACKUPDBG state previous=$field next=$newState listeners=${listeners.size}" }
             field = newState
 
             // Notify listeners about the state change, on the ui thread

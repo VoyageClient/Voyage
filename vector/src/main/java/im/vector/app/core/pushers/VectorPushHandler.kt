@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
@@ -79,17 +80,20 @@ class VectorPushHandler @Inject constructor(
 
         // Diagnostic Push
         if (pushData.eventId == PushersManager.TEST_EVENT_ID) {
+            DebugLog.i { "NOTIFDBG push-decision reason=diagnostic-push event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             val intent = Intent(actionIds.push)
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
             return false
         }
 
         if (!notificationDrawerManager.canShowNotifications()) {
+            DebugLog.i { "NOTIFDBG push-decision reason=notifications-disabled event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             Timber.tag(loggerTag.value).i("Notification are disabled for this device")
             return false
         }
 
         if (vpnGateState.isClosed) {
+            DebugLog.i { "NOTIFDBG push-decision reason=vpn-gate event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             Timber.tag(loggerTag.value).i("VpnGate: gate closed, ignoring push")
             return false
         }
@@ -98,12 +102,14 @@ class VectorPushHandler @Inject constructor(
         val roomId = pushData.roomId
         if (eventId == null || roomId == null) {
             // A badge-only push: nothing to notify about, the counts ride along with the next sync.
+            DebugLog.i { "NOTIFDBG push-decision reason=badge-only event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             Timber.tag(loggerTag.value).d("Push carries no event, nothing to fetch")
             return false
         }
 
         if (isAppInForeground()) {
             // The running sync evaluates push rules itself, so there is nothing to fetch here.
+            DebugLog.i { "NOTIFDBG push-decision reason=foreground-sync event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             Timber.tag(loggerTag.value).d("PUSH received in a foreground state, ignore")
             return false
         }
@@ -114,6 +120,7 @@ class VectorPushHandler @Inject constructor(
         if (sessionId == null) {
             // Without a client secret and with several accounts signed in we cannot tell whose push
             // this is, and asking the wrong homeserver for the event would leak the other account's ids.
+            DebugLog.i { "NOTIFDBG push-decision reason=unattributed-account event=${OperationDiagnostics.id(pushData.eventId)} room=${OperationDiagnostics.id(pushData.roomId)}" }
             Timber.tag(loggerTag.value).w("## Can't handle push, no session it can be attributed to")
             activeSessionHolder.getSafeActiveSession()?.syncService()?.requireBackgroundSync()
             return false
@@ -128,6 +135,7 @@ class VectorPushHandler @Inject constructor(
                         providerInfo = providerInfo,
                 )
         )
+        DebugLog.i { "NOTIFDBG push-queued event=${OperationDiagnostics.id(eventId)} room=${OperationDiagnostics.id(roomId)} session=${OperationDiagnostics.id(sessionId)}" }
         FetchPendingPushWorker.enqueue(context, sessionId)
         return true
     }
@@ -163,6 +171,7 @@ class VectorPushHandler @Inject constructor(
             return Result.success(Unit)
         }
         if (isEventAlreadyKnown(session, request)) {
+            DebugLog.i { "NOTIFDBG resolve-suppressed reason=already-known event=${OperationDiagnostics.id(request.eventId)} session=${OperationDiagnostics.id(session.sessionId)}" }
             Timber.tag(loggerTag.value).d("Ignoring push, event already known")
             return Result.success(Unit)
         }
@@ -171,6 +180,7 @@ class VectorPushHandler @Inject constructor(
             val resolvedEvent = notifiableEventResolver.resolveInMemoryEvent(session, event, canBeReplaced = true)
             if (resolvedEvent is NotifiableMessageEvent &&
                     notificationDrawerManager.shouldIgnoreMessageEventInRoom(resolvedEvent)) {
+                DebugLog.i { "NOTIFDBG resolve-suppressed reason=visible-room-or-thread event=${OperationDiagnostics.id(request.eventId)}" }
                 return Result.success(Unit)
             }
             if (resolvedEvent == null) {

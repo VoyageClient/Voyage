@@ -8,6 +8,8 @@
 package org.matrix.android.sdk.internal.session.search.index
 
 import kotlinx.coroutines.CancellationException
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
@@ -39,97 +41,107 @@ internal class LocalEventSearchTask @Inject constructor(
 ) {
 
     suspend fun search(query: ParsedSearchQuery, searchTerm: String, roomId: String, nextBatch: String?, limit: Int): SearchResult {
-        val emptyRange = query.afterTs != null && query.beforeTs != null && query.afterTs >= query.beforeTs
-        if (query.tokens.isEmpty() && !query.hasFilters || emptyRange) {
-            return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
-        }
-        // SQL prefilters on the most selective (longest) token, and on the date bounds; the full match
-        // happens in Kotlin.
-        val prefilter = query.tokens.maxByOrNull { it.length }.orEmpty()
-        val lowerBound = query.afterTs ?: Long.MIN_VALUE
-        var cursor = Cursor.parse(nextBatch, searchTerm) ?: Cursor(query.beforeTs ?: Long.MAX_VALUE, "")
-        val rows = ArrayList<IndexedEventRow>(limit)
-        // Only what lies above this is vouched for: below it are just the stretches the sweep found
-        // cached, with gaps the crawl has yet to fill.
-        var floor = eventIndexer.completeSince(roomId)
-        var backfills = 0
-        var exhausted = false
+        val diagnosticSpan = OperationDiagnostics.start("SEARCHDBG", "local-search") { "room=${OperationDiagnostics.id(roomId)} queryLength=${searchTerm.length} limit=$limit" }
+        try {
+            val emptyRange = query.afterTs != null && query.beforeTs != null && query.afterTs >= query.beforeTs
+            if (query.tokens.isEmpty() && !query.hasFilters || emptyRange) {
+                return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
+            }
+            // SQL prefilters on the most selective (longest) token, and on the date bounds; the full match
+            // happens in Kotlin.
+            val prefilter = query.tokens.maxByOrNull { it.length }.orEmpty()
+            val lowerBound = query.afterTs ?: Long.MIN_VALUE
+            var cursor = Cursor.parse(nextBatch, searchTerm) ?: Cursor(query.beforeTs ?: Long.MAX_VALUE, "")
+            val rows = ArrayList<IndexedEventRow>(limit)
+            // Only what lies above this is vouched for: below it are just the stretches the sweep found
+            // cached, with gaps the crawl has yet to fill.
+            var floor = eventIndexer.completeSince(roomId)
+            var backfills = 0
+            var exhausted = false
 
-        while (rows.size < limit) {
-            val candidates = indexStore.search(roomId, prefilter, cursor.ts, cursor.eventId, maxOf(floor, lowerBound), SCAN_BATCH_SIZE)
-            for (candidate in candidates) {
-                cursor = Cursor(candidate.origin_server_ts, candidate.event_id)
-                val matched = query.matches(
-                        text = candidate.content_text,
-                        sender = candidate.sender,
-                        originServerTs = candidate.origin_server_ts,
-                        // Stored space-joined: a gallery carries its items' types alongside its own.
-                        msgtypes = candidate.msgtype?.split(' ').orEmpty(),
-                        eventMentions = candidate.mentions?.split(' ').orEmpty(),
-                )
-                if (matched) {
-                    rows.add(candidate)
-                    if (rows.size >= limit) break
+            while (rows.size < limit) {
+                val candidates = indexStore.search(roomId, prefilter, cursor.ts, cursor.eventId, maxOf(floor, lowerBound), SCAN_BATCH_SIZE)
+                for (candidate in candidates) {
+                    cursor = Cursor(candidate.origin_server_ts, candidate.event_id)
+                    val matched = query.matches(
+                            text = candidate.content_text,
+                            sender = candidate.sender,
+                            originServerTs = candidate.origin_server_ts,
+                            // Stored space-joined: a gallery carries its items' types alongside its own.
+                            msgtypes = candidate.msgtype?.split(' ').orEmpty(),
+                            eventMentions = candidate.mentions?.split(' ').orEmpty(),
+                    )
+                    if (matched) {
+                        rows.add(candidate)
+                        if (rows.size >= limit) break
+                    }
+                }
+                if (rows.size >= limit || candidates.size == SCAN_BATCH_SIZE) continue
+                if (floor <= lowerBound) {
+                    exhausted = true
+                    break
+                }
+                // Read down to the floor: crawl further back (bounded per call; the next page goes on).
+                if (backfills >= MAX_BACKFILL_BATCHES) break
+                backfills++
+                floor = try {
+                    eventIndexer.backfillRoomOrThrow(roomId)
+                    eventIndexer.completeSince(roomId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (failure: Throwable) {
+                    // Offline, say: answer from whatever is cached, however patchy, rather than fail the search.
+                    DebugLog.w { "SEARCHDBG fallback=cached-index reason=backfill-failed error=${failure.javaClass.simpleName}" }
+                    Timber.w(failure, "LocalEventSearchTask: backfill failed, searching the cached index")
+                    Long.MIN_VALUE
                 }
             }
-            if (rows.size >= limit || candidates.size == SCAN_BATCH_SIZE) continue
-            if (floor <= lowerBound) {
-                exhausted = true
-                break
-            }
-            // Read down to the floor: crawl further back (bounded per call; the next page goes on).
-            if (backfills >= MAX_BACKFILL_BATCHES) break
-            backfills++
-            floor = try {
-                eventIndexer.backfillRoomOrThrow(roomId)
-                eventIndexer.completeSince(roomId)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (failure: Throwable) {
-                // Offline, say: answer from whatever is cached, however patchy, rather than fail the search.
-                Timber.w(failure, "LocalEventSearchTask: backfill failed, searching the cached index")
-                Long.MIN_VALUE
-            }
-        }
 
-        val roomEncrypted by lazy { stores.roomSummary.isEncrypted(roomId) }
-        val results = rows.mapNotNull { row ->
-            val clearEvent = tryParse(row.event_json)?.unwrapReplaceForSearch() ?: return@mapNotNull null
-            val localTimelineEvent = stores.timelineEvent.getByRoomAndEventId(row.room_id, clearEvent.eventId ?: row.event_id)
-            val localRootEntity = localTimelineEvent?.root
-            val localRoot = localRootEntity?.asDomain()
-            // NULL: indexed before the flag existed.
-            val wasEncrypted = row.encrypted?.let { it != 0L } ?: localRoot?.isEncrypted() ?: roomEncrypted
-            val event = when {
-                clearEvent.isRedacted() -> clearEvent
-                clearEvent.type == EventType.ENCRYPTED -> clearEvent.alsoTryDecrypt(localRoot?.mxDecryptionResult)
-                wasEncrypted -> clearEvent.asDecrypted(localRoot?.mxDecryptionResult)
-                else -> clearEvent
-            }
-            event.threadDetails = localRootEntity
-                    ?.takeIf { it.isRootThread || it.isThread() }
-                    ?.let { localRoot?.threadDetails }
-            val sender = row.sender
-            val senderItem = sender?.let {
-                // The name and avatar the sender had when the event was sent, as the timeline shows
-                // them; the current member state is only a fallback for uncached events.
-                if (localTimelineEvent?.senderName != null || localTimelineEvent?.senderAvatar != null) {
-                    overriddenUserItem(it, localTimelineEvent.senderName, localTimelineEvent.senderAvatar)
-                } else {
-                    val member = stores.roomMember.getByRoomAndUser(row.room_id, it)
-                    overriddenUserItem(it, member?.displayName, member?.avatarUrl)
+            val roomEncrypted by lazy { stores.roomSummary.isEncrypted(roomId) }
+            val results = rows.mapNotNull { row ->
+                val clearEvent = tryParse(row.event_json)?.unwrapReplaceForSearch() ?: return@mapNotNull null
+                val localTimelineEvent = stores.timelineEvent.getByRoomAndEventId(row.room_id, clearEvent.eventId ?: row.event_id)
+                val localRootEntity = localTimelineEvent?.root
+                val localRoot = localRootEntity?.asDomain()
+                // NULL: indexed before the flag existed.
+                val wasEncrypted = row.encrypted?.let { it != 0L } ?: localRoot?.isEncrypted() ?: roomEncrypted
+                val event = when {
+                    clearEvent.isRedacted() -> clearEvent
+                    clearEvent.type == EventType.ENCRYPTED -> clearEvent.alsoTryDecrypt(localRoot?.mxDecryptionResult)
+                    wasEncrypted -> clearEvent.asDecrypted(localRoot?.mxDecryptionResult)
+                    else -> clearEvent
                 }
+                event.threadDetails = localRootEntity
+                        ?.takeIf { it.isRootThread || it.isThread() }
+                        ?.let { localRoot?.threadDetails }
+                val sender = row.sender
+                val senderItem = sender?.let {
+                    // The name and avatar the sender had when the event was sent, as the timeline shows
+                    // them; the current member state is only a fallback for uncached events.
+                    if (localTimelineEvent?.senderName != null || localTimelineEvent?.senderAvatar != null) {
+                        overriddenUserItem(it, localTimelineEvent.senderName, localTimelineEvent.senderAvatar)
+                    } else {
+                        val member = stores.roomMember.getByRoomAndUser(row.room_id, it)
+                        overriddenUserItem(it, member?.displayName, member?.avatarUrl)
+                    }
+                }
+                EventAndSender(event, senderItem)
             }
-            EventAndSender(event, senderItem)
+            DebugLog.i { "SEARCHDBG local-result scannedMatches=${rows.size} rendered=${results.size} backfills=$backfills exhausted=$exhausted coverageFloor=$floor" }
+            return SearchResult(
+                    // Keep paginating while the index has more matches or the floor has yet to reach the
+                    // lower bound; the next page crawls further.
+                    nextBatch = if (rows.size >= limit || !exhausted) cursor.encode(searchTerm) else null,
+                    highlights = query.tokens,
+                    // The index returns newest-first; the UI expects the server mapping, which reverses.
+                    results = results.reversed(),
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-        return SearchResult(
-                // Keep paginating while the index has more matches or the floor has yet to reach the
-                // lower bound; the next page crawls further.
-                nextBatch = if (rows.size >= limit || !exhausted) cursor.encode(searchTerm) else null,
-                highlights = query.tokens,
-                // The index returns newest-first; the UI expects the server mapping, which reverses.
-                results = results.reversed(),
-        )
     }
 
     private fun tryParse(json: String): Event? = runCatching { eventAdapter.fromJson(json) }.getOrNull()

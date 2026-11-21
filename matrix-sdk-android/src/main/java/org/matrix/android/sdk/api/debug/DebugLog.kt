@@ -9,32 +9,33 @@ package org.matrix.android.sdk.api.debug
 
 import timber.log.Timber
 
-/**
- * The `*DBG` diagnostic traces, which must cost nothing while logging is off.
- *
- * [enabled] follows the app's logging setting. The message is a lambda so that the string is not built
- * either while it is off — several of these sit on paths that run per timeline bind or per media decode,
- * where the concatenation alone is the cost that matters.
- */
+/** Diagnostic messages are evaluated only while logging is enabled. */
 object DebugLog {
 
     @Volatile
     @JvmStatic
     var enabled: Boolean = false
 
+    // Explicit tags avoid DebugTree walking the caller's stack for every diagnostic line.
+    @PublishedApi
+    internal fun tag(message: String): String {
+        val end = message.indexOf(' ').let { if (it < 0) minOf(message.length, 23) else minOf(it, 23) }
+        return message.substring(0, end).takeIf { it.endsWith("DBG") } ?: "Diagnostics"
+    }
+
     inline fun i(message: () -> String) {
-        if (enabled) Timber.i(message())
+        if (enabled) message().let { Timber.tag(tag(it)).i(it) }
     }
 
     inline fun w(message: () -> String) {
-        if (enabled) Timber.w(message())
+        if (enabled) message().let { Timber.tag(tag(it)).w(it) }
     }
 
     inline fun w(throwable: Throwable, message: () -> String) {
-        if (enabled) Timber.w(throwable, message())
+        if (enabled) message().let { Timber.tag(tag(it)).w(throwable, it) }
     }
 
     inline fun e(message: () -> String) {
-        if (enabled) Timber.e(message())
+        if (enabled) message().let { Timber.tag(tag(it)).e(it) }
     }
 }

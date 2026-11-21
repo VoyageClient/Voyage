@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail
 
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewModelAction
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -43,7 +44,8 @@ sealed class RoomDetailAction : VectorViewModelAction {
             val eventId: String?,
             val highlight: Boolean,
             val isFirstUnreadEvent: Boolean = false,
-            val toRoomStart: Boolean = false
+            val toRoomStart: Boolean = false,
+            val diagnosticOrigin: DiagnosticContext.Origin? = null
     ) : RoomDetailAction()
     object MarkAllAsRead : RoomDetailAction()
     object JumpToBottom : RoomDetailAction()

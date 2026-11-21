@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -267,13 +269,13 @@ internal class SqlTimeline(
                 rebuildSnapshot(force = true)
             }
         }
-        timelineScope.launch {
+        timelineScope.launch(DiagnosticContext.context("room-members")) {
             delay(ROOM_MEMBER_LOAD_DELAY_MS)
             RoomOpenTrace.stageFor(roomId, "sdk.loadRoomMembers.start")
             loadRoomMembers()
             RoomOpenTrace.stageFor(roomId, "sdk.loadRoomMembers.done")
         }
-        timelineScope.launch {
+        timelineScope.launch(DiagnosticContext.context("room-open")) {
             RoomOpenTrace.stageFor(roomId, "sdk.seedJob.enter")
             if (!isThreadTimeline) {
                 // Deliberately NOT on sessionDispatcher: that queue is serialized behind sync's multi-second
@@ -389,11 +391,14 @@ internal class SqlTimeline(
         navigationJob = null
     }
 
+    private var diagnosticNavigationOrigin: DiagnosticContext.Origin? = null
+
     override fun restartWithEventId(eventId: String?) {
         Timber.i("DATEDBG timeline $timelineID in $roomId restarts at ${eventId ?: "the live edge"} built=${builtEvents.size} chunks=$loadedChunkIds")
         cancelPendingNavigation()
         val request = navigationGeneration.get()
-        navigationJob = timelineScope.launch {
+        diagnosticNavigationOrigin = DiagnosticContext.current() ?: DiagnosticContext.newOrigin("event-navigation")
+        navigationJob = timelineScope.launch(DiagnosticContext.context(diagnosticNavigationOrigin)) {
             if (request != navigationGeneration.get()) return@launch
             if (eventId != null && builtSeedGeneration == seedGeneration.get() && getIndexOfEvent(eventId) != null) {
                 viewAtLiveEdge = false
@@ -413,6 +418,7 @@ internal class SqlTimeline(
             viewAtLiveEdge = eventId == null
             seedFrom(seed, atLiveEdge = seedsAtLiveEdge(seed))
             rebuildSnapshot()
+            NetworkDiagnostics.checkpoint("navigate-seeded timeline=$timelineID built=${builtEvents.size}", roomId, eventId)
         }
     }
 
@@ -515,7 +521,7 @@ internal class SqlTimeline(
     override fun paginate(direction: Timeline.Direction, count: Int) {
         val requestedSeed = seedGeneration.get()
         val requestedNavigation = navigationGeneration.get()
-        timelineScope.launch {
+        timelineScope.launch(DiagnosticContext.context(DiagnosticContext.newOrigin("history-page.$direction", DiagnosticContext.current() ?: diagnosticNavigationOrigin))) {
             if (requestedSeed != seedGeneration.get() || requestedNavigation != navigationGeneration.get()) return@launch
             loadMore(count, direction)
         }
@@ -523,7 +529,7 @@ internal class SqlTimeline(
 
     override suspend fun awaitPaginate(direction: Timeline.Direction, count: Int): List<TimelineEvent> {
         // On the read dispatcher like every other loadMore: the window bookkeeping it mutates is confined there.
-        withContext(readDispatcher) { loadMore(count, direction) }
+        withContext(readDispatcher + DiagnosticContext.context(DiagnosticContext.current() ?: DiagnosticContext.newOrigin("history-await.$direction", diagnosticNavigationOrigin))) { loadMore(count, direction) }
         return builtEvents
     }
 
@@ -551,11 +557,17 @@ internal class SqlTimeline(
             else stores.chunk.findMainChunkIdIncludingEvent(roomId, eventId)
 
     private suspend fun chunkForEvent(eventId: String): Long? {
-        storedChunkForEvent(eventId)?.let { return it }
+        storedChunkForEvent(eventId)?.let {
+            NetworkDiagnostics.checkpoint("timeline-cache-hit", roomId, eventId)
+            return it
+        }
+        NetworkDiagnostics.checkpoint("timeline-context-needed", roomId, eventId)
         tryOrNull("SqlTimeline $roomId context fetch for $eventId failed") {
             contextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId))
         }
-        return storedChunkForEvent(eventId)
+        return storedChunkForEvent(eventId).also {
+            if (it == null) NetworkDiagnostics.checkpoint("timeline-target-unavailable", roomId, eventId)
+        }
     }
 
     // A seed can be missing on open when the room has no stored range yet (initial sync still writing it,
@@ -900,6 +912,10 @@ internal class SqlTimeline(
             invalidateAfterServerPage(rowsMoved = page.rowsMoved, wroteRows = page.progressed || page.failed)
             if (page.progressed || page.failed) return true
             emptyPages += page.emptyPages
+            DebugLog.i {
+                "NETDBG hidden-history timeline=$timelineID direction=$direction emptyPages=$emptyPages " +
+                        "progressed=${page.progressed} failed=${page.failed}"
+            }
             if (backwards && emptyPages >= MAX_EMPTY_HISTORY_PAGES) {
                 Timber.i("SqlTimeline $roomId gave up on hidden history after $emptyPages empty pages")
                 gaveUpOnHiddenOlder = true
@@ -982,6 +998,11 @@ internal class SqlTimeline(
                 val result = paginationTask.execute(
                         PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats)
                 )
+                DebugLog.i {
+                    "NETDBG pagination timeline=$timelineID direction=$direction round=$rounds/$MAX_PAGINATION_ROUNDS " +
+                            "limit=$count result=$result written=${stats.written} folded=${stats.folded} rowsMoved=${stats.rowsMoved} " +
+                            "stale=${!isCurrentWindow(requestedNavigation, requestedSeed)}"
+                }
                 if (!isCurrentWindow(requestedNavigation, requestedSeed)) break
                 if (result == TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE && stats.written == 0) emptyPages++
                 newRows += stats.written
@@ -1004,6 +1025,9 @@ internal class SqlTimeline(
                 if (next == from) break
                 from = next
                 origin = follow.id
+            }
+            if (rounds > MAX_PAGINATION_ROUNDS) {
+                DebugLog.w { "NETDBG pagination round limit reached timeline=$timelineID direction=$direction newRows=$newRows" }
             }
         } catch (failure: Throwable) {
             if (failure is CancellationException) throw failure

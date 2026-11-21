@@ -19,6 +19,8 @@ package org.matrix.android.sdk.internal.session.events
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -62,13 +64,20 @@ internal class DefaultEventService @Inject constructor(
     override suspend fun ensureEventCached(roomId: String, eventId: String, requireTimelineEvent: Boolean): Event? {
         val cached = getEventFromCache(roomId, eventId)
         if (cached != null && (!requireTimelineEvent || stores.timelineEvent.getByRoomAndEventId(roomId, eventId) != null)) {
+            NetworkDiagnostics.checkpoint("event-cache-hit", roomId, eventId)
             return cached
         }
         // Use the same context-fetch task the timeline uses for permalink navigation. It persists
         // the event AND surrounding context through TokenChunkEventPersistor (both EventEntity and
         // TimelineEventEntity rows), which UpdatedReplyDecorator needs to resolve reply targets.
-        tryOrNull { getContextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId)) } ?: return cached
-        return getEventFromCache(roomId, eventId)
+        val result = tryOrNull { getContextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId)) }
+        if (result == null) {
+            NetworkDiagnostics.checkpoint("event-context-failed", roomId, eventId)
+            return cached
+        }
+        return getEventFromCache(roomId, eventId).also { event ->
+            if (event == null) DebugLog.w { "NETDBG context persisted but target is missing from event cache" }
+        }
     }
 
     override fun requestDecryption(event: Event) {

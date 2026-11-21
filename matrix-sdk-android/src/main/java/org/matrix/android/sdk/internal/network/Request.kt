@@ -18,6 +18,8 @@ package org.matrix.android.sdk.internal.network
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.failure.getRetryDelay
@@ -85,16 +87,25 @@ internal suspend inline fun <DATA> executeRequest(
                 // 429, we can retry
                 val retryDelay = exception.getRetryDelay(1_000)
                 if (retryDelay <= maxDelayBeforeRetry) {
+                    DebugLog.w { "NETDBG retry reason=rate-limit attempt=$currentRetryCount/$maxRetriesCount delayMs=$retryDelay ${DiagnosticContext.describe()}" }
                     delay(retryDelay)
                 } else {
+                    DebugLog.w { "NETDBG retry refused reason=rate-limit delayMs=$retryDelay maxDelayMs=$maxDelayBeforeRetry ${DiagnosticContext.describe()}" }
                     // delay is too high to be retried, propagate the exception
                     throw exception
                 }
             } else if (canRetry && currentRetryCount < maxRetriesCount && exception.shouldBeRetried()) {
+                DebugLog.w {
+                    "NETDBG retry reason=${exception.javaClass.simpleName} attempt=$currentRetryCount/$maxRetriesCount delayMs=$currentDelay ${DiagnosticContext.describe()}"
+                }
                 delay(currentDelay)
                 currentDelay = currentDelay.times(2L).coerceAtMost(maxDelayBeforeRetry)
                 // Try again (loop)
             } else {
+                DebugLog.w {
+                    "NETDBG request terminal attempt=$currentRetryCount/$maxRetriesCount error=${exception.javaClass.simpleName} " +
+                            "cause=${exception.cause?.javaClass?.simpleName} retryAllowed=$canRetry ${DiagnosticContext.describe()}"
+                }
                 throw when (exception) {
                     is IOException -> Failure.NetworkConnection(exception)
                     is Failure.ServerError,

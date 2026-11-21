@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.util
 
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -51,12 +53,16 @@ internal class DefaultBackgroundDetectionObserver : BackgroundDetectionObserver 
     }
 
     override fun onAppForeground() {
+        DebugLog.i { "APPDBG foreground wasBackground=$isInBackground listeners=${listeners.size}" }
+        NetworkDiagnostics.snapshot("app-foreground", force = true)
         Timber.d("App returning to foreground…")
         isInBackground = false
         listeners.forEach { it.onMoveToForeground() }
     }
 
     override fun onAppBackground() {
+        DebugLog.i { "APPDBG background wasBackground=$isInBackground listeners=${listeners.size}" }
+        NetworkDiagnostics.snapshot("app-background", force = true)
         Timber.d("App going to background…")
         isInBackground = true
         listeners.forEach { it.onMoveToBackground() }

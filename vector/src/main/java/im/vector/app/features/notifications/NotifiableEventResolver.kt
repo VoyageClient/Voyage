@@ -18,6 +18,8 @@ import im.vector.app.features.html.expandPillSpans
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -95,10 +97,16 @@ class NotifiableEventResolver @Inject constructor(
     }
 
     suspend fun resolveInMemoryEvent(session: Session, event: Event, canBeReplaced: Boolean): NotifiableEvent? {
-        if (!event.supportsNotification()) return null
+        if (!event.supportsNotification()) {
+            DebugLog.i { "NOTIFDBG resolve-suppressed reason=unsupported-event event=${OperationDiagnostics.id(event.eventId)}" }
+            return null
+        }
 
         // Ignore message edition
-        if (event.isEdition()) return null
+        if (event.isEdition()) {
+            DebugLog.i { "NOTIFDBG resolve-suppressed reason=edit event=${OperationDiagnostics.id(event.eventId)}" }
+            return null
+        }
 
         val actions = session.pushRuleService().getActions(event)
         val notificationAction = actions.toNotificationAction()
@@ -120,6 +128,7 @@ class NotifiableEventResolver @Inject constructor(
             resolveMessageEvent(timelineEvent, session, canBeReplaced = canBeReplaced, isNoisy = !notificationAction.soundName.isNullOrBlank())
         } else {
             Timber.d("Matched push rule is set to not notify")
+            DebugLog.i { "NOTIFDBG resolve-suppressed reason=push-rule-muted event=${OperationDiagnostics.id(event.eventId)}" }
             null
         }
     }

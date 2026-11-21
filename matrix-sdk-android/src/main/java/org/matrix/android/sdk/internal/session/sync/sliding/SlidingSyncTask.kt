@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -107,7 +108,7 @@ internal class SlidingSyncTask @Inject constructor(
     // Carried across calls: the space graph is rebuilt once the fill settles, not on every response.
     private var spaceValidationOwed = false
 
-    suspend fun sync(mode: SlidingSyncMode, params: SyncTask.Params): SyncResponse {
+    suspend fun sync(mode: SlidingSyncMode, params: SyncTask.Params): SyncResponse = DiagnosticContext.withOrigin("sync.$mode") {
         // A connection only ever delivers the state it was opened with, and MSC4525 requires
         // required_state to be identical for its whole life. So when this build asks for something
         // different from the one that opened the connection, the connection has to start over — otherwise
@@ -324,7 +325,7 @@ internal class SlidingSyncTask @Inject constructor(
             spaceValidationOwed = false
             syncResponseHandler.validateSpaceHierarchy()
         }
-        return syncResponse
+        syncResponse
     }
 
     // One opaque call, so there is no real sub-progress to report — but a bar frozen at zero for the

@@ -21,13 +21,17 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import timber.log.Timber
 import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
@@ -220,6 +224,33 @@ class ScrollOnHighlightedEventCallbackTest {
             assertEquals(1, landings)
         } finally {
             callback.dispose()
+        }
+    }
+
+    @Test
+    fun `missing target logs a timeout with the originating action`() {
+        val messages = mutableListOf<String>()
+        val tree = object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                messages.add(message)
+            }
+        }
+        val previous = DebugLog.enabled
+        DebugLog.enabled = true
+        Timber.plant(tree)
+        val callback = callback()
+        val origin = DiagnosticContext.newOrigin("synthetic-navigation")!!
+        every { controller.findEventPositionInAdapter("target") } returns null
+        every { controller.searchPositionOfEventOrNearest("target") } returns null
+        try {
+            callback.scheduleScrollTo("target", origin = origin)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11))
+            assertFalse(callback.isSettling())
+            assertTrue(messages.any { "outcome=target-timeout" in it && "root=${origin.root} " in it })
+        } finally {
+            callback.dispose()
+            Timber.uproot(tree)
+            DebugLog.enabled = previous
         }
     }
 

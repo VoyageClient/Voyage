@@ -92,6 +92,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.debug.DiagnosticContext
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -260,7 +262,9 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     private fun initSafe(room: Room, timeline: Timeline) = PerfTrace.time("timeline.vm.initSafe") {
-        PerfTrace.time("timeline.vm.start") { timeline.start(initialState.rootThreadEventId) }
+        DiagnosticContext.run(DiagnosticContext.newOrigin("room-open")) {
+            PerfTrace.time("timeline.vm.start") { timeline.start(initialState.rootThreadEventId) }
+        }
         RoomOpenTrace.stage("vm.timelineStarted")
         timeline.addListener(this)
         setState { copy(isRoomPreview = this@TimelineViewModel.isRoomPreview) }
@@ -1436,15 +1440,33 @@ private fun handleSelectStickerAttachment() {
     }
 
     // Start the highlight timeout after landing; a context fetch can outlast the flash.
-    fun onJumpToEventLanded(eventId: String?) = withState { state ->
+    fun onJumpToEventLanded(eventId: String?, origin: DiagnosticContext.Origin?) = withState { state ->
+        if (navigationWatch != null && eventId == diagnosticNavigationTarget && origin?.id == diagnosticNavigationOrigin?.id) finishNavigationTrace("landed")
         state.highlightedEventId?.takeIf { it == eventId }?.let { scheduleHighlightClear(it, HIGHLIGHT_TTL_MS) }
     }
 
     private var navigationJob: kotlinx.coroutines.Job? = null
+    private var navigationWatch: kotlinx.coroutines.Job? = null
+    private var diagnosticNavigationTarget: String? = null
+    private var diagnosticNavigationOrigin: DiagnosticContext.Origin? = null
+    private var diagnosticNavigationStartedAt = 0L
+
+    private fun finishNavigationTrace(outcome: String) {
+        if (navigationWatch == null) return
+        DiagnosticContext.run(diagnosticNavigationOrigin) {
+            NetworkDiagnostics.checkpoint("navigate-$outcome elapsedMs=${(System.nanoTime() - diagnosticNavigationStartedAt) / 1_000_000}", initialState.roomId, diagnosticNavigationTarget)
+        }
+        navigationWatch?.cancel()
+        navigationWatch = null
+        diagnosticNavigationTarget = null
+        diagnosticNavigationOrigin = null
+    }
     private var navigationGeneration = 0L
     private var highlightSequence = initialState.highlightNonce
 
     fun cancelPendingNavigation() {
+        finishNavigationTrace("canceled")
+        if (navigationJob?.isActive == true) NetworkDiagnostics.checkpoint("navigate-cancel generation=$navigationGeneration", initialState.roomId)
         navigationGeneration++
         navigationJob?.cancel()
         navigationJob = null
@@ -1453,13 +1475,33 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {
         cancelPendingNavigation()
+        val origin = action.diagnosticOrigin ?: DiagnosticContext.newOrigin(if (action.toRoomStart) "room-start" else "event-navigation")
+        if (origin != null) {
+            diagnosticNavigationOrigin = origin
+            diagnosticNavigationTarget = action.eventId
+            diagnosticNavigationStartedAt = System.nanoTime()
+            navigationWatch = viewModelScope.launch(DiagnosticContext.context(origin)) {
+                delay(30_000L)
+                NetworkDiagnostics.checkpoint("navigate-timeout loaded=${timeline?.getIndexOfEvent(diagnosticNavigationTarget) != null}", initialState.roomId, diagnosticNavigationTarget)
+            }
+        }
+        DiagnosticContext.run(origin) { dispatchNavigateToEvent(action) }
+    }
+
+    private fun dispatchNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {
         val request = navigationGeneration
-        val timeline = timeline ?: return
+        NetworkDiagnostics.checkpoint("navigate-start generation=$request", initialState.roomId, action.eventId)
+        val timeline = timeline ?: run {
+            NetworkDiagnostics.checkpoint("navigate-no-timeline", initialState.roomId, action.eventId)
+            finishNavigationTrace("no-timeline")
+            return
+        }
         if (action.toRoomStart) {
-            navigationJob = viewModelScope.launch {
+            navigationJob = viewModelScope.launch(DiagnosticContext.context()) {
                 val landedEventId = timeline.restartAtRoomStart(action.eventId)
                 if (request != navigationGeneration) return@launch
                 if (landedEventId == null) {
+                    finishNavigationTrace("target-missing")
                     _viewEvents.post(RoomDetailViewEvents.ShowMessage(stringProvider.getString(CommonStrings.command_jump_to_start_unavailable)))
                     return@launch
                 }
@@ -1467,12 +1509,16 @@ private fun handleSelectStickerAttachment() {
             }
             return
         }
-        val targetEventId: String = action.eventId ?: return
+        val targetEventId: String = action.eventId ?: run {
+            finishNavigationTrace("no-target")
+            return
+        }
         if (initialState.rootThreadEventId == null && vectorPreferences.areThreadMessagesEnabled()) {
             val loadedTarget = timeline.getSnapshot().firstOrNull { it.eventId == targetEventId }
             val cachedTarget = loadedTarget?.root ?: room?.getTimelineEvent(targetEventId)?.root
                     ?: session.eventService().getEventFromCache(initialState.roomId, targetEventId)
             cachedTarget?.getRootThreadEventId()?.let { rootId ->
+                finishNavigationTrace("thread-handoff")
                 _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(rootId, targetEventId))
                 return
             }
@@ -1480,11 +1526,12 @@ private fun handleSelectStickerAttachment() {
                 navigateToLandedEvent(targetEventId, action)
                 return
             }
-            navigationJob = viewModelScope.launch {
+            navigationJob = viewModelScope.launch(DiagnosticContext.context()) {
                 val target = cachedTarget ?: session.eventService().ensureEventCached(initialState.roomId, targetEventId)
                 if (request != navigationGeneration) return@launch
                 val threadRootId = target?.getRootThreadEventId()
                 if (threadRootId != null) {
+                    finishNavigationTrace("thread-handoff")
                     _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(threadRootId, targetEventId))
                 } else {
                     navigateToLandedEvent(targetEventId, action)
@@ -1496,13 +1543,15 @@ private fun handleSelectStickerAttachment() {
     }
 
     private fun navigateToLandedEvent(eventId: String, action: RoomDetailAction.NavigateToEvent) {
+        if (navigationWatch != null) diagnosticNavigationTarget = eventId
+        NetworkDiagnostics.checkpoint("navigate-dispatched", initialState.roomId, eventId)
         timeline?.restartWithEventId(eventId)
         val nonce = if (action.highlight) ++highlightSequence else null
         if (nonce != null) {
             setState { copy(highlightedEventId = eventId, highlightNonce = nonce) }
             scheduleHighlightClear(eventId)
         }
-        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(eventId, action.isFirstUnreadEvent, nonce))
+        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(eventId, action.isFirstUnreadEvent, nonce, DiagnosticContext.current()))
     }
 
     private fun handleResendEvent(action: RoomDetailAction.ResendMessage) {
@@ -2202,6 +2251,7 @@ private fun handleSelectStickerAttachment() {
     }
 
     override fun onCleared() {
+        finishNavigationTrace("disposed")
         if (isRoomPreview) {
             session.roomService().releaseRoomPeek(initialState.roomId)
         }

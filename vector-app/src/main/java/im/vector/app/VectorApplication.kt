@@ -66,6 +66,7 @@ import org.commonmark.parser.Parser
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
+import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -349,5 +350,19 @@ class VectorApplication :
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         Timber.i("onTrimMemory level=$level")
+        logMemoryPressure("trim", level)
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        logMemoryPressure("low-memory", null)
+    }
+
+    private fun logMemoryPressure(reason: String, level: Int?) {
+        DebugLog.w {
+            val runtime = Runtime.getRuntime()
+            "APPDBG memory-pressure reason=$reason level=$level usedHeapBytes=${runtime.totalMemory() - runtime.freeMemory()} " +
+                    "allocatedHeapBytes=${runtime.totalMemory()} maxHeapBytes=${runtime.maxMemory()}"
+        }
     }
 }

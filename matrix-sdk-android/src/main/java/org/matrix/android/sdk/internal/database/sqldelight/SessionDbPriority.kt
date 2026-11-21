@@ -10,6 +10,8 @@ package org.matrix.android.sdk.internal.database.sqldelight
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
@@ -36,6 +38,15 @@ internal class SessionDbPriority @Inject constructor() {
     }
 
     suspend fun awaitTurn() {
-        inFlight.first { it == 0 }
+        val startedAt = if (DebugLog.enabled) System.nanoTime() else 0L
+        val blockers = inFlight.value
+        try {
+            inFlight.first { it == 0 }
+        } finally {
+            if (startedAt != 0L && blockers > 0) DebugLog.i {
+                "DBDBG background-priority-wait elapsedMs=${(System.nanoTime() - startedAt) / 1_000_000} " +
+                        "initialBlockers=$blockers remaining=${inFlight.value} ${DiagnosticContext.describe()}"
+            }
+        }
     }
 }

@@ -17,6 +17,8 @@
 package org.matrix.android.sdk.internal.crypto.actions
 
 import androidx.annotation.WorkerThread
+import org.matrix.android.sdk.api.debug.CryptoRecoveryDiagnostics
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -57,77 +59,89 @@ internal class MegolmSessionDataImporter @Inject constructor(
             progressListener: ProgressListener?,
             sharedByUserId: String? = null,
     ): ImportRoomKeysResult {
-        val t0 = clock.epochMillis()
-        val importedSession = mutableMapOf<String, MutableMap<String, MutableList<String>>>()
+        val diagnosticSpan = OperationDiagnostics.start("BACKUPDBG", "key-import") { "count=${megolmSessionsData.size} fromBackup=$fromBackup" }
+        try {
+            diagnosticSpan?.watchProgress()
+            val t0 = clock.epochMillis()
+            val importedSession = mutableMapOf<String, MutableMap<String, MutableList<String>>>()
 
-        val totalNumbersOfKeys = megolmSessionsData.size
-        var lastProgress = 0
-        var totalNumbersOfImportedKeys = 0
+            val totalNumbersOfKeys = megolmSessionsData.size
+            var lastProgress = 0
+            var totalNumbersOfImportedKeys = 0
 
-        progressListener?.onProgress(0, totalNumbersOfKeys)
-        val olmInboundGroupSessionWrappers = olmDevice.importInboundGroupSessions(megolmSessionsData, sharedByUserId)
-        val tUnpickle = clock.epochMillis()
-        Timber.tag(loggerTag.value).v("## importMegolmSessionsData : unpickle ${tUnpickle - t0} ms ($totalNumbersOfKeys sessions)")
+            progressListener?.onProgress(0, totalNumbersOfKeys)
+            val olmInboundGroupSessionWrappers = olmDevice.importInboundGroupSessions(megolmSessionsData, sharedByUserId)
+            val tUnpickle = clock.epochMillis()
+            Timber.tag(loggerTag.value).v("## importMegolmSessionsData : unpickle ${tUnpickle - t0} ms ($totalNumbersOfKeys sessions)")
 
-        // Cancelling an outgoing key request requires a per-session DB lookup. For a large import
-        // most imported sessions were never requested, so fetch the outstanding requests once and
-        // only attempt cancellation for sessions that actually have one.
-        val requestedSessionIds = cryptoStore.getOutgoingRoomKeyRequests().mapNotNullTo(HashSet()) { it.sessionId }
+            // Cancelling an outgoing key request requires a per-session DB lookup. For a large import
+            // most imported sessions were never requested, so fetch the outstanding requests once and
+            // only attempt cancellation for sessions that actually have one.
+            val requestedSessionIds = cryptoStore.getOutgoingRoomKeyRequests().mapNotNullTo(HashSet()) { it.sessionId }
 
-        // Precompute first-known-index per session once (each sessionIdentifier()/firstKnownIndex is a
-        // native call); otherwise the per-session lookup below is O(requested * imported).
-        val firstKnownIndexBySessionId = olmInboundGroupSessionWrappers.mapNotNull { wrapper ->
-            tryOrNull { wrapper.session.sessionIdentifier() to wrapper.session.firstKnownIndex.toInt() }
-        }.toMap()
+            // Precompute first-known-index per session once (each sessionIdentifier()/firstKnownIndex is a
+            // native call); otherwise the per-session lookup below is O(requested * imported).
+            val firstKnownIndexBySessionId = olmInboundGroupSessionWrappers.mapNotNull { wrapper ->
+                tryOrNull { wrapper.session.sessionIdentifier() to wrapper.session.firstKnownIndex.toInt() }
+            }.toMap()
 
-        megolmSessionsData.forEachIndexed { cpt, megolmSessionData ->
-            val sessionId = megolmSessionData.sessionId
-            val senderKey = megolmSessionData.senderKey
-            val roomId = megolmSessionData.roomId
-            if (sessionId != null && senderKey != null && roomId != null) {
-                importedSession.getOrPut(roomId) { mutableMapOf() }
-                        .getOrPut(senderKey) { mutableListOf() }
-                        .add(sessionId)
-                totalNumbersOfImportedKeys++
+            megolmSessionsData.forEachIndexed { cpt, megolmSessionData ->
+                if (diagnosticSpan != null && ((cpt + 1) % 100 == 0 || cpt + 1 == totalNumbersOfKeys)) diagnosticSpan.progress(cpt + 1, totalNumbersOfKeys)
+                val sessionId = megolmSessionData.sessionId
+                val senderKey = megolmSessionData.senderKey
+                val roomId = megolmSessionData.roomId
+                if (sessionId != null && senderKey != null && roomId != null) {
+                    importedSession.getOrPut(roomId) { mutableMapOf() }
+                            .getOrPut(senderKey) { mutableListOf() }
+                            .add(sessionId)
+                    totalNumbersOfImportedKeys++
 
-                // cancel any outstanding room key requests for this session
-                if (sessionId in requestedSessionIds) {
-                    outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(sessionId, roomId, senderKey, firstKnownIndexBySessionId[sessionId] ?: 0)
+                    // cancel any outstanding room key requests for this session
+                    if (sessionId in requestedSessionIds) {
+                        outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(sessionId, roomId, senderKey, firstKnownIndexBySessionId[sessionId] ?: 0)
+                    }
+
+                    // Only pay for the room decryptor + the retry notification for sessions that were actually
+                    // (re)imported (firstKnownIndexBySessionId is keyed by the imported wrappers). On a re-import
+                    // where nothing changed this is 0 sessions, so we skip 12k+ no-op decryptor lookups/retries —
+                    // the real key-import slowness. The retry itself is async (decryptors have their own workers).
+                    if (sessionId in firstKnownIndexBySessionId) {
+                        CryptoRecoveryDiagnostics.phase(roomId, sessionId, senderKey, "backup-key-imported")
+                        // Fan out to the decryptors directly instead of building a per-room decryptor just to
+                        // call onNewSession — instantiating one MXMegolmDecryption per room was the real cost.
+                        roomDecryptorProvider.notifyNewSession(roomId, sessionId)
+                    }
                 }
 
-                // Only pay for the room decryptor + the retry notification for sessions that were actually
-                // (re)imported (firstKnownIndexBySessionId is keyed by the imported wrappers). On a re-import
-                // where nothing changed this is 0 sessions, so we skip 12k+ no-op decryptor lookups/retries —
-                // the real key-import slowness. The retry itself is async (decryptors have their own workers).
-                if (sessionId in firstKnownIndexBySessionId) {
-                    // Fan out to the decryptors directly instead of building a per-room decryptor just to
-                    // call onNewSession — instantiating one MXMegolmDecryption per room was the real cost.
-                    roomDecryptorProvider.notifyNewSession(roomId, sessionId)
+                if (progressListener != null) {
+                    // Report real key counts so the UI can show "(current/total)", updating every 10 keys.
+                    val progress = cpt + 1
+                    if (progress == totalNumbersOfKeys || progress - lastProgress >= 10) {
+                        lastProgress = progress
+                        progressListener.onProgress(progress, totalNumbersOfKeys)
+                    }
                 }
             }
 
-            if (progressListener != null) {
-                // Report real key counts so the UI can show "(current/total)", updating every 10 keys.
-                val progress = cpt + 1
-                if (progress == totalNumbersOfKeys || progress - lastProgress >= 10) {
-                    lastProgress = progress
-                    progressListener.onProgress(progress, totalNumbersOfKeys)
-                }
+            // Do not back up the key if it comes from a backup recovery
+            if (fromBackup) {
+                cryptoStore.markBackupDoneForInboundGroupSessions(olmInboundGroupSessionWrappers)
             }
+
+            val t1 = clock.epochMillis()
+
+            Timber.tag(loggerTag.value).v(
+                    "## importMegolmSessionsData : sessions import " + (t1 - t0) + " ms (unpickle " + (tUnpickle - t0) +
+                            " ms, loop " + (t1 - tUnpickle) + " ms, " + megolmSessionsData.size + " sessions, requested " + requestedSessionIds.size + ")"
+            )
+
+            diagnosticSpan?.event("import-summary", "total=$totalNumbersOfKeys imported=$totalNumbersOfImportedKeys changed=${olmInboundGroupSessionWrappers.size}")
+            return ImportRoomKeysResult(totalNumbersOfKeys, totalNumbersOfImportedKeys, importedSession)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-
-        // Do not back up the key if it comes from a backup recovery
-        if (fromBackup) {
-            cryptoStore.markBackupDoneForInboundGroupSessions(olmInboundGroupSessionWrappers)
-        }
-
-        val t1 = clock.epochMillis()
-
-        Timber.tag(loggerTag.value).v(
-                "## importMegolmSessionsData : sessions import " + (t1 - t0) + " ms (unpickle " + (tUnpickle - t0) +
-                        " ms, loop " + (t1 - tUnpickle) + " ms, " + megolmSessionsData.size + " sessions, requested " + requestedSessionIds.size + ")"
-        )
-
-        return ImportRoomKeysResult(totalNumbersOfKeys, totalNumbersOfImportedKeys, importedSession)
     }
 }

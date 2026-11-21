@@ -22,6 +22,8 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.util.Cancelable
 import org.matrix.android.sdk.internal.di.MatrixScope
 import org.matrix.android.sdk.internal.extensions.foldToCallback
@@ -36,20 +38,45 @@ internal class TaskExecutor @Inject constructor(private val coroutineDispatchers
     val executorScope = CoroutineScope(SupervisorJob())
 
     fun <PARAMS, RESULT> execute(task: ConfigurableTask<PARAMS, RESULT>): Cancelable {
+        val enqueuedAt = if (DebugLog.enabled) System.nanoTime() else 0L
+        val origin = DiagnosticContext.newOrigin("task.${task.task.javaClass.simpleName}")
+        DebugLog.i { "TASKDBG queued id=${task.id} type=${task.task.javaClass.simpleName} execution=${task.executionThread} ${DiagnosticContext.describe(origin)}" }
         return executorScope
-                .launch(task.callbackThread.toDispatcher()) {
+                .launch(task.callbackThread.toDispatcher() + DiagnosticContext.context(origin)) {
                     val resultOrFailure = runCatching {
                         withContext(task.executionThread.toDispatcher()) {
+                            val startedAt = if (DebugLog.enabled) System.nanoTime() else 0L
+                            DebugLog.i {
+                                "TASKDBG started id=${task.id} queueWaitMs=${if (enqueuedAt != 0L) (System.nanoTime() - enqueuedAt) / 1_000_000 else null} ${DiagnosticContext.describe()}"
+                            }
                             Timber.v("## TASK: Enqueue task $task")
                             Timber.v("## TASK: Execute task $task on ${Thread.currentThread().name}")
-                            task.executeRetry(task.params, task.maxRetryCount)
+                            try {
+                                task.executeRetry(task.params, task.maxRetryCount)
+                            } finally {
+                                DebugLog.i { "TASKDBG execution-ended id=${task.id} elapsedMs=${if (startedAt != 0L) (System.nanoTime() - startedAt) / 1_000_000 else null} ${DiagnosticContext.describe()}" }
+                            }
                         }
                     }
                     resultOrFailure
                             .onFailure {
+                                DebugLog.w { "TASKDBG failed id=${task.id} error=${it.javaClass.simpleName} ${DiagnosticContext.describe()}" }
                                 Timber.e(it, "Task failed")
                             }
-                            .foldToCallback(task.callback)
+                            .onSuccess { DebugLog.i { "TASKDBG succeeded id=${task.id} ${DiagnosticContext.describe()}" } }
+                    try {
+                        resultOrFailure.foldToCallback(task.callback)
+                    } catch (failure: Throwable) {
+                        DebugLog.w { "TASKDBG callback-failed id=${task.id} error=${failure.javaClass.simpleName} ${DiagnosticContext.describe()}" }
+                        throw failure
+                    }
+                }
+                .also { job ->
+                    if (origin != null) {
+                        job.invokeOnCompletion { failure ->
+                            DebugLog.i { "TASKDBG completed id=${task.id} canceled=${job.isCancelled} error=${failure?.javaClass?.simpleName} ${DiagnosticContext.describe(origin)}" }
+                        }
+                    }
                 }
                 .toCancelable()
     }

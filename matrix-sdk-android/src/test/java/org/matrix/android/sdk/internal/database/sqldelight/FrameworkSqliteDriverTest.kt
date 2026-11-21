@@ -10,6 +10,7 @@ package org.matrix.android.sdk.internal.database.sqldelight
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.db.QueryResult
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBe
@@ -20,11 +21,14 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.internal.database.global.GlobalSqlDatabase
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import timber.log.Timber
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -158,6 +162,39 @@ class FrameworkSqliteDriverTest {
             written.await(5, TimeUnit.SECONDS) shouldBe true
         } finally {
             fileDriver.close()
+        }
+    }
+
+    @Test
+    fun `diagnostics preserve a transaction failure and report its rollback`() {
+        val messages = mutableListOf<String>()
+        val tree = object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                messages.add(message)
+            }
+        }
+        val previous = DebugLog.enabled
+        DebugLog.enabled = true
+        Timber.plant(tree)
+        val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+        val original = IllegalStateException("synthetic transaction failure")
+        try {
+            val failure = assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    database.awaitDbTransaction<Unit>(dispatcher) {
+                        database.rawCacheQueries.upsert("https://cache.example.org/entry", "synthetic", 1L)
+                        throw original
+                    }
+                }
+            }
+            generateSequence<Throwable>(failure) { it.cause }.any { it === original } shouldBe true
+            database.rawCacheQueries.selectAll().executeAsList().size shouldBeEqualTo 0
+            messages.any { "DBDBG rollback" in it } shouldBe true
+            messages.any { "stage=body outcome=failed error=IllegalStateException" in it } shouldBe true
+        } finally {
+            dispatcher.close()
+            Timber.uproot(tree)
+            DebugLog.enabled = previous
         }
     }
 

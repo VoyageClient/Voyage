@@ -30,6 +30,9 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
+import org.matrix.android.sdk.api.debug.StorageDiagnostics
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -92,29 +95,37 @@ internal class DefaultFileService @Inject constructor(
                     }
                     info.copy(url = fileUploader.uploadFile(encrypted, fileName, mimeType).contentUri)
                 } finally {
-                    encrypted.delete()
+                    StorageDiagnostics.delete(encrypted, "upload-encrypted-temporary")
                 }
             }
         }
     }
 
     override suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): FileService.CompressedImageResult {
-        return withContext(coroutineDispatchers.io) {
-            val workingFile = File.createTempFile("compress", null, context.cacheDir).also { dest ->
-                context.contentResolver.openInputStream(Uri.parse(uri))?.use { input ->
-                    dest.outputStream().use { input.copyTo(it) }
-                } ?: throw IOException("Cannot open $uri")
+        val diagnosticSpan = OperationDiagnostics.start("STORAGEDBG", "image-compression")
+        try {
+            return withContext(coroutineDispatchers.io) {
+                val workingFile = File.createTempFile("compress", null, context.cacheDir).also { dest ->
+                    context.contentResolver.openInputStream(Uri.parse(uri))?.use { input ->
+                        dest.outputStream().use { input.copyTo(it) }
+                    } ?: throw IOException("Cannot open $uri")
+                }
+                val compressed = imageCompressor.compress(workingFile, maxDimension, maxDimension)
+                // Never upload a re-encode that came out larger than the source; delete the temp file we don't keep
+                // (the kept one is a cache file the caller deletes once the upload finishes).
+                if (compressed.file != workingFile && compressed.file.length() >= workingFile.length()) {
+                    StorageDiagnostics.delete(compressed.file, "compression-discard")
+                    FileService.CompressedImageResult(Uri.fromFile(workingFile).toString(), mimeType)
+                } else {
+                    if (compressed.file != workingFile) StorageDiagnostics.delete(workingFile, "compression-source")
+                    FileService.CompressedImageResult(Uri.fromFile(compressed.file).toString(), compressed.mimeType ?: mimeType)
+                }
             }
-            val compressed = imageCompressor.compress(workingFile, maxDimension, maxDimension)
-            // Never upload a re-encode that came out larger than the source; delete the temp file we don't keep
-            // (the kept one is a cache file the caller deletes once the upload finishes).
-            if (compressed.file != workingFile && compressed.file.length() >= workingFile.length()) {
-                compressed.file.delete()
-                FileService.CompressedImageResult(Uri.fromFile(workingFile).toString(), mimeType)
-            } else {
-                if (compressed.file != workingFile) workingFile.delete()
-                FileService.CompressedImageResult(Uri.fromFile(compressed.file).toString(), compressed.mimeType ?: mimeType)
-            }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
     }
 
@@ -148,12 +159,12 @@ internal class DefaultFileService @Inject constructor(
                     UploadContentTaskBody.imageQualityFor(attachment.compressionQuality ?: UploadContentTaskBody.STANDARD_QUALITY),
                     exactSize = attachment.compressionWidth != null,
             )
-            compressed.file.length().also { if (compressed.file != workingFile) compressed.file.delete() }
+            compressed.file.length().also { if (compressed.file != workingFile) StorageDiagnostics.delete(compressed.file, "compression-discard") }
         } catch (failure: Throwable) {
             Timber.w(failure, "Could not estimate the upload size")
             null
         } finally {
-            workingFile.delete()
+            StorageDiagnostics.delete(workingFile, "compression-source")
         }
     }
 
@@ -168,7 +179,7 @@ internal class DefaultFileService @Inject constructor(
 
     init {
         // Clear the legacy downloaded files
-        legacyFolder.deleteRecursively()
+        StorageDiagnostics.delete(legacyFolder, "legacy-cache-cleanup", recursive = true)
     }
 
     /**
@@ -216,7 +227,7 @@ internal class DefaultFileService @Inject constructor(
             // Run in the session scope: all requests for this url share this one download, so a
             // cancelled requester (e.g. a recycled timeline view) must neither cancel the others
             // nor strand the ongoing entry, which would block even cache hits for this url forever.
-            val job = taskExecutor.executorScope.launch(coroutineDispatchers.io) {
+            val job = taskExecutor.executorScope.launch(coroutineDispatchers.io + DiagnosticContext.context("media-download")) {
                 val result = runCatching {
                     // Watchdog: whatever goes wrong below, the entry must eventually resolve.
                     withTimeout(DOWNLOAD_TIMEOUT_MS) {
@@ -246,143 +257,155 @@ internal class DefaultFileService @Inject constructor(
             url: String,
             elementToDecrypt: ElementToDecrypt?
     ): File {
-        var atomicFileDownload: AtomicFileCreator? = null
-        var atomicFileDecrypt: AtomicFileCreator? = null
+        val diagnosticSpan = OperationDiagnostics.start("STORAGEDBG", "download-file")
+        try {
+            var atomicFileDownload: AtomicFileCreator? = null
+            var atomicFileDecrypt: AtomicFileCreator? = null
 
-        val result = runCatching {
-            val cachedFiles = withContext(coroutineDispatchers.io) {
-                if (!decryptedFolder.exists()) {
-                    decryptedFolder.mkdirs()
-                }
-
-                // ensure we use unique file name by using URL (mapped to suitable file name)
-                // Also we need to add extension for the FileProvider, if not it lot's of app that it's
-                // shared with will not function well (even if mime type is passed in the intent)
-                val cachedFiles = getFiles(url, fileName, mimeType, elementToDecrypt != null)
-
-                // MSC2246: our own media whose bytes are still uploading. Asking the homeserver for it
-                // would stall until the upload lands and then time out, so serve the local copy. Written
-                // to the decrypted slot: the registry holds plaintext, which is what callers want here.
-                synchronized(uploadCacheLock) {
-                    pendingMediaUploadRegistry.getLocalFile(url)?.let { pending ->
-                        val target = cachedFiles.getClearFile()
-                        cacheUploadFile(pending, target)
-                        DebugLog.i { "UPLOADPREVIEW pending media cached url=$url source=${pending.path} stable=${target.path}" }
-                        return@withContext cachedFiles
+            val result = runCatching {
+                val cachedFiles = withContext(coroutineDispatchers.io) {
+                    if (!decryptedFolder.exists()) {
+                        decryptedFolder.mkdirs()
                     }
-                }
 
-                if (!cachedFiles.file.exists()) {
-                    val resolvedMethod = contentUrlResolver.resolveForDownload(url, elementToDecrypt) ?: throw IllegalArgumentException("url is null")
+                    // ensure we use unique file name by using URL (mapped to suitable file name)
+                    // Also we need to add extension for the FileProvider, if not it lot's of app that it's
+                    // shared with will not function well (even if mime type is passed in the intent)
+                    val cachedFiles = getFiles(url, fileName, mimeType, elementToDecrypt != null)
 
-                    val request = when (resolvedMethod) {
-                        is ContentUrlResolver.ResolvedMethod.GET -> {
-                            val requestBuilder = Request.Builder()
-                                    .url(resolvedMethod.url)
-                                    .header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER, url)
+                    // MSC2246: our own media whose bytes are still uploading. Asking the homeserver for it
+                    // would stall until the upload lands and then time out, so serve the local copy. Written
+                    // to the decrypted slot: the registry holds plaintext, which is what callers want here.
+                    synchronized(uploadCacheLock) {
+                        pendingMediaUploadRegistry.getLocalFile(url)?.let { pending ->
+                            val target = cachedFiles.getClearFile()
+                            cacheUploadFile(pending, target)
+                            DebugLog.i { "UPLOADPREVIEW pending media cached url=$url source=${pending.path} stable=${target.path}" }
+                            return@withContext cachedFiles
+                        }
+                    }
 
-                            if (contentUrlResolver.requiresAuthentication(resolvedMethod.url)) {
-                                val accessToken = accessTokenProvider.getToken()
-                                requestBuilder.addAuthenticationHeader(accessToken)
+                    if (!cachedFiles.file.exists()) {
+                        DebugLog.i { "STORAGEDBG cache-miss ${StorageDiagnostics.state(cachedFiles.file)}" }
+                        val resolvedMethod = contentUrlResolver.resolveForDownload(url, elementToDecrypt) ?: throw IllegalArgumentException("url is null")
+
+                        val request = when (resolvedMethod) {
+                            is ContentUrlResolver.ResolvedMethod.GET -> {
+                                val requestBuilder = Request.Builder()
+                                        .url(resolvedMethod.url)
+                                        .header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER, url)
+
+                                if (contentUrlResolver.requiresAuthentication(resolvedMethod.url)) {
+                                    val accessToken = accessTokenProvider.getToken()
+                                    requestBuilder.addAuthenticationHeader(accessToken)
+                                }
+                                requestBuilder.build()
                             }
-                            requestBuilder.build()
+
+                            is ContentUrlResolver.ResolvedMethod.POST -> {
+                                Request.Builder()
+                                        .url(resolvedMethod.url)
+                                        .header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER, url)
+                                        .post(RequestBody.create(MediaType.parse("application/json"), resolvedMethod.jsonBody))
+                                        .build()
+                            }
                         }
 
-                        is ContentUrlResolver.ResolvedMethod.POST -> {
-                            Request.Builder()
-                                    .url(resolvedMethod.url)
-                                    .header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER, url)
-                                    .post(RequestBody.create(MediaType.parse("application/json"), resolvedMethod.jsonBody))
-                                    .build()
+                        val httpStartedAt = System.currentTimeMillis()
+                        DebugLog.i { "MEDIADBG download http start url=$url method=${request.method()} resolved=${request.url()}" }
+                        val response = try {
+                            okHttpClient.newCall(request).execute()
+                        } catch (failure: Throwable) {
+                            DebugLog.w(failure) { "MEDIADBG download http threw after ${System.currentTimeMillis() - httpStartedAt}ms url=$url" }
+                            throw if (failure is IOException) {
+                                Failure.NetworkConnection(failure)
+                            } else {
+                                failure
+                            }
                         }
-                    }
 
-                    val httpStartedAt = System.currentTimeMillis()
-                    DebugLog.i { "MEDIADBG download http start url=$url method=${request.method()} resolved=${request.url()}" }
-                    val response = try {
-                        okHttpClient.newCall(request).execute()
-                    } catch (failure: Throwable) {
-                        DebugLog.w(failure) { "MEDIADBG download http threw after ${System.currentTimeMillis() - httpStartedAt}ms url=$url" }
-                        throw if (failure is IOException) {
-                            Failure.NetworkConnection(failure)
-                        } else {
-                            failure
+                        DebugLog.i { "MEDIADBG download http ${response.code()} after ${System.currentTimeMillis() - httpStartedAt}ms " +
+                                        "length=${response.body()?.contentLength()} type=${response.header("Content-Type")} url=$url" }
+                        if (!response.isSuccessful) {
+                            // Deliberately not OtherServerError: that is formatted for homeserver API
+                            // calls, so a media 404 would surface to the user as "homeserver not found"
+                            // and anything else as a raw exception string. The status is kept in the
+                            // message for logs only.
+                            throw Failure.NetworkConnection(IOException("HTTP ${response.code()}"))
                         }
-                    }
 
-                    DebugLog.i { "MEDIADBG download http ${response.code()} after ${System.currentTimeMillis() - httpStartedAt}ms " +
-                                    "length=${response.body()?.contentLength()} type=${response.header("Content-Type")} url=$url" }
-                    if (!response.isSuccessful) {
-                        // Deliberately not OtherServerError: that is formatted for homeserver API
-                        // calls, so a media 404 would surface to the user as "homeserver not found"
-                        // and anything else as a raw exception string. The status is kept in the
-                        // message for logs only.
-                        throw Failure.NetworkConnection(IOException("HTTP ${response.code()}"))
-                    }
+                        val source = response.body()?.source() ?: throw Failure.NetworkConnection(IOException())
 
-                    val source = response.body()?.source() ?: throw Failure.NetworkConnection(IOException())
+                        DebugLog.i { "STORAGEDBG download-target ${StorageDiagnostics.state(cachedFiles.file, response.body()?.contentLength())}" }
+                        Timber.v("Response size ${response.body()?.contentLength()} - Stream available: ${!source.exhausted()}")
 
-                    Timber.v("Response size ${response.body()?.contentLength()} - Stream available: ${!source.exhausted()}")
-
-                    // Write the file to cache (encrypted version if the file is encrypted)
-                    // Write to a part file first, so if we abort before done, we don't have a broken cached file
-                    val atomicFileCreator = AtomicFileCreator(cachedFiles.file).also { atomicFileDownload = it }
-                    writeToFile(source.inputStream(), atomicFileCreator.partFile)
-                    response.close()
-                    atomicFileCreator.commit()
-                    // Remember the server-advertised filename so getServerFileName can answer on cache hits.
-                    parseContentDispositionFilename(response.header("Content-Disposition"))?.let { name ->
-                        runCatching { File(cachedFiles.file.parentFile, SERVER_FILENAME_SIDECAR).writeText(name) }
-                    }
-                } else {
-                    DebugLog.i { "MEDIADBG download cache hit url=$url file=${cachedFiles.file.length()}b" }
-                }
-                cachedFiles
-            }
-
-            // Decrypt if necessary. On the IO dispatcher: several callers invoke downloadFile from a
-            // main-dispatcher scope, and streaming AES over a whole video on the main thread froze the UI.
-            if (cachedFiles.decryptedFile != null) {
-                withContext(coroutineDispatchers.io) {
-                    if (!cachedFiles.decryptedFile.exists()) {
-                        Timber.v("## FileService: decrypt file")
-                        // Ensure the parent folder exists
-                        cachedFiles.decryptedFile.parentFile?.mkdirs()
+                        // Write the file to cache (encrypted version if the file is encrypted)
                         // Write to a part file first, so if we abort before done, we don't have a broken cached file
-                        val atomicFileCreator = AtomicFileCreator(cachedFiles.decryptedFile).also { atomicFileDecrypt = it }
-                        val decryptSuccess = cachedFiles.file.inputStream().use { inputStream ->
-                            atomicFileCreator.partFile.outputStream().buffered().use { outputStream ->
-                                MXEncryptedAttachments.decryptAttachment(
-                                        inputStream,
-                                        elementToDecrypt,
-                                        outputStream,
-                                        clock
-                                )
-                            }
-                        }
+                        val atomicFileCreator = AtomicFileCreator(cachedFiles.file).also { atomicFileDownload = it }
+                        writeToFile(source.inputStream(), atomicFileCreator.partFile)
+                        response.close()
                         atomicFileCreator.commit()
-                        DebugLog.i { "MEDIADBG download decrypted ok=$decryptSuccess url=$url" }
-                        if (!decryptSuccess) {
-                            throw IllegalStateException("Decryption error")
+                        DebugLog.i { "STORAGEDBG cache-written ${StorageDiagnostics.state(cachedFiles.file, response.body()?.contentLength())}" }
+                        // Remember the server-advertised filename so getServerFileName can answer on cache hits.
+                        parseContentDispositionFilename(response.header("Content-Disposition"))?.let { name ->
+                            runCatching { File(cachedFiles.file.parentFile, SERVER_FILENAME_SIDECAR).writeText(name) }
+                                    .onFailure { failure -> DebugLog.w { "STORAGEDBG filename-metadata-write-failed error=${failure.javaClass.simpleName}" } }
                         }
                     } else {
-                        DebugLog.i { "MEDIADBG download decrypted cache hit url=$url file=${cachedFiles.decryptedFile.length()}b" }
+                        DebugLog.i { "MEDIADBG download cache hit url=$url file=${cachedFiles.file.length()}b" }
                     }
+                    cachedFiles
                 }
-                cachedFiles.decryptedFile
-            } else {
-                // Clear file
-                cachedFiles.file
+
+                // Decrypt if necessary. On the IO dispatcher: several callers invoke downloadFile from a
+                // main-dispatcher scope, and streaming AES over a whole video on the main thread froze the UI.
+                if (cachedFiles.decryptedFile != null) {
+                    withContext(coroutineDispatchers.io) {
+                        if (!cachedFiles.decryptedFile.exists()) {
+                            Timber.v("## FileService: decrypt file")
+                            // Ensure the parent folder exists
+                            cachedFiles.decryptedFile.parentFile?.mkdirs()
+                            // Write to a part file first, so if we abort before done, we don't have a broken cached file
+                            val atomicFileCreator = AtomicFileCreator(cachedFiles.decryptedFile).also { atomicFileDecrypt = it }
+                            val decryptSuccess = cachedFiles.file.inputStream().use { inputStream ->
+                                atomicFileCreator.partFile.outputStream().buffered().use { outputStream ->
+                                    MXEncryptedAttachments.decryptAttachment(
+                                            inputStream,
+                                            elementToDecrypt,
+                                            outputStream,
+                                            clock
+                                    )
+                                }
+                            }
+                            atomicFileCreator.commit()
+                            DebugLog.i { "MEDIADBG download decrypted ok=$decryptSuccess url=$url" }
+                            if (!decryptSuccess) {
+                                throw IllegalStateException("Decryption error")
+                            }
+                        } else {
+                            DebugLog.i { "MEDIADBG download decrypted cache hit url=$url file=${cachedFiles.decryptedFile.length()}b" }
+                        }
+                    }
+                    cachedFiles.decryptedFile
+                } else {
+                    // Clear file
+                    cachedFiles.file
+                }
             }
-        }
 
-        result.onFailure {
-            atomicFileDownload?.cancel()
-            atomicFileDecrypt?.cancel()
-        }
-        result.onSuccess { invalidateLocalFileCache() }
+            result.onFailure {
+                atomicFileDownload?.cancel()
+                atomicFileDecrypt?.cancel()
+            }
+            result.onSuccess { invalidateLocalFileCache() }
 
-        return result.getOrThrow()
+            return result.getOrThrow()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override fun getServerFileName(url: String?): String? {
@@ -436,10 +459,15 @@ internal class DefaultFileService @Inject constructor(
         // Readers must never see a partial copy, or a temporary file removed by the byte-upload worker.
         val temporary = File.createTempFile("upload-cache-", ".part", target.parentFile)
         try {
+            DebugLog.i { "STORAGEDBG copy-start ${StorageDiagnostics.state(temporary, source.length())}" }
             source.copyTo(temporary, overwrite = true)
-            if (!temporary.renameTo(target)) throw IOException("Cannot cache uploaded media")
+            DebugLog.i { "STORAGEDBG copy-complete ${StorageDiagnostics.state(temporary, source.length())}" }
+            if (!temporary.renameTo(target)) {
+                DebugLog.w { "STORAGEDBG move-failed ${StorageDiagnostics.state(target, temporary.length())}" }
+                throw IOException("Cannot cache uploaded media")
+            }
         } finally {
-            temporary.delete()
+            StorageDiagnostics.delete(temporary, "upload-cache-temporary")
         }
     }
 
@@ -560,12 +588,12 @@ internal class DefaultFileService @Inject constructor(
     }
 
     override fun clearCache() {
-        downloadFolder.deleteRecursively()
+        StorageDiagnostics.delete(downloadFolder, "cache-clear", recursive = true)
         invalidateLocalFileCache()
     }
 
     override fun clearDecryptedCache() {
-        decryptedFolder.deleteRecursively()
+        StorageDiagnostics.delete(decryptedFolder, "decrypted-cache-clear", recursive = true)
         invalidateLocalFileCache()
     }
 

@@ -26,6 +26,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
@@ -94,8 +96,11 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
             val loaded = withContext(dispatcher) { stores.room.get(params.roomId)?.membersLoadStatus == RoomMembersLoadStatusType.LOADED }
             if (!loaded) fullStateLoadedRoomIds.remove(params.roomId)
             val owesFullState = params.fullState && syncTokenStore.getSlidingSyncPos() != null && params.roomId !in fullStateLoadedRoomIds
-            if (!owesFullState && loaded) return
-            doRequest(params)
+            if (!owesFullState && loaded) {
+                NetworkDiagnostics.checkpoint("members-cache-hit", params.roomId)
+                return
+            }
+            NetworkDiagnostics.trace("members.load", params.roomId) { doRequest(params) }
         }
     }
 
@@ -112,11 +117,13 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
             }
             val loadFullState = params.fullState && syncTokenStore.getSlidingSyncPos() != null
             val response = try {
-                executeRequest(globalErrorReceiver) {
-                    if (loadFullState) {
-                        RoomMembersResponse(roomAPI.getRoomState(params.roomId))
-                    } else {
-                        roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+                NetworkDiagnostics.trace(if (loadFullState) "state.fetch" else "members.fetch", params.roomId) {
+                    executeRequest(globalErrorReceiver) {
+                        if (loadFullState) {
+                            RoomMembersResponse(roomAPI.getRoomState(params.roomId))
+                        } else {
+                            roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+                        }
                     }
                 }
             } catch (throwable: Throwable) {
@@ -131,9 +138,12 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                 }
                 return
             }
+            DebugLog.i { "NETDBG members received room=${NetworkDiagnostics.key(params.roomId)} fullState=$loadFullState events=${response.roomMemberEvents.size}" }
             // Keep downloaded state when the room screen closes.
             withContext(NonCancellable) {
-                importPermit.withPermit { insertInDb(response, params.roomId, stateBeforeRequest) }
+                NetworkDiagnostics.trace("members.persist", params.roomId) {
+                    importPermit.withPermit { insertInDb(response, params.roomId, stateBeforeRequest) }
+                }
                 if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
                 imported = true
             }

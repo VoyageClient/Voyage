@@ -18,6 +18,8 @@ package org.matrix.android.sdk.internal.network
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.di.SessionId
@@ -39,9 +41,10 @@ internal class GlobalErrorHandler @Inject constructor(
         Timber.e("Global error received: $globalError")
 
         if (globalError is GlobalError.InvalidToken && globalError.softLogout) {
+            DebugLog.w { "AUTHDBG invalid-token session=${OperationDiagnostics.id(sessionId)} softLogout=true listenerAttached=${listener != null}" }
             // Mark the token has invalid
             taskExecutor.executorScope.launch(Dispatchers.IO) {
-                sessionParamsStore.setTokenInvalid(sessionId)
+                OperationDiagnostics.trace("AUTHDBG", "token-invalid-persist", "session=${OperationDiagnostics.id(sessionId)}") { sessionParamsStore.setTokenInvalid(sessionId) }
             }
         }
         listener?.onGlobalError(globalError)

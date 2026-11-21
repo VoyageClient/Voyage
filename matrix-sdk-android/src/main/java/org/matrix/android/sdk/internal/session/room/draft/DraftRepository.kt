@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
@@ -41,42 +42,66 @@ internal class DraftRepository @Inject constructor(
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
     suspend fun saveDraft(roomId: String, userDraft: UserDraft) {
-        database.awaitDbTransaction(dispatcher) {
-            if (userDraft.isValid()) {
-                Timber.d("Draft: create a new draft")
-                stores.draft.replaceDrafts(roomId, listOf(DraftMapper.map(userDraft)))
-                invalidateRoomSummary(roomId)
-            } else {
-                // Composer cleared: pop the top draft if any.
-                val current = stores.draft.getDrafts(roomId)
-                if (current.isEmpty()) {
-                    Timber.d("Draft: nothing to do")
-                } else {
-                    Timber.d("Draft: remove the top draft")
-                    stores.draft.replaceDrafts(roomId, current.dropLast(1))
+        val diagnosticSpan = OperationDiagnostics.start("DRAFTDBG", "draft-save") { "room=${OperationDiagnostics.id(roomId)} type=${userDraft.javaClass.simpleName} valid=${userDraft.isValid()}" }
+        try {
+            database.awaitDbTransaction<Unit>(dispatcher) {
+                if (userDraft.isValid()) {
+                    Timber.d("Draft: create a new draft")
+                    stores.draft.replaceDrafts(roomId, listOf(DraftMapper.map(userDraft)))
                     invalidateRoomSummary(roomId)
+                } else {
+                    // Composer cleared: pop the top draft if any.
+                    val current = stores.draft.getDrafts(roomId)
+                    if (current.isEmpty()) {
+                        Timber.d("Draft: nothing to do")
+                    } else {
+                        Timber.d("Draft: remove the top draft")
+                        stores.draft.replaceDrafts(roomId, current.dropLast(1))
+                        invalidateRoomSummary(roomId)
+                    }
                 }
             }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
     }
 
     /** Replaces the room's drafts wholesale; the active one is last, as [getDraft] reads it. */
     suspend fun saveDrafts(roomId: String, drafts: List<UserDraft>) {
-        database.awaitDbTransaction(dispatcher) {
-            val valid = drafts.filter { it.isValid() }
-            if (valid.isEmpty()) {
-                stores.draft.deleteDrafts(roomId)
-            } else {
-                stores.draft.replaceDrafts(roomId, valid.map { DraftMapper.map(it) })
+        val diagnosticSpan = OperationDiagnostics.start("DRAFTDBG", "draft-replace-stack") { "room=${OperationDiagnostics.id(roomId)} count=${drafts.size}" }
+        try {
+            database.awaitDbTransaction<Unit>(dispatcher) {
+                val valid = drafts.filter { it.isValid() }
+                if (valid.isEmpty()) {
+                    stores.draft.deleteDrafts(roomId)
+                } else {
+                    stores.draft.replaceDrafts(roomId, valid.map { DraftMapper.map(it) })
+                }
+                invalidateRoomSummary(roomId)
             }
-            invalidateRoomSummary(roomId)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
     }
 
     suspend fun deleteDraft(roomId: String) {
-        database.awaitDbTransaction(dispatcher) {
-            stores.draft.deleteDrafts(roomId)
-            invalidateRoomSummary(roomId)
+        val diagnosticSpan = OperationDiagnostics.start("DRAFTDBG", "draft-clear") { "room=${OperationDiagnostics.id(roomId)} reason=explicit-clear" }
+        try {
+            database.awaitDbTransaction<Unit>(dispatcher) {
+                stores.draft.deleteDrafts(roomId)
+                invalidateRoomSummary(roomId)
+            }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
     }
 

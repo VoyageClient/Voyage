@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.getRetryDelay
 import org.matrix.android.sdk.api.failure.isLimitExceededError
@@ -164,7 +166,9 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
                 return
             }
             val beforeNetwork = System.currentTimeMillis()
+            DebugLog.i { "SENDDBG waiting-network task=${task.taskIdentifier.hashCode()} ${DiagnosticContext.describe(task.diagnosticOrigin)}" }
             task.waitForNetwork()
+            DebugLog.i { "SENDDBG network-ready task=${task.taskIdentifier.hashCode()} waitedMs=${System.currentTimeMillis() - beforeNetwork} ${DiagnosticContext.describe(task.diagnosticOrigin)}" }
             val beforeExecute = System.currentTimeMillis()
             if (beforeExecute - beforeNetwork > 1_000) {
                 Timber.w("## Send: $task waited ${beforeExecute - beforeNetwork}ms for network")
@@ -175,6 +179,7 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
                 Timber.w("## Send: $task took ${executed}ms to execute")
             }
         } catch (exception: Throwable) {
+            DebugLog.w { "SENDDBG queue-failure task=${task.taskIdentifier.hashCode()} error=${exception.javaClass.simpleName} retry=${task.retryCount.get()} rateLimitRetry=${task.rateLimitRetryCount.get()} ${DiagnosticContext.describe(task.diagnosticOrigin)}" }
             when {
                 exception is IOException || exception is Failure.NetworkConnection -> {
                     canReachServer.set(false)
@@ -184,9 +189,12 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
                     // A bulk send outruns the default rate limit within a few events; being told to wait
                     // isn't a failure, so it gets its own budget instead of consuming the regular retries.
                     if (task.rateLimitRetryCount.incrementAndGet() >= MAX_RATE_LIMIT_RETRY_COUNT) {
+                        DebugLog.w { "SENDDBG rate-limit-exhausted task=${task.taskIdentifier.hashCode()} ${DiagnosticContext.describe(task.diagnosticOrigin)}" }
                         task.onTaskFailed()
                     } else {
-                        delay(exception.getRetryDelay(3_000))
+                        val retryDelay = exception.getRetryDelay(3_000)
+                        DebugLog.i { "SENDDBG rate-limit-retry task=${task.taskIdentifier.hashCode()} delayMs=$retryDelay ${DiagnosticContext.describe(task.diagnosticOrigin)}" }
+                        delay(retryDelay)
                         executeTask(task)
                     }
                 }
@@ -208,8 +216,10 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
 
     private suspend fun QueuedTask.markAsFailedOrRetry(failure: Throwable, retryDelay: Long) {
         if (retryCount.incrementAndGet() >= MAX_RETRY_COUNT) {
+            DebugLog.w { "SENDDBG retry-exhausted task=${taskIdentifier.hashCode()} ${DiagnosticContext.describe(diagnosticOrigin)}" }
             onTaskFailed()
         } else {
+            DebugLog.i { "SENDDBG retry task=${taskIdentifier.hashCode()} delayMs=$retryDelay ${DiagnosticContext.describe(diagnosticOrigin)}" }
             Timber.v("## retryable error for $this reason: ${failure.localizedMessage}")
             // Wait if necessary
             delay(retryDelay)

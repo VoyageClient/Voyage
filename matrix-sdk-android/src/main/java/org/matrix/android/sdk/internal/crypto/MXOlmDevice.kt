@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.crypto
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.matrix.android.sdk.api.debug.CryptoRecoveryDiagnostics
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -724,6 +725,7 @@ internal class MXOlmDevice @Inject constructor(
             inboundGroupSessionStore.storeInBoundGroupSession(InboundGroupSessionHolder(wrapper), sessionId, senderKey)
         }
 
+        CryptoRecoveryDiagnostics.phase(roomId, sessionId, senderKey, "key-imported")
         return AddSessionResult.Imported(candidateSession.firstKnownIndex.toInt())
     }
 

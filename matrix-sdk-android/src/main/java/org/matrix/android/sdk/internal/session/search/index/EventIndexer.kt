@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.Session
@@ -136,6 +138,7 @@ internal class EventIndexer @Inject constructor(
     }
 
     private fun start() {
+        DebugLog.i { "SEARCHDBG index-start enabled=${enabled.get()} includeUnencrypted=${includeUnencrypted.get()}" }
         if (scope != null) return
         val newScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.io)
         scope = newScope
@@ -159,12 +162,14 @@ internal class EventIndexer @Inject constructor(
     // version simply can't answer the newer has: filters, so start the index over when it changes.
     private suspend fun rebuildIfFormatChanged() {
         if (indexStore.getFormatVersion() == INDEX_FORMAT_VERSION) return
+        DebugLog.w { "SEARCHDBG index-rebuild reason=format-change old=${indexStore.getFormatVersion()} new=$INDEX_FORMAT_VERSION" }
         Timber.i("EventIndexer: index format changed, rebuilding")
         indexStore.clear()
         indexStore.setFormatVersion(INDEX_FORMAT_VERSION)
     }
 
     private fun stop() {
+        DebugLog.i { "SEARCHDBG index-stop active=${scope != null}" }
         backgroundDetectionObserver.unregister(backgroundListener)
         crawlJob = null
         scope?.cancel()
@@ -303,6 +308,13 @@ internal class EventIndexer @Inject constructor(
         }
     }
 
+    private val diagnosticSkipCounts = java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>()
+
+    private fun skipped(reason: String): IndexableEvent? {
+        if (DebugLog.enabled) diagnosticSkipCounts.getOrPut(reason) { java.util.concurrent.atomic.AtomicLong() }.incrementAndGet()
+        return null
+    }
+
     /**
      * Build the index entry for an event whose clear type/content are known.
      * Returns null for events we don't index (see [isSearchable]).
@@ -310,18 +322,18 @@ internal class EventIndexer @Inject constructor(
     private fun toIndexable(event: Event, clearType: String, clearContent: Content?): IndexableEvent? {
         val eventId = event.eventId
         val roomId = event.roomId
-        if (eventId.isNullOrEmpty() || roomId.isNullOrEmpty()) return null
+        if (eventId.isNullOrEmpty() || roomId.isNullOrEmpty()) return skipped("missing-identifiers")
         // Local echoes carry a fake event id; the remote echo is indexed instead (the sweep would
         // otherwise index sent messages twice — once per id).
-        if (LocalEcho.isLocalEchoId(eventId)) return null
+        if (LocalEcho.isLocalEchoId(eventId)) return skipped("local-echo")
         if (event.isRedacted()) return redactedStubOf(event, eventId, roomId, clearType)
         if (clearType == EventType.ENCRYPTED) return undecryptedStubOf(event, eventId, roomId)
         val msgtypes = searchMsgTypes(clearType, clearContent)
-        if (!isSearchable(clearType, msgtypes)) return null
+        if (!isSearchable(clearType, msgtypes)) return skipped("unsupported-event-type")
         val text = searchableText(clearType, clearContent)
         // Media events stay findable through has: even without a text body (usually the filename), and
         // timeline notices through the date and sender filters.
-        if (text.isNullOrBlank() && msgtypes.none { it in MEDIA_MSGTYPES } && clearType !in SEARCH_NOTICE_TYPES) return null
+        if (text.isNullOrBlank() && msgtypes.none { it in MEDIA_MSGTYPES } && clearType !in SEARCH_NOTICE_TYPES) return skipped("empty-searchable-content")
         val mentions = if (clearType == EventType.MESSAGE) extractMentionedUserIds(clearContent) else emptyList()
         val clearEvent = Event(
                 type = clearType,
@@ -427,6 +439,7 @@ internal class EventIndexer @Inject constructor(
             if (indexables.isNotEmpty()) {
                 indexStore.addEvents(indexables)
             }
+            DebugLog.i { "SEARCHDBG index-sweep scanned=${batch.size} indexed=${indexables.size} skipTotals=${diagnosticSkipCounts.mapValues { it.value.get() }} excludedRooms=${batch.count { it.second.roomId !in includedRoomIds }}" }
             watermark = batch.last().first
             indexStore.setSweepWatermark(watermark)
         }
@@ -447,6 +460,7 @@ internal class EventIndexer @Inject constructor(
             delay(CRAWL_DELAY_MS * (consecutiveFailures + 1))
             val outcome = crawlMutex.withLock {
                 val checkpoints = indexStore.loadCheckpoints()
+                DebugLog.i { "SEARCHDBG index-backlog checkpoints=${checkpoints.size} consecutiveFailures=$consecutiveFailures" }
                 if (checkpoints.isEmpty()) return@withLock null
                 crawlCheckpoint(checkpoints[rotation++ % checkpoints.size])
             } ?: break
@@ -565,10 +579,12 @@ internal class EventIndexer @Inject constructor(
             return if (failure is Failure.ServerError && failure.httpCode == 403) {
                 // No permission to read that history; drop the checkpoint, and stop a later bootstrap from
                 // planting it again.
+                DebugLog.w { "SEARCHDBG crawl-stop reason=forbidden room=${OperationDiagnostics.id(checkpoint.roomId)}" }
                 indexStore.removeCheckpoint(checkpoint)
                 if (checkpoint.backwards) indexStore.markRoomFullyCrawled(checkpoint.roomId)
                 CrawlOutcome.DONE
             } else {
+                DebugLog.w { "SEARCHDBG crawl-retry room=${OperationDiagnostics.id(checkpoint.roomId)} error=${failure.javaClass.simpleName}" }
                 Timber.w(failure, "EventIndexer: error crawling ${checkpoint.roomId}")
                 if (propagateFailure) throw failure
                 CrawlOutcome.RETRY
@@ -583,12 +599,14 @@ internal class EventIndexer @Inject constructor(
             return CrawlOutcome.DONE
         }
 
+        var undecryptable = 0
         val indexables = ArrayList<IndexableEvent>(events.size)
         for (event in events) {
             if (event.getClearType() == EventType.ENCRYPTED) {
                 val result = try {
                     cryptoService.get().decryptEvent(event, "")
                 } catch (failure: Throwable) {
+                    undecryptable++
                     // Missing keys: keep a stub, which a later decryption replaces.
                     toIndexable(event)?.let { indexables.add(it) }
                     continue
@@ -602,6 +620,7 @@ internal class EventIndexer @Inject constructor(
             }
         }
         val added = if (indexables.isEmpty()) 0 else indexStore.addEvents(indexables)
+        DebugLog.i { "SEARCHDBG crawl-page room=${OperationDiagnostics.id(checkpoint.roomId)} fetched=${events.size} indexable=${indexables.size} added=$added undecryptable=$undecryptable excluded=${events.size - indexables.size} hasNext=${response.end != null} skipTotals=${diagnosticSkipCounts.mapValues { it.value.get() }}" }
         // Only the full crawl walks history without skipping, so only it vouches for what lies above.
         if (checkpoint.backwards && checkpoint.fullCrawl) {
             events.mapNotNull { it.originServerTs }.minOrNull()?.let { indexStore.lowerCrawlFrontier(checkpoint.roomId, it) }

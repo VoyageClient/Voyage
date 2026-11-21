@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.auth
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.DeviceCreationTimeStore
@@ -43,11 +44,19 @@ internal class DefaultSessionCreator @Inject constructor(
             homeServerConnectionConfig: HomeServerConnectionConfig,
             loginType: LoginType,
     ): Session {
-        // We can cleanup the pending session params
-        pendingSessionStore.delete()
-        val sessionParams = sessionParamsCreator.create(credentials, homeServerConnectionConfig, loginType)
-        sessionParamsStore.save(sessionParams)
-        deviceCreationTimeStore.recordIfAbsent(credentials.userId, credentials.deviceId, clock.epochMillis())
-        return sessionManager.getOrCreateSession(sessionParams)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "session-persist") { "loginType=$loginType" }
+        try {
+            // We can cleanup the pending session params
+            pendingSessionStore.delete()
+            val sessionParams = sessionParamsCreator.create(credentials, homeServerConnectionConfig, loginType)
+            sessionParamsStore.save(sessionParams)
+            deviceCreationTimeStore.recordIfAbsent(credentials.userId, credentials.deviceId, clock.epochMillis())
+            return sessionManager.getOrCreateSession(sessionParams)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 }

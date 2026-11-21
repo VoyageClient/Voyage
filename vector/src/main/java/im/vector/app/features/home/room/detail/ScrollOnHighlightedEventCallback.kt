@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.core.platform.DefaultListUpdateCallback
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -53,10 +55,21 @@ class ScrollOnHighlightedEventCallback(
     private val scrollRetry = Runnable { scrollIfNeeded() }
     private var disposed = false
     private var pausedAtMs: Long? = null
+    private var diagnosticOrigin: DiagnosticContext.Origin? = null
+    private var scheduledAtMs = 0L
+    private var lastWait = "models"
+
+    private fun trace(outcome: String, target: String? = scheduledEventId.get()) {
+        DebugLog.i {
+            "NAVDBG scroll outcome=$outcome target=${target?.hashCode()?.let(Integer::toHexString)} wait=$lastWait " +
+                    "elapsedMs=${SystemClock.uptimeMillis() - scheduledAtMs} items=${timelineEventController.adapter.itemCount} " +
+                    "${DiagnosticContext.describe(diagnosticOrigin)}"
+        }
+    }
 
     private val scrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
-            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancel()
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancel("dragged")
         }
     }
 
@@ -97,17 +110,21 @@ class ScrollOnHighlightedEventCallback(
         val eventId = scheduledEventId.get() ?: return
         val now = SystemClock.uptimeMillis()
         if (recyclerView.isComputingLayout || usableHeight() <= 0) {
-            if (now >= scheduleDeadlineMs) cancel() else retryAfter(16L)
+            lastWait = "layout"
+            if (now >= scheduleDeadlineMs) cancel("layout-timeout") else retryAfter(16L)
             return
         }
         val markerPosition = if (preferReadMarker) timelineEventController.findReadMarkerPositionInAdapter(eventId) else null
         val exactPosition = timelineEventController.findEventPositionInAdapter(eventId)
         val position = markerPosition ?: exactPosition
         if (position == null) {
+            lastWait = "target-model"
             if (now >= scheduleDeadlineMs) {
                 val nearest = timelineEventController.searchPositionOfEventOrNearest(eventId)
-                if (nearest != null) land(nearest, ScrollAnchorAlignment.CENTER, null, eventId)
-                else cancel()
+                if (nearest != null) {
+                    trace("nearest-fallback", eventId)
+                    land(nearest, ScrollAnchorAlignment.CENTER, null, eventId)
+                } else cancel("target-timeout")
             } else {
                 retryAfter(scheduleDeadlineMs - now)
             }
@@ -124,6 +141,7 @@ class ScrollOnHighlightedEventCallback(
         if (neighborhoodDeadlineMs == 0L) neighborhoodDeadlineMs = now + NEIGHBORHOOD_TIMEOUT_MS
         if (markerPosition == null && now < neighborhoodDeadlineMs &&
                 !timelineEventController.isNeighborhoodBuilt(eventId, NEIGHBORHOOD_RADIUS)) {
+            lastWait = "neighborhood"
             retryAfter(neighborhoodDeadlineMs - now)
             return
         }
@@ -140,6 +158,8 @@ class ScrollOnHighlightedEventCallback(
         viewportStart = recyclerView.paddingTop
         viewportEnd = endAfterPadding()
         anchor = Anchor(alignment, eventId, modelId, requestedEventId)
+        lastWait = "visible-row"
+        trace("positioned", requestedEventId)
         anchorDeadlineMs = SystemClock.uptimeMillis() + ANCHOR_MAX_MS
         if (visibleView != null) {
             lockedTop = layoutManager.getDecoratedTop(visibleView)
@@ -160,6 +180,7 @@ class ScrollOnHighlightedEventCallback(
         if (pausedAtMs != null) return
         val held = anchor ?: return
         if (SystemClock.uptimeMillis() > anchorDeadlineMs) {
+            if (!held.landed) trace("visibility-timeout", held.requestedEventId)
             releaseAnchor()
             return
         }
@@ -216,7 +237,8 @@ class ScrollOnHighlightedEventCallback(
         anchorOffset = end - (lockedTop ?: actualTop) - currentHeight
         if (!held.landed && actualTop < end && layoutManager.getDecoratedBottom(current) > start) {
             held.landed = true
-            onLanded(held.requestedEventId)
+            trace("visible", held.requestedEventId)
+            DiagnosticContext.run(diagnosticOrigin) { onLanded(held.requestedEventId) }
         }
     }
 
@@ -232,7 +254,8 @@ class ScrollOnHighlightedEventCallback(
 
     fun isSettling(): Boolean = scheduledEventId.get() != null || anchor != null
 
-    fun cancel() {
+    fun cancel(reason: String = "canceled") {
+        if (scheduledEventId.get() != null || anchor?.landed == false) trace(reason, scheduledEventId.get() ?: anchor?.requestedEventId)
         generation.incrementAndGet()
         mainHandler.removeCallbacks(scrollRetry)
         scheduledEventId.set(null)
@@ -240,13 +263,17 @@ class ScrollOnHighlightedEventCallback(
         releaseAnchor()
     }
 
-    fun scheduleScrollTo(eventId: String?, preferReadMarker: Boolean = false) {
+    fun scheduleScrollTo(eventId: String?, preferReadMarker: Boolean = false, origin: DiagnosticContext.Origin? = null) {
         if (disposed) return
-        cancel()
+        cancel("superseded")
         eventId ?: return
+        diagnosticOrigin = origin
+        scheduledAtMs = SystemClock.uptimeMillis()
+        lastWait = "models"
         this.preferReadMarker = preferReadMarker
         scheduledEventId.set(eventId)
         scheduleDeadlineMs = SystemClock.uptimeMillis() + SCHEDULE_TIMEOUT_MS
+        trace("scheduled", eventId)
         scrollIfNeeded()
     }
 
@@ -267,7 +294,7 @@ class ScrollOnHighlightedEventCallback(
     }
 
     fun dispose() {
-        cancel()
+        cancel("disposed")
         disposed = true
         recyclerView.removeOnScrollListener(scrollListener)
         if (recyclerView.viewTreeObserver.isAlive) recyclerView.viewTreeObserver.removeOnPreDrawListener(preDrawListener)

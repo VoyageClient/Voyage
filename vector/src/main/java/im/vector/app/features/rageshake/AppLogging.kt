@@ -9,8 +9,10 @@ package im.vector.app.features.rageshake
 
 import android.util.Log
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.utils.MainThreadWatchdog
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,16 +26,21 @@ class AppLogging @Inject constructor(
         private val debugTagFileLogger: DebugTagFileLogger,
 ) {
 
-    private var enabled: Boolean? = null
+    @Volatile private var enabled: Boolean? = null
+    @Volatile private var generation = 0L
 
     private val logcatTree by lazy { LogcatTree() }
+    private val mainThreadWatchdog by lazy { MainThreadWatchdog() }
 
     @Synchronized
     fun apply(enable: Boolean = vectorPreferences.isLoggingEnabled()) {
         if (enable == enabled) return
         val wasEnabled = enabled == true
+        val revision = ++generation
         enabled = enable
         DebugLog.enabled = enable
+        mainThreadWatchdog.setEnabled(enable)
+        NetworkDiagnostics.resetTrafficBaseline()
         val trees = listOfNotNull(
                 vectorFileLogger,
                 debugTagFileLogger,
@@ -41,12 +48,21 @@ class AppLogging @Inject constructor(
                 logcatTree.takeIf { buildMeta.isDebug },
         )
         if (enable) {
+            LogHealth.reset()
             vectorFileLogger.open()
+            debugTagFileLogger.open()
             Timber.plant(*trees.toTypedArray())
+            DebugLog.i { "APPDBG logging-enabled pid=${android.os.Process.myPid()} sdk=${android.os.Build.VERSION.SDK_INT} debugBuild=${buildMeta.isDebug} maxHeapBytes=${Runtime.getRuntime().maxMemory()}" }
+            NetworkDiagnostics.snapshot("logging-enabled", force = true)
         } else {
             if (wasEnabled) trees.forEach { Timber.uproot(it) }
             vectorFileLogger.close()
-            vectorFileLogger.deleteLogFiles()
+            debugTagFileLogger.close()
+            LogHealth.afterPendingWrites {
+                debugTagFileLogger.afterPendingWrites {
+                    vectorFileLogger.deleteLogFiles { enabled == false && generation == revision }
+                }
+            }
         }
     }
 }

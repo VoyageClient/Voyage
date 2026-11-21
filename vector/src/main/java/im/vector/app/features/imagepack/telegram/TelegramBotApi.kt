@@ -16,6 +16,7 @@ import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -51,6 +52,8 @@ class TelegramBotApi @Inject constructor(
         vpnGateInterceptor: VpnGateInterceptor,
 ) {
     private val client: OkHttpClient = OkHttpClient.Builder()
+            .eventListenerFactory(NetworkDiagnostics)
+            .addInterceptor(NetworkDiagnostics)
             .addInterceptor(vpnGateInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)

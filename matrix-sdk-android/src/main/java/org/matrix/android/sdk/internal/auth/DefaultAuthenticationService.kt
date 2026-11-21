@@ -30,6 +30,8 @@ import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixIdFailure
 import org.matrix.android.sdk.api.session.Session
@@ -101,7 +103,7 @@ internal class DefaultAuthenticationService @Inject constructor(
     }
 
     override fun releaseSession(sessionId: String) {
-        runCatching { sessionManager.releaseSession(sessionId) }
+        runCatching { sessionManager.releaseSession(sessionId) }.onFailure { failure -> DebugLog.w { "AUTHDBG release-failed session=${OperationDiagnostics.id(sessionId)} error=${failure.javaClass.simpleName}" } }
     }
 
     override suspend fun getLoginFlowOfSession(sessionId: String): LoginFlowResult {
@@ -112,6 +114,7 @@ internal class DefaultAuthenticationService @Inject constructor(
     }
 
     override fun getSsoUrl(redirectUrl: String, deviceId: String?, providerId: String?, action: SSOAction): String? {
+        DebugLog.i { "AUTHDBG sso-request action=$action deviceSpecified=${deviceId != null} providerSpecified=${providerId != null}" }
         val homeServerUrlBase = getHomeServerUrlBase() ?: return null
 
         return buildString {
@@ -163,29 +166,37 @@ internal class DefaultAuthenticationService @Inject constructor(
     }
 
     override suspend fun getLoginFlow(homeServerConnectionConfig: HomeServerConnectionConfig): LoginFlowResult {
-        val result = runCatching {
-            getLoginFlowInternal(homeServerConnectionConfig)
-        }
-        return result.fold(
-                {
-                    // The homeserver exists and up to date, keep the config
-                    // Homeserver url may have been changed, if it was a Web client url
-                    val alteredHomeServerConnectionConfig = homeServerConnectionConfig.copy(
-                            homeServerUriBase = it.homeServerUrl
-                    )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-discovery")
+        try {
+            val result = runCatching {
+                getLoginFlowInternal(homeServerConnectionConfig)
+            }
+            return result.fold(
+                    {
+                        // The homeserver exists and up to date, keep the config
+                        // Homeserver url may have been changed, if it was a Web client url
+                        val alteredHomeServerConnectionConfig = homeServerConnectionConfig.copy(
+                                homeServerUriBase = it.homeServerUrl
+                        )
 
-                    pendingSessionData = PendingSessionData(alteredHomeServerConnectionConfig)
-                            .also { data -> pendingSessionStore.savePendingSessionData(data) }
-                    it
-                },
-                {
-                    if (it is UnrecognizedCertificateException) {
-                        throw Failure.UnrecognizedCertificateFailure(homeServerConnectionConfig.homeServerUriBase, it.fingerprint)
-                    } else {
-                        throw it
+                        pendingSessionData = PendingSessionData(alteredHomeServerConnectionConfig)
+                                .also { data -> pendingSessionStore.savePendingSessionData(data) }
+                        it
+                    },
+                    {
+                        if (it is UnrecognizedCertificateException) {
+                            throw Failure.UnrecognizedCertificateFailure(homeServerConnectionConfig.homeServerUriBase, it.fingerprint)
+                        } else {
+                            throw it
+                        }
                     }
-                }
-        )
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     private suspend fun getLoginFlowInternal(homeServerConnectionConfig: HomeServerConnectionConfig): LoginFlowResult {
@@ -389,37 +400,61 @@ internal class DefaultAuthenticationService @Inject constructor(
     }
 
     override suspend fun cancelPendingLoginOrRegistration() {
-        currentLoginWizard = null
-        currentRegistrationWizard = null
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-cancel")
+        try {
+            currentLoginWizard = null
+            currentRegistrationWizard = null
 
-        // Keep only the home sever config
-        // Update the local pendingSessionData synchronously
-        pendingSessionData = pendingSessionData?.homeServerConnectionConfig
-                ?.let { PendingSessionData(it) }
-                .also {
-                    if (it == null) {
-                        // Should not happen
-                        pendingSessionStore.delete()
-                    } else {
-                        pendingSessionStore.savePendingSessionData(it)
+            // Keep only the home sever config
+            // Update the local pendingSessionData synchronously
+            pendingSessionData = pendingSessionData?.homeServerConnectionConfig
+                    ?.let { PendingSessionData(it) }
+                    .also {
+                        if (it == null) {
+                            // Should not happen
+                            pendingSessionStore.delete()
+                        } else {
+                            pendingSessionStore.savePendingSessionData(it)
+                        }
                     }
-                }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun reset() {
-        currentLoginWizard = null
-        currentRegistrationWizard = null
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-reset")
+        try {
+            currentLoginWizard = null
+            currentRegistrationWizard = null
 
-        pendingSessionData = null
+            pendingSessionData = null
 
-        pendingSessionStore.delete()
+            pendingSessionStore.delete()
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun createSessionFromSso(
             homeServerConnectionConfig: HomeServerConnectionConfig,
             credentials: Credentials
     ): Session {
-        return sessionCreator.createSession(credentials, homeServerConnectionConfig, LoginType.SSO)
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "sso-callback")
+        try {
+            return sessionCreator.createSession(credentials, homeServerConnectionConfig, LoginType.SSO)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun getWellKnownData(
@@ -450,27 +485,43 @@ internal class DefaultAuthenticationService @Inject constructor(
             initialDeviceName: String,
             deviceId: String?
     ): Session {
-        return directLoginTask.execute(
-                DirectLoginTask.Params(
-                        homeServerConnectionConfig = homeServerConnectionConfig,
-                        userId = matrixId,
-                        password = password,
-                        deviceName = initialDeviceName,
-                        deviceId = deviceId
-                )
-        )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-password-direct")
+        try {
+            return directLoginTask.execute(
+                    DirectLoginTask.Params(
+                            homeServerConnectionConfig = homeServerConnectionConfig,
+                            userId = matrixId,
+                            password = password,
+                            deviceName = initialDeviceName,
+                            deviceId = deviceId
+                    )
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun loginUsingAccessToken(
             homeServerConnectionConfig: HomeServerConnectionConfig,
             accessToken: String
     ): Session {
-        return directTokenLoginTask.execute(
-                DirectTokenLoginTask.Params(
-                        homeServerConnectionConfig = homeServerConnectionConfig,
-                        accessToken = accessToken
-                )
-        )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-access-token")
+        try {
+            return directTokenLoginTask.execute(
+                    DirectTokenLoginTask.Params(
+                            homeServerConnectionConfig = homeServerConnectionConfig,
+                            accessToken = accessToken
+                    )
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun loginUsingQrLoginToken(
@@ -479,14 +530,22 @@ internal class DefaultAuthenticationService @Inject constructor(
             initialDeviceName: String?,
             deviceId: String?,
     ): Session {
-        return qrLoginTokenTask.execute(
-                QrLoginTokenTask.Params(
-                        homeServerConnectionConfig = homeServerConnectionConfig,
-                        loginToken = loginToken,
-                        deviceName = initialDeviceName,
-                        deviceId = deviceId
-                )
-        )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-qr-token")
+        try {
+            return qrLoginTokenTask.execute(
+                    QrLoginTokenTask.Params(
+                            homeServerConnectionConfig = homeServerConnectionConfig,
+                            loginToken = loginToken,
+                            deviceName = initialDeviceName,
+                            deviceId = deviceId
+                    )
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     private fun buildAuthAPI(homeServerConnectionConfig: HomeServerConnectionConfig): AuthAPI {

@@ -201,6 +201,7 @@ import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.MxcMediaOpener
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
+import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
@@ -254,6 +255,8 @@ import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.billcarsonfr.jsonviewer.JSonViewerValueKind
 import org.billcarsonfr.jsonviewer.JSonViewerValueListener
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -1222,7 +1225,7 @@ class TimelineFragment :
         // Highlight state arrives asynchronously; prioritize building the target's models now.
         timelineEventController.setBuildFocusEventId(action.eventId)
         scrollOnNewMessageCallback.cancelPendingScroll()
-        scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId, preferReadMarker = action.isFirstUnreadEvent)
+        scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId, preferReadMarker = action.isFirstUnreadEvent, origin = action.diagnosticOrigin)
         action.highlightNonce?.let { timelineEventController.highlightVisibleEvent(views.timelineRecyclerView, action.eventId, it) }
         jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibility()
         session.userService().getUser(session.myUserId)?.toMatrixItem()?.let {
@@ -1677,7 +1680,7 @@ class TimelineFragment :
                 timelineEventController,
                 onLanded = { eventId ->
                     jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibilityWithDelay()
-                    timelineViewModel.onJumpToEventLanded(eventId)
+                    timelineViewModel.onJumpToEventLanded(eventId, DiagnosticContext.current())
                 },
         )
         views.timelineRecyclerView.layoutManager = layoutManager
@@ -2636,8 +2639,15 @@ class TimelineFragment :
     }
 
     override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
+        val origin = DiagnosticContext.newOrigin("reply-tap")
+        DiagnosticContext.run(origin) { NetworkDiagnostics.checkpoint("reply-tap", timelineArgs.roomId, targetEventId) }
+        DebugLog.i {
+            "NETDBG reply-config mediaHidden=${isMediaHiddenInRoom(timelineArgs.roomId, session, vectorPreferences)} " +
+                    "avatarsHidden=${shouldHideAvatars(timelineArgs.roomId, session, vectorPreferences)} " +
+                    "syncScope=${session.syncService().getRoomSyncScope()}"
+        }
         captureReplyJumpSource(sourceEventId)
-        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
+        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true, diagnosticOrigin = origin))
     }
 
     override fun onRoomCreateLinkClicked(url: String) {

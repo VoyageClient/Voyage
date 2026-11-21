@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.util.file
 
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.StorageDiagnostics
 import timber.log.Timber
 import java.io.File
 
@@ -33,10 +35,12 @@ internal class AtomicFileCreator(private val file: File) {
     }
 
     fun cancel() {
-        partFile.delete()
+        StorageDiagnostics.delete(partFile, "aborted-download")
     }
 
     fun commit() {
-        partFile.renameTo(file)
+        val bytes = if (DebugLog.enabled) partFile.length() else null
+        val moved = partFile.renameTo(file)
+        DebugLog.i { "STORAGEDBG atomic-commit moved=$moved ${StorageDiagnostics.state(file, bytes)}" }
     }
 }

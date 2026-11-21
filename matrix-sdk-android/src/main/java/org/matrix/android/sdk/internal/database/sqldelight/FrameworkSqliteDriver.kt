@@ -24,6 +24,8 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import app.cash.sqldelight.db.SqlSchema
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.util.use
 import java.io.File
@@ -101,8 +103,12 @@ internal class FrameworkSqliteDriver private constructor(
         checkOpen()
         // A write outside a transaction still takes the database's lock, so [withWritesBlocked] excludes every writer.
         if (transactions.get() == null) {
+            val lockStarted = if (DebugLog.enabled) System.nanoTime() else 0L
             transactionLock.lock()
             try {
+                if (lockStarted != 0L && System.nanoTime() - lockStarted > 100_000_000L) DebugLog.i {
+                    "DBDBG write-lock waitMs=${(System.nanoTime() - lockStarted) / 1_000_000} ${DiagnosticContext.describe()}"
+                }
                 return executeStatement(identifier, sql, binders)
             } finally {
                 transactionLock.unlock()
@@ -129,7 +135,11 @@ internal class FrameworkSqliteDriver private constructor(
             if (binders != null) FrameworkProgramBinder(statement).binders()
             return QueryResult.Value(statement.executeUpdateDelete().toLong())
         } catch (failure: IllegalStateException) {
+            logFailure("write", failure)
             rethrowDatabaseFailure(failure)
+        } catch (failure: android.database.SQLException) {
+            logFailure("write", failure)
+            throw failure
         } finally {
             MatrixPerf.end(perfStart) { "db.write${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
@@ -154,7 +164,11 @@ internal class FrameworkSqliteDriver private constructor(
             }
             return cursor.use { mapper(FrameworkCursor(it)) }
         } catch (failure: IllegalStateException) {
+            logFailure("query", failure)
             rethrowDatabaseFailure(failure)
+        } catch (failure: android.database.SQLException) {
+            logFailure("query", failure)
+            throw failure
         } finally {
             MatrixPerf.end(perfStart) { "db.query${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
@@ -169,12 +183,19 @@ internal class FrameworkSqliteDriver private constructor(
             // threads (write, read, timeline), so without serialising here a transaction on one
             // races the writer on another and one side gets SQLITE_BUSY. Hold the database's
             // process-wide lock for the whole transaction so only one is ever open at a time.
+            val lockStarted = if (DebugLog.enabled) System.nanoTime() else 0L
             transactionLock.lock()
+            val acquiredAt = if (lockStarted != 0L) System.nanoTime() else 0L
             try {
                 val waitStart = MatrixPerf.now()
                 beginTransactionWithRetry()
                 MatrixPerf.end(waitStart) { "db.txn.wait${mainThreadFlag()}" }
+                if (lockStarted != 0L && System.nanoTime() - lockStarted > 100_000_000L) DebugLog.i {
+                    "DBDBG begin lockWaitMs=${(acquiredAt - lockStarted) / 1_000_000} " +
+                            "sqliteWaitMs=${(System.nanoTime() - acquiredAt) / 1_000_000} ${DiagnosticContext.describe()}"
+                }
             } catch (throwable: Throwable) {
+                logFailure("begin", throwable)
                 transactionLock.unlock()
                 throw throwable
             }
@@ -199,6 +220,7 @@ internal class FrameworkSqliteDriver private constructor(
                 database.beginTransaction()
                 return
             } catch (locked: SQLiteDatabaseLockedException) {
+                DebugLog.w { "DBDBG begin-busy retryDelayMs=$backoff ${DiagnosticContext.describe()}" }
                 if (System.currentTimeMillis() >= deadline) throw locked
                 Thread.sleep(backoff)
                 backoff = (backoff * 2).coerceAtMost(BEGIN_BUSY_MAX_BACKOFF_MS)
@@ -215,6 +237,7 @@ internal class FrameworkSqliteDriver private constructor(
     ) : Transacter.Transaction() {
 
         var perfHoldStart = 0L
+        private val diagnosticStartedAt = if (DebugLog.enabled) System.nanoTime() else 0L
 
         /** Nested transactions pass these keys to their parent for notification at commit. */
         val pendingNotifications = linkedSetOf<String>()
@@ -222,15 +245,26 @@ internal class FrameworkSqliteDriver private constructor(
         override fun endTransaction(successful: Boolean): QueryResult<Unit> {
             if (enclosingTransaction == null) {
                 val notify = if (successful) pendingNotifications.toTypedArray() else emptyArray()
+                var completed = false
                 try {
                     if (successful) {
                         database.setTransactionSuccessful()
                     }
                     database.endTransaction()
+                    completed = true
                     if (perfHoldStart != 0L) MatrixPerf.end(perfHoldStart) { "db.txn.hold${mainThreadFlag()}" }
                 } catch (failure: IllegalStateException) {
+                    logFailure("end", failure)
                     rethrowDatabaseFailure(failure)
+                } catch (failure: android.database.SQLException) {
+                    logFailure("end", failure)
+                    throw failure
                 } finally {
+                    if (diagnosticStartedAt != 0L && (System.nanoTime() - diagnosticStartedAt > 100_000_000L || !completed)) DebugLog.i {
+                        "DBDBG transaction-end outcome=${if (!completed) "failed" else if (successful) "committed" else "rolled-back"} " +
+                                "heldMs=${(System.nanoTime() - diagnosticStartedAt) / 1_000_000} ${DiagnosticContext.describe()}"
+                    }
+                    if (!successful) DebugLog.w { "DBDBG rollback ${DiagnosticContext.describe()}" }
                     transactions.set(enclosingTransaction as Transaction?)
                     transactionLock.unlock()
                 }
@@ -240,6 +274,12 @@ internal class FrameworkSqliteDriver private constructor(
                 transactions.set(enclosingTransaction)
             }
             return QueryResult.Value(Unit)
+        }
+    }
+
+    private fun logFailure(stage: String, failure: Throwable) {
+        DebugLog.w {
+            "DBDBG failure stage=$stage error=${failure.javaClass.simpleName} closed=$closed ${DiagnosticContext.describe()}"
         }
     }
 
@@ -273,7 +313,14 @@ internal class FrameworkSqliteDriver private constructor(
         val toNotify = synchronized(listeners) {
             queryKeys.flatMapTo(linkedSetOf()) { listeners[it].orEmpty() }
         }
-        toNotify.forEach { it.queryResultsChanged() }
+        toNotify.forEach {
+            try {
+                it.queryResultsChanged()
+            } catch (failure: Throwable) {
+                DebugLog.w { "DBDBG listener-failed type=${it.javaClass.simpleName} error=${failure.javaClass.simpleName} listeners=${toNotify.size} ${DiagnosticContext.describe()}" }
+                throw failure
+            }
+        }
     }
 
     override fun close() {
@@ -335,13 +382,15 @@ internal class FrameworkSqliteDriver private constructor(
             val schemaVersion = schema.version.toInt()
             when (database.version) {
                 0 -> {
-                    schema.create(driver)
+                    traceSchema("create version=$schemaVersion") { schema.create(driver) }
                     database.version = schemaVersion
                 }
                 schemaVersion -> Unit
                 else -> {
-                    dropAllContents(database)
-                    schema.create(driver)
+                    traceSchema("reset from=${database.version} to=$schemaVersion") {
+                        dropAllContents(database)
+                        schema.create(driver)
+                    }
                     database.version = schemaVersion
                 }
             }
@@ -358,13 +407,15 @@ internal class FrameworkSqliteDriver private constructor(
         ): FrameworkSqliteDriver {
             val helper = object : SQLiteOpenHelper(context, name, null, schema.version.toInt()) {
                 override fun onCreate(db: SQLiteDatabase) {
-                    schema.create(FrameworkSqliteDriver(db))
+                    traceSchema("create version=${schema.version}") { schema.create(FrameworkSqliteDriver(db)) }
                 }
 
                 // Migrations are out of scope: a version bump drops everything and recreates.
                 override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-                    dropAllContents(db)
-                    schema.create(FrameworkSqliteDriver(db))
+                    traceSchema("reset from=$oldVersion to=$newVersion") {
+                        dropAllContents(db)
+                        schema.create(FrameworkSqliteDriver(db))
+                    }
                 }
 
                 override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -385,6 +436,19 @@ internal class FrameworkSqliteDriver private constructor(
                 }
             }
             drops.forEach { db.execSQL(it) }
+        }
+
+        private fun <T> traceSchema(label: String, block: () -> T): T {
+            val startedAt = if (DebugLog.enabled) System.nanoTime() else 0L
+            DebugLog.i { "DBDBG schema-start $label ${DiagnosticContext.describe()}" }
+            try {
+                return block().also {
+                    DebugLog.i { "DBDBG schema-done $label elapsedMs=${if (startedAt != 0L) (System.nanoTime() - startedAt) / 1_000_000 else null} ${DiagnosticContext.describe()}" }
+                }
+            } catch (failure: Throwable) {
+                DebugLog.w { "DBDBG schema-failed $label error=${failure.javaClass.simpleName} ${DiagnosticContext.describe()}" }
+                throw failure
+            }
         }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.search
 
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -54,52 +56,65 @@ internal class DefaultSearchService @Inject constructor(
             afterLimit: Int,
             includeProfile: Boolean
     ): SearchResult {
-        val query = SearchQueryParser.parse(searchTerm)
+        val diagnosticSpan = OperationDiagnostics.start("SEARCHDBG", "search") { "room=${OperationDiagnostics.id(roomId)} queryLength=${searchTerm.length} paginated=${nextBatch != null} limit=$limit" }
+        try {
+            val query = SearchQueryParser.parse(searchTerm)
 
-        // A peeked (un-joined) room: the server refuses /search without membership, so crawl
-        // /messages and match locally.
-        if (peekedRoomManager.get(roomId) != null) {
-            return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
-        }
+            // A peeked (un-joined) room: the server refuses /search without membership, so crawl
+            // /messages and match locally.
+            if (peekedRoomManager.get(roomId) != null) {
+                DebugLog.i { "SEARCHDBG backend=crawl reason=peek-or-server-incompatible" }
+                return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+            }
 
-        // The local index answers for the rooms it holds: encrypted ones (the server cannot search
-        // them), and unencrypted ones unless the user opted for server search.
-        val encrypted = stores.roomSummary.isEncrypted(roomId)
-        if (eventIndexer.isEnabled() && (encrypted || eventIndexer.includesUnencryptedRooms())) {
-            return localEventSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+            // The local index answers for the rooms it holds: encrypted ones (the server cannot search
+            // them), and unencrypted ones unless the user opted for server search.
+            val encrypted = stores.roomSummary.isEncrypted(roomId)
+            if (eventIndexer.isEnabled() && (encrypted || eventIndexer.includesUnencryptedRooms())) {
+                DebugLog.i { "SEARCHDBG backend=local encrypted=$encrypted" }
+                return localEventSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+            }
+            // The server needs a search term and only searches current rooms; an unencrypted room's history
+            // can still be crawled and matched here instead.
+            val joined = stores.room.get(roomId)?.membership == Membership.JOIN
+            if (!encrypted && (query.tokens.isEmpty() || !joined)) {
+                DebugLog.i { "SEARCHDBG backend=crawl reason=peek-or-server-incompatible" }
+                return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+            }
+            if (query.tokens.isEmpty()) {
+                return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
+            }
+            DebugLog.i { "SEARCHDBG backend=server reason=local-index-unavailable-or-disabled" }
+            val result = searchTask.execute(
+                    SearchTask.Params(
+                            // Quotes mean nothing to the server; send the bare tokens for recall and
+                            // enforce the verbatim/phrase semantics client-side below.
+                            searchTerm = query.tokens.joinToString(" "),
+                            roomId = roomId,
+                            nextBatch = nextBatch,
+                            orderByRecent = orderByRecent,
+                            limit = limit,
+                            beforeLimit = beforeLimit,
+                            afterLimit = afterLimit,
+                            includeProfile = includeProfile
+                    )
+            )
+            // Server matching stems words ("looks" matches "look") and knows nothing of our filters;
+            // refilter with the full query semantics so both search backends behave identically.
+            // Highlights become our tokens rather than the server's stems, which is what the UI bolds.
+            DebugLog.i { "SEARCHDBG server-result count=${result.results.orEmpty().size} hasNext=${result.nextBatch != null}" }
+            return result.copy(
+                    results = result.results
+                            ?.filter { query.matchesServerEvent(it.event) }
+                            ?.map { it.copy(event = it.event.unwrapReplaceForSearch()) },
+                    highlights = query.tokens,
+            )
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-        // The server needs a search term and only searches current rooms; an unencrypted room's history
-        // can still be crawled and matched here instead.
-        val joined = stores.room.get(roomId)?.membership == Membership.JOIN
-        if (!encrypted && (query.tokens.isEmpty() || !joined)) {
-            return messagesCrawlSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
-        }
-        if (query.tokens.isEmpty()) {
-            return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
-        }
-        val result = searchTask.execute(
-                SearchTask.Params(
-                        // Quotes mean nothing to the server; send the bare tokens for recall and
-                        // enforce the verbatim/phrase semantics client-side below.
-                        searchTerm = query.tokens.joinToString(" "),
-                        roomId = roomId,
-                        nextBatch = nextBatch,
-                        orderByRecent = orderByRecent,
-                        limit = limit,
-                        beforeLimit = beforeLimit,
-                        afterLimit = afterLimit,
-                        includeProfile = includeProfile
-                )
-        )
-        // Server matching stems words ("looks" matches "look") and knows nothing of our filters;
-        // refilter with the full query semantics so both search backends behave identically.
-        // Highlights become our tokens rather than the server's stems, which is what the UI bolds.
-        return result.copy(
-                results = result.results
-                        ?.filter { query.matchesServerEvent(it.event) }
-                        ?.map { it.copy(event = it.event.unwrapReplaceForSearch()) },
-                highlights = query.tokens,
-        )
     }
 
     private fun ParsedSearchQuery.matchesServerEvent(event: Event): Boolean {

@@ -18,6 +18,8 @@ package org.matrix.android.sdk.internal.network
 
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.runBlocking
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerPinger
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
@@ -67,7 +69,10 @@ internal class DefaultNetworkConnectivityChecker @Inject constructor(
     override fun hasInternetAccess(forcePing: Boolean): Boolean {
         return if (forcePing) {
             runBlocking {
-                homeServerPinger.canReachHomeServer()
+                val startedAt = if (DebugLog.enabled) System.nanoTime() else 0L
+                homeServerPinger.canReachHomeServer().also {
+                    DebugLog.i { "CONNDBG forced-probe reachable=$it elapsedMs=${if (startedAt != 0L) (System.nanoTime() - startedAt) / 1_000_000 else null} ${DiagnosticContext.describe()}" }
+                }
             }
         } else {
             hasInternetAccess.get()
@@ -92,18 +97,22 @@ internal class DefaultNetworkConnectivityChecker @Inject constructor(
     }
 
     private fun bind() {
+        DebugLog.i { "CONNDBG bind cachedReachable=${hasInternetAccess.get()} listeners=${listeners.size}" }
         networkCallbackStrategy.register {
+            DebugLog.i { "CONNDBG platform-network-changed cachedReachable=${hasInternetAccess.get()} listeners=${listeners.size}" }
             val localListeners = listeners.toList()
             localListeners.forEach {
                 it.onConnectivityChanged()
             }
         }
         homeServerPinger.canReachHomeServer {
+            DebugLog.i { "CONNDBG probe-result previous=${hasInternetAccess.get()} reachable=$it" }
             hasInternetAccess.set(it)
         }
     }
 
     private fun unbind() {
+        DebugLog.i { "CONNDBG unbind background=${backgroundDetectionObserver.isInBackground}" }
         networkCallbackStrategy.unregister()
     }
 }

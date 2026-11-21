@@ -14,6 +14,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,11 +32,14 @@ class NotificationDisplayer @Inject constructor(
 
     fun showNotificationMessage(tag: String?, id: Int, notification: Notification) {
         if (!canShowNotifications()) {
+            DebugLog.i { "NOTIFDBG post-suppressed reason=permission-or-system-setting id=$id tag=${OperationDiagnostics.id(tag)}" }
             Timber.w("Not allowed to notify.")
         } else {
             try {
                 notificationManager.notify(tag, id, notification)
+                DebugLog.i { "NOTIFDBG posted id=$id tag=${OperationDiagnostics.id(tag)}" }
             } catch (exception: SecurityException) {
+                DebugLog.w { "NOTIFDBG post-failed reason=permission-denied id=$id tag=${OperationDiagnostics.id(tag)}" }
                 Timber.w(exception, "Not allowed to notify.")
             }
         }
@@ -42,12 +47,14 @@ class NotificationDisplayer @Inject constructor(
 
     fun cancelNotificationMessage(tag: String?, id: Int) {
         notificationManager.cancel(tag, id)
+        DebugLog.i { "NOTIFDBG canceled id=$id tag=${OperationDiagnostics.id(tag)}" }
     }
 
     fun cancelAllNotifications() {
         // Keep this try catch (reported by GA)
         try {
             notificationManager.cancelAll()
+            DebugLog.i { "NOTIFDBG canceled-all" }
         } catch (e: Exception) {
             Timber.e(e, "## cancelAllNotifications() failed")
         }

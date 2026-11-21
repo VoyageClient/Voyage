@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -40,6 +41,8 @@ class UaNotModified(url: String) : RuntimeException("Not modified: $url")
 class UaHttp(
         // StatCounter can be slow to generate the larger CSVs, so allow a generous read timeout.
         private val client: OkHttpClient = OkHttpClient.Builder()
+                .eventListenerFactory(NetworkDiagnostics)
+                .addInterceptor(NetworkDiagnostics)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(45, TimeUnit.SECONDS)
                 .callTimeout(60, TimeUnit.SECONDS)

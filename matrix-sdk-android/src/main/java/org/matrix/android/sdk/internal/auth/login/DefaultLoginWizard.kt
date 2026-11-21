@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegisterThreePid
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.isEmail
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.JsonDict
@@ -66,84 +67,124 @@ internal class DefaultLoginWizard(
             initialDeviceName: String,
             deviceId: String?
     ): Session {
-        val deviceDisplayName = initialDeviceName.takeIf { it.isNotBlank() }
-        val loginParams = if (login.isEmail()) {
-            PasswordLoginParams.thirdPartyIdentifier(
-                    medium = ThreePidMedium.EMAIL,
-                    address = login,
-                    password = password,
-                    deviceDisplayName = deviceDisplayName,
-                    deviceId = deviceId
-            )
-        } else {
-            PasswordLoginParams.userIdentifier(
-                    user = login.trim(),
-                    password = password,
-                    deviceDisplayName = deviceDisplayName,
-                    deviceId = deviceId
-            )
-        }
-        val credentials = executeRequest(null) {
-            authAPI.login(loginParams)
-        }
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-password")
+        try {
+            val deviceDisplayName = initialDeviceName.takeIf { it.isNotBlank() }
+            val loginParams = if (login.isEmail()) {
+                PasswordLoginParams.thirdPartyIdentifier(
+                        medium = ThreePidMedium.EMAIL,
+                        address = login,
+                        password = password,
+                        deviceDisplayName = deviceDisplayName,
+                        deviceId = deviceId
+                )
+            } else {
+                PasswordLoginParams.userIdentifier(
+                        user = login.trim(),
+                        password = password,
+                        deviceDisplayName = deviceDisplayName,
+                        deviceId = deviceId
+                )
+            }
+            val credentials = executeRequest(null) {
+                authAPI.login(loginParams)
+            }
 
-        return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.PASSWORD)
+            return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.PASSWORD)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     /**
      * Ref: https://matrix.org/docs/spec/client_server/latest#handling-the-authentication-endpoint
      */
     override suspend fun loginWithToken(loginToken: String): Session {
-        val loginParams = TokenLoginParams(
-                token = loginToken
-        )
-        val credentials = executeRequest(null) {
-            authAPI.login(loginParams)
-        }
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-sso-token")
+        try {
+            val loginParams = TokenLoginParams(
+                    token = loginToken
+            )
+            val credentials = executeRequest(null) {
+                authAPI.login(loginParams)
+            }
 
-        return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.SSO)
+            return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.SSO)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun loginCustom(data: JsonDict): Session {
-        val credentials = executeRequest(null) {
-            authAPI.login(data)
-        }
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "login-custom")
+        try {
+            val credentials = executeRequest(null) {
+                authAPI.login(data)
+            }
 
-        return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.CUSTOM)
+            return sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, LoginType.CUSTOM)
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
+        }
     }
 
     override suspend fun resetPassword(email: String) {
-        val param = RegisterAddThreePidTask.Params(
-                RegisterThreePid.Email(email),
-                pendingSessionData.clientSecret,
-                pendingSessionData.sendAttempt
-        )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "password-reset-request")
+        try {
+            val param = RegisterAddThreePidTask.Params(
+                    RegisterThreePid.Email(email),
+                    pendingSessionData.clientSecret,
+                    pendingSessionData.sendAttempt
+            )
 
-        pendingSessionData = pendingSessionData.copy(sendAttempt = pendingSessionData.sendAttempt + 1)
-                .also { pendingSessionStore.savePendingSessionData(it) }
+            pendingSessionData = pendingSessionData.copy(sendAttempt = pendingSessionData.sendAttempt + 1)
+                    .also { pendingSessionStore.savePendingSessionData(it) }
 
-        val result = executeRequest(null) {
-            authAPI.resetPassword(AddThreePidRegistrationParams.from(param))
+            val result = executeRequest(null) {
+                authAPI.resetPassword(AddThreePidRegistrationParams.from(param))
+            }
+
+            pendingSessionData = pendingSessionData.copy(resetPasswordData = ResetPasswordData(result))
+                    .also { pendingSessionStore.savePendingSessionData(it) }
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-
-        pendingSessionData = pendingSessionData.copy(resetPasswordData = ResetPasswordData(result))
-                .also { pendingSessionStore.savePendingSessionData(it) }
     }
 
     override suspend fun resetPasswordMailConfirmed(newPassword: String, logoutAllDevices: Boolean) {
-        val resetPasswordData = pendingSessionData.resetPasswordData ?: throw IllegalStateException("Developer error - Must call resetPassword first")
-        val param = ResetPasswordMailConfirmed.create(
-                pendingSessionData.clientSecret,
-                resetPasswordData.addThreePidRegistrationResponse.sid,
-                newPassword,
-                logoutAllDevices
-        )
+        val diagnosticSpan = OperationDiagnostics.start("AUTHDBG", "password-reset-confirm")
+        try {
+            val resetPasswordData = pendingSessionData.resetPasswordData ?: throw IllegalStateException("Developer error - Must call resetPassword first")
+            val param = ResetPasswordMailConfirmed.create(
+                    pendingSessionData.clientSecret,
+                    resetPasswordData.addThreePidRegistrationResponse.sid,
+                    newPassword,
+                    logoutAllDevices
+            )
 
-        executeRequest(null) {
-            authAPI.resetPasswordMailConfirmed(param)
+            executeRequest(null) {
+                authAPI.resetPasswordMailConfirmed(param)
+            }
+
+            // Set to null?
+            // resetPasswordData = null
+        } catch (diagnosticFailure: Throwable) {
+            diagnosticSpan?.fail(diagnosticFailure)
+            throw diagnosticFailure
+        } finally {
+            diagnosticSpan?.finish("completed")
         }
-
-        // Set to null?
-        // resetPasswordData = null
     }
 }

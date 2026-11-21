@@ -10,6 +10,8 @@ package im.vector.app.core.files
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
@@ -28,7 +30,9 @@ class LocalFilesHelper @Inject constructor(private val context: Context) {
     fun isLocalFile(fileUri: String?): Boolean {
         val uri = fileUri?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return false
         return when (uri.scheme) {
-            ContentResolver.SCHEME_FILE -> uri.path?.let { File(it).canRead() } == true
+            ContentResolver.SCHEME_FILE -> (uri.path?.let { File(it).canRead() } == true).also { readable ->
+                if (!readable) DebugLog.w { "STORAGEDBG uri-unreadable resource=${OperationDiagnostics.id(fileUri)} reason=missing-or-unreadable-file" }
+            }
             ContentResolver.SCHEME_CONTENT -> canResolve(uri)
             else -> false
         }
@@ -42,11 +46,18 @@ class LocalFilesHelper @Inject constructor(private val context: Context) {
     }
 
     private fun canResolve(uri: Uri): Boolean {
-        if (context.contentResolver.getType(uri) != null) return true
+        val type = try {
+            context.contentResolver.getType(uri)
+        } catch (failure: Throwable) {
+            DebugLog.w { "STORAGEDBG uri-type-failed resource=${OperationDiagnostics.id(uri.toString())} reason=${if (failure is SecurityException) "permission-denied" else "provider-error"} error=${failure.javaClass.simpleName}" }
+            throw failure
+        }
+        if (type != null) return true
         // A provider may decline to type its content while still serving the bytes.
         return try {
             context.contentResolver.openAssetFileDescriptor(uri, "r")?.also { it.close() } != null
         } catch (throwable: Throwable) {
+            DebugLog.w { "STORAGEDBG uri-access resource=${OperationDiagnostics.id(uri.toString())} reason=${if (throwable is SecurityException) "permission-denied" else "provider-unavailable"} error=${throwable.javaClass.simpleName}" }
             Timber.d(throwable, "Not a readable local uri: $uri")
             false
         }
@@ -54,8 +65,11 @@ class LocalFilesHelper @Inject constructor(private val context: Context) {
 
     private fun openStream(uri: Uri): InputStream? {
         return try {
-            context.contentResolver.openInputStream(uri)
+            context.contentResolver.openInputStream(uri).also { stream ->
+                DebugLog.i { "STORAGEDBG uri-open resource=${OperationDiagnostics.id(uri.toString())} scheme=${uri.scheme} opened=${stream != null}" }
+            }
         } catch (throwable: Throwable) {
+            DebugLog.w { "STORAGEDBG uri-access resource=${OperationDiagnostics.id(uri.toString())} reason=${if (throwable is SecurityException) "permission-denied" else "provider-unavailable"} error=${throwable.javaClass.simpleName}" }
             Timber.w(throwable, "Failed to open local uri: $uri")
             null
         }

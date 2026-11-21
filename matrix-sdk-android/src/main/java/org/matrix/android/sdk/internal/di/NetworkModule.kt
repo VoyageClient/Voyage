@@ -27,6 +27,7 @@ import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import org.matrix.android.sdk.internal.network.ApiInterceptor
 import org.matrix.android.sdk.internal.network.TimeOutInterceptor
 import org.matrix.android.sdk.internal.network.UserAgentInterceptor
@@ -75,6 +76,8 @@ internal object NetworkModule {
         // pause — extremely visible on launch and after the screen wakes from sleep.
         val connectionPool = ConnectionPool(16, 5, TimeUnit.MINUTES)
         return OkHttpClient.Builder()
+                .eventListenerFactory(NetworkDiagnostics)
+                .addInterceptor(NetworkDiagnostics)
                 // Allow ALPN to negotiate HTTP/2 (fall back to HTTP/1.1). The blanket force to
                 // HTTP/1.1 dates from #4669 (early 2022) which was an OkHttp client bug long
                 // since fixed in the 4.x line. HTTP/2 multiplexes many parallel requests on a

@@ -32,8 +32,6 @@ class DebugTagFileLoggerTest {
     @Before
     fun setUp() {
         logsDirectory.deleteRecursively()
-        // Planted rather than called directly: the tree's log() is protected, and going through Timber
-        // is the path the app actually uses.
         logger = DebugTagFileLogger(context)
         Timber.plant(logger)
     }
@@ -41,9 +39,14 @@ class DebugTagFileLoggerTest {
     @After
     fun tearDown() {
         Timber.uproot(logger)
+        logger.close()
+        logger.writer.awaitIdle().shouldBeTrue()
     }
 
-    private fun fileFor(name: String) = File(logsDirectory, name)
+    private fun fileFor(name: String): File {
+        logger.writer.awaitIdle().shouldBeTrue()
+        return File(logsDirectory, name)
+    }
 
     @Test
     fun `each tag is collected into its own file`() {
@@ -54,7 +57,6 @@ class DebugTagFileLoggerTest {
         fileFor("pagdbg.txt").readText().contains("fetching page").shouldBeTrue()
         fileFor("mediadbg.txt").readText().contains("render start").shouldBeTrue()
         fileFor("chunkdbg.txt").readText().contains("splitting a range").shouldBeTrue()
-        // A tag's file holds only its own lines.
         fileFor("pagdbg.txt").readText().contains("MEDIADBG").shouldBeFalse()
     }
 
@@ -81,6 +83,19 @@ class DebugTagFileLoggerTest {
         written.contains("rescan failed").shouldBeTrue()
         written.contains("IllegalStateException").shouldBeTrue()
         (written.indexOf("rescan failed") < written.indexOf("IllegalStateException")).shouldBeTrue()
+    }
+
+    @Test
+    fun `reopening appends non ASCII records instead of truncating`() {
+        Timber.i("VIEWDBG café first")
+        logger.writer.awaitIdle().shouldBeTrue()
+        logger.close()
+        logger.writer.awaitIdle().shouldBeTrue()
+        logger.open()
+        Timber.i("VIEWDBG deuxième")
+        val written = fileFor("viewdbg.txt").readText()
+        written.contains("café first").shouldBeTrue()
+        written.contains("deuxième").shouldBeTrue()
     }
 
     @Test

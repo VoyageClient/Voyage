@@ -17,6 +17,8 @@
 package org.matrix.android.sdk.internal.task
 
 import kotlinx.coroutines.delay
+import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.shouldBeRetried
 import timber.log.Timber
@@ -30,6 +32,7 @@ internal interface Task<PARAMS, RESULT> {
             execute(params)
         } catch (failure: Throwable) {
             if (failure.shouldBeRetried() && remainingRetry > 0) {
+                DebugLog.w { "TASKDBG retry type=${javaClass.simpleName} remaining=$remainingRetry error=${failure.javaClass.simpleName} ${DiagnosticContext.describe()}" }
                 Timber.d(failure, "## TASK: Retriable error")
                 if (failure is Failure.ServerError) {
                     val waitTime = failure.error.retryAfterMillis ?: 0L
