@@ -9,10 +9,12 @@ package im.vector.app.core.ui.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.ViewGroup
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
+import androidx.core.view.isNotEmpty
 import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.features.home.AvatarRenderer
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
@@ -34,16 +36,25 @@ class TypingMessageAvatar @JvmOverloads constructor(
 
     fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer, roomId: String?) {
         removeAllViews()
-        for ((index, value) in typingUsers.withIndex()) {
+        for (user in typingUsers.take(avatarStackFaces(typingUsers.size))) {
             val avatar = ImageView(context)
-            avatar.id = ViewCompat.generateViewId()
-            val layoutParams = MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (index != 0) layoutParams.marginStartCompat = typingAvatarSize / OVERLAP_FACT0R
-            layoutParams.width = typingAvatarSize
-            layoutParams.height = typingAvatarSize
-            avatar.layoutParams = layoutParams
-            avatarRenderer.render(value.toMatrixItem(), avatar, roomId = roomId)
-            addView(avatar)
+            addStacked(avatar)
+            avatarRenderer.render(user.toMatrixItem(), avatar, roomId = roomId)
         }
+        val overflow = avatarStackOverflow(typingUsers.size)
+        if (overflow > 0) {
+            val badge = AppCompatTextView(context)
+            badge.setupAvatarCountBadge(typingAvatarSize)
+            badge.renderAvatarCount(overflow, avatarRenderer)
+            addStacked(badge)
+        }
+    }
+
+    private fun addStacked(view: View) {
+        view.id = ViewCompat.generateViewId()
+        val layoutParams = MarginLayoutParams(typingAvatarSize, typingAvatarSize)
+        if (isNotEmpty()) layoutParams.marginStartCompat = typingAvatarSize / OVERLAP_FACT0R
+        view.layoutParams = layoutParams
+        addView(view)
     }
 }

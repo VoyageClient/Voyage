@@ -501,15 +501,21 @@ class VectorDebugReceiver @Inject constructor(
 
     /**
      * Shows made-up users typing, in one room or (without room_id) in every room; count 0 stops it.
-     * With seconds, it stops by itself after that long.
-     * adb shell am broadcast -a <pkg>.DEBUG_ACTION_FAKE_TYPING [--es room_id '!roomId'] [--ei count 1] [--ei seconds 10]
+     * With seconds, it stops by itself after that long; with long, the names are long enough to need shortening.
+     * adb shell am broadcast -a <pkg>.DEBUG_ACTION_FAKE_TYPING [--es room_id '!roomId'] [--ei count 1] [--ei seconds 10] [--ez long true]
      */
     private fun fakeTyping(intent: Intent) {
         val roomId = intent.getStringExtra("room_id")
-        val count = intent.getIntExtra("count", 1).coerceIn(0, FAKE_TYPING_NAMES.size)
+        val count = intent.getIntExtra("count", 1).coerceAtLeast(0)
         val seconds = intent.getIntExtra("seconds", 0)
-        val users = FAKE_TYPING_NAMES.take(count).map { name ->
-            SenderInfo("@${name.lowercase()}:example.org", name, isUniqueDisplayName = true, avatarUrl = null)
+        val long = intent.getBooleanExtra("long", false)
+        val users = List(count) { index ->
+            val round = index / FAKE_TYPING_NAMES.size
+            val base = FAKE_TYPING_NAMES[index % FAKE_TYPING_NAMES.size]
+            val name = if (round == 0) base else "$base ${round + 1}"
+            val displayName = if (long) "$name the Magnificent Wanderer of the Northern Reaches" else name
+            val localpart = base.lowercase() + if (round == 0) "" else "${round + 1}"
+            SenderInfo("@$localpart:example.org", displayName, isUniqueDisplayName = true, avatarUrl = null)
         }
         fakeTypingStop?.cancel()
         DebugTypingUsers.set(roomId, users)

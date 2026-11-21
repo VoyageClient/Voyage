@@ -1487,8 +1487,6 @@
     <string name="auth_reset_password_error_unverified">E-posta doğrulanmadı, gelen kutunuzu kontrol edin</string>
     <string name="permissions_rationale_msg_notification">${app_name} bildirimleri göstermek için izne ihtiyaç duyar. Bildirimler mesajlarınızı, davetlerinizi vb. gösterebilir.\n\nBildirimleri görebilmek için lütfen sonraki açılır pencerelerde erişime izin verin.</string>
     <string name="room_participants_leave_last_admin">Bu odanın tek yöneticisi sizsiniz. Ayrılırsanız odanın kontrolü kimsede olmayacak.</string>
-    <string name="room_notification_two_users_are_typing">%1$s ve %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s ve diğerleri</string>
     <string name="thread_list_empty_title">Konularla tartışmaları düzenli tutun</string>
     <string name="thread_list_empty_subtitle">Konular, sohbetlerinizin konu dışına çıkmamasına ve kolayca takip edilmesine yardımcı olur.</string>
     <string name="thread_list_not_available">Ana sunucunuz henüz konuları listelemeyi desteklemiyor.</string>
@@ -3785,4 +3783,9 @@
     <string name="gradient_pick_from_image">Görüntüden seç</string>
     <string name="gradient_delete_confirmation">%1$s renk geçişi silinsin mi?</string>
     <string name="image_editor_snap">Hizala</string>
+    <string name="typing_indicator_one">%s yazıyor…</string>
+    <string name="typing_indicator_two">%1$s ve %2$s yazıyor…</string>
+    <string name="typing_indicator_three">%1$s, %2$s ve %3$s yazıyor…</string>
+    <string name="typing_indicator_many">Birçok kişi yazıyor…</string>
+    <string name="typing_users_title">Yazıyor</string>
 </resources>

@@ -1920,8 +1920,6 @@
     <plurals name="notice_room_server_acl_changes">
         <item quantity="other">改變了伺服器 %d 的存取控制清單</item>
     </plurals>
-    <string name="room_notification_two_users_are_typing">%1$s 與 %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s、%2$s 與其他人</string>
     <string name="location_share_live_stop">停止</string>
     <string name="location_share_live_enabled">即時位置已啟用</string>
     <string name="a11y_location_share_option_pinned_icon">分享此位置</string>
@@ -3750,4 +3748,9 @@
     <string name="gradient_pick_from_image">從圖片中取色</string>
     <string name="gradient_delete_confirmation">要刪除漸層色 %1$s 嗎？</string>
     <string name="image_editor_snap">貼齊</string>
+    <string name="typing_indicator_one">%s 正在打字…</string>
+    <string name="typing_indicator_two">%1$s 和 %2$s 正在打字…</string>
+    <string name="typing_indicator_three">%1$s、%2$s 和 %3$s 正在打字…</string>
+    <string name="typing_indicator_many">多人正在打字…</string>
+    <string name="typing_users_title">正在打字</string>
 </resources>

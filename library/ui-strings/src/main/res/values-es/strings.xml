@@ -1879,9 +1879,7 @@
     <string name="legals_identity_server_title">Política de tu servidor de identidad</string>
     <string name="legals_home_server_title">Política de tu servidor base</string>
     <string name="legals_application_title">Política de ${app_name}</string>
-    <string name="room_notification_two_users_are_typing">%1$s y %2$s</string>
     <string name="thread_list_modal_title">Filtrar</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s y otros</string>
     <string name="action_thread_copy_link_to_thread">Copiar enlace al hilo</string>
     <string name="tooltip_attachment_sticker">Enviar sticker</string>
     <string name="location_timeline_failed_to_load_map">Ocurrió un error al cargar el mapa</string>
@@ -3815,4 +3813,9 @@
     <string name="gradient_pick_from_image">Elegir de una imagen</string>
     <string name="gradient_delete_confirmation">¿Eliminar el degradado %1$s?</string>
     <string name="image_editor_snap">Ajustar</string>
+    <string name="typing_indicator_one">%s está escribiendo…</string>
+    <string name="typing_indicator_two">%1$s y %2$s están escribiendo…</string>
+    <string name="typing_indicator_three">%1$s, %2$s y %3$s están escribiendo…</string>
+    <string name="typing_indicator_many">Muchas personas están escribiendo…</string>
+    <string name="typing_users_title">Escribiendo</string>
 </resources>

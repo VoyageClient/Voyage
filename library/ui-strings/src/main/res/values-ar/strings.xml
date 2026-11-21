@@ -842,8 +842,6 @@
     <string name="room_permissions_title">الأذونات</string>
     <string name="space_settings_permissions_title">أذونات الفضاء</string>
     <string name="room_settings_permissions_title">أذونات الغرفة</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s و%2$s وآخرون</string>
-    <string name="room_notification_two_users_are_typing">%1$s و%2$s</string>
     <string name="space_participants_ban_prompt_msg">حظر مستخدم عن هذه الفضاء سيمنعه من الانضمام إليه ثانية.</string>
     <string name="room_participants_ban_reason">سبب الحظر</string>
     <string name="room_participants_ban_title">احظر مستخدمًا</string>
@@ -4042,4 +4040,9 @@
     <string name="gradient_pick_from_image">اختيار من صورة</string>
     <string name="gradient_delete_confirmation">أتريد حذف التدرّج %1$s؟</string>
     <string name="image_editor_snap">المحاذاة</string>
+    <string name="typing_indicator_one">%s يكتب…</string>
+    <string name="typing_indicator_two">%1$s و%2$s يكتبان…</string>
+    <string name="typing_indicator_three">%1$s و%2$s و%3$s يكتبون…</string>
+    <string name="typing_indicator_many">العديد من الأشخاص يكتبون…</string>
+    <string name="typing_users_title">يكتبون الآن</string>
 </resources>

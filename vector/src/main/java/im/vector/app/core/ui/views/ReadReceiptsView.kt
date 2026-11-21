@@ -9,7 +9,6 @@ package im.vector.app.core.ui.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
@@ -25,7 +24,7 @@ import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 
-private const val MAX_RECEIPT_DISPLAYED = 3
+private const val MAX_RECEIPT_NAMES = 3
 
 class ReadReceiptsView @JvmOverloads constructor(
         context: Context,
@@ -38,6 +37,9 @@ class ReadReceiptsView @JvmOverloads constructor(
     init {
         setupView()
         views = ViewReadReceiptsBinding.bind(this)
+        views.receiptMore.setupAvatarCountBadge(
+                resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.item_event_message_state_size)
+        )
     }
 
     private val receiptAvatars: List<ImageView> by lazy {
@@ -52,7 +54,7 @@ class ReadReceiptsView @JvmOverloads constructor(
     fun render(readReceipts: List<ReadReceiptData>, avatarRenderer: AvatarRenderer) {
         receiptAvatars.forEach { it.isVisible = false }
 
-        readReceipts.take(MAX_RECEIPT_DISPLAYED).forEachIndexed { index, receiptData ->
+        readReceipts.take(avatarStackFaces(readReceipts.size)).forEachIndexed { index, receiptData ->
             val avatar = receiptAvatars[index]
             val matrixItem = receiptData.toMatrixItem()
             val shape = avatarRenderer.shapeFor(matrixItem)
@@ -67,17 +69,12 @@ class ReadReceiptsView @JvmOverloads constructor(
         val displayNames = readReceipts
                 .mapNotNull { it.displayName }
                 .filter { it.isNotBlank() }
-                .take(MAX_RECEIPT_DISPLAYED)
+                .take(MAX_RECEIPT_NAMES)
                 .map { it.bidiIsolate() }
 
-        if (readReceipts.size > MAX_RECEIPT_DISPLAYED) {
-            views.receiptMore.visibility = View.VISIBLE
-            views.receiptMore.text = context.getString(
-                    CommonStrings.x_plus, readReceipts.size - MAX_RECEIPT_DISPLAYED
-            )
-        } else {
-            views.receiptMore.visibility = View.GONE
-        }
+        val overflow = avatarStackOverflow(readReceipts.size)
+        views.receiptMore.isVisible = overflow > 0
+        if (overflow > 0) views.receiptMore.renderAvatarCount(overflow, avatarRenderer)
         contentDescription = when (readReceipts.size) {
             1 ->
                 if (displayNames.size == 1) {

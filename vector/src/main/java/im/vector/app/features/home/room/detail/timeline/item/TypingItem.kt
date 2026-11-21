@@ -38,12 +38,11 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
     override fun bind(holder: TypingHolder) {
         super.bind(holder)
 
-        val typingUsers = users.take(TypingMessageView.MAX_TYPING_USERS_COUNT)
         holder.typingView.apply {
             isInvisible = true
             // Rendered with the same users so the row measures exactly as tall as the indicator.
-            if (typingUsers.isNotEmpty()) render(typingUsers, avatarRenderer, roomId)
-            setIdle(typingUsers.isEmpty())
+            if (users.isNotEmpty()) render(users, avatarRenderer, roomId)
+            setIdle(users.isEmpty())
         }
     }
 

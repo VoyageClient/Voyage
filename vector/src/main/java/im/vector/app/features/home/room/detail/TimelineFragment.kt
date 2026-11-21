@@ -616,6 +616,7 @@ class TimelineFragment :
         matrixItemColorProvider.changes
                 .onEach { generation ->
                     if (generation == lastProfileColorGeneration) return@onEach
+                    views.typingIndicatorView.refreshNameColors()
                     val changedProfiles = matrixItemColorProvider.changedProfileIdsSince(lastProfileColorGeneration)
                     lastProfileColorGeneration = generation
                     if (changedProfiles.isNotEmpty()) {
@@ -1179,6 +1180,22 @@ class TimelineFragment :
 
     private fun setupTypingIndicator() {
         views.typingIndicatorView.onShownHeightChanged = { views.jumpToBottomView.translationY = -it.toFloat() }
+        views.typingIndicatorView.setOnClickListener {
+            val typingUsers = views.typingIndicatorView.shownUsers.map { user ->
+                ReadReceiptData(
+                        userId = user.userId,
+                        avatarUrl = user.avatarUrl,
+                        displayName = user.disambiguatedDisplayName,
+                        timestamp = 0L,
+                        colorOnLight = user.colorPreference?.onLight,
+                        colorOnDark = user.colorPreference?.onDark,
+                        avatarDecryption = user.avatarDecryption,
+                )
+            }
+            if (typingUsers.isEmpty()) return@setOnClickListener
+            DisplayReadReceiptsBottomSheet.newTypingUsersInstance(getString(CommonStrings.typing_users_title), typingUsers)
+                    .show(requireActivity().supportFragmentManager, "DISPLAY_TYPING_USERS")
+        }
     }
 
     private fun setupJumpToBottomView() {

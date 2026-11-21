@@ -866,8 +866,6 @@
     <string name="room_participants_leave_private_warning">এই রুমটি সর্বজনীন নয়। আমন্ত্রণ ছাড়া আপনি আবার যোগ দিতে পারবেন না।</string>
     <string name="room_participants_leave_last_admin">আপনিই এই রুমের একমাত্র অ্যাডমিন। রুম ছেড়ে গেলে এর নিয়ন্ত্রণ আর কারও হাতে থাকবে না।</string>
     <string name="space_participants_ban_prompt_msg">ব্যবহারকারীকে নিষিদ্ধ করলে তাঁকে এই স্পেস থেকে সরিয়ে দেওয়া হবে এবং আবার যোগ দিতে বাধা দেওয়া হবে।</string>
-    <string name="room_notification_two_users_are_typing">%1$s ও %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s ও অন্যরা</string>
     <string name="room_unsupported_e2e_algorithm">এনক্রিপশন ভুলভাবে কনফিগার করা হয়েছে, তাই আপনি বার্তা পাঠাতে পারবেন না। এনক্রিপশন ঠিক করতে অনুগ্রহ করে একজন অ্যাডমিনের সাথে যোগাযোগ করুন।</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">এনক্রিপশন ভুলভাবে কনফিগার করা হয়েছে, তাই আপনি বার্তা পাঠাতে পারবেন না। সেটিংস খুলতে ক্লিক করুন।</string>
     <string name="room_settings_permissions_title">রুমের অনুমতি</string>
@@ -3787,4 +3785,9 @@
     <string name="gradient_pick_from_image">ছবি থেকে বেছে নিন</string>
     <string name="gradient_delete_confirmation">গ্রেডিয়েন্ট %1$s মুছবেন?</string>
     <string name="image_editor_snap">স্ন্যাপ</string>
+    <string name="typing_indicator_one">%s টাইপ করছেন…</string>
+    <string name="typing_indicator_two">%1$s আর %2$s টাইপ করছেন…</string>
+    <string name="typing_indicator_three">%1$s, %2$s আর %3$s টাইপ করছেন…</string>
+    <string name="typing_indicator_many">অনেকে টাইপ করছেন…</string>
+    <string name="typing_users_title">টাইপ করছেন</string>
 </resources>

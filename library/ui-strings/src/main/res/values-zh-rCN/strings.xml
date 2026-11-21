@@ -2053,8 +2053,6 @@
     <string name="thread_list_modal_my_threads_title">我的消息列</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">加密被错误地配置了，所以你无法发送消息。点击以打开设置。</string>
     <string name="room_unsupported_e2e_algorithm">加密被错误地配置了，所以你无法发送消息。请联系管理员将加密还原到有效的状态。</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s、%2$s与其他人</string>
-    <string name="room_notification_two_users_are_typing">%1$s与%2$s</string>
     <string name="action_learn_more">进一步了解</string>
     <string name="action_try_it_out">试试看</string>
     <string name="action_view_threads">查看消息列</string>
@@ -3748,4 +3746,9 @@
     <string name="gradient_pick_from_image">从图片中取色</string>
     <string name="gradient_delete_confirmation">删除渐变色 %1$s？</string>
     <string name="image_editor_snap">吸附</string>
+    <string name="typing_indicator_one">%s正在输入……</string>
+    <string name="typing_indicator_two">%1$s和%2$s正在输入……</string>
+    <string name="typing_indicator_three">%1$s、%2$s和%3$s正在输入……</string>
+    <string name="typing_indicator_many">多人正在输入……</string>
+    <string name="typing_users_title">正在输入</string>
 </resources>

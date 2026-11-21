@@ -20,6 +20,7 @@ data class DisplayReadReceiptsData(
         val readReceipts: List<ReadReceiptData>,
         val colorGeneration: Long,
         val includeMyself: Boolean = false,
+        val showTimestamps: Boolean = true,
 )
 
 /**
@@ -36,7 +37,7 @@ class DisplayReadReceiptsController @Inject constructor(
 
     override fun buildModels(data: DisplayReadReceiptsData) {
         data.readReceipts.forEach { readReceiptData ->
-            val timestamp = dateFormatter.format(readReceiptData.timestamp, DateFormatKind.DEFAULT_DATE_AND_TIME)
+            val timestamp = if (data.showTimestamps) dateFormatter.format(readReceiptData.timestamp, DateFormatKind.DEFAULT_DATE_AND_TIME) else null
             DisplayReadReceiptItem_()
                     .id(readReceiptData.userId)
                     .matrixItem(readReceiptData.toMatrixItem())

@@ -1893,8 +1893,6 @@
     <string name="bootstrap_loading_title">復旧を設定しています。</string>
     <string name="verify_cannot_cross_sign">このセッションは、他のセッションと認証を共有することができません。
 \n認証は端末に保存され、新しいバージョンのアプリで共有されます。</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s、%2$s他</string>
-    <string name="room_notification_two_users_are_typing">%1$sと%2$s</string>
     <string name="security_prompt_text">自分と相手を認証して、チャットを安全に保ちましょう</string>
     <string name="bootstrap_info_text_2">あなたしか知らないセキュリティーフレーズを入力してください。サーバーで機密情報を保護するために使用します。</string>
     <string name="settings_export_trail">監査結果をエクスポート</string>
@@ -3746,4 +3744,9 @@
     <string name="gradient_pick_from_image">画像から選択</string>
     <string name="gradient_delete_confirmation">グラデーション %1$s を削除しますか？</string>
     <string name="image_editor_snap">スナップ</string>
+    <string name="typing_indicator_one">%sさんが入力しています…</string>
+    <string name="typing_indicator_two">%1$sさんと%2$sさんが入力しています…</string>
+    <string name="typing_indicator_three">%1$sさん、%2$sさん、%3$sさんが入力しています…</string>
+    <string name="typing_indicator_many">多くの人が入力しています…</string>
+    <string name="typing_users_title">入力中</string>
 </resources>

@@ -35,10 +35,12 @@ data class DisplayReadReceiptArgs(
         val readReceipts: List<ReadReceiptData>,
         val title: String? = null,
         val includeMyself: Boolean = false,
+        val showTimestamps: Boolean = true,
 ) : Parcelable
 
 /**
- * Bottom sheet displaying list of read receipts (or a poll option's voters) for a given event ordered by descending timestamp.
+ * Bottom sheet displaying list of read receipts (or a poll option's voters) for a given event ordered by descending timestamp,
+ * or who is typing in a room.
  */
 @AndroidEntryPoint
 class DisplayReadReceiptsBottomSheet :
@@ -72,6 +74,7 @@ class DisplayReadReceiptsBottomSheet :
             readReceipts = displayReadReceiptArgs.readReceipts,
             colorGeneration = colorGeneration,
             includeMyself = displayReadReceiptArgs.includeMyself,
+            showTimestamps = displayReadReceiptArgs.showTimestamps,
     )
 
     override fun onDestroyView() {
@@ -96,6 +99,12 @@ class DisplayReadReceiptsBottomSheet :
         fun newPollVotersInstance(optionAnswer: String, voters: List<ReadReceiptData>): DisplayReadReceiptsBottomSheet {
             return DisplayReadReceiptsBottomSheet().apply {
                 setArguments(DisplayReadReceiptArgs(readReceipts = voters, title = optionAnswer, includeMyself = true))
+            }
+        }
+
+        fun newTypingUsersInstance(title: String, typingUsers: List<ReadReceiptData>): DisplayReadReceiptsBottomSheet {
+            return DisplayReadReceiptsBottomSheet().apply {
+                setArguments(DisplayReadReceiptArgs(readReceipts = typingUsers, title = title, includeMyself = true, showTimestamps = false))
             }
         }
     }

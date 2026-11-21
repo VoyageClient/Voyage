@@ -360,7 +360,9 @@ class AvatarRenderer @Inject constructor(
 
     // Spaces always render as rounded squares, regardless of the avatar-shape setting.
     internal fun shapeFor(matrixItem: MatrixItem): AvatarShape =
-            if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
+            if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else userAvatarShape()
+
+    internal fun userAvatarShape(): AvatarShape = vectorPreferences.avatarShape()
 
     private fun avatarTransform(matrixItem: MatrixItem): Transformation<Bitmap> = when (val shape = shapeFor(matrixItem)) {
         // Glide's own transforms for the shapes it can express, so nothing already cached under them

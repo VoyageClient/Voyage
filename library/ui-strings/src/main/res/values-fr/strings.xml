@@ -1954,8 +1954,6 @@
     <string name="thread_list_title">Fils de discussion</string>
     <string name="thread_timeline_title">Fil de discussion</string>
     <string name="room_threads_filter">Filtrer les fils de discussion du salon</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s et d’autres</string>
-    <string name="room_notification_two_users_are_typing">%1$s et %2$s</string>
     <string name="action_thread_copy_link_to_thread">Copier le lien du fil de discussion</string>
     <string name="action_thread_view_in_room">Voir dans le salon</string>
     <string name="action_view_threads">Voir les fils de discussions</string>
@@ -3827,4 +3825,9 @@
     <string name="gradient_pick_from_image">Choisir dans une image</string>
     <string name="gradient_delete_confirmation">Supprimer le dégradé %1$s ?</string>
     <string name="image_editor_snap">Magnétisme</string>
+    <string name="typing_indicator_one">%s écrit…</string>
+    <string name="typing_indicator_two">%1$s et %2$s écrivent…</string>
+    <string name="typing_indicator_three">%1$s, %2$s et %3$s écrivent…</string>
+    <string name="typing_indicator_many">De nombreuses personnes écrivent…</string>
+    <string name="typing_users_title">En train d’écrire</string>
 </resources>

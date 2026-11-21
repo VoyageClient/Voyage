@@ -1961,8 +1961,6 @@
         <item quantity="one">%d mudança de ACLs de servidor</item>
         <item quantity="other">%d mudanças de ACLs de servidor</item>
     </plurals>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s e outros(as)</string>
-    <string name="room_notification_two_users_are_typing">%1$s e %2$s</string>
     <string name="location_share_live_enabled">Localização ao vivo habilitada</string>
     <string name="a11y_location_share_option_pinned_icon">Compartilhar esta localização</string>
     <string name="location_share_option_pinned">Compartilhar esta localização</string>
@@ -3827,4 +3825,9 @@
     <string name="gradient_pick_from_image">Escolher de uma imagem</string>
     <string name="gradient_delete_confirmation">Excluir o degradê %1$s?</string>
     <string name="image_editor_snap">Encaixar</string>
+    <string name="typing_indicator_one">%s está digitando…</string>
+    <string name="typing_indicator_two">%1$s e %2$s estão digitando…</string>
+    <string name="typing_indicator_three">%1$s, %2$s e %3$s estão digitando…</string>
+    <string name="typing_indicator_many">Muitas pessoas estão digitando…</string>
+    <string name="typing_users_title">Digitando</string>
 </resources>

@@ -437,8 +437,6 @@
     <string name="room_one_user_is_typing">%s لکھ رہا ہے…</string>
     <string name="room_two_users_are_typing">%1$s اور %2$s لکھ رہے ہیں…</string>
     <string name="room_many_users_are_typing">%1$s، %2$s اور دیگر لکھ رہے ہیں…</string>
-    <string name="room_notification_two_users_are_typing">%1$s اور %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s، %2$s اور دیگر</string>
     <string name="room_do_not_have_permission_to_post">آپ کو اس کمرے میں پیغام بھیجنے کی اجازت نہیں ہے۔</string>
     <string name="room_unsupported_e2e_algorithm">مرموزکاری غلط ترتیب دی گئی ہے اس لیے آپ پیغامات نہیں بھیج سکتے۔ مرموزکاری کو درست حالت میں بحال کرنے کے لیے براہ کرم کسی منتظم سے رابطہ کریں۔</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">مرموزکاری غلط ترتیب دی گئی ہے اس لیے آپ پیغامات نہیں بھیج سکتے۔ ترتیبات کھولنے کے لیے کلک کریں۔</string>
@@ -3727,4 +3725,9 @@
     <string name="gradient_pick_from_image">تصویر سے منتخب کریں</string>
     <string name="gradient_delete_confirmation">گریڈینٹ %1$s حذف کریں؟</string>
     <string name="image_editor_snap">جمائیں</string>
+    <string name="typing_indicator_one">%s لکھ رہا ہے…</string>
+    <string name="typing_indicator_two">%1$s اور %2$s لکھ رہے ہیں…</string>
+    <string name="typing_indicator_three">%1$s، %2$s اور %3$s لکھ رہے ہیں…</string>
+    <string name="typing_indicator_many">کئی لوگ لکھ رہے ہیں…</string>
+    <string name="typing_users_title">لکھ رہے ہیں</string>
 </resources>

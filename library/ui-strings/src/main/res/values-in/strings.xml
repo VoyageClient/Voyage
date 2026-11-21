@@ -1922,8 +1922,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="other">%d perubahan ACL server</item>
     </plurals>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s dan lainnya</string>
-    <string name="room_notification_two_users_are_typing">%1$s dan %2$s</string>
     <string name="location_share_live_stop">Berhenti</string>
     <string name="location_share_live_enabled">Lokasi langsung diaktifkan</string>
     <string name="a11y_location_share_option_pinned_icon">Bagikan lokasi ini</string>
@@ -3748,4 +3746,9 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="gradient_pick_from_image">Ambil dari gambar</string>
     <string name="gradient_delete_confirmation">Hapus gradien %1$s?</string>
     <string name="image_editor_snap">Tempelkan</string>
+    <string name="typing_indicator_one">%s sedang mengetik…</string>
+    <string name="typing_indicator_two">%1$s dan %2$s sedang mengetik…</string>
+    <string name="typing_indicator_three">%1$s, %2$s, dan %3$s sedang mengetik…</string>
+    <string name="typing_indicator_many">Banyak orang sedang mengetik…</string>
+    <string name="typing_users_title">Sedang mengetik</string>
 </resources>

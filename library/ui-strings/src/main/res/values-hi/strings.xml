@@ -414,8 +414,6 @@
     <string name="room_one_user_is_typing">%s टाइप कर रहे हैं…</string>
     <string name="room_two_users_are_typing">%1$s और %2$s टाइप कर रहे हैं…</string>
     <string name="room_many_users_are_typing">%1$s, %2$s और अन्य टाइप कर रहे हैं…</string>
-    <string name="room_notification_two_users_are_typing">%1$s और %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s और अन्य</string>
     <string name="room_do_not_have_permission_to_post">आपको इस रूम में पोस्ट करने की अनुमति नहीं है।</string>
     <string name="room_unsupported_e2e_algorithm">एन्क्रिप्शन गलत तरीके से कॉन्फ़िगर किया गया है, इसलिए आप मैसेज नहीं भेज सकते। एन्क्रिप्शन को सही स्थिति में लाने के लिए कृपया किसी एडमिन से संपर्क करें।</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">एन्क्रिप्शन गलत तरीके से कॉन्फ़िगर किया गया है, इसलिए आप मैसेज नहीं भेज सकते। सेटिंग खोलने के लिए क्लिक करें।</string>
@@ -3715,4 +3713,9 @@
     <string name="gradient_pick_from_image">छवि से चुनें</string>
     <string name="gradient_delete_confirmation">ग्रेडिएंट %1$s हटाएं?</string>
     <string name="image_editor_snap">स्नैप</string>
+    <string name="typing_indicator_one">%s टाइप कर रहे हैं…</string>
+    <string name="typing_indicator_two">%1$s और %2$s टाइप कर रहे हैं…</string>
+    <string name="typing_indicator_three">%1$s, %2$s और %3$s टाइप कर रहे हैं…</string>
+    <string name="typing_indicator_many">कई लोग टाइप कर रहे हैं…</string>
+    <string name="typing_users_title">टाइप कर रहे हैं</string>
 </resources>

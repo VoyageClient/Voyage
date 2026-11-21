@@ -1909,8 +1909,6 @@
         <item quantity="other">И ещё %1$d</item>
     </plurals>
     <string name="message_reaction_show_less">Свернуть</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s и другие</string>
-    <string name="room_notification_two_users_are_typing">%1$s и %2$s</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d изменение ACL сервера</item>
         <item quantity="few">%d изменения ACL сервера</item>
@@ -3981,4 +3979,9 @@
     <string name="gradient_pick_from_image">Выбрать на изображении</string>
     <string name="gradient_delete_confirmation">Удалить градиент %1$s?</string>
     <string name="image_editor_snap">Привязка</string>
+    <string name="typing_indicator_one">%s печатает…</string>
+    <string name="typing_indicator_two">%1$s и %2$s печатают…</string>
+    <string name="typing_indicator_three">%1$s, %2$s и %3$s печатают…</string>
+    <string name="typing_indicator_many">Многие печатают…</string>
+    <string name="typing_users_title">Печатают</string>
 </resources>

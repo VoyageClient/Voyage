@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="TimelineContentStubBaseParams">
         <item name="android:layout_width">match_parent</item>
@@ -38,10 +38,6 @@
         <item name="android:minHeight">28dp</item>
         <item name="android:minWidth">40dp</item>
         <item name="android:gravity">center</item>
-    </style>
-
-    <style name="TimelineFixedSizeCaptionStyle" parent="@style/Widget.Vector.TextView.Caption">
-        <item name="android:textSize" tools:ignore="SpUsage">12dp</item>
     </style>
 
 </resources>

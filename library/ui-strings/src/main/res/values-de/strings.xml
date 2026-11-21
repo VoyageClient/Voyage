@@ -1956,8 +1956,6 @@
         <item quantity="other">%1$d mehr</item>
     </plurals>
     <string name="message_reaction_show_less">Weniger anzeigen</string>
-    <string name="room_notification_two_users_are_typing">%1$s und %2$s</string>
-    <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s und andere</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d Server-ACL geändert</item>
         <item quantity="other">%d Server-ACLs geändert</item>
@@ -3826,4 +3824,9 @@
     <string name="gradient_pick_from_image">Aus Bild wählen</string>
     <string name="gradient_delete_confirmation">Farbverlauf %1$s löschen?</string>
     <string name="image_editor_snap">Einrasten</string>
+    <string name="typing_indicator_one">%s tippt …</string>
+    <string name="typing_indicator_two">%1$s und %2$s tippen …</string>
+    <string name="typing_indicator_three">%1$s, %2$s und %3$s tippen …</string>
+    <string name="typing_indicator_many">Viele Personen tippen …</string>
+    <string name="typing_users_title">Tippt gerade</string>
 </resources>
