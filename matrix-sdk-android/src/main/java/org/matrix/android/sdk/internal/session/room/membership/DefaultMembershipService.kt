@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.mapper.overriddenSenderInfo
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -101,6 +102,13 @@ internal class DefaultMembershipService @AssistedInject constructor(
     override fun getRoomMemberColorPreference(userId: String) = roomMemberColorCache.get(roomId, userId)
 
     override fun isDisplayNameAmbiguous(displayName: String?) = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName)
+
+    override fun disambiguateDisplayName(userId: String, displayName: String?): String = overriddenSenderInfo(
+            userId = userId,
+            displayName = displayName,
+            isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName, userId) != true,
+            avatarUrl = null,
+    ).disambiguatedDisplayName
 
     override fun getRoomMembers(queryParams: RoomMemberQueryParams): List<RoomMemberSummary> {
         return roomMembersFiltered(queryParams).map { it.asDomain() }

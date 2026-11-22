@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterFactory
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.room.timeline.SqlTimelineEventDataSource
@@ -72,6 +73,7 @@ internal class DefaultGetUploadsTask @Inject constructor(
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val eventDataSource: SqlTimelineEventDataSource,
         private val getEventTask: GetEventTask,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) : GetUploadsTask {
 
     private class Page(val events: List<Event>, val nextToken: String, val hasMore: Boolean)
@@ -208,12 +210,7 @@ internal class DefaultGetUploadsTask @Inject constructor(
         val editedContents = latestEditedContents(roomId, events)
         val cacheOfSenderInfos = mutableMapOf<String, SenderInfo>()
 
-        // One scan of the member table, not one per sender: isUniqueDisplayName() counts matches over
-        // every member, so calling it per sender re-read the whole room each time.
-        val members = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, roomId)
-                .queryRoomMembersEvent()
-        val membersByUserId = members.associateBy { it.userId }
-        val displayNameCounts = members.groupingBy { it.displayName }.eachCount()
+        val membersByUserId = stores.roomMember.getByRoom(roomId).associateBy { it.userId }
 
         return events.flatMap { event ->
             val eventId = event.eventId ?: return@flatMap emptyList()
@@ -228,7 +225,7 @@ internal class DefaultGetUploadsTask @Inject constructor(
                 SenderInfo(
                         userId = senderId,
                         displayName = displayName,
-                        isUniqueDisplayName = displayName.isNullOrEmpty() || displayNameCounts[displayName] == 1,
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName, senderId) != true,
                         avatarUrl = member?.avatarUrl
                 )
             }

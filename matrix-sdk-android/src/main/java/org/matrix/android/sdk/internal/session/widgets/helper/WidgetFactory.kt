@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.displayname.DisplayNameResolver
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import org.matrix.android.sdk.internal.session.user.UserDataSource
 import java.net.URLEncoder
 import javax.inject.Inject
@@ -34,6 +35,7 @@ internal class WidgetFactory @Inject constructor(
         private val userDataSource: UserDataSource,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val displayNameResolver: DisplayNameResolver,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
         private val urlResolver: ContentUrlResolver,
         @UserId private val userId: String
 ) {
@@ -54,7 +56,7 @@ internal class WidgetFactory @Inject constructor(
                 SenderInfo(
                         userId = senderId,
                         displayName = roomMemberSummaryEntity?.displayName,
-                        isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(roomMemberSummaryEntity?.displayName),
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, roomMemberSummaryEntity?.displayName, senderId) != true,
                         avatarUrl = roomMemberSummaryEntity?.avatarUrl
                 )
             }

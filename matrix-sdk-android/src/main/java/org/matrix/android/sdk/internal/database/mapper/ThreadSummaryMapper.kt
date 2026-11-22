@@ -18,27 +18,32 @@ package org.matrix.android.sdk.internal.database.mapper
 
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
 import org.matrix.android.sdk.internal.database.model.threads.ThreadSummaryEntity
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import javax.inject.Inject
 
-internal class ThreadSummaryMapper @Inject constructor() {
+internal class ThreadSummaryMapper @Inject constructor(
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
+) {
 
     fun map(threadSummary: ThreadSummaryEntity): ThreadSummary {
+        val roomId = threadSummary.rootThreadEventEntity?.roomId.orEmpty()
         return ThreadSummary(
-                // The Realm `room` backlink isn't populated on the SQL DTO; fall back to the root event's room.
-                roomId = threadSummary.rootThreadEventEntity?.roomId.orEmpty(),
+                roomId = roomId,
                 rootEvent = threadSummary.rootThreadEventEntity?.asDomain(),
                 latestEvent = threadSummary.latestThreadEventEntity?.asDomain(),
                 rootEventId = threadSummary.rootThreadEventId.orEmpty(),
                 rootThreadSenderInfo = overriddenSenderInfo(
                         userId = threadSummary.rootThreadEventEntity?.sender ?: "",
                         displayName = threadSummary.rootThreadSenderName,
-                        isUniqueDisplayName = threadSummary.rootThreadIsUniqueDisplayName,
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, threadSummary.rootThreadSenderName, threadSummary.rootThreadEventEntity?.sender)
+                                ?.not() ?: threadSummary.rootThreadIsUniqueDisplayName,
                         avatarUrl = threadSummary.rootThreadSenderAvatar
                 ),
                 latestThreadSenderInfo = overriddenSenderInfo(
                         userId = threadSummary.latestThreadEventEntity?.sender ?: "",
                         displayName = threadSummary.latestThreadSenderName,
-                        isUniqueDisplayName = threadSummary.latestThreadIsUniqueDisplayName,
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, threadSummary.latestThreadSenderName, threadSummary.latestThreadEventEntity?.sender)
+                                ?.not() ?: threadSummary.latestThreadIsUniqueDisplayName,
                         avatarUrl = threadSummary.latestThreadSenderAvatar
                 ),
                 isUserParticipating = threadSummary.isUserParticipating,

@@ -35,13 +35,14 @@ class ReadReceiptsItemFactory @Inject constructor(
             return null
         }
         val hideAvatars = shouldHideAvatars(roomId, session, vectorPreferences)
+        val membershipService = session.roomService().getRoom(roomId)?.membershipService()
         val readReceiptsData = readReceipts
                 .map {
                     val hideAvatar = hideAvatars && it.roomMember.userId != session.myUserId
                     ReadReceiptData(
                             it.roomMember.userId,
                             it.roomMember.avatarUrl.takeUnless { hideAvatar },
-                            it.roomMember.displayName,
+                            membershipService?.disambiguateDisplayName(it.roomMember.userId, it.roomMember.displayName) ?: it.roomMember.displayName,
                             it.originServerTs,
                             colorOnLight = it.roomMember.colorPreference?.onLight,
                             colorOnDark = it.roomMember.colorPreference?.onDark,

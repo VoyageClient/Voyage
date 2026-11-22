@@ -59,6 +59,7 @@ import org.matrix.android.sdk.api.session.room.reporting.ReportingService
 import org.matrix.android.sdk.api.session.room.send.DraftService
 import org.matrix.android.sdk.api.session.room.send.SendService
 import org.matrix.android.sdk.api.session.room.send.UserDraft
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.session.room.tags.TagsService
 import org.matrix.android.sdk.api.session.room.threads.FetchThreadsResult
@@ -220,6 +221,15 @@ internal class PeekedRoom(
         override fun areAllMembersLoadedFlow(): Flow<Boolean> = flowOf(true)
 
         override fun getRoomMember(userId: String): RoomMemberSummary? = dataSource.getRoomMember(userId)
+
+        override fun isDisplayNameAmbiguous(displayName: String?): Boolean = dataSource.isDisplayNameAmbiguous(displayName)
+
+        override fun disambiguateDisplayName(userId: String, displayName: String?): String = SenderInfo(
+                userId = userId,
+                displayName = displayName,
+                isUniqueDisplayName = !dataSource.isDisplayNameAmbiguous(displayName, userId),
+                avatarUrl = null,
+        ).disambiguatedDisplayName
 
         override fun getRoomMembers(queryParams: RoomMemberQueryParams): List<RoomMemberSummary> =
                 dataSource.membersFlow.value.filter { it.matches(queryParams) }

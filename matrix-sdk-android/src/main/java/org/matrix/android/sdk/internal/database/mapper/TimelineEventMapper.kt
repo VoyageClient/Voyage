@@ -82,11 +82,9 @@ internal class TimelineEventMapper @Inject constructor(
                 senderInfo = overriddenSenderInfo(
                         userId = timelineEventEntity.root?.sender ?: "",
                         displayName = timelineEventEntity.senderName,
-                        // From the members as they are now, not as they were when the row was written:
-                        // a name the row called unique may since have gained a namesake, and two rows
-                        // for one sender that disagree render differently and break their grouping.
+                        // Stored uniqueness flags can outlive a namesake's membership.
                         isUniqueDisplayName = ambiguousDisplayNameCache
-                                .isAmbiguous(timelineEventEntity.roomId, timelineEventEntity.senderName)
+                                .isAmbiguous(timelineEventEntity.roomId, timelineEventEntity.senderName, timelineEventEntity.root?.sender)
                                 ?.not()
                                 ?: timelineEventEntity.isUniqueDisplayName,
                         avatarUrl = timelineEventEntity.senderAvatar,

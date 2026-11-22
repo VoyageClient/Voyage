@@ -46,6 +46,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollResponseSummaryRefresher
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.relation.ReactionSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
@@ -71,6 +72,7 @@ internal class LocalEchoRepository @Inject constructor(
         private val clock: Clock,
         private val pollResponseSummaryRefresher: PollResponseSummaryRefresher,
         private val reactionSummaryRefresher: ReactionSummaryRefresher,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) {
 
     private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
@@ -156,7 +158,7 @@ internal class LocalEchoRepository @Inject constructor(
                     it.ts = eventEntity.originServerTs ?: 0L
                     it.senderName = myUser?.let { u -> u.displayName ?: "" }
                     it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
-                    it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
+                    it.isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, myUser?.displayName, senderId) != true
                 }
                 val timelineEvent = timelineEventMapper.map(timelineEventEntity)
                 pendingEchoes[event.eventId] = timelineEvent

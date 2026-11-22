@@ -47,6 +47,7 @@ import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.StreamEventsManager
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomStateOverrides
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberEntityFactory
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
@@ -85,6 +86,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         private val clock: Clock,
         private val unRequestedForwardManager: UnRequestedForwardManager,
         private val localEchoRepository: Lazy<LocalEchoRepository>,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) {
 
     fun handle(
@@ -706,7 +708,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 overriddenSenderInfo(
                         userId = typingUser,
                         displayName = member.displayName,
-                        isUniqueDisplayName = memberHelper.isUniqueDisplayName(member.displayName),
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, member.displayName, typingUser) != true,
                         avatarUrl = member.avatarUrl,
                 )
             } else {
@@ -716,7 +718,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 overriddenSenderInfo(
                         userId = typingUser,
                         displayName = displayName,
-                        isUniqueDisplayName = typingUserProfileResolver.isUniqueAmongMembers(roomId, displayName),
+                        isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName, typingUser) != true,
                         avatarUrl = fetched?.avatarUrl ?: user?.avatarUrl,
                 )
             }

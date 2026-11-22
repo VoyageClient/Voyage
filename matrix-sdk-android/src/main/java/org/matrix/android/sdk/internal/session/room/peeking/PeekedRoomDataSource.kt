@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.query.matches
+import org.matrix.android.sdk.internal.session.room.membership.RoomMemberNameIndex
 
 /**
  * In-memory holder for the data of one peeked (world-readable, not joined) room: state events,
@@ -119,11 +120,12 @@ internal class PeekedRoomDataSource(
         )
     }
 
-    /** Single source for the member→SenderInfo mapping so all surfaces disambiguate identically. */
+    fun isDisplayNameAmbiguous(displayName: String?, userId: String? = null): Boolean =
+            RoomMemberNameIndex.fromState(memberContents).isAmbiguous(displayName, userId)
+
     fun senderInfo(userId: String?): SenderInfo {
         val member = userId?.let { memberContents[it] }
-        val duplicated = member?.displayName != null &&
-                memberContents.values.count { it.membership == Membership.JOIN && it.displayName == member.displayName } > 1
+        val duplicated = isDisplayNameAmbiguous(member?.displayName, userId)
         return SenderInfo(
                 userId = userId.orEmpty(),
                 displayName = member?.displayName,
@@ -265,10 +267,7 @@ internal class PeekedRoomDataSource(
 
     /** Rebuild all published snapshots from the mutable structures. Call under [mutex]. */
     fun publish() {
-        val displayNameCounts = memberContents.values
-                .filter { it.membership == Membership.JOIN }
-                .groupingBy { it.displayName }
-                .eachCount()
+        val nameIndex = RoomMemberNameIndex.fromState(memberContents)
         val chronological = eventsById.values.map { event ->
             val member = event.senderId?.let { memberContents[it] }
             TimelineEvent(
@@ -278,7 +277,7 @@ internal class PeekedRoomDataSource(
                     senderInfo = SenderInfo(
                             userId = event.senderId.orEmpty(),
                             displayName = member?.displayName,
-                            isUniqueDisplayName = (displayNameCounts[member?.displayName] ?: 1) <= 1,
+                            isUniqueDisplayName = !nameIndex.isAmbiguous(member?.displayName, event.senderId),
                             avatarUrl = member?.avatarUrl,
                     ),
                     annotations = event.eventId?.let { buildAnnotations(it) },

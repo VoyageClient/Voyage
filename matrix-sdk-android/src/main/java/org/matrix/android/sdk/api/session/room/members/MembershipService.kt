@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 
@@ -68,12 +69,15 @@ interface MembershipService {
     fun getRoomMemberColorPreference(userId: String): ColorPreference? = getRoomMember(userId)?.colorPreference
 
     /**
-     * Whether more than one member of the room wears [displayName], so it needs the user id beside it.
+     * Whether more than one joined or invited member wears [displayName].
      * Null when the room's members are not loaded yet.
      */
     fun isDisplayNameAmbiguous(displayName: String?): Boolean? {
         if (displayName.isNullOrEmpty()) return false
-        return getRoomMembers(roomMemberQueryParams { this.displayName = QueryStringValue.Equals(displayName) }).size > 1
+        return getRoomMembers(roomMemberQueryParams {
+            this.displayName = QueryStringValue.Equals(displayName)
+            memberships = Membership.activeMemberships()
+        }).size > 1
     }
 
     /** [displayName] with the user id appended when another member of the room shares it. */

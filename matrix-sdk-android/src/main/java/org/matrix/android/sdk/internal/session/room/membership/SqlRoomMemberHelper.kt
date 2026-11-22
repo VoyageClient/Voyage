@@ -54,13 +54,6 @@ internal class SqlRoomMemberHelper(
         )
     }
 
-    fun isUniqueDisplayName(displayName: String?): Boolean {
-        if (displayName.isNullOrEmpty()) return true
-        return stores.roomMember.getByRoom(roomId).count { it.displayName == displayName } == 1
-    }
-
-    fun queryRoomMembersEvent(): List<RoomMemberSummaryEntity> = stores.roomMember.getByRoom(roomId)
-
     fun queryJoinedRoomMembersEvent(): List<RoomMemberSummaryEntity> =
             stores.roomMember.getByRoomAndMemberships(roomId, listOf(Membership.JOIN))
 

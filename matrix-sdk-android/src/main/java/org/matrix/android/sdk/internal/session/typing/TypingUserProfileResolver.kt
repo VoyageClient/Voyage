@@ -19,6 +19,7 @@ import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.SessionCoroutineScopeHolder
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ internal class TypingUserProfileResolver @Inject constructor(
         private val stores: SessionStores,
         private val typingUsersTracker: DefaultTypingUsersTracker,
         private val scopeHolder: SessionCoroutineScopeHolder,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) {
 
     data class Profile(val displayName: String?, val avatarUrl: String?)
@@ -73,7 +75,7 @@ internal class TypingUserProfileResolver @Inject constructor(
                     overriddenSenderInfo(
                             userId = userId,
                             displayName = profile.displayName ?: it.displayName,
-                            isUniqueDisplayName = isUniqueAmongMembers(roomId, profile.displayName),
+                            isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, profile.displayName ?: it.displayName, userId) != true,
                             avatarUrl = profile.avatarUrl ?: it.avatarUrl,
                     )
                 }
@@ -83,11 +85,6 @@ internal class TypingUserProfileResolver @Inject constructor(
             }
         }
         return null
-    }
-
-    fun isUniqueAmongMembers(roomId: String, displayName: String?): Boolean {
-        if (displayName.isNullOrEmpty()) return true
-        return stores.roomMember.getByRoom(roomId).none { it.displayName == displayName }
     }
 
     private companion object {

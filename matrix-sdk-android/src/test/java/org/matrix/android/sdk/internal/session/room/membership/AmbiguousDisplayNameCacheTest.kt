@@ -12,6 +12,7 @@ import io.mockk.mockk
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 
@@ -28,8 +29,9 @@ class AmbiguousDisplayNameCacheTest {
 
     private val cache = AmbiguousDisplayNameCache(stores)
 
-    private fun member(userId: String, displayName: String?) =
+    private fun member(userId: String, displayName: String?, membership: Membership = Membership.JOIN) =
             RoomMemberSummaryEntity(primaryKey = "$A_ROOM-$userId", userId = userId, roomId = A_ROOM, displayName = displayName)
+                    .apply { this.membership = membership }
 
     @Test
     fun `a name only one member wears is not ambiguous`() {
@@ -45,7 +47,40 @@ class AmbiguousDisplayNameCacheTest {
         cache.isAmbiguous(A_ROOM, "Alice") shouldBe true
     }
 
-    /** Members load lazily; claiming uniqueness before they arrive is what dropped the suffix. */
+    @Test
+    fun `departed banned and knocking namesakes do not disambiguate an active member`() {
+        members = listOf(
+                member("@alice:example.org", "Alice"),
+                member("@former:example.org", "Alice", Membership.LEAVE),
+                member("@blocked:example.org", "Alice", Membership.BAN),
+                member("@waiting:example.org", "Alice", Membership.KNOCK),
+        )
+
+        cache.isAmbiguous(A_ROOM, "Alice", "@alice:example.org") shouldBe false
+    }
+
+    @Test
+    fun `invited namesakes count as active`() {
+        members = listOf(member("@alice:example.org", "Alice"), member("@guest:example.org", "Alice", Membership.INVITE))
+
+        cache.isAmbiguous(A_ROOM, "Alice", "@alice:example.org") shouldBe true
+    }
+
+    @Test
+    fun `a sender not in the active table is distinguished from an active namesake`() {
+        members = listOf(member("@alice:example.org", "Alice"))
+
+        cache.isAmbiguous(A_ROOM, "Alice", "@uncached:example.org") shouldBe true
+        cache.isAmbiguous(A_ROOM, "Alice", "@alice:example.org") shouldBe false
+    }
+
+    @Test
+    fun `known departed members do not make the room unknown`() {
+        members = listOf(member("@former:example.org", "Alice", Membership.LEAVE))
+
+        cache.isAmbiguous(A_ROOM, "Alice") shouldBe false
+    }
+
     @Test
     fun `an unloaded room answers unknown`() {
         members = emptyList()
@@ -72,7 +107,6 @@ class AmbiguousDisplayNameCacheTest {
         cache.isAmbiguous(A_ROOM, "Alice") shouldBe true
     }
 
-    /** The mapper's fingerprint keys off the generation, so a rebuild has to be able to see the change. */
     @Test
     fun `invalidating a loaded room moves the generation`() {
         members = listOf(member("@alice:example.org", "Alice"))
@@ -93,7 +127,6 @@ class AmbiguousDisplayNameCacheTest {
         cache.generation shouldBeEqualTo before
     }
 
-    /** Re-querying per event cost seconds of a cold room open, since every event asks about its sender. */
     @Test
     fun `an unloaded room is queried once, not once per ask`() {
         members = emptyList()

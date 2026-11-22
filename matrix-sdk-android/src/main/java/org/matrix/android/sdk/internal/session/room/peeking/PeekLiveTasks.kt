@@ -25,6 +25,7 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterFactory
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.membership.RoomMemberNameIndex
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
@@ -121,7 +122,7 @@ internal class DefaultPeekRoomUploadsTask @Inject constructor(
                 .filter { it.type == EventType.STATE_ROOM_MEMBER }
                 .mapNotNull { ev -> ev.stateKey?.let { it to ev.content.toModel<RoomMemberContent>() } }
                 .toMap()
-        val displayNameCounts = memberContents.values.filterNotNull().groupingBy { it.displayName }.eachCount()
+        val nameIndex = RoomMemberNameIndex.fromState(memberContents)
         val uploadEvents = chunk.events.mapNotNull { event ->
             val eventId = event.eventId ?: return@mapNotNull null
             val messageWithAttachmentContent = if (event.isSticker()) {
@@ -138,7 +139,7 @@ internal class DefaultPeekRoomUploadsTask @Inject constructor(
                     senderInfo = SenderInfo(
                             userId = senderId,
                             displayName = member?.displayName,
-                            isUniqueDisplayName = (displayNameCounts[member?.displayName] ?: 1) <= 1,
+                            isUniqueDisplayName = !nameIndex.isAmbiguous(member?.displayName, senderId),
                             avatarUrl = member?.avatarUrl,
                     ),
             )

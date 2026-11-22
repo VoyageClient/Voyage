@@ -219,8 +219,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             lifecycleScope.launch {
                 val events = loadRoomAttachmentEvents(room)
                 val changed = withContext(Dispatchers.Default) {
-                    events.map { it.eventId to it.getVectorLastMessageContent() } !=
-                            roomMedia.orEmpty().map { it.eventId to it.getVectorLastMessageContent() }
+                    events.map { Triple(it.eventId, it.getVectorLastMessageContent(), it.senderInfo) } !=
+                            roomMedia.orEmpty().map { Triple(it.eventId, it.getVectorLastMessageContent(), it.senderInfo) }
                 }
                 if (changed) {
                     val provider = dataSourceFactory.createProvider(events, lifecycleScope)

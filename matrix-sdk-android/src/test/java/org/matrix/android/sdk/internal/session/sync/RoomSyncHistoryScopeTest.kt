@@ -65,6 +65,7 @@ class RoomSyncHistoryScopeTest {
                 clock = mockk(relaxed = true),
                 unRequestedForwardManager = mockk(relaxed = true),
                 localEchoRepository = mockk(relaxed = true),
+                ambiguousDisplayNameCache = mockk(relaxed = true),
         )
         val aggregator = SyncResponsePostTreatmentAggregator()
         handler.handle(

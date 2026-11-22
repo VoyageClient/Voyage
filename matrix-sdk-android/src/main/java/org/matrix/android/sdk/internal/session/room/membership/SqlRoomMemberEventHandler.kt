@@ -52,7 +52,8 @@ internal class SqlRoomMemberEventHandler @Inject constructor(
         val existing = stores.roomMember.getByRoomAndUser(roomId, userId)
         val color = roomMember.effectiveColorPreference()
         roomMemberColorCache.put(roomId, userId, color)
-        if (existing?.displayName != roomMember.displayName) ambiguousDisplayNameCache.invalidate(roomId)
+        val nameIndexChanged = existing == null || existing.displayName != roomMember.displayName ||
+                existing.membership.isActive() != roomMember.membership.isActive()
         if (existing != null) {
             existing.displayName = roomMember.displayName
             existing.avatarUrl = roomMember.avatarUrl
@@ -64,6 +65,7 @@ internal class SqlRoomMemberEventHandler @Inject constructor(
             val presence = stores.user.getPresence(userId)
             stores.roomMember.upsert(RoomMemberEntityFactory.create(roomId, userId, roomMember, presence))
         }
+        if (nameIndexChanged) ambiguousDisplayNameCache.invalidate(roomId)
     }
 
     private fun saveUserLocally(stores: SessionStores, userId: String, roomMember: RoomMemberContent) {

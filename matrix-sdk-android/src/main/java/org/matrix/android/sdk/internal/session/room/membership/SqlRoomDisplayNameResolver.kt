@@ -29,6 +29,7 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
         matrixConfiguration: MatrixConfiguration,
         private val displayNameResolver: DisplayNameResolver,
         private val normalizer: Normalizer,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
         @UserId private val userId: String,
 ) {
     private val roomDisplayNameFallbackProvider = matrixConfiguration.roomDisplayNameFallbackProvider
@@ -57,7 +58,7 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
                 val directName = ProfileOverrides.displayNameOr(directUserId, directMember?.displayName)
                 val hasOverride = ProfileOverrides.fieldsFor(directUserId)?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
                 if (directMember?.membership?.isActive() == true && (hasOverride || !directName.isNullOrBlank())) {
-                    return resolveRoomMemberName(directMember, roomMembers).toRoomName()
+                    return resolveRoomMemberName(directMember, roomId).toRoomName()
                 }
             }
         }
@@ -99,28 +100,28 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
                         roomDisplayNameFallbackProvider.getNameForEmptyRoom(summary?.is_direct == 1L, leftMembersNames)
                     }
                 }
-                1 -> roomDisplayNameFallbackProvider.getNameFor1member(resolveRoomMemberName(otherMembersSubset[0], roomMembers))
+                1 -> roomDisplayNameFallbackProvider.getNameFor1member(resolveRoomMemberName(otherMembersSubset[0], roomId))
                 2 -> roomDisplayNameFallbackProvider.getNameFor2members(
-                        resolveRoomMemberName(otherMembersSubset[0], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[1], roomMembers),
+                        resolveRoomMemberName(otherMembersSubset[0], roomId),
+                        resolveRoomMemberName(otherMembersSubset[1], roomId),
                 )
                 3 -> roomDisplayNameFallbackProvider.getNameFor3members(
-                        resolveRoomMemberName(otherMembersSubset[0], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[1], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[2], roomMembers),
+                        resolveRoomMemberName(otherMembersSubset[0], roomId),
+                        resolveRoomMemberName(otherMembersSubset[1], roomId),
+                        resolveRoomMemberName(otherMembersSubset[2], roomId),
                 )
                 4 -> roomDisplayNameFallbackProvider.getNameFor4members(
-                        resolveRoomMemberName(otherMembersSubset[0], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[1], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[2], roomMembers),
-                        resolveRoomMemberName(otherMembersSubset[3], roomMembers),
+                        resolveRoomMemberName(otherMembersSubset[0], roomId),
+                        resolveRoomMemberName(otherMembersSubset[1], roomId),
+                        resolveRoomMemberName(otherMembersSubset[2], roomId),
+                        resolveRoomMemberName(otherMembersSubset[3], roomId),
                 )
                 else -> {
                     val remainingCount = invitedCount + joinedCount - otherMembersCount + 1
                     roomDisplayNameFallbackProvider.getNameFor4membersAndMore(
-                            resolveRoomMemberName(otherMembersSubset[0], roomMembers),
-                            resolveRoomMemberName(otherMembersSubset[1], roomMembers),
-                            resolveRoomMemberName(otherMembersSubset[2], roomMembers),
+                            resolveRoomMemberName(otherMembersSubset[0], roomId),
+                            resolveRoomMemberName(otherMembersSubset[1], roomId),
+                            resolveRoomMemberName(otherMembersSubset[2], roomId),
                             remainingCount,
                     )
                 }
@@ -129,12 +130,12 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
         return (name ?: roomId).toRoomName()
     }
 
-    private fun resolveRoomMemberName(roomMemberSummary: RoomMemberSummaryEntity, roomMemberHelper: SqlRoomMemberHelper): String {
+    private fun resolveRoomMemberName(roomMemberSummary: RoomMemberSummaryEntity, roomId: String): String {
         // A user-chosen override needs no disambiguation.
         ProfileOverrides.fieldsFor(roomMemberSummary.userId)?.let {
             if (ProfileOverrides.FIELD_DISPLAY_NAME in it) return ProfileOverrides.displayNameFor(roomMemberSummary.userId) ?: roomMemberSummary.userId
         }
-        val isUnique = roomMemberHelper.isUniqueDisplayName(roomMemberSummary.displayName)
+        val isUnique = ambiguousDisplayNameCache.isAmbiguous(roomId, roomMemberSummary.displayName, roomMemberSummary.userId) != true
         return if (isUnique) {
             displayNameResolver.getBestName(roomMemberSummary.toMatrixItem())
         } else {

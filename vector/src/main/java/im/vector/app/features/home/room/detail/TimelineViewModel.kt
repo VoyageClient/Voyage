@@ -1623,7 +1623,7 @@ private fun handleSelectStickerAttachment() {
         timelineEvents
                 .map { snapshot ->
                     snapshot.filter { it.root.isAttachmentMessage() || it.root.isGalleryMessage() || it.root.isSticker() }
-                            .map { it.eventId to it.getVectorLastMessageContent() }
+                            .map { Triple(it.eventId, it.getVectorLastMessageContent(), it.senderInfo) }
                 }
                 .distinctUntilChanged()
                 .onEach { roomAttachmentEvents = null }
