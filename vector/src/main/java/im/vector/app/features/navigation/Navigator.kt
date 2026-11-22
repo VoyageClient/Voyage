@@ -33,6 +33,7 @@ import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.terms.TermsService
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -174,6 +175,7 @@ interface Navigator {
             // Off to cross-fade instead of morphing out of [view], as avatars do.
             morphFromView: Boolean = true,
             hideShowInChat: Boolean = false,
+            roomMedia: List<TimelineEvent>? = null,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     )
 

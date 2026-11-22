@@ -10,13 +10,18 @@ package im.vector.app.features.media
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.attachmentviewer.AttachmentInfo
+import im.vector.lib.attachmentviewer.VideoLoaderTarget
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -24,6 +29,7 @@ import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import java.io.File
 
 class RoomEventsAttachmentProviderTest {
 
@@ -75,12 +81,12 @@ class RoomEventsAttachmentProviderTest {
             ),
     )
 
-    private fun aProvider(events: List<TimelineEvent>): RoomEventsAttachmentProvider {
+    private fun aProvider(events: List<TimelineEvent>, fileService: FileService = mockk(relaxed = true)): RoomEventsAttachmentProvider {
         return RoomEventsAttachmentProvider(
                 attachments = events,
                 imageContentRenderer = mockk<ImageContentRenderer>(relaxed = true),
                 dateFormatter = mockk<VectorDateFormatter>(relaxed = true),
-                fileService = mockk<FileService>(relaxed = true),
+                fileService = fileService,
                 coroutineScope = CoroutineScope(Dispatchers.Unconfined),
                 stringProvider = mockk<StringProvider>(relaxed = true),
         )
@@ -130,9 +136,44 @@ class RoomEventsAttachmentProviderTest {
         )
         assertEquals(0, provider.indexForEvent("\$img"))
         assertEquals(1, provider.indexForEvent("\$gallery"))
+        assertEquals(2, provider.indexForEvent("\$gallery", galleryIndex = 1))
+        assertEquals(-1, provider.indexForEvent("\$gallery", galleryIndex = 2))
         assertEquals(3, provider.indexForEvent("\$img2"))
         assertEquals(3, provider.indexForEvent("\$local-echo"))
         assertEquals(-1, provider.indexForEvent("\$unknown"))
+    }
+
+    @Test
+    fun `cached videos reach the player without a loading state or download`() {
+        val cachedFile = File("/tmp/cached-viewer-video.mp4")
+        val fileService = mockk<FileService>(relaxed = true)
+        every { fileService.getLocalFileFor(any(), any(), any(), any()) } returns cachedFile
+        val provider = aProvider(listOf(aTimelineEvent("\$gallery", aGalleryContent())), fileService)
+        val target = mockk<VideoLoaderTarget>(relaxed = true)
+        val video = provider.getAttachmentInfoAt(1) as AttachmentInfo.Video
+
+        provider.loadVideo(target, video)
+
+        verify { target.onVideoFileReady(video.uid, cachedFile) }
+        verify(exactly = 0) { target.onVideoFileLoading(any()) }
+        coVerify(exactly = 0) { fileService.downloadFile(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `encrypted videos use the decrypted cache before showing a loader`() {
+        val cachedFile = File("/tmp/decrypted-viewer-video.mp4")
+        val fileService = mockk<FileService>(relaxed = true)
+        every { fileService.getLocalFileFor(any(), any(), any(), true) } returns cachedFile
+        val provider = aProvider(listOf(aTimelineEvent("\$gallery", aGalleryContent())), fileService)
+        val target = mockk<VideoLoaderTarget>(relaxed = true)
+        val video = provider.getAttachmentInfoAt(1) as AttachmentInfo.Video
+        val encrypted = video.copy(data = (video.data as VideoContentRenderer.Data).copy(elementToDecrypt = ElementToDecrypt("iv", "key", "hash")))
+
+        provider.loadVideo(target, encrypted)
+
+        verify { target.onVideoFileReady(video.uid, cachedFile) }
+        verify(exactly = 0) { target.onVideoFileLoading(any()) }
+        coVerify(exactly = 0) { fileService.downloadFile(any(), any(), any(), any()) }
     }
 
     @Test

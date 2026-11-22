@@ -11,6 +11,7 @@ import android.util.Log
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MainThreadWatchdog
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.attachmentviewer.AttachmentViewerDebug
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.debug.NetworkDiagnostics
 import timber.log.Timber
@@ -31,6 +32,16 @@ class AppLogging @Inject constructor(
 
     private val logcatTree by lazy { LogcatTree() }
     private val mainThreadWatchdog by lazy { MainThreadWatchdog() }
+
+    init {
+        AttachmentViewerDebug.logger = object : AttachmentViewerDebug.Logger {
+            override val enabled: Boolean get() = DebugLog.enabled
+            override fun info(message: String) = DebugLog.i { message }
+            override fun warn(failure: Throwable?, message: String) {
+                if (failure == null) DebugLog.w { message } else DebugLog.w(failure) { message }
+            }
+        }
+    }
 
     @Synchronized
     fun apply(enable: Boolean = vectorPreferences.isLoggingEnabled()) {

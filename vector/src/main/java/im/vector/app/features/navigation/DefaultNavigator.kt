@@ -107,6 +107,7 @@ import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.terms.TermsService
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
@@ -511,8 +512,10 @@ class DefaultNavigator @Inject constructor(
             pageOverRoomMedia: Boolean,
             morphFromView: Boolean,
             hideShowInChat: Boolean,
+            roomMedia: List<TimelineEvent>?,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     ) {
+        if (morphFromView && !claimSceneTransition(activity)) return
         val cornerRadiusPx = (view.tag as? Float)?.toInt()?.takeIf { it > 0 } ?: 0
         VectorAttachmentViewerActivity.newIntent(
                 activity,
@@ -525,6 +528,7 @@ class DefaultNavigator @Inject constructor(
                 standalonePreview = standalonePreview,
                 openedFromTimeline = pageOverRoomMedia && activity is RoomDetailActivity,
                 hideShowInChat = hideShowInChat,
+                roomMedia = roomMedia,
         ).let { intent ->
             if (!morphFromView) {
                 // Cross-fade, like an avatar: the message it came from stands in for the media instead.
@@ -543,7 +547,6 @@ class DefaultNavigator @Inject constructor(
             pairs.add(Pair(view, ViewCompat.getTransitionName(view) ?: ""))
             options?.invoke(pairs)
 
-            if (!claimSceneTransition(activity)) return
             val bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, *pairs.toTypedArray()).toBundle()
             ActivityCompat.startActivity(activity, intent, bundle)
         }

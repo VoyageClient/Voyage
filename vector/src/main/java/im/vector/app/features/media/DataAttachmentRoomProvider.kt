@@ -36,6 +36,12 @@ class DataAttachmentRoomProvider(
         stringProvider = stringProvider
 ) {
 
+    override fun getAttachmentIdAt(position: Int): String = when (val item = getItem(position)) {
+        is ImageContentRenderer.Data -> galleryPageId(item.eventId, item.galleryIndex)
+        is VideoContentRenderer.Data -> galleryPageId(item.eventId, item.galleryIndex)
+        else -> item.eventId
+    }
+
     override fun getAttachmentInfoAt(position: Int): AttachmentInfo {
         return getItem(position).let {
             // Same ids as RoomEventsAttachmentProvider: a provider swap keeps in-flight loads
@@ -63,6 +69,7 @@ class DataAttachmentRoomProvider(
                             uid = uid,
                             url = it.url ?: "",
                             data = it,
+                            resourceKey = it.viewerResourceKey(),
                             thumbnail = AttachmentInfo.Image(
                                     uid = uid,
                                     url = it.thumbnailMediaData.url ?: "",

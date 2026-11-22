@@ -11,7 +11,6 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.view.Surface
 
 /** The platform player, for the versions ExoPlayer does not reach. */
@@ -32,7 +31,7 @@ internal class LegacyVideoPlayback : VideoPlayback {
     override val audioSessionId: Int
         get() = runCatching { player?.audioSessionId ?: 0 }.getOrDefault(0)
 
-    override fun open(context: Context, source: String, surface: Surface, looping: Boolean, listener: VideoPlayback.Listener) {
+    override fun open(context: Context, source: String, surface: Surface?, looping: Boolean, startPositionMs: Int, listener: VideoPlayback.Listener) {
         prepared = false
         try {
             player = MediaPlayer().apply {
@@ -47,21 +46,29 @@ internal class LegacyVideoPlayback : VideoPlayback {
                 setOnVideoSizeChangedListener { _, width, height -> listener.onVideoSizeChanged(width, height, 1f, 0) }
                 setOnPreparedListener {
                     prepared = true
-                    listener.onReady()
+                    if (startPositionMs > 0) {
+                        setOnSeekCompleteListener {
+                            setOnSeekCompleteListener(null)
+                            listener.onReady()
+                        }
+                        seekTo(startPositionMs)
+                    } else {
+                        listener.onReady()
+                    }
                 }
                 setOnCompletionListener { listener.onCompletion() }
                 // Without one of these the platform reports an error as a completion, and a player
                 // whose media server has gone answers every later call with another error — the two
                 // feed each other into a storm that locks the UI up. Take the player down instead.
                 setOnErrorListener { _, what, extra ->
-                    Log.w(LegacyVideoPlayback::class.java.name, "Video error what=$what extra=$extra")
+                    AttachmentViewerDebug.w { "stage=legacy-error what=$what extra=$extra" }
                     listener.onError()
                     true
                 }
                 prepareAsync()
             }
         } catch (failure: Throwable) {
-            Log.w(LegacyVideoPlayback::class.java.name, "Failed to start video", failure)
+            AttachmentViewerDebug.w(failure) { "stage=legacy-open-failed" }
             release()
             listener.onError()
         }

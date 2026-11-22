@@ -61,9 +61,13 @@ class RoomEventsAttachmentProvider(
         stringProvider = stringProvider
 ) {
 
-    fun indexForEvent(eventId: String): Int {
+    override fun getAttachmentIdAt(position: Int): String = getItem(position).uid
+
+    fun indexForEvent(eventId: String, galleryIndex: Int? = null): Int {
         for (position in 0 until getItemCount()) {
-            val event = getItem(position).event
+            val item = getItem(position)
+            if (galleryIndex != null && item.galleryIndex != galleryIndex) continue
+            val event = item.event
             // Also by transaction id: a just-sent event can have swapped its local-echo id for the
             // server one between the tap and this lookup.
             if (event.eventId == eventId ||
@@ -147,6 +151,7 @@ class RoomEventsAttachmentProvider(
                     uid = item.uid,
                     url = content.getFileUrl() ?: "",
                     data = data,
+                    resourceKey = data.viewerResourceKey(),
                     thumbnail = AttachmentInfo.Image(
                             uid = item.uid,
                             url = content.videoInfo?.getThumbnailUrl() ?: "",

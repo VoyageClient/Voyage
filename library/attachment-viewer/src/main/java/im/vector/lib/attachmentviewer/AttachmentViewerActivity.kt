@@ -272,11 +272,13 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     open fun onSelectedPositionChanged(position: Int) {
         val previous = attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? BaseViewHolder
-        previous?.onSelected(false)
+        val selected = attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(position) as? BaseViewHolder
         // The overlay belongs to whichever page is showing: a page left holding the listener keeps
         // writing its own position and duration into the controls of the one that is.
-        (previous as? VideoViewHolder)?.eventListener = null
-        val selected = attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(position) as? BaseViewHolder
+        if (previous !== selected) {
+            previous?.onSelected(false)
+            (previous as? VideoViewHolder)?.eventListener = null
+        }
         // Properties first: onSelected may start playback, which reads them.
         if (selected is VideoViewHolder) {
             selected.eventListener = WeakReference(this)
@@ -397,6 +399,7 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     override fun onDestroy() {
+        attachmentsAdapter.releasePlayers()
         unregisterPictureInPictureControls()
         if (pictureInPictureActivity?.get() === this) pictureInPictureActivity = null
         super.onDestroy()

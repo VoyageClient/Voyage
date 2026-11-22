@@ -11,6 +11,8 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -23,6 +25,12 @@ class AttachmentProviderFactory @Inject constructor(
         private val session: Session,
         private val preservedAttachmentResolver: PreservedAttachmentResolver,
 ) {
+
+    suspend fun loadRoomAttachmentEvents(room: Room?, roomId: String? = room?.roomId): List<TimelineEvent> = withContext(Dispatchers.IO) {
+        val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
+        val preserved = roomId?.let { preservedAttachmentResolver.attachments(it) }.orEmpty()
+        if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
+    }
 
     fun createProvider(
             attachments: List<TimelineEvent>,

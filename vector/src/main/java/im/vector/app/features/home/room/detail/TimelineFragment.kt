@@ -19,6 +19,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.os.SystemClock
 import android.text.method.LinkMovementMethod
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -2425,7 +2426,8 @@ class TimelineFragment :
                     roomId = timelineArgs.roomId,
                     mediaData = mediaData,
                     view = view,
-                    inMemory = inMemory
+                    inMemory = inMemory,
+                    roomMedia = timelineViewModel.roomAttachmentEvents,
             ) { pairs ->
                 pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
                 pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
@@ -2439,13 +2441,17 @@ class TimelineFragment :
             view: View,
             inMemory: List<AttachmentData>
     ) {
+        val tappedAt = SystemClock.elapsedRealtime()
+        DebugLog.i { "VIDEODBG stage=tap" }
         openAfterKeyboardDismissal {
+            DebugLog.i { "VIDEODBG stage=launch elapsedMs=${SystemClock.elapsedRealtime() - tappedAt}" }
             navigator.openMediaViewer(
                     activity = requireActivity(),
                     roomId = timelineArgs.roomId,
                     mediaData = mediaData,
                     view = view,
                     inMemory = inMemory,
+                    roomMedia = timelineViewModel.roomAttachmentEvents,
                     morphFromView = mediaData.hasPoster,
             ) { pairs ->
                 pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))

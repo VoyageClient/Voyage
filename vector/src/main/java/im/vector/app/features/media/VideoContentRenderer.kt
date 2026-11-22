@@ -30,6 +30,9 @@ import javax.inject.Inject
 val VideoContentRenderer.Data.hasPoster: Boolean
     get() = thumbnailMediaData.url != null || thumbnailMediaData.preservedFile != null
 
+internal fun VideoContentRenderer.Data.viewerResourceKey(): List<Any?> =
+        listOf(url, elementToDecrypt, preservedFile, allowNonMxcUrls, thumbnailMediaData.url, thumbnailMediaData.elementToDecrypt, thumbnailMediaData.preservedFile)
+
 class VideoContentRenderer @Inject constructor(
         private val localFilesHelper: LocalFilesHelper,
         private val activeSessionHolder: ActiveSessionHolder,

@@ -7,16 +7,51 @@
 
 package im.vector.lib.attachmentviewer
 
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import java.util.WeakHashMap
 
 class AttachmentsAdapter : RecyclerView.Adapter<BaseViewHolder>() {
 
+    private var attachmentIds: List<String> = emptyList()
+    private val stableIds = HashMap<String, Long>()
+    private var nextStableId = 0L
+    private val playbackPool = VideoPlaybackPool()
+    private val videoHolders = WeakHashMap<VideoViewHolder, Unit>()
+
+    init {
+        setHasStableIds(true)
+    }
+
     var attachmentSourceProvider: AttachmentSourceProvider? = null
         set(value) {
+            val started = SystemClock.elapsedRealtime()
+            val previous = attachmentIds
+            val previousProvider = field
+            val next = value?.let { provider -> (0 until provider.getItemCount()).map { provider.getAttachmentIdAt(it) } }.orEmpty()
+            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize() = previous.size
+                override fun getNewListSize() = next.size
+                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+                        previous[oldItemPosition] == next[newItemPosition]
+
+                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    val old = previousProvider?.getAttachmentInfoAt(oldItemPosition)
+                    val new = value?.getAttachmentInfoAt(newItemPosition)
+                    return if (old is AttachmentInfo.Video && new is AttachmentInfo.Video) {
+                        old.url == new.url && old.resourceKey == new.resourceKey
+                    } else {
+                        old == new
+                    }
+                }
+            })
             field = value
-            notifyDataSetChanged()
+            attachmentIds = next
+            diff.dispatchUpdatesTo(this)
+            AttachmentViewerDebug.i { "stage=adapter-update previous=${previous.size} next=${next.size} elapsedMs=${SystemClock.elapsedRealtime() - started}" }
         }
 
     var recyclerView: RecyclerView? = null
@@ -35,7 +70,10 @@ class AttachmentsAdapter : RecyclerView.Adapter<BaseViewHolder>() {
         return when (viewType) {
             R.layout.item_image_attachment -> ZoomableImageViewHolder(itemView)
             R.layout.item_animated_image_attachment -> AnimatedImageViewHolder(itemView)
-            R.layout.item_video_attachment -> VideoViewHolder(itemView)
+            R.layout.item_video_attachment -> VideoViewHolder(itemView).also {
+                it.playbackPool = playbackPool
+                videoHolders[it] = Unit
+            }
             else -> UnsupportedViewHolder(itemView)
         }
     }
@@ -52,8 +90,10 @@ class AttachmentsAdapter : RecyclerView.Adapter<BaseViewHolder>() {
     }
 
     override fun getItemCount(): Int {
-        return attachmentSourceProvider?.getItemCount() ?: 0
+        return attachmentIds.size
     }
+
+    override fun getItemId(position: Int): Long = stableIds.getOrPut(attachmentIds[position]) { nextStableId++ }
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
         attachmentSourceProvider?.getAttachmentInfoAt(position)?.let {
@@ -103,5 +143,11 @@ class AttachmentsAdapter : RecyclerView.Adapter<BaseViewHolder>() {
     fun onResume(position: Int) {
         val holder = recyclerView?.findViewHolderForAdapterPosition(position) as? BaseViewHolder
         holder?.entersForeground()
+    }
+
+    fun releasePlayers() {
+        playbackPool.close()
+        videoHolders.keys.toList().forEach { it.dispose() }
+        videoHolders.clear()
     }
 }

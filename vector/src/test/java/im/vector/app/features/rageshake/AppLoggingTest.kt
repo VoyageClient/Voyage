@@ -12,6 +12,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.test.fixtures.aBuildMeta
+import im.vector.lib.attachmentviewer.AttachmentViewerDebug
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeEqualTo
@@ -54,6 +55,7 @@ class AppLoggingTest {
         fileLogger.close()
         tagFileLogger.close()
         DebugLog.enabled = false
+        AttachmentViewerDebug.logger = null
         drainWriters()
     }
 
@@ -116,6 +118,39 @@ class AppLoggingTest {
         appLogging(isDebug = true).apply(true)
 
         Timber.treeCount shouldBeEqualTo 3
+    }
+
+    @Test
+    fun `media and receipt diagnostics use the saved DBG logs without release logcat`() {
+        appLogging(isDebug = false).apply(true)
+        ShadowLog.clear()
+
+        AttachmentViewerDebug.i { "stage=prepared-resume" }
+        AttachmentViewerDebug.w { "stage=sample-warning-without-exception" }
+        AttachmentViewerDebug.w(IllegalStateException("Sample failure")) { "stage=sample-warning" }
+        DebugLog.i { "READDBG stage=marker-request" }
+        drainWriters()
+
+        File(logsDirectory, "videodbg.txt").readText().contains("VIDEODBG stage=prepared-resume").shouldBeTrue()
+        File(logsDirectory, "videodbg.txt").readText().contains("VIDEODBG stage=sample-warning").shouldBeTrue()
+        File(logsDirectory, "videodbg.txt").readText().contains("VIDEODBG stage=sample-warning-without-exception").shouldBeTrue()
+        File(logsDirectory, "readdbg.txt").readText().contains("READDBG stage=marker-request").shouldBeTrue()
+        ShadowLog.getLogs().none { it.tag == "VIDEODBG" || it.tag == "READDBG" }.shouldBeTrue()
+    }
+
+    @Test
+    fun `disabled media diagnostics do not evaluate their messages`() {
+        val appLogging = appLogging(isDebug = false)
+        appLogging.apply(true)
+        AttachmentViewerDebug.enabled.shouldBeTrue()
+        appLogging.apply(false)
+        var evaluations = 0
+
+        AttachmentViewerDebug.i { evaluations++; "stage=disabled" }
+        AttachmentViewerDebug.w(IllegalStateException("Sample failure")) { evaluations++; "stage=disabled-warning" }
+
+        AttachmentViewerDebug.enabled.shouldBeFalse()
+        evaluations shouldBeEqualTo 0
     }
 
     @Test

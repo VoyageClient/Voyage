@@ -33,7 +33,9 @@ internal interface VideoPlayback {
     /** Zero until there is a player to ask; a boost can only attach to a real session. */
     val audioSessionId: Int
 
-    fun open(context: Context, source: String, surface: Surface, looping: Boolean, listener: Listener)
+    val canRetainPreparedSource: Boolean get() = false
+
+    fun open(context: Context, source: String, surface: Surface?, looping: Boolean, startPositionMs: Int, listener: Listener)
     fun setSurface(surface: Surface?)
     fun setLooping(looping: Boolean)
     fun play()
@@ -47,6 +49,9 @@ internal interface VideoPlayback {
     fun setVolume(volume: Float)
 
     fun release()
+
+    // MediaPlayer needs a reset to change sources, which discards its prepared decoder.
+    fun prepareForReuse(): Boolean = false
 
     companion object {
         fun create(): VideoPlayback =

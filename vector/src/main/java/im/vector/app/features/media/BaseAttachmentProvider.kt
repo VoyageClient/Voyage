@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.io.File
@@ -96,7 +97,8 @@ abstract class BaseAttachmentProvider<Type>(
                 ((info as? AttachmentInfo.Video)?.data as? VideoContentRenderer.Data)?.durationMs
         )
         overlayUid = info.uid
-        overlayView?.setSeekPreviewSource(videoSourceCache[info.uid])
+        val video = (info as? AttachmentInfo.Video)?.data as? VideoContentRenderer.Data
+        overlayView?.setSeekPreviewSource(videoSourceCache[info.uid] ?: video?.let { cachedVideoFile(it)?.path })
 
         return overlayView
     }
@@ -177,11 +179,21 @@ abstract class BaseAttachmentProvider<Type>(
             }
         })
 
+        val cachedFile = cachedVideoFile(data)
+        if (cachedFile != null) {
+            DebugLog.i { "MEDIADBG viewer video source=cached uid=${info.uid}" }
+            onVideoSourceResolved(info.uid, cachedFile.path)
+            target.onVideoFileReady(info.uid, cachedFile)
+            return
+        }
+
         val localUrl = data.url?.takeIf { it.isLocalMediaUri() && data.allowNonMxcUrls }
         if (localUrl != null) {
+            DebugLog.i { "MEDIADBG viewer video source=local uid=${info.uid}" }
             onVideoSourceResolved(info.uid, localUrl)
             target.onVideoURLReady(info.uid, localUrl)
         } else {
+            DebugLog.i { "MEDIADBG viewer video source=download uid=${info.uid}" }
             target.onVideoFileLoading(info.uid)
             coroutineScope.launch(Dispatchers.IO) {
                 val result = runCatching {
@@ -208,6 +220,13 @@ abstract class BaseAttachmentProvider<Type>(
     override fun clear(id: String) {
         // TODO("Not yet implemented")
     }
+
+    private fun cachedVideoFile(data: VideoContentRenderer.Data): File? = data.preservedFile?.takeIf { it.isFile && it.canRead() } ?: fileService.getLocalFileFor(
+            mxcUrl = data.url,
+            fileName = data.filename,
+            mimeType = data.mimeType,
+            isEncrypted = data.elementToDecrypt != null,
+    )
 
     abstract suspend fun getFileForSharing(position: Int): File?
 }

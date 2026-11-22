@@ -9,10 +9,13 @@ package im.vector.lib.attachmentviewer
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
+import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.Surface
@@ -43,7 +46,12 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private var isSelected = false
-    private var mVideoPath: String? = null
+    @Volatile private var mVideoPath: String? = null
+    private var sourceReadyElapsedMs = 0L
+    private var retainedFrame: Bitmap? = null
+    private var resourceKey: Any? = null
+    private var startupTicks = 0
+    private var textureUpdates = 0
     private var countUpTimer: CountUpTimer? = null
     private var progress: Int = 0
     private var wasPaused = false
@@ -52,6 +60,7 @@ class VideoViewHolder constructor(itemView: View) :
     private var endedNaturally = false
 
     private var lastReportedPositionMs = 0
+    private var reportedFirstProgress = false
 
     /** Last duration a player reported, so the controls can be restored without one to ask. */
     private var lastKnownDurationMs = 0
@@ -60,6 +69,7 @@ class VideoViewHolder constructor(itemView: View) :
     @Volatile private var endFrameMs = -1
 
     private var player: VideoPlayback? = null
+    internal var playbackPool: VideoPlaybackPool? = null
     private var surface: Surface? = null
     private var isPrepared = false
     private var waitingForFirstFrame = false
@@ -94,8 +104,9 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                 surface = Surface(texture)
+                logPlayback { "surface-ready" }
                 player?.setSurface(surface)
-                if (player == null && mVideoPath != null && isSelected) {
+                if (mVideoPath != null && isSelected) {
                     startPlaying()
                 }
                 applyAspectMatrix()
@@ -106,6 +117,10 @@ class VideoViewHolder constructor(itemView: View) :
             }
 
             override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                player?.pause()
+                savePlaybackPosition()
+                retainFrame()
+                logPlayback { "surface-destroyed" }
                 releasePlayer()
                 surface?.release()
                 surface = null
@@ -113,16 +128,18 @@ class VideoViewHolder constructor(itemView: View) :
             }
 
             override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+                if (AttachmentViewerDebug.enabled && textureUpdates++ < 8) logPlayback { "texture-update positionMs=${player?.positionMs}" }
                 // Not before the frame size is known: until it is, the transform is identity and
                 // the picture is stretched to the view bounds.
-                if (waitingForFirstFrame && videoWidth > 0 && videoHeight > 0) {
+                if (waitingForFirstFrame && isPrepared && videoWidth > 0 && videoHeight > 0) {
                     revealVideo()
                 }
             }
         }
     }
 
-    private fun revealVideo() {
+    private fun revealVideo(stage: String = "first-frame") {
+        logPlayback { stage }
         waitingForFirstFrame = false
         itemView.removeCallbacks(revealFallback)
         views.videoView.alpha = 1f
@@ -130,7 +147,7 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     /** A video whose size never arrives would otherwise sit behind its poster for good. */
-    private val revealFallback = Runnable { if (waitingForFirstFrame) revealVideo() }
+    private val revealFallback = Runnable { if (waitingForFirstFrame) revealVideo("reveal-timeout") }
 
     /** Aspect-fit transform of the raw video frame to view bounds. Recomputed when either changes. */
     private val baseMatrix = Matrix()
@@ -350,6 +367,10 @@ class VideoViewHolder constructor(itemView: View) :
 
     override fun onRecycled() {
         super.onRecycled()
+        dispose()
+    }
+
+    internal fun dispose() {
         // Whatever page comes next is not selected until it is told so; carrying the flag over would
         // have an off-screen page start itself and report over the one on screen.
         isSelected = false
@@ -358,17 +379,19 @@ class VideoViewHolder constructor(itemView: View) :
         stopTimer()
         releasePlayer()
         mVideoPath = null
+        retainedFrame = null
+        resourceKey = null
+        views.videoThumbnailImage.setImageDrawable(null)
     }
 
     fun videoReady(file: File) {
-        mVideoPath = file.path
-        if (isSelected) {
-            startPlaying()
-        }
+        videoReady(file.path)
     }
 
     fun videoReady(path: String) {
+        sourceReadyElapsedMs = SystemClock.elapsedRealtime()
         mVideoPath = path
+        logPlayback { "source-ready" }
         if (isSelected) {
             startPlaying()
         }
@@ -381,11 +404,10 @@ class VideoViewHolder constructor(itemView: View) :
         val active = player ?: return
         // Saved even when paused: the surface teardown that follows releases the player, and a
         // position remembered only for playing videos would restart a paused one from the top.
-        progress = active.positionMs
-        if (active.isPlaying) {
-            stopTimer()
-            active.pause()
-        }
+        stopTimer()
+        active.pause()
+        savePlaybackPosition()
+        retainFrame()
     }
 
     override fun entersForeground() {
@@ -393,9 +415,12 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun onSelected(selected: Boolean) {
+        logPlayback { "selected=$selected" }
         if (selected) AttachmentViewerActivity.dismissPictureInPictureForVideo(this)
         if (!selected) {
-            progress = player?.takeIf { it.isPlaying }?.positionMs ?: 0
+            player?.pause()
+            savePlaybackPosition()
+            retainFrame()
             releasePlayer()
             resetZoom()
             // A speed and a volume belong to the video they were chosen for, so swiping away
@@ -423,10 +448,11 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private fun startPlaying() {
+        logPlayback { "start" }
         // Page selection and every entersForeground() both land here — twice for one open transition —
         // and rebuilding the player would replay the opening second of the video.
         player?.let { active ->
-            if (isPrepared && !wasPaused && !active.isPlaying) {
+            if (isPrepared && surface != null && !wasPaused && !active.isPlaying) {
                 active.play()
                 ensureTickTimer()
             }
@@ -436,41 +462,42 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoLoaderProgress.isVisible = false
         views.videoView.alpha = 0f
         views.videoView.isVisible = true
-        // Coming back from the background rebuilds the player; without the poster the transparent
-        // TextureView reads as a black flash until the first frame lands.
         views.videoThumbnailImage.isVisible = true
         waitingForFirstFrame = true
+        retainedFrame?.let { views.videoThumbnailImage.setImageBitmap(it) }
 
-        // Don't try to set up the player until we have a surface to render into; the
-        // SurfaceTextureListener picks it up once the surface becomes available, gated on
-        // `isSelected && mVideoPath != null`.
-        val activeSurface = surface ?: return
+        // ExoPlayer can prepare during the enter transition, before the TextureView is visible.
+        val activeSurface = surface
+        if (activeSurface == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) return
 
         releasePlayer()
         val path = mVideoPath ?: return
-        val engine = VideoPlayback.create()
+        val pool = playbackPool
+        val engine = if (pool == null) VideoPlayback.create() else pool.acquire(path) ?: return
         player = engine
-        engine.open(itemView.context, path, activeSurface, loopEnabled, object : VideoPlayback.Listener {
+        logPlayback { "open positionMs=$progress" }
+        engine.open(itemView.context, path, activeSurface, loopEnabled, progress, object : VideoPlayback.Listener {
             override fun onReady() {
                 isPrepared = true
+                logPlayback { "ready" }
                 applyAspectMatrix()
                 itemView.postDelayed(revealFallback, REVEAL_FALLBACK_MS)
                 ensureTickTimer()
                 if (endFrameMs < 0) {
-                    Thread({ endFrameMs = VideoLastFrame.probeMs(itemView.context, path) }, "video-end-probe").start()
+                    Thread({
+                        val position = VideoLastFrame.probeMs(itemView.context, path)
+                        if (mVideoPath == path) endFrameMs = position
+                    }, "video-end-probe").start()
                 }
-                // The player is new — a chosen speed and volume only live in the holder.
                 if (playbackSpeed != 1f || !pitchFollowsSpeed) applyPlaybackSpeed()
                 if (volumeGain != 1f || volumeMuted) applyVolume()
-                if (progress > 0) {
-                    seekTo(engine, progress)
-                }
-                if (!wasPaused) {
+                if (!wasPaused && surface != null) {
                     engine.play()
                 }
             }
 
             override fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float, unappliedRotationDegrees: Int) {
+                logPlayback { "size=${width}x$height" }
                 videoWidth = width * (pixelWidthHeightRatio.takeIf { it > 0f } ?: 1f)
                 videoHeight = height.toFloat()
                 videoRotation = ((unappliedRotationDegrees % 360) + 360) % 360
@@ -489,7 +516,12 @@ class VideoViewHolder constructor(itemView: View) :
             }
 
             override fun onError() {
+                val retry = playbackPool?.fallbackToSingleDecoder() == true
                 releasePlayer()
+                if (retry) {
+                    startPlaying()
+                    return
+                }
                 wasPaused = true
                 views.videoView.alpha = 0f
                 views.videoThumbnailImage.isVisible = true
@@ -529,6 +561,8 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private fun releasePlayer() {
+        if (player != null) logPlayback { "release" }
+        itemView.removeCallbacks(revealFallback)
         // Stop the tick timer FIRST so its captured player reference isn't used after release.
         stopTimer()
         // Only ever attached on KitKat+, where LoudnessEnhancer exists.
@@ -536,8 +570,57 @@ class VideoViewHolder constructor(itemView: View) :
         boost = null
         isPrepared = false
         lastReportedPositionMs = 0
-        player?.release()
+        reportedFirstProgress = false
+        startupTicks = 0
+        textureUpdates = 0
+        player?.let { active ->
+            val pool = playbackPool
+            val path = mVideoPath
+            if (pool != null && path != null) pool.recycle(active, path) else active.release()
+        }
         player = null
+        retainedFrame?.let {
+            views.videoThumbnailImage.setImageBitmap(it)
+            views.videoThumbnailImage.isVisible = true
+            views.videoView.alpha = 0f
+        }
+    }
+
+    private inline fun logPlayback(stage: () -> String) {
+        if (!AttachmentViewerDebug.enabled) return
+        val elapsed = if (sourceReadyElapsedMs == 0L) 0L else SystemClock.elapsedRealtime() - sourceReadyElapsedMs
+        AttachmentViewerDebug.i { "stage=${stage()} uid=$boundResourceUid elapsedMs=$elapsed selected=$isSelected surface=${surface != null} prepared=$isPrepared paused=$wasPaused retained=${retainedFrame != null}" }
+    }
+
+    internal fun updateThumbnail(drawable: Drawable?) {
+        val frame = retainedFrame
+        if (frame != null) views.videoThumbnailImage.setImageBitmap(frame)
+        else views.videoThumbnailImage.setImageDrawable(drawable)
+        logPlayback { "thumbnail retained=${frame != null}" }
+    }
+
+    private fun retainFrame() {
+        val view = views.videoView
+        if (!isPrepared || waitingForFirstFrame || !view.isAvailable || view.width <= 0 || view.height <= 0) return
+        val started = SystemClock.elapsedRealtime()
+        val frame = runCatching {
+            VideoFramePreview.capture(view, videoWidth, videoHeight, videoRotation)
+        }.onFailure { AttachmentViewerDebug.w(it) { "Cannot retain video frame" } }.getOrNull() ?: return
+        retainedFrame = frame
+        views.videoThumbnailImage.setImageBitmap(frame)
+        logPlayback { "frame-retained positionMs=${player?.positionMs} bitmap=${frame.width}x${frame.height} video=${videoWidth}x$videoHeight rotation=$videoRotation view=${view.width}x${view.height} captureMs=${SystemClock.elapsedRealtime() - started}" }
+    }
+
+    private fun savePlaybackPosition() {
+        val active = player?.takeIf { isPrepared } ?: return
+        val position = active.positionMs
+        val duration = active.durationMs
+        progress = if (duration > 0 && position >= duration) {
+            endFrameMs.takeIf { it > 0 } ?: (duration - 1).coerceAtLeast(0)
+        } else {
+            position
+        }
+        logPlayback { "position-saved positionMs=$progress" }
     }
 
     private fun stopTimer() {
@@ -554,6 +637,11 @@ class VideoViewHolder constructor(itemView: View) :
                 if (duration > 0) lastKnownDurationMs = duration
                 val raw = active.positionMs
                 val isPlaying = active.isPlaying
+                if (AttachmentViewerDebug.enabled && startupTicks++ < 8) logPlayback { "tick positionMs=$raw playing=$isPlaying" }
+                if (isPlaying && raw > progress && !reportedFirstProgress) {
+                    reportedFirstProgress = true
+                    logPlayback { "progress positionMs=$raw" }
+                }
                 // An audio sink spinning up (Bluetooth especially) briefly walks the reported
                 // position backwards; steady playback never does, so hold through small
                 // regressions rather than letting the scrubber jitter. A loop around is a real
@@ -676,7 +764,16 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun bind(attachmentInfo: AttachmentInfo) {
+        val nextKey = (attachmentInfo as? AttachmentInfo.Video)?.resourceKey
+        if (boundResourceUid != attachmentInfo.uid || resourceKey != nextKey) {
+            releasePlayer()
+            mVideoPath = null
+            retainedFrame = null
+            views.videoThumbnailImage.setImageDrawable(null)
+        }
+        resourceKey = nextKey
         super.bind(attachmentInfo)
+        sourceReadyElapsedMs = 0L
         views.videoView.isVisible = false
         views.videoView.alpha = 1f
         views.videoThumbnailImage.isVisible = true

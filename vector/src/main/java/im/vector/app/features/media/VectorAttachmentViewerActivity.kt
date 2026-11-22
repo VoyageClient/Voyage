@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.dialogs.InfoFieldsDialog
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.intent.getMimeTypeFromUri
@@ -45,7 +46,6 @@ import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.navigation.Navigator
-import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.share.forwardEventIntent
@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -97,7 +98,6 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var dataSourceFactory: AttachmentProviderFactory
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
-    @Inject lateinit var preservedAttachmentResolver: PreservedAttachmentResolver
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
     @Inject lateinit var vectorPreferences: VectorPreferences
@@ -203,7 +203,36 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         val tapped = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
         // After process death the list is gone; the tapped item alone still opens.
         val inMemoryData = intent.getStringExtra(EXTRA_IN_MEMORY_KEY)?.let { inMemoryStore[it] ?: listOfNotNull(tapped) }
-        if (inMemoryData != null) {
+        val roomMedia = intent.getStringExtra(EXTRA_ROOM_MEDIA_KEY)?.let { roomMediaStore[it] }
+        val roomProvider = roomMedia?.let { dataSourceFactory.createProvider(it, lifecycleScope) }
+                ?.takeIf { it.indexForEvent(args.eventId) >= 0 }
+        DebugLog.i { "MEDIADBG viewer open prepared=${roomProvider != null} events=${roomMedia?.size ?: 0}" }
+        if (roomProvider != null) {
+            val galleryIndex = when (tapped) {
+                is ImageContentRenderer.Data -> tapped.galleryIndex
+                is VideoContentRenderer.Data -> tapped.galleryIndex
+                else -> null
+            }
+            initialIndex = roomProvider.indexForEvent(args.eventId, galleryIndex)
+                    .takeIf { it >= 0 } ?: roomProvider.indexForEvent(args.eventId)
+            installSourceProvider(roomProvider)
+            lifecycleScope.launch {
+                val events = loadRoomAttachmentEvents(room)
+                val changed = withContext(Dispatchers.Default) {
+                    events.map { it.eventId to it.getVectorLastMessageContent() } !=
+                            roomMedia.orEmpty().map { it.eventId to it.getVectorLastMessageContent() }
+                }
+                if (changed) {
+                    val provider = dataSourceFactory.createProvider(events, lifecycleScope)
+                    val currentUid = currentSourceProvider?.getAttachmentInfoAt(currentPosition)?.uid
+                    val index = (0 until provider.getItemCount()).firstOrNull { provider.getAttachmentInfoAt(it).uid == currentUid }
+                    if (index != null) {
+                        initialIndex = index
+                        installSourceProvider(provider)
+                    }
+                }
+            }
+        } else if (inMemoryData != null) {
             // Identity first: a gallery's items all share one eventId, so the eventId match alone
             // would always land on the first tile.
             initialIndex = inMemoryData.indexOfFirst { it == tapped }.takeIf { it >= 0 }
@@ -215,7 +244,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             if (args.openedFromTimeline && !args.standalonePreview && room != null) {
                 val tappedOffset = initialIndex
                 lifecycleScope.launch {
-                    val events = withContext(Dispatchers.IO) { loadRoomAttachmentEvents(room) }
+                    val events = loadRoomAttachmentEvents(room)
                     val provider = dataSourceFactory.createProvider(events, lifecycleScope)
                     val base = provider.indexForEvent(args.eventId)
                     if (base != -1) {
@@ -237,7 +266,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope), provisional = true)
             }
             lifecycleScope.launch {
-                val events = withContext(Dispatchers.IO) { loadRoomAttachmentEvents(room) }
+                val events = loadRoomAttachmentEvents(room)
                 // Asked of the provider: a gallery event fans out to several pages there.
                 val provider = dataSourceFactory.createProvider(events, lifecycleScope)
                 val index = provider.indexForEvent(args.eventId)
@@ -263,13 +292,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         observeViewEvents()
     }
 
-    private suspend fun loadRoomAttachmentEvents(room: Room?): List<TimelineEvent> {
-        val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
-        // Redacted media is gone from the SDK's tables, so a revealed one would otherwise
-        // open alone instead of taking its place in the room's media.
-        val preserved = args()?.roomId?.let { preservedAttachmentResolver.attachments(it) }.orEmpty()
-        return if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
-    }
+    private suspend fun loadRoomAttachmentEvents(room: Room?): List<TimelineEvent> =
+            dataSourceFactory.loadRoomAttachmentEvents(room, args()?.roomId)
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>, provisional: Boolean = false) {
         sourceProvider.interactionListener = this
@@ -288,6 +312,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         providerInstalled = true
         val lastIndex = (sourceProvider.getItemCount() - 1).coerceAtLeast(0)
         val targetPosition = (if (restoredPosition >= 0) restoredPosition else initialIndex).coerceIn(0, lastIndex)
+        DebugLog.i { "MEDIADBG viewer install provisional=$provisional pages=${sourceProvider.getItemCount()} position=$targetPosition" }
         // The room's list names a just-sent page by its server id, not the local one the tap carried.
         if (awaitedImageUid != null && sourceProvider.getItemCount() > 0) {
             awaitedImageUid = sourceProvider.getAttachmentInfoAt(targetPosition).uid
@@ -330,6 +355,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         infoDialog?.dismiss()
         infoDialog = null
         if (isFinishing) intent.getStringExtra(EXTRA_IN_MEMORY_KEY)?.let { inMemoryStore.remove(it) }
+        if (isFinishing) intent.getStringExtra(EXTRA_ROOM_MEDIA_KEY)?.let { roomMediaStore.remove(it) }
         super.onDestroy()
     }
 
@@ -680,6 +706,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_ARGS = "EXTRA_ARGS"
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
         private const val EXTRA_IN_MEMORY_KEY = "EXTRA_IN_MEMORY_KEY"
+        private const val EXTRA_ROOM_MEDIA_KEY = "EXTRA_ROOM_MEDIA_KEY"
         private const val STATE_CURRENT_POSITION = "STATE_CURRENT_POSITION"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
         private const val IMAGE_HANDOFF_TIMEOUT_MS = 3000L
@@ -688,6 +715,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         // Kept in-process, only keyed in the intent: an uploads list paged deep into a room's history
         // parcels past the binder limit, and the system kills the app over the failed launch.
         private val inMemoryStore = ConcurrentHashMap<String, List<AttachmentData>>()
+        private val roomMediaStore = ConcurrentHashMap<String, List<TimelineEvent>>()
 
         fun newIntent(
                 context: Context,
@@ -701,12 +729,18 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 openedFromTimeline: Boolean = false,
                 hideShowInChat: Boolean = false,
                 hideForward: Boolean = false,
+                roomMedia: List<TimelineEvent>? = null,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
             it.putExtra(
                     EXTRA_ARGS,
                     Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline, hideShowInChat, hideForward)
             )
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
+            if (roomMedia != null) {
+                val key = UUID.randomUUID().toString()
+                roomMediaStore[key] = roomMedia
+                it.putExtra(EXTRA_ROOM_MEDIA_KEY, key)
+            }
             if (inMemoryData.isNotEmpty()) {
                 val key = UUID.randomUUID().toString()
                 inMemoryStore[key] = ArrayList(inMemoryData)

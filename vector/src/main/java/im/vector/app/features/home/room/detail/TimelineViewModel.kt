@@ -25,6 +25,7 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.sendFailureReason
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.mvrx.runCatchingToAsync
@@ -55,6 +56,7 @@ import im.vector.app.features.home.room.typing.DebugTypingUsers
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
+import im.vector.app.features.media.AttachmentProviderFactory
 import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.pgp.PgpRoomEncryptor
@@ -71,6 +73,7 @@ import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -79,6 +82,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -87,6 +91,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -186,6 +191,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val sendMediaMaterializer: SendMediaMaterializer,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val audioMessagePlaybackTracker: AudioMessagePlaybackTracker,
+        private val attachmentProviderFactory: AttachmentProviderFactory,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -204,6 +210,8 @@ class TimelineViewModel @AssistedInject constructor(
     private val invisibleEventsSource = BehaviorDataSource<RoomDetailAction.TimelineEventTurnsInvisible>()
     private val visibleEventsSource = BehaviorDataSource<RoomDetailAction.TimelineEventTurnsVisible>()
     private var timelineEvents = MutableSharedFlow<List<TimelineEvent>>(0)
+    @Volatile var roomAttachmentEvents: List<TimelineEvent>? = null
+        private set
     val timeline: Timeline?
 
     val selection = TimelineSelection(isRevealed = { redactedContentRestorer.isShowingRestoredContent(it) })
@@ -281,6 +289,7 @@ class TimelineViewModel @AssistedInject constructor(
         observeSyncState()
         observeDataStore()
         observeEventDisplayedActions()
+        observeRoomAttachments()
         observeUnreadState()
         observeMyRoomMember()
         observeActiveRoomWidgets()
@@ -1607,6 +1616,31 @@ private fun handleSelectStickerAttachment() {
     private fun handleRemoveAllFailedMessages() {
         if (room == null) return
         room.sendService().cancelAllFailedMessages()
+    }
+
+    private fun observeRoomAttachments() {
+        if (room == null) return
+        timelineEvents
+                .map { snapshot ->
+                    snapshot.filter { it.root.isAttachmentMessage() || it.root.isGalleryMessage() || it.root.isSticker() }
+                            .map { it.eventId to it.getVectorLastMessageContent() }
+                }
+                .distinctUntilChanged()
+                .onEach { roomAttachmentEvents = null }
+                .debounce(150)
+                .mapLatest {
+                    try {
+                        attachmentProviderFactory.loadRoomAttachmentEvents(room)
+                    } catch (failure: CancellationException) {
+                        throw failure
+                    } catch (failure: Exception) {
+                        Timber.w(failure, "Failed to prepare room media")
+                        null
+                    }
+                }
+                .onEach { roomAttachmentEvents = it }
+                .flowOn(Dispatchers.Default)
+                .launchIn(viewModelScope)
     }
 
     private fun observeEventDisplayedActions() {
