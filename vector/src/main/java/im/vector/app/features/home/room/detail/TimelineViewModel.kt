@@ -48,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
 import im.vector.app.features.home.room.detail.timeline.format.DecryptionFailureFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
+import im.vector.app.features.home.room.detail.timeline.helper.resolveReadMarkerEvent
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.selection.TimelineSelection
 import im.vector.app.features.home.room.typing.DebugTypingUsers
@@ -92,8 +93,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.debug.DiagnosticContext
 import org.matrix.android.sdk.api.debug.NetworkDiagnostics
+import org.matrix.android.sdk.api.debug.OperationDiagnostics
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -103,6 +106,7 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.UserIdentityChange
 import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
@@ -921,9 +925,15 @@ private fun handleSelectStickerAttachment() {
     private fun persistReadMarker(seen: TimelineEvent?, unflushed: TimelineEvent?) {
         if (room == null) return
         // Ordered now: the timeline can restart or be torn down before the launch runs.
-        val eventId = newerOf(seen, unflushed)?.root?.eventId ?: return
+        val snapshot = timeline?.getSnapshot().orEmpty()
+        val eventId = newerOf(seen?.resolveReadMarkerEvent(snapshot), unflushed?.resolveReadMarkerEvent(snapshot))?.eventId ?: return
         session.coroutineScope.launch(Dispatchers.Default) {
-            tryOrNull { room.readService().setReadMarker(eventId) }
+            tryOrNull {
+                OperationDiagnostics.trace("READDBG", "persist-marker") {
+                    DebugLog.i { "READDBG stage=marker-request room=${OperationDiagnostics.id(room.roomId)} event=${OperationDiagnostics.id(eventId)}" }
+                    room.readService().setReadMarker(eventId)
+                }
+            }
         }
     }
 
@@ -1333,7 +1343,7 @@ private fun handleSelectStickerAttachment() {
     private fun handleEventVisible(action: RoomDetailAction.TimelineEventTurnsVisible) {
         if (room == null) return
         viewModelScope.launch(Dispatchers.Default) {
-            if (action.event.root.sendState.isSent()) { // ignore pending/local events
+            if (action.event.root.sendState.isSent()) {
                 synchronized(displayedEventsLock) {
                     unflushedDisplayedEvent = newerOf(unflushedDisplayedEvent, action.event)
                 }
@@ -1609,13 +1619,15 @@ private fun handleSelectStickerAttachment() {
                 .chunk(1000)
                 .filter { it.isNotEmpty() }
                 .onEach { actions ->
-                    val bufferedMostRecentDisplayedEvent = actions.minByOrNull { it.event.indexOfEvent() }?.event ?: return@onEach
+                    val snapshot = timeline?.getSnapshot().orEmpty()
+                    val bufferedMostRecentDisplayedEvent = actions.mapNotNull { it.event.resolveReadMarkerEvent(snapshot) }
+                            .minByOrNull { it.indexOfEvent() } ?: return@onEach
                     synchronized(displayedEventsLock) {
                         if (trackUnreadMessages.get()) {
                             mostRecentDisplayedEvent = newerOf(mostRecentDisplayedEvent, bufferedMostRecentDisplayedEvent)
                         }
                         // Otherwise it arrived after this window closed.
-                        if (unflushedDisplayedEvent?.eventId == bufferedMostRecentDisplayedEvent.eventId) {
+                        if (unflushedDisplayedEvent?.timelineStableId() == bufferedMostRecentDisplayedEvent.timelineStableId()) {
                             unflushedDisplayedEvent = null
                         }
                     }
@@ -1630,18 +1642,21 @@ private fun handleSelectStickerAttachment() {
                         session.coroutineScope.launch {
                             val threadId = initialState.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
                             tryOrNull {
-                                if (receiptToNewest) {
-                                    room.readService().markAsRead(
-                                            params = ReadService.MarkAsReadParams.READ_RECEIPT,
-                                            mainTimeLineOnly = true,
-                                            public = vectorPreferences.sendReadReceipts(initialState.roomId),
-                                    )
-                                } else {
-                                    room.readService().setReadReceipt(
-                                            eventId = eventId,
-                                            threadId = threadId,
-                                            public = vectorPreferences.sendReadReceipts(initialState.roomId),
-                                    )
+                                OperationDiagnostics.trace("READDBG", "persist-receipt") {
+                                    DebugLog.i { "READDBG stage=receipt-request room=${OperationDiagnostics.id(room.roomId)} event=${OperationDiagnostics.id(eventId)} newest=$receiptToNewest" }
+                                    if (receiptToNewest) {
+                                        room.readService().markAsRead(
+                                                params = ReadService.MarkAsReadParams.READ_RECEIPT,
+                                                mainTimeLineOnly = true,
+                                                public = vectorPreferences.sendReadReceipts(initialState.roomId),
+                                        )
+                                    } else {
+                                        room.readService().setReadReceipt(
+                                                eventId = eventId,
+                                                threadId = threadId,
+                                                public = vectorPreferences.sendReadReceipts(initialState.roomId),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -2170,6 +2185,15 @@ private fun handleSelectStickerAttachment() {
     }
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+        // Stable model IDs can keep a row visible across sync without another visibility callback.
+        synchronized(displayedEventsLock) {
+            if (listOfNotNull(mostRecentDisplayedEvent, unflushedDisplayedEvent).any { LocalEcho.isLocalEchoId(it.eventId) }) {
+                val byStableId = snapshot.filterNot { LocalEcho.isLocalEchoId(it.eventId) }.associateBy { it.timelineStableId() }
+                mostRecentDisplayedEvent = mostRecentDisplayedEvent?.let { byStableId[it.timelineStableId()] ?: it }
+                unflushedDisplayedEvent = unflushedDisplayedEvent?.let { byStableId[it.timelineStableId()] ?: it }
+                DebugLog.i { "READDBG stage=timeline-refresh seen=${OperationDiagnostics.id(mostRecentDisplayedEvent?.eventId)} seenLocal=${mostRecentDisplayedEvent?.let { LocalEcho.isLocalEchoId(it.eventId) }} unflushed=${OperationDiagnostics.id(unflushedDisplayedEvent?.eventId)}" }
+            }
+        }
         stopRedactedPlayback(snapshot)
         if (selection.isActive) {
             val byId = snapshot.associateBy { it.eventId }
