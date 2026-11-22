@@ -14,9 +14,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
@@ -49,6 +51,29 @@ fun Context.isAirplaneModeOn(): Boolean {
         @Suppress("DEPRECATION")
         Settings.System.getInt(contentResolver, Settings.System.AIRPLANE_MODE_ON, 0) != 0
     }
+}
+
+fun Context.isAirplaneModeOnWithWifiAndMobileDataOff(): Boolean {
+    if (!isAirplaneModeOn()) return false
+
+    val wifiManager = getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return false
+    if (wifiManager.isWifiEnabled) return false
+
+    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) return true
+    val mobileDataEnabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager ?: return false
+        try {
+            telephonyManager.isDataEnabled
+        } catch (e: SecurityException) {
+            return false
+        }
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        // The mobile data setting has no public API before Android O.
+        Settings.Global.getInt(contentResolver, "mobile_data", 1) != 0
+    } else {
+        Settings.Secure.getInt(contentResolver, "mobile_data", 1) != 0
+    }
+    return !mobileDataEnabled
 }
 
 fun Context.isAnimationEnabled(): Boolean {

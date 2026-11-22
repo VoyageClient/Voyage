@@ -17,7 +17,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import im.vector.app.R
-import im.vector.app.core.utils.isAirplaneModeOn
+import im.vector.app.core.utils.isAirplaneModeOnWithWifiAndMobileDataOff
 import im.vector.app.databinding.ViewSyncStateBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -52,9 +52,9 @@ class SyncStateView @JvmOverloads constructor(context: Context, attrs: Attribute
         views.syncStateProgressBar.isVisible = newState is SyncState.Running && newState.afterPause
 
         if (newState == SyncState.NoNetwork) {
-            val isAirplaneModeOn = context.isAirplaneModeOn()
-            views.syncStateNoNetwork.isVisible = isAirplaneModeOn.not()
-            views.syncStateNoNetworkAirplane.isVisible = isAirplaneModeOn
+            val showAirplaneMode = context.isAirplaneModeOnWithWifiAndMobileDataOff()
+            views.syncStateNoNetwork.isVisible = !showAirplaneMode
+            views.syncStateNoNetworkAirplane.isVisible = showAirplaneMode
         } else {
             views.syncStateNoNetwork.isVisible = false
             views.syncStateNoNetworkAirplane.isVisible = false
