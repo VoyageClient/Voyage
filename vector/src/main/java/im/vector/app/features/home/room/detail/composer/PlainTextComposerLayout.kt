@@ -72,7 +72,6 @@ import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
-import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -331,7 +330,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     override fun setTextIfDifferent(text: CharSequence?): Boolean {
-        return views.composerEditText.setTextProgrammatically(text)
+        return views.composerEditText.setTextProgrammatically(text?.let(::reconstructMentionPills))
     }
 
     private fun isMediaHidden(preview: MessagePreviewContent): Boolean {
@@ -352,43 +351,18 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     override fun getDraftContent(): CharSequence = serializeMentionPills(text ?: "")
 
-    // Serialise mention pills (MatrixItemSpan) to matrix.to markdown links so they survive the draft's
-    // String round-trip; non-mention text is left verbatim. Returns the plain text when there are none.
-    private fun serializeMentionPills(source: CharSequence): String {
-        val spannable = source.toSpannable()
-        val spans = spannable.getSpans(0, spannable.length, MatrixItemSpan::class.java)
-                .sortedBy { spannable.getSpanStart(it) }
-        if (spans.isEmpty()) return guardAuthoredMentionLinks(source)
-        return buildString {
-            var index = 0
-            spans.forEach { span ->
-                val start = spannable.getSpanStart(span)
-                val end = spannable.getSpanEnd(span)
-                if (start < index) return@forEach
-                append(guardAuthoredMentionLinks(spannable.subSequence(index, start)))
-                // The backing text is a placeholder char, so take the label from the span's body text —
-                // never the item's name, which may carry a local display-name override.
-                append("[").append((span as? PillImageSpan)?.bodyText ?: span.matrixItem.getBestName()).append("]")
-                append("(https://matrix.to/#/").append(span.matrixItem.id).append(")")
-                index = end
-            }
-            append(guardAuthoredMentionLinks(spannable.subSequence(index, spannable.length)))
-        }
-    }
-
-    private val mentionLinkRegex = Regex("""\[([^]]+)]\((https://matrix\.to/#/[^)]+)\)""")
-
-    // Inverse of serializeMentionPills: turn matrix.to markdown links back into PillImageSpans.
+    // Inverse of serializeMentionPills: turn matrix.to markdown links back into PillImageSpans. Text that
+    // still carries spans is the live composer's, never serialized, so its links are the user's own.
     private fun reconstructMentionPills(source: CharSequence): CharSequence {
-        if (!source.contains("https://matrix.to/#/")) return source
+        if (source is Spanned || !source.contains("https://matrix.to/#/")) return source
         val session = activeSessionHolder.getSafeActiveSession()
         if (session == null || sendsLiteralText(source)) return SpannableStringBuilder(source).unguardAuthoredMentionLinks()
         val out = SpannableStringBuilder()
         var index = 0
-        mentionLinkRegex.findAll(source).forEach { match ->
-            out.append(source, index, match.range.first)
-            val label = match.groupValues[1]
-            val matrixItem = when (val data = PermalinkParser.parse(match.groupValues[2])) {
+        MENTION_MARKDOWN_LINK.findAll(source).forEach { match ->
+            val before = source.subSequence(index, match.range.first)
+            val label = match.mentionLabel
+            val matrixItem = when (val data = PermalinkParser.parse(match.mentionPermalink)) {
                 // Prefer the room member: only it carries the name (and any local override) the pill
                 // should draw. The global user is a fallback that often knows nothing but the id.
                 is PermalinkData.UserLink ->
@@ -398,13 +372,16 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 else -> null
             }
             if (matrixItem != null) {
+                out.append(before.unguardBeforeMentionLink())
                 val start = out.length
-                out.append(label)
-                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem, bodyText = label, roomId = roomId)
+                val bodyText = label.takeIf { it.isNotBlank() }
+                val shown = bodyText ?: matrixItem.getBestName()
+                out.append(shown)
+                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem, bodyText = bodyText, roomId = roomId)
                         .also { it.bind(editText) }
-                out.setPillSpan(span, start, start + label.length)
+                out.setPillSpan(span, start, start + shown.length)
             } else {
-                out.append(source, match.range.first, match.range.last + 1)
+                out.append(before).append(source, match.range.first, match.range.last + 1)
             }
             index = match.range.last + 1
         }
@@ -559,14 +536,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         if (!compact) avatarRenderer.render(senderItem, views.composerRelatedMessageAvatar)
 
-        val content = if (specialMode is MessageComposerMode.Edit) {
-            // Edit against the plain body — the markdown source the user typed. The rendered
-            // formatted body can't roundtrip: list/quote markers exist only as spans, so saving
-            // would flatten the structure.
-            reconstructMentionPills(defaultContent)
-        } else {
-            defaultContent
-        }
+        // An edit prefill is the plain body with its mentions spliced back in as links; a reply's text may be a
+        // restored draft. Both carry pills as markdown.
+        val content = reconstructMentionPills(defaultContent)
 
         // On a refresh the box is the source of truth: the state's text is a snapshot that can trail the
         // user's typing, and setText() would drop those keystrokes and send the cursor to the start.

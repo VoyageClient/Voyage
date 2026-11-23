@@ -124,9 +124,8 @@ class MentionLinksTest {
     }
 
     @Test
-    fun `given a label carrying link syntax, when splicing, then that mention is skipped`() {
-        val body = "[Alice] hi"
-        spliceMentionLinks(body, """<a href="$alice">[Alice]</a> hi""") shouldBeEqualTo body
+    fun `given a label carrying link syntax, when splicing, then it is escaped`() {
+        spliceMentionLinks("[Alice] hi", """<a href="$alice">[Alice]</a> hi""") shouldBeEqualTo """[\[Alice\]]($alice) hi"""
     }
 
     @Test
@@ -254,7 +253,7 @@ class MentionLinksTest {
         spliceMentionLinks(
                 body,
                 """<a href="$alice" data-org.matrix.msc4550.link>Alice</a> and <a href="$alice">Alice</a>""",
-        ) shouldBeEqualTo "[Alice]($alice) and [Alice]($alice)"
+        ) shouldBeEqualTo "[Alice](${Char(0x2060)}$alice) and [Alice]($alice)"
         spliceMentionIds(body, """<a href="$alice" data-mx-link="">Alice</a>""") shouldBeEqualTo body
     }
 

@@ -11,6 +11,7 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import im.vector.app.features.command.Command
+import im.vector.app.features.displayname.getBestName
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
@@ -46,6 +47,71 @@ fun SpannableStringBuilder.unguardAuthoredMentionLinks(): SpannableStringBuilder
     }
 }
 
+private const val MENTION_LINK_PREFIX = "https://matrix.to/#/"
+private const val MENTION_LABEL_ESCAPED = "\\[]"
+
+// ")" ends the link, "/" and "?" split the permalink, and the decoder reads "%" and "+".
+private const val MENTION_ID_ENCODED = "%()/?+"
+private const val HEX_DIGITS = "0123456789ABCDEF"
+
+/**
+ * A pill written as the matrix.to markdown link [MENTION_MARKDOWN_LINK] reads back. Names and ids are
+ * free-form, so whatever would end the label or the link early is escaped.
+ */
+fun mentionMarkdownLink(label: String, id: String): String = buildString {
+    append('[')
+    label.forEach { if (it in MENTION_LABEL_ESCAPED) append('\\'); append(it) }
+    append("](").append(MENTION_LINK_PREFIX)
+    id.forEach {
+        if (it in MENTION_ID_ENCODED) append('%').append(HEX_DIGITS[it.code shr 4]).append(HEX_DIGITS[it.code and 0xF]) else append(it)
+    }
+    append(')')
+}
+
+// An unescaped bracket can't sit inside the label, so text written just before a pill never joins it.
+val MENTION_MARKDOWN_LINK = Regex("""\[((?:\\[\\\[\]]|[^\\\[\]])*)]\((https://matrix\.to/#/[^)]+)\)""")
+
+private val ESCAPED_LABEL_CHAR = Regex("""\\([\\\[\]])""")
+
+val MatchResult.mentionLabel: String get() = groupValues[1].replace(ESCAPED_LABEL_CHAR, "\$1")
+
+val MatchResult.mentionPermalink: String get() = groupValues[2]
+
+// A pill's "[" written straight after a backslash would read as escaped, folding the pill into a label
+// opened earlier in the text; a word joiner keeps them apart.
+private val WORD_JOINER = Char(0x2060)
+private val BACKSLASH_GUARD = "\\$WORD_JOINER"
+
+private fun StringBuilder.appendBeforeMentionLink(text: CharSequence) {
+    append(guardAuthoredMentionLinks(text))
+    if (text.endsWith('\\')) append(WORD_JOINER)
+}
+
+/** The text a draft held before a mention link, without the guard [serializeMentionPills] put there. */
+fun CharSequence.unguardBeforeMentionLink(): CharSequence = if (endsWith(BACKSLASH_GUARD)) subSequence(0, length - 1) else this
+
+/** [text] with its pills written as [mentionMarkdownLink]s, so they survive being stored as a String. */
+fun serializeMentionPills(text: CharSequence): String {
+    val spanned = text as? Spanned ?: return guardAuthoredMentionLinks(text)
+    val spans = spanned.getSpans(0, spanned.length, MatrixItemSpan::class.java).sortedBy { spanned.getSpanStart(it) }
+    if (spans.isEmpty()) return guardAuthoredMentionLinks(text)
+    return buildString {
+        var index = 0
+        spans.forEach { span ->
+            val start = spanned.getSpanStart(span)
+            val end = spanned.getSpanEnd(span)
+            if (start < index) return@forEach
+            appendBeforeMentionLink(spanned.subSequence(index, start))
+            // The backing text is a placeholder char, so take the label from the span's body text —
+            // never the item's name, which may carry a local display-name override.
+            val label = span.bodyText?.takeIf { it.isNotBlank() } ?: span.matrixItem.getBestName()
+            append(mentionMarkdownLink(label, span.matrixItem.id))
+            index = end
+        }
+        append(guardAuthoredMentionLinks(spanned.subSequence(index, spanned.length)))
+    }
+}
+
 /**
  * Rewrites the user and room mentions of [body] as markdown permalinks, reading each mention's target from the
  * same message's [formattedBody]. A mention only exists as an anchor in the HTML — the plain body
@@ -55,7 +121,8 @@ fun SpannableStringBuilder.unguardAuthoredMentionLinks(): SpannableStringBuilder
  * same thing, and plenty of messages in a room predate any given client agreeing that they should —
  * a link text of the bare user id over a body naming the sender is common. So each mention is looked
  * up under every name it plausibly goes by, and one that matches none of them is left as plain text
- * rather than risking a mangled body.
+ * rather than risking a mangled body. The rest of the body comes back guarded (see
+ * [guardAuthoredMentionLinks]).
  */
 fun spliceMentionLinks(
         body: String,
@@ -65,12 +132,11 @@ fun spliceMentionLinks(
     val out = StringBuilder()
     var cursor = 0
     forEachMention(body, formattedBody, displayNamesOf) { start, name, id ->
-        out.append(body, cursor, start)
-        out.append('[').append(name).append("](https://matrix.to/#/").append(id).append(')')
+        out.appendBeforeMentionLink(body.substring(cursor, start))
+        out.append(mentionMarkdownLink(name, id))
         cursor = start + name.length
     }
-    if (cursor == 0) return body
-    out.append(body, cursor, body.length)
+    out.append(guardAuthoredMentionLinks(body.substring(cursor)))
     return out.toString()
 }
 
@@ -375,9 +441,7 @@ private inline fun forEachMention(
             return@forEach
         }
         val label = match.groupValues[2].unescapeHtml()
-        val candidates = (listOf(label, id) + displayNamesOf(id))
-                // A name carrying markdown link syntax can't round-trip through the composer.
-                .filter { it.isNotBlank() && !it.contains('[') && !it.contains(']') }
+        val candidates = (listOf(label, id) + displayNamesOf(id)).filter { it.isNotBlank() }
         val before = formattedBody.visibleCharBefore(match.range.first)
         val after = formattedBody.visibleCharAfter(match.range.last + 1)
         val at = candidates.firstNotNullOfOrNull { body.wordIndexOf(it, cursor, before, after)?.to(it) } ?: return@forEach

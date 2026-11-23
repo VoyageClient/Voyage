@@ -588,7 +588,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 if (restored.isBlank()) {
                     room.draftService().deleteDraft()
                 } else {
-                    room.draftService().saveDrafts(listOf(UserDraft.Regular(restored.toString())))
+                    room.draftService().saveDrafts(listOf(UserDraft.Regular(serializeMentionPills(restored))))
                 }
             }
         }
@@ -603,7 +603,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun computeEditablePrefill(room: Room, timelineEvent: TimelineEvent): CharSequence {
         val body = computeEditableContent(timelineEvent)
         val formatted = (timelineEvent.getVectorLastMessageContent() as? MessageContentWithFormattedBody)?.matrixFormattedBody
-        return spliceMentionLinks(guardAuthoredMentionLinks(body), formatted) { mentionNamesOf(room, it) }
+        return spliceMentionLinks(body.toString(), formatted) { mentionNamesOf(room, it) }
     }
 
     private fun mentionNamesOf(room: Room, id: String): List<String> {
@@ -1540,7 +1540,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 if (restored.isBlank()) {
                     room.draftService().deleteDraft()
                 } else {
-                    room.draftService().saveDrafts(listOf(UserDraft.Regular(restored.toString())))
+                    room.draftService().saveDrafts(listOf(UserDraft.Regular(serializeMentionPills(restored))))
                 }
             }
         }
@@ -2596,7 +2596,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                     setState { copy(sendMode = it.sendMode.copy(text = draft)) }
                     val edit = UserDraft.Edit(it.sendMode.timelineEvent.root.eventId!!, draft)
                     // Store the interrupted message under the edit, so leaving the room does not lose it.
-                    val stashed = textStashedForEdit?.toString()?.takeIf { text -> text.isNotBlank() }
+                    val stashed = textStashedForEdit?.takeIf { text -> text.isNotBlank() }?.let(::serializeMentionPills)
                     if (stashed == null) {
                         room.draftService().saveDraft(edit)
                     } else {
