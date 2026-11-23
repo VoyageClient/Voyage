@@ -483,7 +483,7 @@ class RoomMemberProfileController @Inject constructor(
                     id = "redact_all",
                     editable = false,
                     destructive = true,
-                    icon = R.drawable.ic_delete,
+                    icon = R.drawable.ic_recycle_bin,
                     title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
                     action = { callback?.onRedactAllClicked() }
             )

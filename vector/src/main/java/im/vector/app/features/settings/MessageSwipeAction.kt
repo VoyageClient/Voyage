@@ -33,7 +33,7 @@ enum class MessageSwipeAction(@StringRes val titleRes: Int, @DrawableRes val ico
     FORWARD(CommonStrings.action_forward, R.drawable.ic_forward),
     PERMALINK(CommonStrings.permalink, R.drawable.ic_permalink),
     PIN(CommonStrings.pin_action, R.drawable.ic_pin),
-    REDACT(CommonStrings.action_redact, R.drawable.ic_trash_16);
+    REDACT(CommonStrings.action_redact, R.drawable.ic_recycle_bin);
 
     fun color(context: Context, muted: Boolean = false): Int = ThemeUtils.getColor(context, when {
         this == REDACT -> com.google.android.material.R.attr.colorError
