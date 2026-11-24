@@ -16,6 +16,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.displayname.shownId
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
@@ -36,7 +37,7 @@ abstract class BaseProfileMatrixItem<T : ProfileMatrixItem.Holder>(@LayoutRes la
     override fun bind(holder: T) {
         super.bind(holder)
         val bestName = matrixItem.getBestName()
-        val matrixId = matrixItem.id
+        val matrixId = matrixItem.shownId()
                 .takeIf { it != bestName }
                 // Special case for ThreePid fake matrix item
                 .takeIf { it != "@" }

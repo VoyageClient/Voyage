@@ -53,6 +53,7 @@ sealed class MatrixItem(
             val userDisplayName: String? = null,
             /** The user's MSC4522 color in the room this item came from, when known. */
             val colorPreference: ColorPreference? = null,
+            val presentationRoomId: String? = null,
     ) :
             MatrixItem(id, displayName?.removeSuffix(IRC_PATTERN), avatarUrl) {
 
@@ -219,7 +220,8 @@ fun RoomSummary.toDisplayMatrixItem(): MatrixItem {
     if (!isDirect) return toMatrixItem()
     val otherUserId = if (membership == Membership.INVITE) inviterId else directUserId
     return otherUserId?.let {
-        MatrixItem.UserItem(it, displayName, avatarUrl, ProfileOverrides.avatarDecryptionForUrl(avatarUrl))
+        MatrixItem.UserItem(it, ProfileOverrides.displayNameOr(it, displayName, roomId),
+                ProfileOverrides.avatarUrlOr(it, avatarUrl, roomId), ProfileOverrides.avatarDecryptionFor(it, roomId), presentationRoomId = roomId)
     } ?: toMatrixItem()
 }
 
@@ -231,10 +233,10 @@ fun RoomSummary.toEveryoneInRoomMatrixItem() = MatrixItem.EveryoneInRoomItem(id 
 fun PublicRoom.toMatrixItem() = MatrixItem.RoomItem(roomId, name ?: getPrimaryAlias() ?: "", avatarUrl)
 
 fun RoomMemberSummary.toMatrixItem() =
-        MatrixItem.UserItem(userId, displayName, avatarUrl, avatarDecryption, colorPreference = colorPreference)
+        MatrixItem.UserItem(userId, displayName, avatarUrl, avatarDecryption, colorPreference = colorPreference, presentationRoomId = presentationRoomId)
 
 fun SenderInfo.toMatrixItem() =
-        MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl, avatarDecryption, colorPreference = colorPreference)
+        MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl, avatarDecryption, colorPreference = colorPreference, presentationRoomId = presentationRoomId)
 
 fun SenderInfo.toMatrixItemOrNull() = tryOrNull { toMatrixItem() }
 

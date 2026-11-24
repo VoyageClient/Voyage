@@ -28,6 +28,8 @@ import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvid
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.render.StaticTimelineHost
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.media.ImageContentRenderer
@@ -87,8 +89,17 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var userClicked: ClickListener? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var renderingHost: StaticTimelineHost? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
+        val host = renderingHost
+        if (host == null) bindContent(holder)
+        else TimelineRenderingScope.render(host) { bindContent(holder) }
+    }
+
+    private fun bindContent(holder: Holder) {
         holder.view.setRedactedTint(redactedTint)
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.avatar.onClick(userClicked)

@@ -650,6 +650,7 @@ class MessageItemFactory @Inject constructor(
     }
 
     private fun shouldHideMedia(informationData: MessageInformationData): Boolean {
+        if (informationData.isStatic) return informationData.isMediaSpoiler
         if (informationData.isMediaSpoiler) return true
         if (informationData.sentByMe) return false
         return isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)

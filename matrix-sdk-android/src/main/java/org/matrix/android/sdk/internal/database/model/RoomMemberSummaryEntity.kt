@@ -53,10 +53,11 @@ internal open class RoomMemberSummaryEntity(
 
     fun toMatrixItem() = MatrixItem.UserItem(
             userId,
-            ProfileOverrides.displayNameOr(userId, displayName),
-            ProfileOverrides.avatarUrlOr(userId, avatarUrl),
-            ProfileOverrides.avatarDecryptionFor(userId),
+            ProfileOverrides.displayNameOr(userId, displayName, roomId),
+            ProfileOverrides.avatarUrlOr(userId, avatarUrl, roomId),
+            ProfileOverrides.avatarDecryptionFor(userId, roomId),
             colorPreference = colorPreference,
+            presentationRoomId = roomId,
     )
 
     companion object

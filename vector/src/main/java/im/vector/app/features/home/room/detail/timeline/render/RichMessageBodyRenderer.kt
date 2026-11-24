@@ -95,7 +95,7 @@ class RichMessageBodyRenderer @Inject constructor(
                 ?: RichBodyBinding().also { container.setTag(R.id.rich_body_binding, it) }
         binding.onClick = onClick
         binding.onLongClick = onLongClick
-        val codePalette = vectorPreferences.codeBlockPalette()
+        val codePalette = ctx.staticTimelineHost()?.codePalette ?: TimelineRenderingScope.current()?.codePalette ?: vectorPreferences.codeBlockPalette()
         if (container.childCount > 0 &&
                 binding.codePalette == codePalette &&
                 binding.segments == segments &&

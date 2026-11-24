@@ -8,6 +8,7 @@
 package im.vector.app.features.bulk
 
 import com.squareup.moshi.JsonClass
+import im.vector.app.features.timelineexport.ExportJobState
 
 /** One queued job, saved so a killed app brings it back paused. Fields not used by [kind] stay empty. */
 @JsonClass(generateAdapter = true)
@@ -23,9 +24,10 @@ data class BulkJob(
         val forwards: List<BulkForward> = emptyList(),
         val massRedaction: BulkMassRedaction? = null,
         val paused: Boolean = false,
+        val export: ExportJobState? = null,
 )
 
-enum class BulkJobKind { FORWARD, REDACT, MASS_REDACTION, ACCEPT_INVITES, REJECT_INVITES }
+enum class BulkJobKind { FORWARD, REDACT, MASS_REDACTION, ACCEPT_INVITES, REJECT_INVITES, EXPORT }
 
 @JsonClass(generateAdapter = true)
 data class BulkForward(
@@ -70,4 +72,5 @@ data class BulkActionProgress(
         val total: Int,
         val paused: Boolean,
         val queued: Int,
+        val percentage: Boolean = false,
 )

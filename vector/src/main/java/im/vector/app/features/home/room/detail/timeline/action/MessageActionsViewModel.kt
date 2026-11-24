@@ -6,11 +6,14 @@
  */
 package im.vector.app.features.home.room.detail.timeline.action
 
+import android.content.Context
+import android.view.ContextThemeWrapper
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
@@ -37,6 +40,11 @@ import im.vector.app.features.redaction.preservation.RedactionPreservationSettin
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.app.features.share.forwardOrigin
+import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.timelineexport.TimelineArchiveStore
+import im.vector.app.features.timelineexport.TimelineExportHtml
+import im.vector.app.features.timelineexport.TimelineExportRenderer
+import im.vector.app.features.timelineexport.timelineEvent
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -53,6 +61,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.debug.DebugLog
@@ -85,6 +94,7 @@ import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.room.timeline.isSticker
+import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -110,6 +120,9 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val messageTranslationStore: MessageTranslationStore,
         private val previewBuilder: MessagePreviewContentBuilder,
         private val dimensionConverter: DimensionConverter,
+        private val archives: TimelineArchiveStore,
+        private val archiveRenderer: TimelineExportRenderer,
+        @ApplicationContext private val context: Context,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -134,8 +147,11 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<MessageActionsViewModel, MessageActionState> by hiltMavericksViewModelFactory()
 
+    private var archiveDocument: TimelineExportRenderer.Document? = null
+
     init {
-        PerfTrace.time("longpress.vm.init") {
+        if (initialState.archiveId != null) loadArchive(initialState.archiveId)
+        else PerfTrace.time("longpress.vm.init") {
             // Seeded synchronously: without it the preview shows "-" until liveTimelineEvent's first
             // emission round-trips through the main thread.
             var seededEvent: TimelineEvent? = null
@@ -182,6 +198,48 @@ class MessageActionsViewModel @AssistedInject constructor(
             observePowerLevel()
             observeTimelineEventState()
         }
+    }
+
+    private fun loadArchive(id: String) {
+        viewModelScope.launch {
+            try {
+                val snapshot = withContext(Dispatchers.IO) { archives.read(session.myUserId, id) }
+                val event = snapshot.events.first { it.id == initialState.eventId }
+                val themed = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
+                val theme = ThemeUtils.getApplicationTheme(themed).takeUnless { it == "system" } ?: if (ThemeUtils.isLightTheme(themed)) "light" else "dark"
+                fun css(attribute: Int) = TimelineExportHtml.cssColor(ThemeUtils.getColor(themed, attribute))
+                val options = snapshot.options.copy(theme = theme, accentName = ThemeUtils.getApplicationThemeAccent(themed),
+                        accent = css(com.google.android.material.R.attr.colorAccent), background = css(android.R.attr.colorBackground),
+                        foreground = css(im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+                val (document, preview) = archiveRenderer.messagePreview(themed, snapshot.copy(options = options), archives.directory(session.myUserId, id), event, initialState.galleryItemIndex)
+                archiveDocument = document
+                val actions = buildList {
+                    add(EventSharedAction.Copy(event.body))
+                    add(EventSharedAction.CopyEventId(event.id))
+                    event.replyTo?.let { add(EventSharedAction.JumpToRelation(event.id, it, null)) }
+                    val rootContent = event.timelineEvent().root.getClearContent().toModel<MessageContent>()
+                    val content = if (rootContent is MessageGalleryContent && initialState.galleryItemIndex != null) rootContent.galleryItems().getOrNull(initialState.galleryItemIndex) else rootContent
+                    val hasAttachment = event.attachment != null || initialState.galleryItemIndex?.let { event.extraAttachments.getOrNull(it)?.path } != null
+                    if (hasAttachment && content is MessageWithAttachmentContent) {
+                        add(EventSharedAction.Share(event.id, content))
+                        add(EventSharedAction.Save(event.id, content))
+                    }
+                    add(EventSharedAction.ViewSource(MatrixJsonParser.getMoshi().adapter(Any::class.java).indent("  ").toJson(event.raw)))
+                }
+                setState { copy(timelineEvent = Success(event.timelineEvent()), preview = preview, actions = actions,
+                        archiveDocument = document, archiveMediaHidden = event.mediaHidden) }
+                Timber.d("ExportTrace archive actions ready actions=%d media=%s", actions.size, event.attachment != null)
+            } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) {
+                Timber.e(failure, "ExportTrace archive actions failed")
+                setState { copy(archiveFailure = errorFormatter.toHumanReadable(failure), actions = listOf(EventSharedAction.CopyEventId(eventId))) }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        archiveDocument?.release()
+        archiveDocument = null
+        super.onCleared()
     }
 
     override fun handle(action: EmptyAction) = Unit
@@ -444,8 +502,10 @@ class MessageActionsViewModel @AssistedInject constructor(
             restoredEvent: TimelineEvent? = null,
     ) {
         val eventId = timelineEvent.eventId
+        val selectAction = EventSharedAction.Select(eventId).takeIf { initialState.canSelect && TimelineSelection.isSelectable(timelineEvent) }
         val galleryItemIndex = initialState.galleryItemIndex
         if (messageContent is MessageGalleryContent && galleryItemIndex != null) {
+            selectAction?.let { add(it) }
             addActionsForGalleryItem(timelineEvent, messageContent, galleryItemIndex)
             return
         }
@@ -465,9 +525,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             when {
                 isShowingContent -> {
                     add(EventSharedAction.HideRedacted(eventId))
-                    if (initialState.canSelect && TimelineSelection.isSelectable(timelineEvent, revealed = true)) {
-                        add(EventSharedAction.Select(eventId))
-                    }
+                    selectAction?.let { add(it) }
                     val restoredMessageContent = restoredEvent?.getVectorLastMessageContent()
                     if (restoredEvent != null && canCopy(restoredMessageContent?.msgType, restoredMessageContent)) {
                         add(EventSharedAction.Copy(pgpCopyBody(restoredEvent, restoredMessageContent!!, mentionsAsIds = true)))
@@ -487,6 +545,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 canRestoreRedactedContent(timelineEvent) -> add(EventSharedAction.RevealRedacted(eventId))
                 else -> Unit
             }
+            if (!isShowingContent) selectAction?.let { add(it) }
         } else {
             if (canReplyInThread(timelineEvent, messageContent, actionPermissions)) {
                 add(EventSharedAction.ReplyInThread(eventId, !timelineEvent.isRootThread()))
@@ -503,10 +562,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canEdit(timelineEvent, session.myUserId, actionPermissions)) {
                 add(EventSharedAction.Edit(eventId, timelineEvent.root.getClearType()))
             }
-
-            if (initialState.canSelect && TimelineSelection.isSelectable(timelineEvent)) {
-                add(EventSharedAction.Select(eventId))
-            }
+            selectAction?.let { add(it) }
 
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard

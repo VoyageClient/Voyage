@@ -90,9 +90,9 @@ class DisplayReadReceiptsBottomSheet :
     // we are not using state for this one as it's static, so no need to override invalidate()
 
     companion object {
-        fun newInstance(readReceipts: List<ReadReceiptData>): DisplayReadReceiptsBottomSheet {
+        fun newInstance(readReceipts: List<ReadReceiptData>, includeMyself: Boolean = false): DisplayReadReceiptsBottomSheet {
             return DisplayReadReceiptsBottomSheet().apply {
-                setArguments(DisplayReadReceiptArgs(readReceipts = readReceipts))
+                setArguments(DisplayReadReceiptArgs(readReceipts = readReceipts, includeMyself = includeMyself))
             }
         }
 

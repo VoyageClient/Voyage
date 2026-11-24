@@ -47,6 +47,7 @@ class ReadReceiptsItemFactory @Inject constructor(
                             colorOnLight = it.roomMember.colorPreference?.onLight,
                             colorOnDark = it.roomMember.colorPreference?.onDark,
                             avatarDecryption = it.roomMember.avatarDecryption.takeUnless { hideAvatar },
+                            presentationRoomId = roomId,
                     )
                 }
                 .sortedByDescending { it.timestamp }

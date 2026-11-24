@@ -77,23 +77,24 @@ class BubbleThemeUtils @Inject constructor(private val context: Context) {
     fun isBubbleEnabled(): Boolean = getBubbleStyle() != BUBBLE_STYLE_NONE
 
     // Element does not tint outgoing bubbles, SchildiChat keeps them neutral too. This opt-in (default on)
-    // tints outgoing bubbles with the current accent colour.
+    // tints outgoing bubbles with the current accent color.
     fun isOutgoingTintEnabled(): Boolean =
             PreferenceManager.getDefaultSharedPreferences(context).getBoolean(BUBBLE_TINT_KEY, true)
 
-    private fun getBubbleRoundnessSetting(): String {
+    fun getBubbleRoundnessSetting(): String {
         return PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(BUBBLE_ROUNDNESS_KEY, BUBBLE_ROUNDNESS_DEFAULT) ?: BUBBLE_ROUNDNESS_DEFAULT
     }
 
+    fun isTailEnabled(): Boolean = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(BUBBLE_TAIL_KEY, true)
+
     fun getBubbleAppearance(): ScBubbleAppearance {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val baseAppearance = when (getBubbleRoundnessSetting()) {
             BUBBLE_ROUNDNESS_R1 -> r1ScBubbleAppearance
             BUBBLE_ROUNDNESS_R2 -> r2ScBubbleAppearance
             else -> defaultScBubbleAppearance
         }
-        return if (prefs.getBoolean(BUBBLE_TAIL_KEY, true)) {
+        return if (isTailEnabled()) {
             baseAppearance
         } else {
             baseAppearance.copy(

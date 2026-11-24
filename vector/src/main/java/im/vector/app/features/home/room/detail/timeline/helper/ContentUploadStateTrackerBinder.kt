@@ -18,6 +18,7 @@ import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -42,6 +43,7 @@ class ContentUploadStateTrackerBinder @Inject constructor(
             isLocalFile: Boolean,
             progressLayout: ViewGroup
     ) {
+        if (progressLayout.context.staticTimelineHost() != null) { progressLayout.isVisible = false; return }
         bindings.remove(progressLayout)?.also { it.tracker.untrack(it.eventId, it.listener) }
         val session = activeSessionHolder.getSafeActiveSession() ?: return
         val tracker = session.contentUploadProgressTracker()

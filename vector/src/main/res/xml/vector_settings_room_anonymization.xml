@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright 2026 Voyage Client
+
+ SPDX-License-Identifier: AGPL-3.0-only
+ Please see LICENSE files in the repository root for full details.
+-->
+<!-- Filled in code by AnonymizationPreferenceBinder. -->
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_ANONYMIZATION_CATEGORY_KEY"
+        android:title="@string/export_anonymization" />
+
+</androidx.preference.PreferenceScreen>

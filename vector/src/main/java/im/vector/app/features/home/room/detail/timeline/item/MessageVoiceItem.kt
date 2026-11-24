@@ -175,6 +175,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         holder.seekTouchListener = touchListener
         holder.voicePlaybackWaveform.setOnTouchListener(touchListener)
 
+        if (attributes.informationData.isStatic) { renderIdleState(holder, waveformColorIdle, waveformColorPlayed); return }
         val listener = AudioMessagePlaybackTracker.Listener { state ->
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,

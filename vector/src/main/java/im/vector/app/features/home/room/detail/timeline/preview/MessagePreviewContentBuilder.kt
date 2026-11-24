@@ -31,6 +31,7 @@ import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent.Media
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent.TextStyle
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.withoutTrailingLineBreak
@@ -125,7 +126,8 @@ class MessagePreviewContentBuilder @Inject constructor(
     fun notice(event: TimelineEvent, text: CharSequence): MessagePreviewContent = empty(event).notice(text)
 
     fun build(rawEvent: TimelineEvent, options: Options): MessagePreviewContent {
-        val event = redactedContentRestorer.restoreEvent(rawEvent) ?: rawEvent
+        val frozen = TimelineRenderingScope.current() != null
+        val event = if (frozen) rawEvent else redactedContentRestorer.restoreEvent(rawEvent) ?: rawEvent
         val base = empty(event)
         if (event.root.isRedacted()) {
             if (event.root.isDebugOnlyType()) {
@@ -170,7 +172,7 @@ class MessagePreviewContentBuilder @Inject constructor(
         buildPoll(event, content)?.let { return withMedia.copy(poll = it, details = null) }
         val textRenderer = textRendererFactory.create(event.roomId)
         val pills = pillsPostProcessorFactory.create(event.roomId).forEvent(event.root.originServerTs)
-        val translation = messageTranslationStore.get(event)?.takeIf { options.galleryItemIndex == null }
+        val translation = if (frozen) null else messageTranslationStore.get(event)?.takeIf { options.galleryItemIndex == null }
         val pgpPlaintext = if (translation == null) {
             options.pgpPlaintext ?: (content as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         } else {

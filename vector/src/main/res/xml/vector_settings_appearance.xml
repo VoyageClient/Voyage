@@ -20,7 +20,7 @@
             android:key="SETTINGS_SC_ACCENT_LIGHT"
             android:title="@string/settings_accent"
             app:entryPreviews="@array/sc_accent_color_previews"
-            app:trailingRowCount="3"
+            app:trailingRowCount="@integer/accent_color_trailing_row_count"
             app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
@@ -39,7 +39,7 @@
             android:key="SETTINGS_APP_ICON_COLOR_KEY"
             android:title="@string/settings_app_icon_color_title"
             app:entryPreviews="@array/sc_accent_color_previews"
-            app:trailingRowCount="3"
+            app:trailingRowCount="@integer/accent_color_trailing_row_count"
             app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorPreference

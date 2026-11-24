@@ -9,6 +9,7 @@ package im.vector.app.features.userdirectory
 
 import im.vector.app.features.displayname.getBestName
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
 
@@ -16,9 +17,10 @@ sealed class PendingSelection {
     data class UserPendingSelection(val user: User, var isUnknownUser: Boolean = false) : PendingSelection()
     data class ThreePidPendingSelection(val threePid: ThreePid) : PendingSelection()
 
-    fun getBestName(): String {
+    fun getBestName(revealIdentity: Boolean = false): String {
         return when (this) {
-            is UserPendingSelection -> user.toMatrixItem().getBestName()
+            is UserPendingSelection -> user.toMatrixItem()
+                    .let { if (revealIdentity) it.copy(presentationRoomId = IdentityPresentation.REVEALED_SCOPE) else it }.getBestName()
             is ThreePidPendingSelection -> threePid.value
         }
     }

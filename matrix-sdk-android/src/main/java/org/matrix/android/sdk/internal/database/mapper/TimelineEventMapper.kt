@@ -80,6 +80,7 @@ internal class TimelineEventMapper @Inject constructor(
                 annotations = timelineEventEntity.annotations?.asDomain(),
                 localId = timelineEventEntity.localId,
                 senderInfo = overriddenSenderInfo(
+                        roomId = timelineEventEntity.roomId,
                         userId = timelineEventEntity.root?.sender ?: "",
                         displayName = timelineEventEntity.senderName,
                         // Stored uniqueness flags can outlive a namesake's membership.
@@ -104,7 +105,7 @@ internal class TimelineEventMapper @Inject constructor(
         }
         // This sender's own overrides, not the global generation: keying on the generation makes any
         // override change miss the memo for every event in the room, re-parsing all their JSON.
-        add(ProfileOverrides.fieldsFor(e.root?.sender))
+        add(ProfileOverrides.fieldsFor(e.root?.sender, e.roomId))
         add(roomMemberColorCache.generation)
         add(ambiguousDisplayNameCache.generation)
         add(e.eventId)

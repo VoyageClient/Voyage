@@ -33,4 +33,5 @@
         app:showAsAction="always"
         tools:ignore="AlwaysShowAction" />
 
+    <item android:id="@+id/menu_home_archives" android:title="@string/archive_library" app:showAsAction="never" />
 </menu>

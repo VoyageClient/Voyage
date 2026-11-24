@@ -21,6 +21,8 @@ import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.PreferenceManager
 import im.vector.app.core.ui.colorpicker.ColorPalette
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.ui.styles.R
 import timber.log.Timber
@@ -76,6 +78,7 @@ object ThemeUtils {
     }
 
     fun isLightTheme(context: Context): Boolean {
+        (context.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { return it.lightTheme }
         return when (getApplicationTheme(context)) {
             THEME_LIGHT_VALUE,
             THEME_SC_LIGHT_VALUE -> true
@@ -180,6 +183,7 @@ object ThemeUtils {
     /** [messageTextAttr] resolved for callers with no injection point of their own to read the setting. */
     @ColorInt
     fun getMessageTextColor(c: Context): Int {
+        (c.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { return it.messageTextColor }
         val palette = PreferenceManager.getDefaultSharedPreferences(c.applicationContext)
                 .getString(VectorPreferences.SETTINGS_PEOPLE_COLOR_PALETTE_KEY, null)
         return getColor(c, messageTextAttr(palette == ColorPalette.NONE.name))
@@ -187,6 +191,7 @@ object ThemeUtils {
 
     @ColorInt
     fun getColor(c: Context, @AttrRes colorAttribute: Int): Int {
+        (c.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { return it.resolveColor(colorAttribute) }
         return mColorByAttr.getOrPut(colorAttribute) {
             try {
                 val color = TypedValue()
@@ -207,6 +212,7 @@ object ThemeUtils {
      */
     @ColorInt
     fun getColorFromContextTheme(c: Context, @AttrRes colorAttribute: Int): Int {
+        (c.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { return it.resolveColor(colorAttribute) }
         val color = TypedValue()
         return if (c.theme.resolveAttribute(colorAttribute, color, true)) color.data else getColor(c, colorAttribute)
     }
@@ -262,7 +268,7 @@ object ThemeUtils {
             }
 
     @StyleRes
-    private fun getAccentedThemeRes(@StyleRes resId: Int, themeAccent: String): Int {
+    fun getAccentedThemeRes(@StyleRes resId: Int, themeAccent: String): Int {
         return when (resId) {
             R.style.AppTheme_SC_Light -> when (themeAccent) {
                 "bluelight" -> R.style.AppTheme_SC_Light_BlueLight

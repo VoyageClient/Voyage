@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright 2026 Voyage Client
+
+ SPDX-License-Identifier: AGPL-3.0-only
+ Please see LICENSE files in the repository root for full details.
+-->
+<!-- Declared here so settings search finds the rows; AnonymizationPreferenceBinder fills them in and hides what doesn't apply. -->
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_ANONYMIZATION_CATEGORY_KEY"
+        android:title="@string/export_anonymization">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="ANONYMIZATION_ENABLED"
+            android:persistent="false"
+            android:title="@string/anonymization_enabled" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="ANONYMIZATION_LIST_MODE"
+            android:persistent="false"
+            android:title="@string/anonymization_list_mode" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="ANONYMIZATION_NAMING"
+            android:persistent="false"
+            android:title="@string/export_alias_style" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="ANONYMIZATION_SHARED_LABEL"
+            android:persistent="false"
+            android:title="@string/export_shared_label" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="ANONYMIZATION_SELF_LABEL"
+            android:persistent="false"
+            android:title="@string/export_self_label" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="ANONYMIZATION_SHARED_AVATAR"
+            android:persistent="false"
+            android:title="@string/export_shared_avatar" />
+
+        <im.vector.app.core.preference.VectorPreferenceCategory
+            android:key="ANONYMIZATION_EXCLUSIONS"
+            android:title="@string/anonymization_exclusions">
+
+            <im.vector.app.core.preference.VectorPreference
+                android:key="ANONYMIZATION_ADD_EXCLUSION"
+                android:persistent="false"
+                android:title="@string/anonymization_add_exclusion" />
+
+        </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

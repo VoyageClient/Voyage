@@ -90,19 +90,30 @@ object ProfileOverrides {
         _changes.tryEmit(changedUsers)
     }
 
-    fun fieldsFor(userId: String?): Map<String, Any?>? =
-            userId?.let { overrides[it] }?.takeIf { it.isNotEmpty() }
+    // Readers that hold mapped profiles re-resolve on IdentityPresentation.changes, which can rename anyone.
+    @Synchronized fun presentationChanged() {
+        generation++
+    }
 
-    fun displayNameFor(userId: String?): String? =
-            fieldsFor(userId)?.get(FIELD_DISPLAY_NAME) as? String
+    fun fieldsFor(userId: String?, roomId: String? = null): Map<String, Any?>? =
+            userId?.let {
+                val stored = overrides[it].orEmpty()
+                if (IdentityPresentation.isAnonymous(it, roomId)) stored + mapOf(FIELD_DISPLAY_NAME to IdentityPresentation.name(it, roomId), FIELD_AVATAR_URL to null)
+                else stored.takeIf { fields -> fields.isNotEmpty() }
+            }
 
-    fun displayNameOr(userId: String?, fallback: String?): String? =
-            fieldsFor(userId)?.let { if (FIELD_DISPLAY_NAME in it) displayNameFor(userId) else fallback } ?: fallback
+    fun displayNameFor(userId: String?, roomId: String? = null): String? =
+            fieldsFor(userId, roomId)?.get(FIELD_DISPLAY_NAME) as? String
+
+    fun displayNameOr(userId: String?, fallback: String?, roomId: String? = null): String? =
+            fieldsFor(userId, roomId)?.let { if (FIELD_DISPLAY_NAME in it) displayNameFor(userId, roomId) else fallback } ?: fallback
 
     fun avatarUrlFor(userId: String?): String? = mediaOverrideFor(userId, FIELD_AVATAR_URL)?.url
 
-    fun avatarUrlOr(userId: String?, fallback: String?): String? =
-            fieldsFor(userId)?.let { if (FIELD_AVATAR_URL in it) avatarUrlFor(userId) else fallback } ?: fallback
+    fun avatarUrlOr(userId: String?, fallback: String?, roomId: String? = null): String? {
+        val fields = fieldsFor(userId, roomId).orEmpty()
+        return if (FIELD_AVATAR_URL in fields) mediaOverride(fields[FIELD_AVATAR_URL])?.url else fallback
+    }
 
     fun mediaOr(userId: String?, fields: List<String>, fallback: String?): ProfileMedia? {
         val overrides = fieldsFor(userId)
@@ -110,17 +121,19 @@ object ProfileOverrides {
         return if (overriddenField != null) mediaOverrideFor(userId, overriddenField) else fallback?.let(::ProfileMedia)
     }
 
-    private fun mediaOverrideFor(userId: String?, field: String): ProfileMedia? {
-        return when (val value = fieldsFor(userId)?.get(field)) {
+    private fun mediaOverrideFor(userId: String?, field: String, roomId: String? = null): ProfileMedia? =
+            mediaOverride(fieldsFor(userId, roomId)?.get(field))
+
+    private fun mediaOverride(value: Any?): ProfileMedia? =
+        when (value) {
             is String -> value.takeIf { it.isNotBlank() }?.let(::ProfileMedia)
             is EncryptedFileInfo -> value.url?.takeIf { it.startsWith("mxc://") }?.let { ProfileMedia(it, value) }
             else -> null
         }
-    }
 
     /** How to decrypt this user's avatar override, when it is an encrypted file. */
-    fun avatarDecryptionFor(userId: String?): ElementToDecrypt? =
-            mediaOverrideFor(userId, FIELD_AVATAR_URL)?.encryptedFile?.toElementToDecrypt()
+    fun avatarDecryptionFor(userId: String?, roomId: String? = null): ElementToDecrypt? =
+            mediaOverrideFor(userId, FIELD_AVATAR_URL, roomId)?.encryptedFile?.toElementToDecrypt()
 
     /**
      * The same, found by url alone. For values that reach a renderer through a plain string (a room

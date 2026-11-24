@@ -75,7 +75,8 @@ import javax.inject.Inject
 data class SearchArgs(
         val roomId: String,
         val roomDisplayName: String?,
-        val roomAvatarUrl: String?
+        val roomAvatarUrl: String?,
+        val archiveId: String? = null,
 ) : Parcelable
 
 @AndroidEntryPoint

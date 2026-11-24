@@ -14,6 +14,7 @@ import dagger.hilt.android.scopes.ActivityScoped
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import javax.inject.Inject
 
@@ -26,6 +27,7 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
             mxcUrl: String,
             holder: MessageFileItem.Holder
     ) {
+        if (holder.view.context.staticTimelineHost() != null) return
         activeSessionHolder.getSafeActiveSession()?.also { session ->
             val downloadStateTracker = session.contentDownloadProgressTracker()
             val updateListener = ContentDownloadUpdater(holder)

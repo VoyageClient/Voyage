@@ -24,6 +24,7 @@ import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class AccountSwitcherEntry(
@@ -101,6 +102,9 @@ class AccountSwitcherAdapter(
         private val logout = view.findViewById<ImageView>(R.id.accountSwitcherItemLogout)
 
         fun bind(entry: AccountSwitcherEntry) {
+            // Each account follows its own anonymization: the homeserver would identify it as much as the id.
+            val alias = IdentityPresentation.name(entry.userId, account = entry.userId)
+            val shownId = IdentityPresentation.displayedId(entry.userId, account = entry.userId)
             if (entry.isActive) {
                 // Active row: render via the live session. The MXC URL belongs to *this*
                 // account's own homeserver, so AuthenticatedGlideUrlLoader hitting the active
@@ -117,16 +121,16 @@ class AccountSwitcherAdapter(
                 // preference marks "known to have none" so the placeholder color is resolved
                 // without a profile prefetch through the active session either.
                 val matrixItem = MatrixItem.UserItem(
-                        entry.userId, entry.displayName, null,
-                        colorPreference = entry.colorPreference ?: ColorPreference(),
+                        entry.userId, alias ?: entry.displayName, null,
+                        colorPreference = entry.colorPreference?.takeIf { alias == null } ?: ColorPreference(),
                 )
-                val cached = accountInfoCache.avatarFileFor(entry.sessionId).takeIf { it.exists() && it.length() > 0 }
+                val cached = accountInfoCache.avatarFileFor(entry.sessionId).takeIf { alias == null && it.exists() && it.length() > 0 }
                 avatarRenderer.render(matrixItem, cached?.let { Uri.fromFile(it) }, avatar)
             }
-            displayName.text = (entry.displayName?.takeIf { it.isNotBlank() } ?: entry.userId).prepareForDisplay()
-            userId.text = entry.homeServerHost?.let { "${entry.userId} — $it" } ?: entry.userId
+            displayName.text = (alias ?: entry.displayName?.takeIf { it.isNotBlank() } ?: entry.userId).prepareForDisplay()
+            userId.text = entry.homeServerHost?.takeIf { alias == null }?.let { "${entry.userId} — $it" } ?: shownId
             // Copy the bare MXID, not the disambiguating homeserver suffix rendered next to it.
-            userId.setCopySource(entry.userId)
+            userId.setCopySource(shownId)
             userId.copyOnLongClick()
             // Long-clickable children swallow taps, so the row's click has to be repeated here.
             userId.throttledClicks { onAccountClick(entry) }

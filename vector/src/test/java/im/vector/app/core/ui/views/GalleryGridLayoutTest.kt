@@ -42,6 +42,21 @@ class GalleryGridLayoutTest {
         layout(0, 0, measuredWidth, measuredHeight)
     }
 
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun `software gallery render clips child tiles to the native outer corners`() {
+        val grid = aGrid(2, listOf(1f, 1f), 100)
+        grid.cornerRadius = 20f
+        (0 until grid.childCount).forEach { grid.getChildAt(it).setBackgroundColor(android.graphics.Color.RED) }
+        grid.measureAndLayout(100)
+        val image = android.graphics.Bitmap.createBitmap(grid.width, grid.height, android.graphics.Bitmap.Config.ARGB_8888)
+        try {
+            grid.draw(android.graphics.Canvas(image))
+            assertEquals(0, android.graphics.Color.alpha(image.getPixel(0, 0)))
+            assertEquals(android.graphics.Color.RED, image.getPixel(25, image.height / 2))
+            assertEquals(0, android.graphics.Color.alpha(image.getPixel(image.width - 1, image.height - 1)))
+        } finally { image.recycle() }
+    }
+
     @Test
     fun `grid measures to the layout's total height`() {
         val aspects = listOf(1f, 1f)

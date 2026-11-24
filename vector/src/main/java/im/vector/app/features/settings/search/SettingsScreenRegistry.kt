@@ -10,6 +10,7 @@ package im.vector.app.features.settings.search
 import im.vector.app.R
 import im.vector.app.features.settings.VectorSettingsActivityPresenceFragment
 import im.vector.app.features.settings.VectorSettingsAdvancedSettingsFragment
+import im.vector.app.features.settings.VectorSettingsAnonymizationFragment
 import im.vector.app.features.settings.VectorSettingsAppearanceFragment
 import im.vector.app.features.settings.VectorSettingsBubbleAppearanceFragment
 import im.vector.app.features.settings.VectorSettingsComposerFragment
@@ -55,6 +56,7 @@ object SettingsScreenRegistry {
             VectorSettingsBackupFragment::class.java.name to R.xml.vector_settings_backup,
             VectorSettingsTranslationFragment::class.java.name to R.xml.vector_settings_translation,
             VectorSettingsSecurityPrivacyFragment::class.java.name to R.xml.vector_settings_security_privacy,
+            VectorSettingsAnonymizationFragment::class.java.name to R.xml.vector_settings_anonymization,
             VectorSettingsUserAgentFragment::class.java.name to R.xml.vector_settings_user_agent,
             VectorSettingsLabsFragment::class.java.name to R.xml.vector_settings_labs,
             VectorSettingsAdvancedSettingsFragment::class.java.name to R.xml.vector_settings_advanced_settings,

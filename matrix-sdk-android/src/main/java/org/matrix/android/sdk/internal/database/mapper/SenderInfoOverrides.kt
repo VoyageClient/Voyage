@@ -18,15 +18,17 @@ internal fun overriddenSenderInfo(
         isUniqueDisplayName: Boolean,
         avatarUrl: String?,
         colorPreference: ColorPreference? = null,
+        roomId: String? = null,
 ): SenderInfo {
-    val hasOverrideName = ProfileOverrides.fieldsFor(userId)?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
+    val hasOverrideName = ProfileOverrides.fieldsFor(userId, roomId)?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
     return SenderInfo(
             userId = userId,
-            displayName = ProfileOverrides.displayNameOr(userId, displayName),
+            presentationRoomId = roomId,
+            displayName = ProfileOverrides.displayNameOr(userId, displayName, roomId),
             // A user-chosen override needs no "(userId)" disambiguation suffix.
             isUniqueDisplayName = hasOverrideName || isUniqueDisplayName,
-            avatarUrl = ProfileOverrides.avatarUrlOr(userId, avatarUrl),
-            avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId),
+            avatarUrl = ProfileOverrides.avatarUrlOr(userId, avatarUrl, roomId),
+            avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId, roomId),
             colorPreference = colorPreference,
     )
 }

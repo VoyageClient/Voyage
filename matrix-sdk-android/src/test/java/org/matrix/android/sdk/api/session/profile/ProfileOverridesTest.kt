@@ -109,6 +109,13 @@ class ProfileOverridesTest {
     }
 
     @Test
+    fun `an explicit avatar removal suppresses the original avatar`() {
+        withOverrides(mapOf(USER_ID to mapOf(ProfileKeys.AVATAR_URL to null))) {
+            assertNull(ProfileOverrides.avatarUrlOr(USER_ID, "mxc://example.org/original", "!garden:example.org"))
+        }
+    }
+
+    @Test
     fun `changes names only the users whose overrides differ`() = runBlocking {
         ProfileOverrides.claim(SESSION_ID)
         try {

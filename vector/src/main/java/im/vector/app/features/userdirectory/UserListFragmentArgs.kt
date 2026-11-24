@@ -19,5 +19,9 @@ data class UserListFragmentArgs(
         val singleSelection: Boolean = false,
         val single3pidSelection: Boolean = false,
         val showContactBookAction: Boolean = true,
-        val showToolbar: Boolean = true
+        val showToolbar: Boolean = true,
+        val revealIdentities: Boolean = false,
+        /** Offers this room's members instead of the user directory. */
+        val roomId: String? = null,
+        val includeSelf: Boolean = false,
 ) : Parcelable

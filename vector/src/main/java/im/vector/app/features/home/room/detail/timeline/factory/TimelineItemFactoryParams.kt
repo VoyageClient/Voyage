@@ -32,6 +32,7 @@ data class TimelineItemFactoryParams(
         // For hosts outside the timeline which date each row themselves.
         val hideTimestamp: Boolean = false,
         val preserveSenderInfo: Boolean = false,
+        val presentation: TimelineItemPresentation? = null,
 ) {
 
     val highlightedEventId: String?

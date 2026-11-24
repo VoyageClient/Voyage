@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -258,6 +259,23 @@ internal class SqlTimeline(
             }
         }
         profileOverridesJob = timelineScope.launch {
+            // Anonymization settings can rename anyone; only the people whose presentation changed are re-mapped.
+            launch {
+                var shown = IdentityPresentation.config()
+                IdentityPresentation.changes.drop(1).collect {
+                    val current = IdentityPresentation.config()
+                    val people = chunkSnapshotCache.values.flatten()
+                            .flatMapTo(HashSet()) { event -> event.readReceipts.map { it.roomMember.userId } + event.senderInfo.userId }
+                    val changed = people.filterTo(HashSet()) {
+                        IdentityPresentation.presentation(shown, it, roomId) != IdentityPresentation.presentation(current, it, roomId)
+                    }
+                    shown = current
+                    if (changed.isEmpty()) return@collect
+                    remapCachedEventsOfUsers(changed)
+                    DebugLog.i { "IDPDBG timeline remap room=$roomId people=${people.size} changed=${changed.size}" }
+                    rebuildSnapshot(force = true)
+                }
+            }
             ProfileOverrides.changes.collect { changedUsers ->
                 // Only the affected events: dropping the cache re-maps every loaded row, which in a
                 // scrolled-back room takes seconds — long enough that the override lands well after the

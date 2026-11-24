@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.style
 
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
+import im.vector.app.core.resources.DateProvider
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.home.room.detail.timeline.helper.perMessageSenderIdentity
 import im.vector.app.features.settings.VectorPreferences
@@ -73,13 +74,28 @@ class TimelineMessageLayoutFactory @Inject constructor(
         )
     }
 
-    fun create(params: TimelineItemFactoryParams): TimelineMessageLayout {
+    data class Presentation(
+            val layout: TimelineLayoutSettings,
+            val timestamps: Boolean,
+            val bubbles: BubbleThemeUtils,
+            val sentByMe: Boolean,
+            val avatars: Boolean,
+            val forceRealBubble: Boolean,
+            val timeZone: java.util.TimeZone? = null,
+    )
+
+    fun create(params: TimelineItemFactoryParams, presentation: Presentation? = null): TimelineMessageLayout {
         val event = params.event
         val nextDisplayableEvent = params.nextDisplayableEvent
-        val isSentByMe = event.root.senderId == session.myUserId
+        val isSentByMe = presentation?.sentByMe ?: (event.root.senderId == session.myUserId)
+        val timestamps = presentation?.timestamps ?: vectorPreferences.showMessageTimestamps()
+        val bubbles = presentation?.bubbles ?: bubbleThemeUtils
 
-        val date = event.root.localDateTime()
-        val nextDate = nextDisplayableEvent?.root?.localDateTime()
+        val date = presentation?.timeZone?.let { DateProvider.toLocalDateTime(event.root.originServerTs, it) }
+                ?: event.root.localDateTime()
+        val nextDate = nextDisplayableEvent?.root?.let { root ->
+            presentation?.timeZone?.let { DateProvider.toLocalDateTime(root.originServerTs, it) } ?: root.localDateTime()
+        }
         val addDaySeparator = date.toLocalDate() != nextDate?.toLocalDate()
 
         val isNextMessageReceivedMoreThanOneHourAgo = nextDate?.isBefore(date.minusMinutes(60))
@@ -95,20 +111,20 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 event.isRootThread() ||
                 (nextDisplayableEvent?.isEdition() ?: false)
 
-        val messageLayout = when (layoutSettingsProvider.getLayoutSettings()) {
+        val messageLayout = when (presentation?.layout ?: layoutSettingsProvider.getLayoutSettings()) {
             TimelineLayoutSettings.SC_BUBBLE -> {
                 if (event.shouldNeverUseScLayout()) {
-                    buildModernLayout(showInformation)
+                    buildModernLayout(showInformation, timestamps)
                 } else {
                     val messageContent = event.getLastMessageContent()
                     val isBubble = event.shouldBuildScBubbleLayout()
-                    val singleSidedLayout = bubbleThemeUtils.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_START
-                    val pseudoBubble = messageContent.isScPseudoBubble(event)
+                    val singleSidedLayout = bubbles.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_START
+                    val pseudoBubble = presentation?.forceRealBubble != true && messageContent.isScPseudoBubble(event)
                     TimelineMessageLayout.ScBubble(
-                            showAvatar = showInformation,
+                            showAvatar = showInformation && presentation?.avatars != false,
                             showDisplayName = showInformation && (singleSidedLayout || !messageContent.redundantDisplayName()),
-                            showTimestamp = vectorPreferences.showMessageTimestamps() && (showInformation || !singleSidedLayout),
-                            bubbleAppearance = bubbleThemeUtils.getBubbleAppearance(),
+                            showTimestamp = timestamps && (showInformation || !singleSidedLayout),
+                            bubbleAppearance = bubbles.getBubbleAppearance(),
                             isIncoming = !isSentByMe,
                             isNotice = messageContent is MessageNoticeContent,
                             reverseBubble = isSentByMe && !singleSidedLayout,
@@ -116,15 +132,15 @@ class TimelineMessageLayoutFactory @Inject constructor(
                             isRealBubble = isBubble && !pseudoBubble,
                             isPseudoBubble = pseudoBubble,
                             timestampAsOverlay = messageContent.timestampInsideMessage(),
-                            tintOutgoing = bubbleThemeUtils.isOutgoingTintEnabled()
+                            tintOutgoing = bubbles.isOutgoingTintEnabled()
                     )
                 }
             }
             TimelineLayoutSettings.MODERN -> {
-                buildModernLayout(showInformation)
+                buildModernLayout(showInformation, timestamps)
             }
         }
-        return messageLayout
+        return if (messageLayout is TimelineMessageLayout.Default && presentation?.avatars == false) messageLayout.copy(showAvatar = false) else messageLayout
     }
 
     private fun TimelineEvent?.senderIdentity(): List<Any?>? =
@@ -212,11 +228,11 @@ class TimelineMessageLayoutFactory @Inject constructor(
         }
     }
 
-    private fun buildModernLayout(showInformation: Boolean): TimelineMessageLayout.Default {
+    private fun buildModernLayout(showInformation: Boolean, timestamps: Boolean = vectorPreferences.showMessageTimestamps()): TimelineMessageLayout.Default {
         return TimelineMessageLayout.Default(
                 showAvatar = showInformation,
                 showDisplayName = showInformation,
-                showTimestamp = showInformation && vectorPreferences.showMessageTimestamps()
+                showTimestamp = showInformation && timestamps
         )
     }
 

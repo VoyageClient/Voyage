@@ -10,16 +10,11 @@ package im.vector.app.features.home.room.detail.timeline.selection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
-/**
- * Multi-selected timeline messages. Selection mode is on while this is non-empty, or [held] open.
- * @param isRevealed whether a redacted event is currently showing its recovered content
- */
-class TimelineSelection(private val isRevealed: (TimelineEvent) -> Boolean = { false }) {
+/** Multi-selected timeline events. Selection mode is on while this is non-empty, or [held] open. */
+class TimelineSelection {
 
     private val _selected = MutableStateFlow<Map<String, TimelineEvent>>(emptyMap())
     val selected: StateFlow<Map<String, TimelineEvent>> = _selected.asStateFlow()
@@ -54,6 +49,10 @@ class TimelineSelection(private val isRevealed: (TimelineEvent) -> Boolean = { f
         _selected.value = result
     }
 
+    fun replace(events: Collection<TimelineEvent>) {
+        _selected.value = events.filter(::canSelect).associateBy { it.eventId }
+    }
+
     fun clear() {
         _held.value = false
         _selected.value = emptyMap()
@@ -71,20 +70,11 @@ class TimelineSelection(private val isRevealed: (TimelineEvent) -> Boolean = { f
         if (updated != current) _selected.value = updated
     }
 
-    fun canSelect(event: TimelineEvent): Boolean = isSelectable(event, revealed = isRevealed(event))
+    fun canSelect(event: TimelineEvent): Boolean = isSelectable(event)
 
     companion object {
-        /**
-         * Messages, stickers, polls and undecryptable messages; the toolbar offers each action only where every
-         * selected one supports it. A deleted one only while its recovered content is [revealed].
-         */
-        fun isSelectable(event: TimelineEvent, revealed: Boolean = false): Boolean =
-                event.root.sendState == SendState.SYNCED &&
-                        (!event.root.isRedacted() || revealed) &&
-                        event.root.getClearType() in SELECTABLE_TYPES
-
-        private val SELECTABLE_TYPES = setOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) +
-                EventType.POLL_START.values + EventType.POLL_END.values
+        fun isSelectable(event: TimelineEvent): Boolean =
+                event.root.sendState == SendState.SYNCED
 
         /** Oldest first, matching how they read in the timeline. */
         fun inTimelineOrder(events: Collection<TimelineEvent>): List<TimelineEvent> =

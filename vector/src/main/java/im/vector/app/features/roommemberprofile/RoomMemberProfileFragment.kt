@@ -86,6 +86,7 @@ import im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsActivity
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.timelineexport.AnonymizationPreferenceBinder
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
@@ -100,6 +101,7 @@ import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -108,7 +110,8 @@ import javax.inject.Inject
 @Parcelize
 data class RoomMemberProfileArgs(
         val userId: String,
-        val roomId: String? = null
+        val roomId: String? = null,
+        val archiveId: String? = null,
 ) : Parcelable
 
 @AndroidEntryPoint
@@ -386,7 +389,7 @@ class RoomMemberProfileFragment :
         when (val asyncUserMatrixItem = state.userMatrixItem) {
             Uninitialized,
             is Loading -> {
-                views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
+                views.matrixProfileToolbarTitleView.text = IdentityPresentation.displayedId(state.userId, state.roomId).neutralizeDirectionOverrides()
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
                 headerRevealed = false
                 // The header stays laid out and merely covered: hiding it would collapse the AppBar,
@@ -395,7 +398,7 @@ class RoomMemberProfileFragment :
             }
             is Fail -> {
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
-                views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
+                views.matrixProfileToolbarTitleView.text = IdentityPresentation.displayedId(state.userId, state.roomId).neutralizeDirectionOverrides()
                 val failureMessage = errorFormatter.toHumanReadable(asyncUserMatrixItem.error)
                 revealHeader()
                 headerViews.memberProfileStateView.state = StateView.State.Error(failureMessage)
@@ -411,8 +414,8 @@ class RoomMemberProfileFragment :
                     views.matrixProfileRecyclerView.postDelayed(revealHeaderRunnable, REVEAL_WAIT_MS)
                 }
                 headerViews.memberProfileStateView.state = StateView.State.Content
-                headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
-                headerViews.memberProfileIdView.setCopySource(userMatrixItem.id)
+                headerViews.memberProfileIdView.text = IdentityPresentation.displayedId(userMatrixItem.id, state.roomId).neutralizeDirectionOverrides()
+                headerViews.memberProfileIdView.setCopySource(IdentityPresentation.displayedId(userMatrixItem.id, state.roomId))
                 val bestName = userMatrixItem.getBestName()
                 val previousName = headerViews.memberProfileNameView.text.toString()
                 val previousColor = headerViews.memberProfileNameView.currentTextColor
@@ -654,6 +657,15 @@ class RoomMemberProfileFragment :
     }
 
     private fun onAvatarClicked(userMatrixItem: MatrixItem) {
+        if (fragmentArgs.archiveId != null) {
+            im.vector.app.features.timelineexport.openArchiveAvatar(requireActivity(), userMatrixItem.avatarUrl, userMatrixItem.getBestName())
+            return
+        }
+        val presentationRoomId = (userMatrixItem as? MatrixItem.UserItem)?.presentationRoomId ?: fragmentArgs.roomId
+        if (IdentityPresentation.isAnonymous(userMatrixItem.id, presentationRoomId)) {
+            AnonymizationPreferenceBinder.showPerson(requireContext(), session.myUserId, presentationRoomId, userMatrixItem.id)
+            return
+        }
         val roomId = fragmentArgs.roomId
         val memberEventId = roomId?.let {
             session.getRoom(it)
@@ -959,13 +971,17 @@ class RoomMemberProfileFragment :
         }
     }
 
+    override fun onAnonymizationClicked(): Unit = withState(viewModel) { state ->
+        AnonymizationPreferenceBinder.showPerson(requireContext(), session.myUserId, state.roomId, state.userId)
+    }
+
     override fun onOverrideDisplayNameClicked(): Unit = withState(viewModel) { state ->
         val inflater = requireActivity().layoutInflater
         val layout = inflater.inflate(R.layout.dialog_base_edit_text, null)
         val dialogViews = DialogBaseEditTextBinding.bind(layout)
         val effectiveName = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName()
         dialogViews.editText.setText(effectiveName)
-        dialogViews.editText.hint = state.userId
+        dialogViews.editText.hint = IdentityPresentation.displayedId(state.userId, state.roomId)
         dialogViews.editText.setupUserTextInput()
 
         val dialog = MaterialAlertDialogBuilder(requireContext())

@@ -47,10 +47,12 @@ internal class SqlRoomMemberHelper(
         return RoomMemberSummary(
                 membership = content.membership,
                 userId = userId,
-                displayName = ProfileOverrides.displayNameOr(userId, content.displayName),
-                avatarUrl = ProfileOverrides.avatarUrlOr(userId, content.avatarUrl),
-                avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId),
+                displayName = ProfileOverrides.displayNameOr(userId, content.displayName, roomId),
+                avatarUrl = ProfileOverrides.avatarUrlOr(userId, content.avatarUrl, roomId),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId, roomId),
                 originalDisplayName = content.displayName,
+                originalAvatarUrl = content.avatarUrl,
+                presentationRoomId = roomId,
         )
     }
 

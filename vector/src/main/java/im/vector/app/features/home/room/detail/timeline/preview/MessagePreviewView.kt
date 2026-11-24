@@ -290,6 +290,7 @@ class MessagePreviewView @JvmOverloads constructor(
         textView.isVisible = true
         textView.movementMethod = null
         textView.text = text
+        textView.bindPillImageSpans()
         applyTextStyle(style)
         expandable.isVisible = true
         expandable.setExpanded(false)

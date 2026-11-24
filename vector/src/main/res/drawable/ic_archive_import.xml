@@ -1,0 +1,16 @@
+<!--
+ Copyright 2026 Voyage Client
+
+ SPDX-License-Identifier: AGPL-3.0-only
+ Please see LICENSE files in the repository root for full details.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:pathData="M8,7V5C8,3.9 8.9,3 10,3H16L21,8V19C21,20.1 20.1,21 19,21H10C8.9,21 8,20.1 8,19V17M16,3V8H21M3,12H14M10.5,8.5L14,12L10.5,15.5"
+        android:strokeColor="?attr/vctr_content_primary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
+</vector>

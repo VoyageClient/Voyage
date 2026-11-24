@@ -7,6 +7,8 @@
 
 package im.vector.app.features.media
 
+import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import kotlin.math.max
 import kotlin.math.min
 
@@ -25,3 +27,11 @@ fun cappedMediaCornerRadius(radius: Float, width: Float, height: Float): Float {
     val floor = min(radius * MEDIA_CORNER_MIN_OF_CONFIGURED, shorter * MEDIA_CORNER_MAX_FRACTION)
     return min(radius, max(shorter * MEDIA_CORNER_FRACTION, floor))
 }
+
+fun cappedMediaBackground(color: Int, radius: Float): GradientDrawable =
+        object : GradientDrawable() {
+            override fun onBoundsChange(bounds: Rect) {
+                super.onBoundsChange(bounds)
+                cornerRadius = cappedMediaCornerRadius(radius, bounds.width().toFloat(), bounds.height().toFloat())
+            }
+        }.apply { setColor(color) }

@@ -61,12 +61,14 @@ import im.vector.app.features.settings.useragent.UaAutoUpgradeManager
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
 import im.vector.lib.core.utils.audio.AudioRouteKeepAlive
+import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.commonmark.parser.Parser
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.debug.DebugLog
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -151,6 +153,9 @@ class VectorApplication :
         im.vector.app.core.utils.FrameJankWatcher.startIfEnabled()
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
         de.spiritcroc.matrixsdk.StaticScSdkHelper.scSdkPreferenceProvider = vectorPreferences
+        IdentityPresentation.defaultLabel = { self ->
+            getString(if (self) CommonStrings.export_default_self_label else CommonStrings.export_default_shared_label)
+        }
         appContext = this
         invitesAcceptor.initialize()
         vectorUncaughtExceptionHandler.activate()

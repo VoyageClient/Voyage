@@ -35,6 +35,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -142,7 +143,7 @@ class NotifiableEventResolver @Inject constructor(
             // Ok room is not known in store, but we can still display something
             val body = displayableEventFormatter.format(event, isDm = false, appendAuthor = false).expandPillSpans()
             val roomName = stringProvider.getString(CommonStrings.notification_unknown_room_name)
-            val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
+            val senderDisplayName = (IdentityPresentation.name(event.senderInfo.userId, event.roomId, session.myUserId) ?: event.senderInfo.disambiguatedDisplayName).neutralizeDirectionOverrides()
 
             NotifiableMessageEvent(
                     eventId = event.root.eventId!!,
@@ -171,7 +172,7 @@ class NotifiableEventResolver @Inject constructor(
                     val body = displayableEventFormatter.format(event, isDm = room.roomSummary()?.isDirect.orFalse(), appendAuthor = false)
                             .expandPillSpans().toString()
                     val roomName = (room.roomSummary()?.displayName ?: "").neutralizeDirectionOverrides()
-                    val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
+                    val senderDisplayName = (IdentityPresentation.name(event.senderInfo.userId, event.roomId, session.myUserId) ?: event.senderInfo.disambiguatedDisplayName).neutralizeDirectionOverrides()
 
                     NotifiableMessageEvent(
                             eventId = event.root.eventId!!,
@@ -196,7 +197,7 @@ class NotifiableEventResolver @Inject constructor(
                                     ),
                             senderAvatarPath = session.contentUrlResolver()
                                     .resolveThumbnail(
-                                            event.senderInfo.avatarUrl,
+                                            event.senderInfo.avatarUrl.takeUnless { IdentityPresentation.isAnonymous(event.senderInfo.userId, event.roomId, session.myUserId) },
                                             250,
                                             250,
                                             ContentUrlResolver.ThumbnailMethod.SCALE
@@ -251,7 +252,7 @@ class NotifiableEventResolver @Inject constructor(
     private fun resolveStateRoomEvent(event: Event, session: Session, canBeReplaced: Boolean, isNoisy: Boolean): NotifiableEvent? {
         val content = event.content?.toModel<RoomMemberContent>() ?: return null
         val roomId = event.roomId ?: return null
-        val dName = event.senderId?.let { session.roomService().getRoomMember(it, roomId)?.displayName }
+        val dName = event.senderId?.let { IdentityPresentation.name(it, roomId, session.myUserId) ?: session.roomService().getRoomMember(it, roomId)?.displayName }
         if (Membership.INVITE == content.membership) {
             val roomSummary = session.getRoomSummary(roomId)
             val body = noticeEventFormatter.format(event, dName, isDm = roomSummary?.isDirect.orFalse())

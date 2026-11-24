@@ -7,8 +7,13 @@
 
 package im.vector.app.features.home.room.detail.search
 
+import android.content.Context
+import io.mockk.mockk
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import org.matrix.android.sdk.api.session.profile.AnonymizationConfig
+import org.matrix.android.sdk.api.session.profile.AnonymizationRule
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 
@@ -54,5 +59,24 @@ class SearchFilterSuggestionsTest {
 
         suggestion.query shouldBeEqualTo "cat from:@evelyn:hs "
         suggestion.query.substring(suggestion.pillRange!!) shouldBeEqualTo "@evelyn:hs"
+    }
+
+    @Test
+    fun `an anonymized member is offered and matched by their stand-in id, which the search resolves back`() {
+        IdentityPresentation.initialize(mockk<Context>(relaxed = true), "@me:hs", "session")
+        try {
+            IdentityPresentation.update("@me:hs", AnonymizationConfig(rule = AnonymizationRule(enabled = true, onlyListed = true, users = setOf("@evelyn:hs"))))
+            // The SDK hands anonymized members over under their alias.
+            val shown = members.map { if (it.userId == "@evelyn:hs") it.copy(displayName = "Amber Fox") else it }
+            val standIn = IdentityPresentation.displayedId("@evelyn:hs")
+
+            SearchFilterSuggestions.suggestionsFor("from:@evelyn", shown) shouldBeEqualTo emptyList()
+            val suggestion = SearchFilterSuggestions.suggestionsFor("from:amber", shown).single()
+            suggestion.hint shouldBeEqualTo standIn
+            suggestion.query shouldBeEqualTo "from:$standIn "
+            SearchFilterSuggestions.resolveIds("cat ${suggestion.query}", shown) shouldBeEqualTo "cat from:@evelyn:hs "
+        } finally {
+            IdentityPresentation.release("session")
+        }
     }
 }

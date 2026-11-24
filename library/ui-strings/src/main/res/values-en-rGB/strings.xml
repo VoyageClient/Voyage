@@ -79,4 +79,10 @@
     <string name="gradient_settings_summary">Create colour gradients to use with /gradient</string>
     <string name="gradient_add_color">Add colour</string>
     <string name="gradient_color">Colour %1$d</string>
+    <string name="export_identity_content_note">Anonymisation replaces identities and structured mentions. Ordinary message text and attachment contents are unchanged.</string>
+    <string name="export_anonymization">Anonymisation</string>
+    <string name="anonymization_enabled">Anonymise identities</string>
+    <string name="anonymization_person_anonymized">Anonymised as %1$s</string>
+    <string name="anonymization_person_visible">Not anonymised</string>
+    <string name="room_personalization_anonymization_reset_confirmation">Use your account\'s anonymisation rules in this room again?</string>
 </resources>

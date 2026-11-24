@@ -7,6 +7,7 @@
 
 package im.vector.app.features.roommemberprofile
 
+import android.graphics.Color
 import android.net.Uri
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
@@ -32,7 +33,10 @@ import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
+import im.vector.app.features.timelineexport.ExportPerson
+import im.vector.app.features.timelineexport.TimelineArchiveStore
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -60,6 +64,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.ProfileService
@@ -101,6 +106,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val imagePackProvider: ImagePackProvider,
         private val vectorPreferences: VectorPreferences,
         private val session: Session,
+        private val archives: TimelineArchiveStore,
         private val matrix: Matrix
 ) : VectorViewModel<RoomMemberProfileViewState, RoomMemberProfileAction, RoomMemberProfileViewEvents>(initialState) {
 
@@ -123,8 +129,27 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             room?.stateService()?.getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)?.content
 
     init {
-        PerfTrace.time("member.profile.vm.init") {
+        if (initialState.archiveId != null) loadArchive(initialState.archiveId)
+        else PerfTrace.time("member.profile.vm.init") {
             initInner()
+        }
+    }
+
+    private fun loadArchive(id: String) {
+        viewModelScope.launch {
+            try {
+                val snapshot = withContext(Dispatchers.IO) { archives.read(session.myUserId, id) }
+                val person = (snapshot.mentionedPeople + snapshot.events.flatMap { event -> listOf(event.person) + event.receipts.map { it.person } + event.reactions.flatMap { it.people } }).firstOrNull { it.id == initialState.userId }
+                        ?: ExportPerson(initialState.userId, initialState.userId, Color.GRAY)
+                val avatar = person.avatar?.let { Uri.fromFile(java.io.File(archives.directory(session.myUserId, id), it)).toString() }
+                setState { copy(userMatrixItem = Success(MatrixItem.UserItem(person.id, person.name, avatar)),
+                        isHistoricalOrWatchedRoom = true, showAsMember = true) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                Timber.e(failure, "ExportTrace archive member profile failed")
+                setState { copy(userMatrixItem = Fail(failure)) }
+            }
         }
     }
 
@@ -339,10 +364,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                         Success(
                                 MatrixItem.UserItem(
                                         initialState.userId,
-                                        if (hasOverrideName) overrideName else base.displayName,
-                                        if (hasOverrideAvatar) overrideAvatar else base.avatarUrl,
-                                        if (hasOverrideAvatar) ProfileOverrides.avatarDecryptionFor(initialState.userId) else null,
+                                        ProfileOverrides.displayNameOr(initialState.userId, if (hasOverrideName) overrideName else base.displayName, initialState.roomId),
+                                        ProfileOverrides.avatarUrlOr(initialState.userId, if (hasOverrideAvatar) overrideAvatar else base.avatarUrl, initialState.roomId),
+                                        if (hasOverrideAvatar) ProfileOverrides.avatarDecryptionFor(initialState.userId, initialState.roomId) else null,
                                         colorPreference = session.profileService().getCachedOwnColorPreference(initialState.userId),
+                                        presentationRoomId = initialState.roomId,
                                 )
                         )
                     } else {
@@ -365,6 +391,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     override fun handle(action: RoomMemberProfileAction) {
+        if (initialState.archiveId != null) return
         when (action) {
             is RoomMemberProfileAction.RetryFetchingInfo -> handleRetryFetchProfileInfo()
             is RoomMemberProfileAction.IgnoreUser -> handleIgnoreAction()
@@ -1042,16 +1069,18 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         val fallbackUser = fallback as? MatrixItem.UserItem
         return MatrixItem.UserItem(
                 id = initialState.userId,
-                displayName = ProfileOverrides.displayNameOr(initialState.userId, globalProfile.displayName ?: fallback?.displayName),
-                avatarUrl = ProfileOverrides.avatarUrlOr(initialState.userId, globalProfile.avatarUrl ?: fallback?.avatarUrl),
-                avatarDecryption = ProfileOverrides.avatarDecryptionFor(initialState.userId),
+                displayName = ProfileOverrides.displayNameOr(initialState.userId, globalProfile.displayName ?: fallback?.displayName, initialState.roomId),
+                avatarUrl = ProfileOverrides.avatarUrlOr(initialState.userId, globalProfile.avatarUrl ?: fallback?.avatarUrl, initialState.roomId),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(initialState.userId, initialState.roomId),
                 userDisplayName = fallbackUser?.userDisplayName,
                 colorPreference = session.profileService().getCachedOwnColorPreference(initialState.userId),
+                presentationRoomId = initialState.roomId,
         )
     }
 
+    // A banner is as identifying as an avatar.
     private fun resolvedProfileBanner(fallback: String?): ProfileOverrides.ProfileMedia? =
-            ProfileOverrides.mediaOr(
+            if (IdentityPresentation.isAnonymous(initialState.userId, initialState.roomId)) null else ProfileOverrides.mediaOr(
                     initialState.userId,
                     listOf(ProfileKeys.BANNER_URL, ProfileKeys.BANNER_URL_UNSTABLE),
                     fallback,

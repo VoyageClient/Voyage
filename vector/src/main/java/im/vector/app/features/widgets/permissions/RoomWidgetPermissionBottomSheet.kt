@@ -19,6 +19,7 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetRoomWidgetPermissionBinding
+import im.vector.app.features.displayname.shownId
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.widgets.WidgetArgs
@@ -57,7 +58,7 @@ class RoomWidgetPermissionBottomSheet :
     override fun invalidate() = withState(viewModel) { state ->
         super.invalidate()
         val permissionData = state.permissionData() ?: return@withState
-        views.widgetPermissionOwnerId.text = permissionData.widget.senderInfo?.userId?.neutralizeDirectionOverrides() ?: ""
+        views.widgetPermissionOwnerId.text = permissionData.widget.senderInfo?.toMatrixItem()?.shownId()?.neutralizeDirectionOverrides() ?: ""
         views.widgetPermissionOwnerDisplayName.text = permissionData.widget.senderInfo?.disambiguatedDisplayName?.prepareForDisplay()
         permissionData.widget.senderInfo?.toMatrixItem()?.also {
             avatarRenderer.render(it, views.widgetPermissionOwnerAvatar, roomId = state.roomId)

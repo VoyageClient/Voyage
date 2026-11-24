@@ -70,4 +70,6 @@
         android:title="@string/action_share"
         app:iconTint="?vctr_content_secondary"
         app:showAsAction="withText" />
+    <item android:id="@+id/timeline_anonymization" android:title="@string/export_anonymization" app:showAsAction="never" />
+    <item android:id="@+id/timeline_resume_export" android:title="@string/export_resume_draft" app:showAsAction="never" />
 </menu>

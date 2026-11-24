@@ -13,6 +13,8 @@ import android.os.SystemClock
 import android.widget.ImageView
 import com.bumptech.glide.request.Request
 import im.vector.app.R
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
+import kotlinx.coroutines.CompletableDeferred
 import org.matrix.android.sdk.api.debug.DebugLog
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicLong
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
 object PendingRenders {
 
     class Token(val id: Long, val describe: String) {
+        val completion = CompletableDeferred<Unit>()
         val startedAt = SystemClock.uptimeMillis()
         var view: WeakReference<ImageView>? = null
 
@@ -45,6 +48,7 @@ object PendingRenders {
         DebugLog.i { "MEDIADBG render start #${token.id} ${token.describe}" }
         handler.postDelayed({ report(token) }, STUCK_AFTER_MS)
         imageView.setTag(R.id.image_renderer_pending_render, token)
+        imageView.context.staticTimelineHost()?.mediaStarted(imageView, token.completion)
         return token
     }
 
@@ -63,6 +67,7 @@ object PendingRenders {
 
     fun finish(token: Token, outcome: String) {
         token.done = true
+        token.completion.complete(Unit)
         synchronized(pending) { pending.remove(token.id) }
         DebugLog.i { "MEDIADBG render end #${token.id} ${SystemClock.uptimeMillis() - token.startedAt}ms $outcome — ${token.describe}" }
     }

@@ -64,6 +64,14 @@ internal class RoomSummarySqlStore(
                 .map { it.room_id }
     }
 
+    /** Rooms we're still in (join/invite), each with the other members its name and avatar are drawn from. */
+    fun activeRoomsWithOtherMembers(): List<Pair<String, List<String>>> {
+        val active = Membership.activeMemberships().map { it.name }.toSet()
+        return queries.selectRoomMembershipInfo().executeAsList()
+                .filter { it.membership_str in active && !it.other_member_ids.isNullOrEmpty() }
+                .map { it.room_id to it.other_member_ids.splitToList() }
+    }
+
     /** Rooms whose current room-list preview event was authored by one of [senders]. */
     fun roomIdsWithPreviewFromSenders(senders: Collection<String>): List<String> {
         if (senders.isEmpty()) return emptyList()

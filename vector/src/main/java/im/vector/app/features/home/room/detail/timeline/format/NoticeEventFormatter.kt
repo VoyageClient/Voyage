@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventCo
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
@@ -107,6 +108,7 @@ class NoticeEventFormatter @Inject constructor(
 
     private fun resolveDisplayName(event: TimelineEvent): String {
         val senderId = event.senderInfo.userId
+        IdentityPresentation.name(senderId, event.roomId)?.let { return it }
         val storedName = event.senderInfo.displayName
         if (storedName != null) return event.senderInfo.disambiguatedDisplayName
         val session = activeSessionDataSource.currentValue?.orNull()
@@ -117,71 +119,23 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     fun format(timelineEvent: TimelineEvent, isDm: Boolean): CharSequence? {
-        val event = timelineEvent.root
+        val rawEvent = timelineEvent.root
+        val alias = IdentityPresentation.name(rawEvent.stateKey, rawEvent.roomId)
+        if (alias != null && rawEvent.getClearType() == EventType.STATE_ROOM_MEMBER &&
+                rawEvent.getClearContent()?.get("membership") == rawEvent.resolvedPrevContent()?.get("membership")) {
+            return sp.getString(CommonStrings.export_profile_changed, alias)
+        }
+        val event = if (alias != null && rawEvent.getClearType() == EventType.STATE_ROOM_MEMBER) {
+            val content = rawEvent.getClearContent().orEmpty() + ("displayname" to alias)
+            val previous = rawEvent.resolvedPrevContent().orEmpty() + ("displayname" to alias)
+            rawEvent.copyAll(type = rawEvent.getClearType(), content = content, prevContent = previous, mxDecryptionResult = null)
+                    .also { it.decryptedPrevContent = previous }
+        } else rawEvent
         val senderName = resolveDisplayName(timelineEvent)
-        if (event.hasLostContentToRedaction()) {
-            return formatRedactedStateEvent(event, senderName)
-        }
-        return when (val type = event.getClearType()) {
-            EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
-            EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
-            EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
-            in EventType.STATE_ROOM_BANNER.values -> formatRoomBannerEvent(event, senderName)
-            in EventType.STATE_ROOM_POLICY.values -> formatRoomPolicyEvent(event, senderName)
-            EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
-            EventType.STATE_ROOM_ALIASES -> formatRoomAliasesEvent(event, senderName)
-            EventType.STATE_ROOM_CANONICAL_ALIAS -> formatRoomCanonicalAliasEvent(event, senderName)
-            EventType.STATE_ROOM_HISTORY_VISIBILITY -> formatRoomHistoryVisibilityEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_SERVER_ACL -> formatRoomServerAclEvent(event, senderName)
-            EventType.STATE_ROOM_GUEST_ACCESS -> formatRoomGuestAccessEvent(event, senderName, isDm)
-            EventType.STATE_ROOM_ENCRYPTION -> formatRoomEncryptionEvent(event, senderName)
-            EventType.STATE_ROOM_WIDGET,
-            EventType.STATE_ROOM_WIDGET_LEGACY -> formatWidgetEvent(event, senderName)
-            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
-            EventType.STATE_ROOM_POWER_LEVELS -> formatRoomPowerLevels(event, senderName)
-            EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
-            EventType.STATE_ROOM_IMAGE_PACK,
-            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> formatImagePackEvent(event, senderName)
-            "org.matrix.msc4391.command_description" -> event.toMsc4391AutocompleteCommand()?.let {
-                sp.getString(CommonStrings.msc4391_command_description, it.command)
-            }
-            EventType.CALL_INVITE,
-            EventType.CALL_CANDIDATES,
-            EventType.CALL_HANGUP,
-            EventType.CALL_REJECT,
-            EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
-            EventType.MESSAGE -> formatMessageEvent(event, senderName)
-            EventType.REACTION -> formatReactionEvent(event)
-            STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
-            in EventType.STATE_ROOM_BEACON_INFO.values -> formatLocationNotice(event, senderName)
-            EventType.CALL_NEGOTIATE,
-            EventType.CALL_SELECT_ANSWER,
-            EventType.CALL_REPLACES,
-            EventType.KEY_VERIFICATION_START,
-            EventType.KEY_VERIFICATION_CANCEL,
-            EventType.KEY_VERIFICATION_ACCEPT,
-            EventType.KEY_VERIFICATION_MAC,
-            EventType.KEY_VERIFICATION_DONE,
-            EventType.KEY_VERIFICATION_KEY,
-            EventType.KEY_VERIFICATION_READY,
-            EventType.STATE_SPACE_CHILD,
-            EventType.STATE_SPACE_PARENT,
-            EventType.REDACTION,
-            EventType.STICKER,
-            in EventType.POLL_RESPONSE.values,
-            in EventType.POLL_END.values,
-            in EventType.BEACON_LOCATION_DATA.values -> formatDebug(event)
-            else -> {
-                Timber.v("Type $type not handled by this formatter")
-                null
-            }
-        }
+        return format(event, senderName, isDm)
     }
 
-    private fun formatRoomPowerLevels(event: Event, disambiguatedDisplayName: String): CharSequence {
+    private fun formatRoomPowerLevels(event: Event, disambiguatedDisplayName: String, userNames: Map<String, String>): CharSequence {
         val generalNotice = if (event.isSentByCurrentUser()) {
             sp.getString(CommonStrings.notice_power_levels_changed_by_you)
         } else {
@@ -202,7 +156,8 @@ class NoticeEventFormatter @Inject constructor(
                 val fromStr = roleFormatter.format(from)
                 val toStr = roleFormatter.format(to)
                 val membershipService = event.roomId?.let { roomService?.getRoom(it)?.membershipService() }
-                val displayName = membershipService?.disambiguateDisplayName(userId, membershipService.getRoomMember(userId)?.displayName) ?: userId
+                val displayName = userNames[userId] ?: IdentityPresentation.name(userId, event.roomId)
+                        ?: membershipService?.disambiguateDisplayName(userId, membershipService.getRoomMember(userId)?.displayName) ?: userId
                 val diff = sp.getString(CommonStrings.notice_power_level_diff, displayName, fromStr, toStr)
                 diffs.add(diff)
             }
@@ -247,12 +202,13 @@ class NoticeEventFormatter @Inject constructor(
         }
     }
 
-    fun format(event: Event, senderName: String?, isDm: Boolean): CharSequence? {
+    fun format(event: Event, senderName: String?, isDm: Boolean, userNames: Map<String, String> = emptyMap()): CharSequence? {
         if (event.hasLostContentToRedaction()) {
             return formatRedactedStateEvent(event, senderName)
         }
         return when (val type = event.getClearType()) {
             EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, senderName, isDm)
             EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
@@ -260,14 +216,48 @@ class NoticeEventFormatter @Inject constructor(
             in EventType.STATE_ROOM_POLICY.values -> formatRoomPolicyEvent(event, senderName)
             EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
             EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
+            EventType.STATE_ROOM_ALIASES -> formatRoomAliasesEvent(event, senderName)
+            EventType.STATE_ROOM_CANONICAL_ALIAS -> formatRoomCanonicalAliasEvent(event, senderName)
             EventType.STATE_ROOM_HISTORY_VISIBILITY -> formatRoomHistoryVisibilityEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_SERVER_ACL -> formatRoomServerAclEvent(event, senderName)
+            EventType.STATE_ROOM_GUEST_ACCESS -> formatRoomGuestAccessEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_ENCRYPTION -> formatRoomEncryptionEvent(event, senderName)
+            EventType.STATE_ROOM_WIDGET,
+            EventType.STATE_ROOM_WIDGET_LEGACY -> formatWidgetEvent(event, senderName.orEmpty())
+            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
+            EventType.STATE_ROOM_POWER_LEVELS -> formatRoomPowerLevels(event, senderName.orEmpty(), userNames)
+            EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
+            EventType.STATE_ROOM_IMAGE_PACK,
+            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> formatImagePackEvent(event, senderName)
+            "org.matrix.msc4391.command_description" -> event.toMsc4391AutocompleteCommand()?.let {
+                sp.getString(CommonStrings.msc4391_command_description, it.command)
+            }
             EventType.CALL_INVITE,
+            EventType.CALL_CANDIDATES,
             EventType.CALL_HANGUP,
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
-            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
-            EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
+            EventType.MESSAGE -> formatMessageEvent(event, senderName)
+            EventType.REACTION -> formatReactionEvent(event)
             STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
+            in EventType.STATE_ROOM_BEACON_INFO.values -> formatLocationNotice(event, senderName)
+            EventType.CALL_NEGOTIATE,
+            EventType.CALL_SELECT_ANSWER,
+            EventType.CALL_REPLACES,
+            EventType.KEY_VERIFICATION_START,
+            EventType.KEY_VERIFICATION_CANCEL,
+            EventType.KEY_VERIFICATION_ACCEPT,
+            EventType.KEY_VERIFICATION_MAC,
+            EventType.KEY_VERIFICATION_DONE,
+            EventType.KEY_VERIFICATION_KEY,
+            EventType.KEY_VERIFICATION_READY,
+            EventType.STATE_SPACE_CHILD,
+            EventType.STATE_SPACE_PARENT,
+            EventType.REDACTION,
+            EventType.STICKER,
+            in EventType.POLL_RESPONSE.values,
+            in EventType.POLL_END.values,
+            in EventType.BEACON_LOCATION_DATA.values -> formatDebug(event)
             else -> {
                 Timber.v("Type $type not handled by this formatter")
                 null

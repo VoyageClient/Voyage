@@ -27,6 +27,11 @@ object DateProvider {
         return LocalDateTime.ofInstant(instant, defaultZoneId)
     }
 
+    fun toLocalDateTime(timestamp: Long?, timeZone: java.util.TimeZone): LocalDateTime {
+        val millis = timestamp ?: 0
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneOffset.ofTotalSeconds(timeZone.getOffset(millis) / 1000))
+    }
+
     fun currentLocalDateTime(): LocalDateTime {
         val instant = Instant.now()
         return LocalDateTime.ofInstant(instant, defaultZoneId)

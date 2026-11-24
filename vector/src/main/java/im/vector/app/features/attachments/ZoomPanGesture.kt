@@ -24,8 +24,8 @@ import kotlin.math.max
  * themselves; the rest hand everything to [onTouchEvent].
  */
 class ZoomPanGesture(
-        private val minZoom: Float,
-        private val maxZoom: Float,
+        private var minZoom: Float,
+        private var maxZoom: Float,
         private val springBackBelowFit: Boolean = false,
         /**
          * How far past the content's edges panning may go, as a fraction of the viewport. Zero pins the
@@ -71,6 +71,23 @@ class ZoomPanGesture(
     private var lastTouchY = 0f
     private var moved = false
     private var springBackAnimator: ValueAnimator? = null
+
+    fun setZoomLimits(minimum: Float, maximum: Float) {
+        require(minimum > 0f && maximum >= minimum)
+        minZoom = minimum
+        maxZoom = maximum
+        zoom = zoom.coerceIn(minZoom, maxZoom)
+        clampPan()
+    }
+
+    fun setTransform(zoom: Float, panX: Float = 0f, panY: Float = 0f) {
+        springBackAnimator?.cancel()
+        this.zoom = zoom.coerceIn(minZoom, maxZoom)
+        this.panX = panX
+        this.panY = panY
+        clampPan()
+        onChanged()
+    }
 
     fun reset() {
         springBackAnimator?.cancel()

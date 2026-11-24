@@ -32,6 +32,7 @@ import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
@@ -85,6 +86,7 @@ class RoomMemberProfileController @Inject constructor(
         fun onPersonalNoteUnlockClicked()
         fun onPersonalNoteEditorDetached()
         fun onMutualRoomsClicked()
+        fun onAnonymizationClicked()
         fun onOverrideDisplayNameClicked()
         fun onOverrideAvatarClicked()
         fun onResetProfileOverridesClicked()
@@ -111,6 +113,10 @@ class RoomMemberProfileController @Inject constructor(
         if (data?.userMatrixItem?.invoke() == null) {
             return
         }
+        if (data.archiveId != null) {
+            buildProfileSection(stringProvider.getString(CommonStrings.archive_read_only))
+            return
+        }
         buildBiography(data)
         buildPersonalNoteSection(data)
         if (data.showAsMember) {
@@ -122,6 +128,8 @@ class RoomMemberProfileController @Inject constructor(
 
     private fun buildBiography(state: RoomMemberProfileViewState) {
         val host = this
+        // As identifying as the hidden name and avatar.
+        if (IdentityPresentation.isAnonymous(state.userId, state.roomId)) return
         val bio = state.bio?.takeIf { it.body.isNotBlank() } ?: return
         buildProfileSection(stringProvider.getString(CommonStrings.settings_biography))
         expandableTextItem {
@@ -269,6 +277,14 @@ class RoomMemberProfileController @Inject constructor(
                 avatarRenderer = avatarRenderer,
                 action = { callback?.onOverrideAvatarClicked() }
         )
+        if (IdentityPresentation.config().ruleFor(state.roomId).enabled) {
+            buildProfileAction(
+                    id = "anonymization",
+                    editable = false,
+                    title = stringProvider.getString(CommonStrings.export_anonymization),
+                    action = { callback?.onAnonymizationClicked() }
+            )
+        }
         buildProfileAction(
                 id = "override_display_name",
                 editable = false,

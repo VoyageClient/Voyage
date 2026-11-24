@@ -52,7 +52,7 @@ class BulkActionQueueTest {
     }
     private val sent: MutableList<Pair<Content, String>> = Collections.synchronizedList(mutableListOf())
 
-    private fun newQueue(): BulkActionQueue {
+    private fun newQueue(worker: im.vector.app.features.timelineexport.TimelineExportWorker = mockk(relaxed = true)): BulkActionQueue {
         val dataSource = FakeActiveSessionDataSource()
         val queue = BulkActionQueue(
                 context = RuntimeEnvironment.getApplication(),
@@ -60,11 +60,34 @@ class BulkActionQueueTest {
                 activeSessionDataSource = dataSource.instance,
                 massRedactionManager = massRedactionManager,
                 popupAlertManager = mockk(relaxed = true),
+                exportWorker = worker,
+                exportStore = mockk(relaxed = true),
                 stringProvider = FakeStringProvider().instance,
         )
         dataSource.setActiveSession(session)
         waitUntil { queueLoaded(queue) }
         return queue
+    }
+
+    @Test fun `exports show percentage progress and preserve it when paused`() {
+        val worker = mockk<im.vector.app.features.timelineexport.TimelineExportWorker>(relaxed = true)
+        val gate = kotlinx.coroutines.CompletableDeferred<List<android.net.Uri>>()
+        coEvery { worker.run(any(), any(), any()) } coAnswers {
+            thirdArg<(Int, Int) -> Unit>()(23, 100)
+            gate.await()
+        }
+        val queue = newQueue(worker)
+        try {
+            queue.enqueueExport(ME, ROOM, im.vector.app.features.timelineexport.ExportJobState("fixture", "Voyage_export_fixture", 46))
+            val running = runBlocking { withTimeout(5_000) { queue.progress.first { it?.completed == 23 }!! } }
+            running.percentage shouldBeEqualTo true
+            running.total shouldBeEqualTo 100
+            queue.togglePause()
+            val paused = runBlocking { withTimeout(5_000) { queue.progress.first { it?.paused == true }!! } }
+            paused.completed shouldBeEqualTo 23
+            paused.percentage shouldBeEqualTo true
+            coVerify { worker.run(any(), match { it.selectedCount == 46 }, any()) }
+        } finally { queue.cancel() }
     }
 
     // The session arrives on a background coroutine; a job enqueued before it is dropped.

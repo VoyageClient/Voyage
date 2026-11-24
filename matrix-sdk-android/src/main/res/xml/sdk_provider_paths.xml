@@ -3,4 +3,5 @@
     <cache-path
         name="downloads"
         path="/" />
+    <files-path name="timeline_archives" path="timeline_archives/" />
 </paths>

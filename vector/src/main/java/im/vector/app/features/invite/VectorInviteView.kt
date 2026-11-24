@@ -16,6 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.databinding.VectorInviteViewBinding
+import im.vector.app.features.displayname.shownId
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.settings.VectorPreferences
@@ -71,9 +72,10 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             } else {
                 views.inviteAvatarView.setOnClickListener { callback?.onInviterAvatarClicked(senderItem) }
             }
-            views.inviteIdentifierView.text = sender.userId.neutralizeDirectionOverrides()
+            val shownId = senderItem.shownId()
+            views.inviteIdentifierView.text = shownId.neutralizeDirectionOverrides()
             views.inviteIdentifierView.setOnLongClickListener {
-                copyToClipboard(context, sender.userId)
+                copyToClipboard(context, shownId)
                 true
             }
             views.inviteNameView.text = sender.displayName?.prepareForDisplay()
@@ -86,7 +88,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteAvatarView.visibility = View.GONE
             views.inviteIdentifierView.visibility = View.GONE
             views.inviteNameView.visibility = View.GONE
-            views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.userId.neutralizeDirectionOverrides())
+            views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.toMatrixItem().shownId().neutralizeDirectionOverrides())
             views.inviteIgnoreView.visibility = View.GONE
         }
         InviteButtonStateBinder.bind(views.inviteAcceptView, views.inviteRejectView, changeMembershipState, views.inviteIgnoreView)

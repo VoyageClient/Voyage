@@ -25,6 +25,8 @@ import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
+import im.vector.app.features.location.LocationAccent
 import im.vector.app.features.location.MapLoadingErrorView
 import im.vector.app.features.location.MapLoadingErrorViewState
 import im.vector.app.features.media.MediaPlaceholderDrawable
@@ -58,6 +60,22 @@ abstract class AbsMessageLocationItem<H : AbsMessageLocationItem.Holder>(
     private fun bindMap(holder: Holder) {
         val location = locationUrl ?: return
         val imageCornerTransformation = RoundedCorners(DimensionConverter(holder.view.resources).dpToPx(8))
+        holder.view.context.staticTimelineHost()?.let { host ->
+            holder.staticMapImageView.updateLayoutParams { width = mapWidth; height = mapHeight }
+            host.renderImage(location, holder.staticMapImageView, eventId = attributes.informationData.eventId)
+            holder.staticMapLoadingErrorView.isVisible = location.isBlank()
+            if (location.isBlank()) holder.staticMapLoadingErrorView.render(MapLoadingErrorViewState(imageCornerTransformation))
+            holder.staticMapCopyrightTextView.isVisible = location.isNotBlank()
+            val person = pinMatrixItem
+            val pin = if (person != null) {
+                val avatar = ImageView(holder.view.context)
+                host.renderAvatar(person, avatar)
+                avatar.drawable?.let { locationPinProvider?.createForDrawable(person, it) }
+            } else LocationAccent.pin(holder.view.context)
+            holder.staticMapPinImageView.setImageDrawable(pin)
+            holder.staticMapPinImageView.isVisible = location.isNotBlank()
+            return
+        }
         holder.staticMapImageView.updateLayoutParams {
             width = mapWidth
             height = mapHeight

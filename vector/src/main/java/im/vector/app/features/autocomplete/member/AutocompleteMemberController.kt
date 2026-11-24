@@ -13,6 +13,7 @@ import im.vector.app.features.autocomplete.AutocompleteClickListener
 import im.vector.app.features.autocomplete.autocompleteMatrixItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
@@ -60,7 +61,7 @@ class AutocompleteMemberController @Inject constructor(private val context: Cont
             roomMember.roomMemberSummary.let { user ->
                 id(user.userId)
                 matrixItem(host.avatarRenderer.displayedItem(user.toMatrixItem(), host.roomId))
-                subName(user.userId)
+                subName(IdentityPresentation.displayedId(user.userId, host.roomId))
                 avatarRenderer(host.avatarRenderer)
                 clickListener { host.listener?.onItemClick(roomMember) }
             }

@@ -19,6 +19,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.appcompat.widget.AppCompatImageView
 import im.vector.app.R
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.media.MediaDebug
 import org.matrix.android.sdk.api.debug.DebugLog
 import kotlin.math.min
@@ -36,14 +37,14 @@ class RoundedCornerImageView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
-    private val preLollipop = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
-
     // Canvas.clipPath() is not supported on a hardware-accelerated canvas before API 18 (it throws
     // UnsupportedOperationException). On those versions the view must render into a software layer so
     // draw() receives a software canvas where clipPath works.
     private val needsSoftwareLayerForClip = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2
 
     private val radii = FloatArray(8)
+    private val effectiveRadii = FloatArray(8)
+    private var capToMedia = false
     private val clipPath = Path()
     private val content = RectF()
     private var hasRadius = false
@@ -63,7 +64,14 @@ class RoundedCornerImageView @JvmOverloads constructor(
     /** Uniform radius, in px, for all four corners. */
     fun setCornerRadius(radius: Float) = setCornerRadii(radius, radius, radius, radius)
 
+    fun setMediaCornerRadius(radius: Float) {
+        setCornerRadius(radius)
+        capToMedia = true
+        applyShape()
+    }
+
     fun setCornerRadii(topLeft: Float, topRight: Float, bottomRight: Float, bottomLeft: Float) {
+        capToMedia = false
         radii[0] = topLeft; radii[1] = topLeft
         radii[2] = topRight; radii[3] = topRight
         radii[4] = bottomRight; radii[5] = bottomRight
@@ -118,6 +126,9 @@ class RoundedCornerImageView @JvmOverloads constructor(
     private fun applyShape() {
         if (!hasRadius && !ownsOutline && clipPath.isEmpty) return
         updateContentRect()
+        radii.indices.forEach { index ->
+            effectiveRadii[index] = if (capToMedia) im.vector.app.features.media.cappedMediaCornerRadius(radii[index], content.width(), content.height()) else radii[index]
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (hasRadius) {
                 outlineProvider = shapeOutlineProvider
@@ -129,12 +140,9 @@ class RoundedCornerImageView @JvmOverloads constructor(
                 clipToOutline = false
                 ownsOutline = false
             }
-        } else {
-            clipPath.reset()
-            if (hasRadius && !content.isEmpty) {
-                clipPath.addRoundRect(content, radii, Path.Direction.CW)
-            }
         }
+        clipPath.reset()
+        if (hasRadius && !content.isEmpty) clipPath.addRoundRect(content, effectiveRadii, Path.Direction.CW)
         invalidate()
     }
 
@@ -150,7 +158,7 @@ class RoundedCornerImageView @JvmOverloads constructor(
                         content.top.roundToInt(),
                         content.right.roundToInt(),
                         content.bottom.roundToInt(),
-                        radii[0]
+                        effectiveRadii[0]
                 )
             }
         }
@@ -176,7 +184,7 @@ class RoundedCornerImageView @JvmOverloads constructor(
     }
 
     override fun draw(canvas: Canvas) {
-        if (preLollipop && hasRadius && !clipPath.isEmpty) {
+        if ((Build.VERSION.SDK_INT < 21 || !canvas.isHardwareAccelerated || TimelineRenderingScope.isManualDrawing()) && hasRadius && !clipPath.isEmpty) {
             val save = canvas.save()
             canvas.clipPath(clipPath)
             super.draw(canvas)

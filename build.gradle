@@ -348,8 +348,10 @@ ext.initScreenshotTests = { project ->
     }
 }
 
-tasks.withType(Test) {
-    maxHeapSize = "2g"
+allprojects {
+    tasks.withType(Test).configureEach {
+        maxHeapSize = "2g"
+    }
 }
 
 // Kapt and the Hilt plugin pass their processor args to plain javac too, where no processor

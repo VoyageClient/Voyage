@@ -36,6 +36,17 @@ sealed class ActivityOtherThemes(
             R.style.AppTheme_SC_Dark_Colored
     )
 
+    object BlackEditor : ActivityOtherThemes(
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black
+    )
+
     object Launcher : ActivityOtherThemes(
             R.style.Theme_Vector_Launcher,
             R.style.Theme_Vector_Launcher,

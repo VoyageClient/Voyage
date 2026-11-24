@@ -18,6 +18,10 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.redaction.MassRedactionManager
+import im.vector.app.features.timelineexport.ExportJobState
+import im.vector.app.features.timelineexport.ExportSizeException
+import im.vector.app.features.timelineexport.TimelineExportStore
+import im.vector.app.features.timelineexport.TimelineExportWorker
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -37,6 +41,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.getRetryDelay
 import org.matrix.android.sdk.api.failure.isLimitExceededError
@@ -72,6 +78,8 @@ class BulkActionQueue @Inject constructor(
         activeSessionDataSource: ActiveSessionDataSource,
         private val massRedactionManager: MassRedactionManager,
         private val popupAlertManager: PopupAlertManager,
+        private val exportWorker: TimelineExportWorker,
+        private val exportStore: TimelineExportStore,
         private val stringProvider: StringProvider,
 ) {
 
@@ -81,6 +89,7 @@ class BulkActionQueue @Inject constructor(
     private val head = MutableStateFlow<BulkActionProgress?>(null)
     private val jobCount = MutableStateFlow(0)
     private var runner: Job? = null
+    private val exportLock = Mutex()
 
     // The account whose queue is loaded; switching accounts parks one queue and loads the other's.
     @Volatile private var owner: String? = null
@@ -130,6 +139,13 @@ class BulkActionQueue @Inject constructor(
             jobs.firstOrNull()?.takeUnless { it.paused }?.let { jobs[0] = it.copy(paused = true); saveJobs() }
         }
         publish()
+    }
+
+    @Synchronized
+    fun enqueueExport(account: String, roomId: String, state: ExportJobState) {
+        check(activeSessionHolder.getSafeActiveSession()?.myUserId == account)
+        onActiveSessionChanged(account)
+        enqueue(BulkJob(id = newJobId(), kind = BulkJobKind.EXPORT, roomIds = listOf(roomId), export = state))
     }
 
     fun enqueueRedact(roomId: String, eventIds: List<String>, reason: String?) {
@@ -209,9 +225,15 @@ class BulkActionQueue @Inject constructor(
             return
         }
         val job = jobs.firstOrNull() ?: return
-        runner?.cancel()
+        val cancelledRunner = runner
+        cancelledRunner?.cancel()
         runner = null
         removeJob(job.id)
+        val cancelledOwner = owner
+        if (job.kind == BulkJobKind.EXPORT && job.export != null && cancelledOwner != null) scope.launch {
+            cancelledRunner?.join()
+            exportLock.withLock { exportWorker.cancel(cancelledOwner, job.export) }
+        }
         kick()
     }
 
@@ -249,10 +271,44 @@ class BulkActionQueue @Inject constructor(
                             MassRedactionRange(params.fromTs, params.toTs, params.messagesOnly),
                     )
                 }
+                BulkJobKind.EXPORT -> if (!runExport(session, job)) return
                 BulkJobKind.FORWARD -> if (!runForward(session, job)) return
                 BulkJobKind.REDACT -> if (!runRedact(session, job)) return
                 BulkJobKind.ACCEPT_INVITES, BulkJobKind.REJECT_INVITES -> if (!runInvites(session, job)) return
             }
+        }
+    }
+
+    private suspend fun runExport(session: Session, job: BulkJob): Boolean {
+        val params = job.export ?: return false
+        try {
+            val outputs = exportLock.withLock {
+                exportWorker.run(session, params) { completed, total ->
+                    synchronized(this) {
+                        if (owner == session.myUserId && jobs.firstOrNull()?.id == job.id && !jobs.first().paused) {
+                            val progress = BulkJobProgress(next = completed)
+                            progressById[job.id] = progress
+                            head.value = job.toProgress(progress, total)
+                        }
+                    }
+                }
+            }
+            val names = outputs.map { exportWorker.outputName(it) }
+            synchronized(this) {
+                coroutineContext.ensureActive()
+                if (owner != session.myUserId || jobs.firstOrNull()?.id != job.id || jobs.first().paused) return false
+                removeJob(job.id)
+            }
+            exportStore.discard(session.myUserId, params.snapshotId)
+            popupAlertManager.postVectorAlert(DefaultVectorAlert(uid = "timeline_export_complete", title = stringProvider.getString(CommonStrings.export_complete),
+                    description = stringProvider.getString(CommonStrings.export_saved_to, names.joinToString(", ")), iconId = null))
+            return true
+        } catch (failure: CancellationException) { throw failure } catch (failure: Exception) {
+            Timber.e(failure, "ExportTrace queued export failed")
+            pauseOnFailure(job, stringProvider.getString(CommonStrings.export_failed),
+                    if (failure is ExportSizeException) stringProvider.getString(CommonStrings.export_size_limit_message, failure.suggestedHeight)
+                    else failure.localizedMessage ?: stringProvider.getString(CommonStrings.export_failed))
+            return false
         }
     }
 
@@ -448,6 +504,7 @@ class BulkActionQueue @Inject constructor(
         val job = jobs.firstOrNull()?.takeIf { it.kind != BulkJobKind.MASS_REDACTION }
         head.value = job?.let {
             val total = when (it.kind) {
+                BulkJobKind.EXPORT -> 100
                 BulkJobKind.FORWARD -> it.roomIds.size * it.forwards.size
                 BulkJobKind.ACCEPT_INVITES, BulkJobKind.REJECT_INVITES -> it.roomIds.size
                 else -> it.eventIds.size
@@ -458,12 +515,15 @@ class BulkActionQueue @Inject constructor(
 
     private fun BulkJob.toProgress(progress: BulkJobProgress, total: Int): BulkActionProgress {
         val label = when (kind) {
+            BulkJobKind.EXPORT -> export?.selectedCount?.takeIf { it > 0 }?.let {
+                stringProvider.getQuantityString(CommonPlurals.export_exporting_events, it, it)
+            } ?: stringProvider.getString(CommonStrings.export_exporting)
             BulkJobKind.FORWARD -> stringProvider.getQuantityString(CommonPlurals.bulk_forwarding, forwards.size, forwards.size)
             BulkJobKind.ACCEPT_INVITES -> stringProvider.getQuantityString(CommonPlurals.bulk_accepting_invites, roomIds.size, roomIds.size)
             BulkJobKind.REJECT_INVITES -> stringProvider.getQuantityString(CommonPlurals.bulk_rejecting_invites, roomIds.size, roomIds.size)
             else -> stringProvider.getQuantityString(CommonPlurals.bulk_redacting, eventIds.size, eventIds.size)
         }
-        return BulkActionProgress(label, completed = progress.next, total = total, paused = paused, queued = 0)
+        return BulkActionProgress(label, completed = progress.next, total = total, paused = paused, queued = 0, percentage = kind == BulkJobKind.EXPORT)
     }
 
     private fun unitKey(roomIndex: Int, forwardIndex: Int) = "$roomIndex:$forwardIndex"

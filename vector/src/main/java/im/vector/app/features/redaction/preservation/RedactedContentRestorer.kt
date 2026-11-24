@@ -86,6 +86,11 @@ class RedactedContentRestorer @Inject constructor(
             return null
         }
 
+        return restorePreservedEvent(event, preserved)
+    }
+
+    fun restorePreservedEvent(event: TimelineEvent, preserved: RedactedContentRepository.PreservedBody): TimelineEvent {
+        val root = event.root
         // copyAll retains transient crypto and thread fields omitted by copy().
         // Drop the pruned crypto payload so the restored content takes precedence.
         val restoredRoot = root.copyAll(

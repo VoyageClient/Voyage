@@ -90,6 +90,23 @@ class InReplyToView @JvmOverloads constructor(
     private var renderedPlainOverride: String? = null
     private var renderedTranslation: MessageTranslationStore.Translation? = null
 
+    // A static render has no ui state to read the replied-to event from.
+    private var staticRepliedToEventId: String? = null
+
+    fun renderStatic(sender: CharSequence, preview: MessagePreviewContent, color: Int, colored: Boolean,
+                     layout: TimelineMessageLayout, renderers: MessagePreviewView.Renderers, hidden: Boolean, hiddenAsSolidColor: Boolean,
+                     repliedToEventId: String? = null) {
+        staticRepliedToEventId = repliedToEventId
+        hideViews()
+        isVisible = true
+        views.replyMemberNameView.isVisible = true
+        views.replyMemberNameView.text = sender.prepareForDisplay()
+        applySenderColor(color, colored)
+        bindPreview(preview, layout, renderers, hidden, hiddenAsSolidColor, null)
+    }
+
+    fun renderStaticStatus(text: String) { staticRepliedToEventId = null; renderStatus(text) }
+
     fun render(
             newState: PreviewReplyUiState,
             retriever: ReplyPreviewRetriever,
@@ -97,6 +114,7 @@ class InReplyToView @JvmOverloads constructor(
             itemLongClickListener: OnLongClickListener?,
             force: Boolean = false
     ) {
+        staticRepliedToEventId = null
         // Substituted before the equality check, not inside renderReplyTo: revealing a redaction leaves
         // the timeline event untouched, so comparing the raw state would early-return and keep the
         // placeholder up.
@@ -160,7 +178,7 @@ class InReplyToView @JvmOverloads constructor(
 
     override fun onClick(v: View?) {
         if (!sourceIsSent) return
-        state.repliedToEventId?.let { delegate?.onRepliedToEventClicked(sourceEventId, it) }
+        (staticRepliedToEventId ?: state.repliedToEventId)?.let { delegate?.onRepliedToEventClicked(sourceEventId, it) }
     }
 
     // PRIVATE METHODS ****************************************************************************************************************************************
@@ -252,30 +270,25 @@ class InReplyToView @JvmOverloads constructor(
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
         applySenderColor(retriever.getMemberNameColor(state), retriever.isMemberNameColored())
+        bindPreview(retriever.preview(state.event, state.showsForwardAsOriginal), roomInformationData.messageLayout,
+                MessagePreviewView.Renderers(retriever.imageContentRenderer, retriever.richMessageBodyRenderer,
+                        arrayOf(retriever.pillsPostProcessor), retriever.locationPinProvider),
+                retriever.isMediaHidden(state.event), retriever.useSolidColorForHiddenMedia, itemLongClickListener)
+    }
+
+    private fun bindPreview(preview: MessagePreviewContent, layout: TimelineMessageLayout, renderers: MessagePreviewView.Renderers,
+                            hidden: Boolean, hiddenAsSolidColor: Boolean, longClick: OnLongClickListener?) {
         views.replyPreview.style = MessagePreviewView.Style(
                 fillWidth = false,
                 mediaMarginTop = (REPLY_MEDIA_MARGIN_TOP_DP * resources.displayMetrics.density).toInt(),
-                // A quote is smaller than the message it quotes, as its thumbnails are.
                 playerScale = REPLY_PLAYER_SCALE,
-                // Outside bubbles, stretch block code to the full timeline width like the timeline does;
-                // inside a bubble it should hug its content instead.
-                fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default,
+                fullWidthBlockCode = layout is TimelineMessageLayout.Default,
                 hideCaptionWithHiddenMedia = true,
                 showAttachmentInfo = false,
                 compactPolls = true,
         )
-        views.replyPreview.onRichLongClick = { itemLongClickListener?.onLongClick(it) ?: false }
-        views.replyPreview.bind(
-                retriever.preview(state.event, state.showsForwardAsOriginal),
-                hidden = retriever.isMediaHidden(state.event),
-                hiddenAsSolidColor = retriever.useSolidColorForHiddenMedia,
-                renderers = MessagePreviewView.Renderers(
-                        retriever.imageContentRenderer,
-                        retriever.richMessageBodyRenderer,
-                        arrayOf(retriever.pillsPostProcessor),
-                        retriever.locationPinProvider,
-                ),
-        )
+        views.replyPreview.onRichLongClick = { longClick?.onLongClick(it) ?: false }
+        views.replyPreview.bind(preview, hidden, hiddenAsSolidColor, renderers)
     }
 
     // A translation of a PGP message is of its plaintext, and so replaces it.

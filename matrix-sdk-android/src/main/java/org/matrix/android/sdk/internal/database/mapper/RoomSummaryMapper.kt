@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.database.mapper
 
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -46,13 +47,15 @@ internal class RoomSummaryMapper @Inject constructor(
         // typings are updated through the sync where room summary entity gets updated no matter what, so it's ok get there
         val typingUsers = typingUsersTracker.getTypingUsers(roomSummaryEntity.roomId)
 
+        val anonymousDmName = roomSummaryEntity.directUserId?.takeIf { roomSummaryEntity.isDirect }
+                ?.let { IdentityPresentation.name(it, roomSummaryEntity.roomId) }
         return RoomSummary(
                 roomId = roomSummaryEntity.roomId,
-                displayName = roomSummaryEntity.displayName() ?: "",
+                displayName = anonymousDmName ?: roomSummaryEntity.displayName() ?: "",
                 name = roomSummaryEntity.name ?: "",
                 topic = roomSummaryEntity.topic ?: "",
                 topicFormatted = roomSummaryEntity.topicFormatted,
-                avatarUrl = roomSummaryEntity.avatarUrl ?: "",
+                avatarUrl = if (anonymousDmName != null) "" else roomSummaryEntity.avatarUrl ?: "",
                 joinRules = roomSummaryEntity.joinRules,
                 isDirect = roomSummaryEntity.isDirect,
                 directUserId = roomSummaryEntity.directUserId,

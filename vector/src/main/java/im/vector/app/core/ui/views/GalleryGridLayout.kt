@@ -8,7 +8,10 @@
 package im.vector.app.core.ui.views
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Rect
+import android.graphics.RectF
+import android.os.Build
 import android.util.AttributeSet
 import android.view.ViewGroup
 import im.vector.app.features.home.room.detail.timeline.item.GalleryLayoutHelper
@@ -16,6 +19,7 @@ import im.vector.app.features.home.room.detail.timeline.item.GalleryLayoutHelper
 import im.vector.app.features.home.room.detail.timeline.item.GalleryLayoutHelper.FLAG_LEFT
 import im.vector.app.features.home.room.detail.timeline.item.GalleryLayoutHelper.FLAG_RIGHT
 import im.vector.app.features.home.room.detail.timeline.item.GalleryLayoutHelper.FLAG_TOP
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -28,6 +32,34 @@ class GalleryGridLayout @JvmOverloads constructor(
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
+
+    private val cornerPath = android.graphics.Path()
+    var cornerRadius = 0f
+        set(value) {
+            field = value
+            updateCornerPath()
+            if (Build.VERSION.SDK_INT < 18) setLayerType(if (value > 0) LAYER_TYPE_SOFTWARE else LAYER_TYPE_NONE, null)
+            invalidate()
+        }
+
+    private fun updateCornerPath() {
+        cornerPath.reset()
+        if (cornerRadius > 0) cornerPath.addRoundRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), cornerRadius, cornerRadius, android.graphics.Path.Direction.CW)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        updateCornerPath()
+    }
+
+    override fun draw(canvas: Canvas) {
+        if (cornerRadius > 0 && (Build.VERSION.SDK_INT < 21 || !canvas.isHardwareAccelerated || TimelineRenderingScope.isManualDrawing())) {
+            val save = canvas.save()
+            canvas.clipPath(cornerPath)
+            super.draw(canvas)
+            canvas.restoreToCount(save)
+        } else super.draw(canvas)
+    }
 
     private var tiles: List<GalleryLayoutHelper.GalleryTile> = emptyList()
     private var totalHeight = 0f

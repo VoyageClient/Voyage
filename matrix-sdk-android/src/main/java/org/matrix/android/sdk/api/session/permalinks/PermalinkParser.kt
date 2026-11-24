@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.session.permalinks
 
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.internal.util.uriHost
 import org.matrix.android.sdk.internal.util.uriQueryParameter
 import timber.log.Timber
 import java.net.URI
@@ -29,6 +30,11 @@ import java.net.URLDecoder
  * or client permalinks (e.g. <clientPermalinkBaseUrl>user/@chagai95:matrix.org)
  */
 object PermalinkParser {
+    fun isSupported(supportedHosts: Array<String>, url: String): Boolean =
+            url.startsWith(PermalinkService.MATRIX_TO_URL_BASE) ||
+                    url.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) ||
+                    supportedHosts.any { url.uriHost() == it } ||
+                    MatrixToConverter.isWebPermalink(url)
 
     // The rich-text editor calls parse() for every mention-shaped token in the composer on every
     // keystroke. Parsing is non-trivial (Uri.parse + URLDecoder + UrlQuerySanitizer), and the same

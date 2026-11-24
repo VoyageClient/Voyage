@@ -285,6 +285,8 @@ class TimelineEventController @Inject constructor(
     // whole, never mutated, so its identity keys the index.
     @Volatile private var snapshotIndex: Pair<List<TimelineEvent>, Map<String, TimelineEvent>>? = null
 
+    fun selectionSnapshot(): List<TimelineEvent> = currentSnapshot
+
     fun findEventInSnapshot(eventId: String?): TimelineEvent? {
         eventId ?: return null
         val snapshot = currentSnapshot

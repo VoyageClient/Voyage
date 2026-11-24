@@ -120,6 +120,7 @@ class UserListFragment :
 
     private fun setupRecyclerView() {
         userListController.callback = this
+        userListController.revealIdentities = args.revealIdentities
         // Don't activate animation as we might have way to much item animation when filtering
         views.userListRecyclerView.configureWith(userListController, disableItemAnimation = true)
     }
@@ -171,7 +172,7 @@ class UserListFragment :
         val chip = EmojiChip(requireContext())
         chip.setChipBackgroundColorResource(android.R.color.transparent)
         chip.chipStrokeWidth = dimensionConverter.dpToPx(1).toFloat()
-        chip.text = pendingSelection.getBestName().prepareForDisplay()
+        chip.text = pendingSelection.getBestName(args.revealIdentities).prepareForDisplay()
         chip.isClickable = true
         chip.isCheckable = false
         chip.isCloseIconVisible = true

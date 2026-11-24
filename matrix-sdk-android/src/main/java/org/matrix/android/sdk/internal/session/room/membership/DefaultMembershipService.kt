@@ -104,6 +104,7 @@ internal class DefaultMembershipService @AssistedInject constructor(
     override fun isDisplayNameAmbiguous(displayName: String?) = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName)
 
     override fun disambiguateDisplayName(userId: String, displayName: String?): String = overriddenSenderInfo(
+            roomId = roomId,
             userId = userId,
             displayName = displayName,
             isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName, userId) != true,

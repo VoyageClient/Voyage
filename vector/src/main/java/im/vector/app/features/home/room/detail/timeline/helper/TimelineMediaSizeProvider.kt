@@ -79,18 +79,23 @@ class TimelineMediaSizeProvider @Inject constructor(
         return computeMaxSize(resources.displayMetrics.widthPixels)
     }
 
+    fun setPresentation(width: Int, shortSide: Int, longSide: Int, useBubbles: Boolean) {
+        cachedSize = computeMaxSize(width, shortSide, maxOf(longSide, displayLongSide()), useBubbles)
+    }
+
     /**
      * Taken from the display rather than the list, as Telegram does: the list's height follows the
      * keyboard and changes on every pass of a rotation, and each change of cap resizes and reloads all
      * media. The width comes from the short side and the height from the long one, so rotating keeps it.
      */
-    private fun computeMaxSize(viewportWidth: Int): Pair<Int, Int> {
-        val shortSide = (resources.configuration.smallestScreenWidthDp * resources.displayMetrics.density).roundToInt()
+    private fun computeMaxSize(viewportWidth: Int,
+                               shortSide: Int = (resources.configuration.smallestScreenWidthDp * resources.displayMetrics.density).roundToInt(),
+                               longSide: Int = displayLongSide(), useBubbles: Boolean = vectorPreferences.useMessageBubblesLayout()): Pair<Int, Int> {
         val width = if (shortSide > 0) minOf(viewportWidth, shortSide) else viewportWidth
         val maxImageWidth = (width * 0.7f).roundToInt()
         // Roughly half the portrait timeline.
-        val maxImageHeight = (displayLongSide() * 0.4f).roundToInt()
-        return if (vectorPreferences.useMessageBubblesLayout()) {
+        val maxImageHeight = (longSide * 0.4f).roundToInt()
+        return if (useBubbles) {
             Pair(maxImageWidth.coerceAtMost(bubbleContentMaxWidth(resources, width)), maxImageHeight)
         } else {
             Pair(maxImageWidth, maxImageHeight)

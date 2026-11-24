@@ -15,6 +15,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.utils.ReadableColor
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.ui.styles.R
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -161,6 +163,11 @@ class MatrixItemColorProvider @Inject constructor(
 
     @ColorInt
     fun resolveColor(matrixItem: MatrixItem, light: Boolean): Int {
+        TimelineRenderingScope.current()?.identityColor(matrixItem)?.let { return it }
+        // A chosen profile color would identify an anonymized person, so they get the plain hash color.
+        if (matrixItem is MatrixItem.UserItem && IdentityPresentation.isAnonymous(matrixItem.id, matrixItem.presentationRoomId)) {
+            return defaultColor(matrixItem, light)
+        }
         // Turning names off is a request for no chosen colors at all, so profile colors and per-user
         // overrides stop applying too; the settings screens still read them through resolveHex.
         if (namesAreUncolored()) return defaultColor(matrixItem, light)
@@ -184,6 +191,10 @@ class MatrixItemColorProvider @Inject constructor(
      */
     @ColorInt
     fun getNameColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
+        TimelineRenderingScope.current()?.identityColor(matrixItem)?.let { return it }
+        if (matrixItem is MatrixItem.UserItem && IdentityPresentation.isAnonymous(matrixItem.id, matrixItem.presentationRoomId)) {
+            return exportNameColor(matrixItem, light, anonymous = true, paletteName = vectorPreferences.peopleColorPalette().name)
+        }
         if (namesAreUncolored()) return colorProvider.getColorFromAttribute(R.attr.vctr_content_primary)
         val chosen = chosenColor(matrixItem, light) ?: return defaultColor(matrixItem, light)
         return if (vectorPreferences.correctNameColorContrast()) readableNameColor(chosen) else chosen
@@ -210,24 +221,38 @@ class MatrixItemColorProvider @Inject constructor(
         return listOf(window, ColorUtils.compositeColors(bubble, window))
     }
 
+    @ColorInt
+    fun exportNameColor(item: MatrixItem.UserItem, light: Boolean, anonymous: Boolean, paletteName: String,
+                        showProfileColors: Boolean = vectorPreferences.showOthersProfileColors()): Int {
+        val palette = ColorPalette.values().firstOrNull { it.name == paletteName } ?: vectorPreferences.peopleColorPalette()
+        if (palette == ColorPalette.NONE) return uncoloredNameColor(light)
+        // Exported people wear their own color, not the per-user overrides this account set for them.
+        if (!anonymous) ownColorHex(item, light, showProfileColors)?.let { return hexToColor(it) }
+        return colorProvider.getColor(palette.colorFor(item.id, light))
+    }
+
+    @ColorInt
+    fun uncoloredNameColor(light: Boolean): Int = colorProvider.getColor(if (light) R.color.element_content_primary_light else R.color.element_content_primary_dark)
+
     /** Whether display names get a color of their own, rather than plain text. */
     fun isNameColored(): Boolean = !namesAreUncolored()
 
     /** Whether names are uncolored as a rule, so message bodies dim to keep names legible above them. */
-    fun namesAreUncolored(): Boolean = vectorPreferences.peopleColorPalette() == ColorPalette.NONE
+    fun namesAreUncolored(): Boolean = TimelineRenderingScope.current()?.uncoloredNames
+            ?: (vectorPreferences.peopleColorPalette() == ColorPalette.NONE)
 
     /** The explicitly chosen color for this theme, or null when the hash default applies. */
-    fun resolveHex(matrixItem: MatrixItem, light: Boolean): String? {
+    fun resolveHex(matrixItem: MatrixItem, light: Boolean, showProfileColors: Boolean = vectorPreferences.showOthersProfileColors()): String? {
         if (matrixItem !is MatrixItem.UserItem) return null
-        return overrideHex(matrixItem.id, light) ?: ownColorHex(matrixItem, light)
+        return overrideHex(matrixItem.id, light) ?: ownColorHex(matrixItem, light, showProfileColors)
     }
 
     /** The user's own chosen color (per-room member, then account profile), ignoring any override. */
-    fun ownColorHex(matrixItem: MatrixItem, light: Boolean): String? {
+    fun ownColorHex(matrixItem: MatrixItem, light: Boolean, showProfileColors: Boolean = vectorPreferences.showOthersProfileColors()): String? {
         if (matrixItem !is MatrixItem.UserItem) return null
         val userId = matrixItem.id
         val session = activeSessionHolder.get().getSafeActiveSession()
-        if (userId != session?.myUserId && !vectorPreferences.showOthersProfileColors()) return null
+        if (userId != session?.myUserId && !showProfileColors) return null
         if (userId == session?.myUserId) {
             ownProfileColors[userId]?.let { return it.getOrNull()?.forTheme(light) }
         }

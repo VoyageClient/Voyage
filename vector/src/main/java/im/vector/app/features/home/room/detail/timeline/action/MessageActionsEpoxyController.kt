@@ -76,19 +76,20 @@ class MessageActionsEpoxyController @Inject constructor(
         }
         // Everything above the first divider describes the message itself, so it all carries the mark —
         // but only once the redacted content is actually being shown, not over the placeholder.
-        val showsRestoredContent = state.timelineEvent()?.let { host.redactedContentRestorer.isShowingRestoredContent(it) } == true
+        val showsRestoredContent = state.informationData.isRevealedRedaction || state.timelineEvent()?.let { host.redactedContentRestorer.isShowingRestoredContent(it) } == true
 
         bottomSheetMessagePreviewItem {
             id("preview")
             avatarRenderer(host.avatarRenderer)
             matrixItem(state.informationData.matrixItem)
-            senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
+            senderColor(state.archiveDocument?.context?.identityColor(state.informationData.matrixItem) ?: host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
             senderIsColored(host.messageColorProvider.isMemberNameColored())
             preview(preview)
+            renderingHost(state.archiveDocument?.context)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             hideMedia(
-                    host.activeSessionHolder.getSafeActiveSession()?.let { session ->
+                    if (state.archiveId != null) state.archiveMediaHidden else host.activeSessionHolder.getSafeActiveSession()?.let { session ->
                         state.previewEvent?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
                     }.orFalse()
             )
@@ -99,6 +100,15 @@ class MessageActionsEpoxyController @Inject constructor(
             locationPinProvider(host.locationPinProvider)
             richBodyRenderer(host.richMessageBodyRenderer)
             htmlPostProcessors(arrayOf(host.pillsPostProcessorFactory.create(state.roomId)))
+        }
+
+        state.archiveFailure?.let { failure ->
+            bottomSheetSendStateItem {
+                id("archive_error")
+                showProgress(false)
+                text(failure)
+                drawableStart(R.drawable.ic_warning_badge)
+            }
         }
 
         // Send state

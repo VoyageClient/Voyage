@@ -29,6 +29,7 @@ import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.identity.IdentityServiceError
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
@@ -44,6 +45,10 @@ class UserListController @Inject constructor(
     private var state: UserListViewState? = null
 
     var callback: Callback? = null
+    var revealIdentities = false
+
+    // Picking whom to anonymize needs to see who people really are.
+    private fun listItem(user: User) = user.toMatrixItem().let { if (revealIdentities) it.copy(presentationRoomId = IdentityPresentation.REVEALED_SCOPE) else it }
 
     fun setData(state: UserListViewState) {
         this.state = state
@@ -108,7 +113,7 @@ class UserListController @Inject constructor(
                         userDirectoryUserItem {
                             id(threePidUser.user.userId)
                             selected(isSelected)
-                            matrixItem(threePidUser.user.toMatrixItem().let {
+                            matrixItem(host.listItem(threePidUser.user).let {
                                 it.copy(
                                         displayName = "${it.getBestName()} [${threePidUser.email}]"
                                 )
@@ -188,6 +193,16 @@ class UserListController @Inject constructor(
             }
         }
 
+        if (currentState.roomId != null) {
+            when (val members = currentState.roomMembers) {
+                is Uninitialized, is Loading -> renderLoading()
+                is Fail -> renderFailure(members.error)
+                is Success -> buildDirectoryUsers(members(), currentState.getSelectedMatrixId(), "", emptyList(),
+                        header = host.stringProvider.getString(CommonStrings.list_members), showWhenEmpty = true)
+            }
+            return
+        }
+
         when (currentState.knownUsers) {
             is Uninitialized -> renderEmptyState()
             is Loading -> renderLoading()
@@ -213,7 +228,7 @@ class UserListController @Inject constructor(
     private fun buildKnownUsers(currentState: UserListViewState, selectedUsers: List<String>) {
         val host = this
         currentState.knownUsers()
-                ?.filter { it.userId != session.myUserId }
+                ?.filter { currentState.includeSelf || it.userId != session.myUserId }
                 ?.let { userList ->
                     userListHeaderItem {
                         id("known_header")
@@ -229,7 +244,7 @@ class UserListController @Inject constructor(
                         userDirectoryUserItem {
                             id(item.userId)
                             selected(isSelected)
-                            matrixItem(item.toMatrixItem())
+                            matrixItem(host.listItem(item))
                             avatarRenderer(host.avatarRenderer)
                             clickListener {
                                 host.callback?.onItemClick(item)
@@ -239,17 +254,24 @@ class UserListController @Inject constructor(
                 }
     }
 
-    private fun buildDirectoryUsers(directoryUsers: List<User>, selectedUsers: List<String>, searchTerms: String, ignoreIds: List<String>) {
+    private fun buildDirectoryUsers(
+            directoryUsers: List<User>,
+            selectedUsers: List<String>,
+            searchTerms: String,
+            ignoreIds: List<String>,
+            header: String = stringProvider.getString(CommonStrings.direct_room_user_list_suggestions_title),
+            showWhenEmpty: Boolean = false,
+    ) {
         val host = this
         val toDisplay = directoryUsers
-                .filter { !ignoreIds.contains(it.userId) && it.userId != session.myUserId }
+                .filter { !ignoreIds.contains(it.userId) && (state?.includeSelf == true || it.userId != session.myUserId) }
 
-        if (toDisplay.isEmpty() && searchTerms.isBlank()) {
+        if (toDisplay.isEmpty() && searchTerms.isBlank() && !showWhenEmpty) {
             return
         }
         userListHeaderItem {
             id("suggestions")
-            header(host.stringProvider.getString(CommonStrings.direct_room_user_list_suggestions_title))
+            header(header)
         }
         if (toDisplay.isEmpty()) {
             renderEmptyState()
@@ -259,7 +281,7 @@ class UserListController @Inject constructor(
                 userDirectoryUserItem {
                     id(user.userId)
                     selected(isSelected)
-                    matrixItem(user.toMatrixItem())
+                    matrixItem(host.listItem(user))
                     avatarRenderer(host.avatarRenderer)
                     clickListener {
                         host.callback?.onItemClick(user)

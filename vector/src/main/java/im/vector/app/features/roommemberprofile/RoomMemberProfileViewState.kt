@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.util.MatrixItem
 data class RoomMemberProfileViewState(
         val userId: String,
         val roomId: String?,
+        val archiveId: String? = null,
         val isSpace: Boolean = false,
         val isHistoricalOrWatchedRoom: Boolean = false,
         val showAsMember: Boolean = false,
@@ -76,7 +77,7 @@ data class RoomMemberProfileViewState(
         val pendingUnban: DelayedEvent? = null,
 ) : MavericksState {
 
-    constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId)
+    constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId, archiveId = args.archiveId)
 }
 
 data class ActionPermissions(

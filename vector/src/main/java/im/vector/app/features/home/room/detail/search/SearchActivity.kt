@@ -13,6 +13,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -34,6 +35,8 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.timelineexport.TimelineArchiveSearchFragment
+import im.vector.app.features.timelineexport.TimelineArchiveStore
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,6 +54,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
 
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var archives: TimelineArchiveStore
 
     private val searchFragment: SearchFragment?
         get() {
@@ -105,14 +109,16 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
     override fun initUiAndData() {
         val fragmentArgs: SearchArgs = intent?.extras?.getParcelableCompat(Mavericks.KEY_ARG) ?: return
         if (isFirstCreation()) {
-            addFragment(views.searchFragmentContainer, SearchFragment::class.java, fragmentArgs, FRAGMENT_TAG)
+            if (fragmentArgs.archiveId == null) addFragment(views.searchFragmentContainer, SearchFragment::class.java, fragmentArgs, FRAGMENT_TAG)
+            else addFragment(views.searchFragmentContainer, TimelineArchiveSearchFragment::class.java, fragmentArgs, "ArchiveSearchFragment")
         }
         setupSuggestions(fragmentArgs.roomId)
         views.searchView.setupUserTextInput()
         views.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 renderSuggestions(null)
-                searchFragment?.search(query)
+                searchFragment?.search(SearchFilterSuggestions.resolveIds(query, members))
+                (supportFragmentManager.findFragmentByTag("ArchiveSearchFragment") as? TimelineArchiveSearchFragment)?.search(query)
                 dismissSearchKeyboard()
                 return true
             }
@@ -145,6 +151,17 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
         // The filter keys are worth showing before anything is typed — that is how they get discovered.
         renderSuggestions("")
         lifecycleScope.launch {
+            val archiveId = intent?.extras?.getParcelableCompat<SearchArgs>(Mavericks.KEY_ARG)?.archiveId
+            if (archiveId != null) {
+                // The search fragment reports an unreadable archive; suggestions just stay empty.
+                val snapshot = withContext(Dispatchers.IO) { runCatching { archives.read(session.myUserId, archiveId) }.getOrNull() } ?: return@launch
+                members = (snapshot.mentionedPeople + snapshot.events.map { it.person }).distinctBy { it.id }.map {
+                    RoomMemberSummary(Membership.JOIN, it.id, displayName = it.name,
+                            avatarUrl = it.avatar?.let { path -> Uri.fromFile(java.io.File(archives.directory(session.myUserId, archiveId), path)).toString() })
+                }
+                renderSuggestions(views.searchView.query?.toString())
+                return@launch
+            }
             val membershipService = session.getRoom(roomId)?.membershipService()
 
             // Lazy loading omits most members. Show cached suggestions while loading the full membership.

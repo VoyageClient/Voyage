@@ -225,6 +225,11 @@
             android:title="@string/settings_strip_media_metadata_title"
             app:useSimpleSummaryProvider="true" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_ANONYMIZATION_KEY"
+            android:persistent="false"
+            android:title="@string/export_anonymization" />
+
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction

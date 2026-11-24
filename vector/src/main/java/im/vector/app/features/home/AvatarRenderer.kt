@@ -15,6 +15,7 @@ import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
@@ -53,6 +54,7 @@ import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.glide.RememberServedVariant
 import im.vector.app.core.glide.RoundedCornersPercent
+import im.vector.app.core.glide.ShapeClipDrawable
 import im.vector.app.core.glide.ShapeMaskTransformation
 import im.vector.app.core.glide.ThumbnailAttempt
 import im.vector.app.core.glide.ThumbnailVariants
@@ -63,8 +65,12 @@ import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.avatar.DefaultAvatarFactory
+import im.vector.app.features.home.avatar.DefaultAvatarStyle
 import im.vector.app.features.home.avatar.effect.AvatarEffectDrawables
+import im.vector.app.features.home.avatar.effect.AvatarEffectRenderer
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.media.withAvatarHiddenIn
@@ -75,6 +81,7 @@ import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -229,6 +236,7 @@ class AvatarRenderer @Inject constructor(
             roomId: String? = null,
             onSettled: (() -> Unit)? = null,
     ) {
+        (imageView.context.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { it.renderAvatar(matrixItem, imageView); onSettled?.invoke(); return }
         renderAt(displayedItem(matrixItem, roomId), imageView, decodeSizePx(imageView, decodeSize), crossfade, onSettled)
     }
 
@@ -238,7 +246,13 @@ class AvatarRenderer @Inject constructor(
      */
     fun displayedItem(matrixItem: MatrixItem, roomId: String? = null): MatrixItem {
         val session = activeSessionHolder.getSafeActiveSession() ?: return matrixItem
-        return matrixItem.withAvatarHiddenIn(roomId, session, vectorPreferences)
+        val anonymous = (matrixItem as? MatrixItem.UserItem)?.let { item ->
+            IdentityPresentation.name(item.id, roomId ?: item.presentationRoomId)?.let { alias ->
+                item.copy(displayName = alias, userDisplayName = if (IdentityPresentation.config().sharedAvatar) "?" else alias,
+                        avatarUrl = null, avatarDecryption = null, colorPreference = null)
+            }
+        }
+        return (anonymous ?: matrixItem).withAvatarHiddenIn(roomId, session, vectorPreferences)
     }
 
     /**
@@ -256,6 +270,7 @@ class AvatarRenderer @Inject constructor(
      */
     @UiThread
     fun renderAtSize(matrixItem: MatrixItem, imageView: ImageView, sizePx: Int, crossfade: Boolean = true) {
+        (imageView.context.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { it.renderAvatar(matrixItem, imageView); return }
         renderAt(displayedItem(matrixItem), imageView, sizePx.takeIf { it > 0 }, crossfade, onSettled = null)
     }
 
@@ -290,7 +305,8 @@ class AvatarRenderer @Inject constructor(
             return
         }
         GlideApp.with(imageView)
-                .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade, reusablePlaceholder = placeholderFor(imageView, matrixItem))
+                .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade, reusablePlaceholder = placeholderFor(imageView, matrixItem),
+                        archiveFile = im.vector.app.features.timelineexport.archiveAvatarFile(imageView.context, matrixItem.avatarUrl))
                 .let { request ->
                     if (onSettled == null) request else request.addListener(SettledListener(onSettled))
                 }
@@ -534,6 +550,7 @@ class AvatarRenderer @Inject constructor(
 
     @UiThread
     fun preloadAvatar(matrixItem: MatrixItem, view: View) {
+        if (view.context.staticTimelineHost() != null || TimelineRenderingScope.current() != null) return
         preloadAvatar(GlideApp.with(view), matrixItem)
     }
 
@@ -580,6 +597,31 @@ class AvatarRenderer @Inject constructor(
         return next
     }
 
+    @UiThread
+    fun renderStatic(matrixItem: MatrixItem, color: Int, bitmap: Bitmap?, imageView: ImageView, style: DefaultAvatarStyle? = null, shapeOverride: AvatarShape? = null, frame: Int? = null) {
+        val shape = shapeOverride ?: shapeFor(matrixItem)
+        imageView.scaleType = ImageView.ScaleType.FIT_XY
+        val drawable = staticDrawable(matrixItem, color, bitmap, style, shape)
+        val effect = shape.effect
+        if (effect == null) imageView.setImageDrawable(drawable) else {
+            val size = (imageView.layoutParams?.width?.takeIf { it > 0 } ?: dimensionConverter.dpToPx(30)).coerceIn(24, 200)
+            val texture = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            drawable.setBounds(0, 0, size, size)
+            drawable.draw(Canvas(texture))
+            val result = AvatarEffectRenderer.renderStill(effect, texture, size, frame ?: effect.heroFrame)
+            texture.recycle()
+            imageView.setImageDrawable(BitmapDrawable(imageView.resources, result))
+        }
+    }
+
+    fun staticDrawable(matrixItem: MatrixItem, color: Int, bitmap: Bitmap?, style: DefaultAvatarStyle?, shape: AvatarShape): Drawable {
+        return if (bitmap == null) defaultAvatarFactory.create(style ?: defaultAvatarFactory.styleFor(matrixItem), matrixItem.firstLetterOfDisplayName(), color, shape) else {
+            val size = minOf(bitmap.width, bitmap.height)
+            val square = Bitmap.createBitmap(bitmap, (bitmap.width - size) / 2, (bitmap.height - size) / 2, size, size)
+            ShapeClipDrawable(BitmapDrawable(dimensionConverter.resources, square), shape)
+        }
+    }
+
     @AnyThread
     fun getPlaceholderDrawable(matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
         val avatarColor = matrixItemColorProvider.getColor(matrixItem)
@@ -596,6 +638,7 @@ class AvatarRenderer @Inject constructor(
             forceCircle: Boolean = false,
             crossfade: Boolean = false,
             reusablePlaceholder: Drawable? = null,
+            archiveFile: java.io.File? = null,
     ): GlideRequest<Drawable> {
         val placeholder = reusablePlaceholder ?: getPlaceholderDrawable(matrixItem, forceCircle)
         val transformation = if (forceCircle) CircleCrop() else avatarTransform(matrixItem)
@@ -619,6 +662,7 @@ class AvatarRenderer @Inject constructor(
                     }
                 }
 
+        if (archiveFile != null) return requestFor(archiveFile, false)
         avatarDecryption(matrixItem)?.let { decrypt ->
             return requestFor(encryptedAvatarData(matrixItem, decrypt, THUMBNAIL_SIZE), cacheOnly)
         }

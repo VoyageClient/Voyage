@@ -29,17 +29,22 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.isEmail
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.identity.IdentityServiceError
 import org.matrix.android.sdk.api.session.identity.IdentityServiceListener
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -189,6 +194,10 @@ class UserListViewModel @AssistedInject constructor(
     }
 
     private fun observeUsers() = withState { state ->
+        state.roomId?.let { roomId ->
+            observeRoomMembers(roomId, state.excludedUserIds.orEmpty(), state.includeSelf)
+            return@withState
+        }
         identityServerUsersSearch
                 .filter { it.searchTerm.isEmail() }
                 .sample(300)
@@ -210,6 +219,28 @@ class UserListViewModel @AssistedInject constructor(
                 .onEach { search ->
                     executeSearchDirectory(state, search)
                 }.launchIn(viewModelScope)
+    }
+
+    // Members as they publish themselves, before any local overrides, since the caller picks people by who they are.
+    private fun observeRoomMembers(roomId: String, excluded: Set<String>, includeSelf: Boolean) {
+        val membershipService = session.getRoom(roomId)?.membershipService() ?: return
+        knownUsersSearch
+                .sample(300)
+                .flatMapLatest { search ->
+                    membershipService.getRoomMembersFlow(roomMemberQueryParams {
+                        displayName = QueryStringValue.NoCondition
+                        memberships = Membership.activeMemberships()
+                        excludeSelf = !includeSelf
+                        displayNameOrUserId = if (search.isBlank()) QueryStringValue.NoCondition
+                        else QueryStringValue.Contains(search, QueryStringValue.Case.INSENSITIVE)
+                    })
+                }
+                .map { members ->
+                    members.filter { it.userId !in excluded }
+                            .map { User(it.userId, it.originalDisplayName ?: it.displayName, it.originalAvatarUrl ?: it.avatarUrl) }
+                            .sortedBy { it.toMatrixItem().firstLetterOfDisplayName() }
+                }
+                .execute { copy(roomMembers = it) }
     }
 
     private suspend fun executeSearchEmail(search: String) {

@@ -29,6 +29,7 @@ import im.vector.app.features.roomprofile.knock.RoomKnockRequestsFragment
 import im.vector.app.features.roomprofile.members.RoomMemberListFragment
 import im.vector.app.features.roomprofile.notifications.RoomNotificationSettingsFragment
 import im.vector.app.features.roomprofile.permissions.RoomPermissionsFragment
+import im.vector.app.features.roomprofile.personalization.RoomAnonymizationFragment
 import im.vector.app.features.roomprofile.personalization.RoomPersonalizationFragment
 import im.vector.app.features.roomprofile.pinned.RoomPinnedMessagesFragment
 import im.vector.app.features.roomprofile.polls.RoomPollsFragment
@@ -60,6 +61,7 @@ class RoomProfileActivity :
         const val EXTRA_DIRECT_ACCESS_ROOM_SETTINGS = 1
         const val EXTRA_DIRECT_ACCESS_ROOM_MEMBERS = 2
         const val EXTRA_DIRECT_ACCESS_ROOM_PINNED = 3
+        const val EXTRA_DIRECT_ACCESS_ROOM_ANONYMIZATION = 4
 
         fun newIntent(context: Context, roomId: String, directAccess: Int?): Intent {
             val roomProfileArgs = RoomProfileArgs(roomId)
@@ -101,6 +103,10 @@ class RoomProfileActivity :
                 EXTRA_DIRECT_ACCESS_ROOM_PINNED -> {
                     addFragment(views.simpleFragmentContainer, RoomPinnedMessagesFragment::class.java, roomProfileArgs)
                 }
+                EXTRA_DIRECT_ACCESS_ROOM_ANONYMIZATION -> {
+                    addFragment(views.simpleFragmentContainer, RoomProfileFragment::class.java, roomProfileArgs)
+                    addFragmentToBackstack(views.simpleFragmentContainer, RoomAnonymizationFragment::class.java, roomProfileArgs)
+                }
                 else -> addFragment(views.simpleFragmentContainer, RoomProfileFragment::class.java, roomProfileArgs)
             }
         }
@@ -117,6 +123,7 @@ class RoomProfileActivity :
                         RoomProfileSharedAction.OpenPinnedMessages -> openPinnedMessages()
                         RoomProfileSharedAction.OpenRoomUploads -> openRoomUploads()
                         RoomProfileSharedAction.OpenRoomPersonalization -> openRoomPersonalization()
+                        RoomProfileSharedAction.OpenRoomAnonymization -> openRoomAnonymization()
                         RoomProfileSharedAction.OpenKnockRequests -> openKnockRequests()
                         RoomProfileSharedAction.OpenBannedRoomMembers -> openBannedRoomMembers()
                         RoomProfileSharedAction.OpenRoomNotificationSettings -> openRoomNotificationSettings()
@@ -159,6 +166,10 @@ class RoomProfileActivity :
 
     private fun openRoomPersonalization() {
         addFragmentToBackstack(views.simpleFragmentContainer, RoomPersonalizationFragment::class.java, roomProfileArgs)
+    }
+
+    private fun openRoomAnonymization() {
+        addFragmentToBackstack(views.simpleFragmentContainer, RoomAnonymizationFragment::class.java, roomProfileArgs)
     }
 
     private fun openRoomSettings() {

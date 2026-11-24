@@ -67,6 +67,8 @@ data class MessageInformationData(
         val avatarDecryption: ElementToDecrypt? = null,
         val perMessageProfileFallback: String? = null,
         val mentionsRoom: Boolean = false,
+        val presentationRoomId: String? = null,
+        val isStatic: Boolean = false,
 ) : Parcelable {
 
     val matrixItem: MatrixItem
@@ -76,6 +78,7 @@ data class MessageInformationData(
                 avatarUrl.takeUnless { hideAvatars },
                 avatarDecryption.takeUnless { hideAvatars },
                 colorPreference = ColorPreference(senderColorOnLight, senderColorOnDark).takeUnless { it.isEmpty() },
+                presentationRoomId = presentationRoomId,
         )
 }
 
@@ -130,6 +133,7 @@ data class ReadReceiptData(
         val colorOnLight: String? = null,
         val colorOnDark: String? = null,
         val avatarDecryption: ElementToDecrypt? = null,
+        val presentationRoomId: String? = null,
 ) : Parcelable
 
 @Parcelize
@@ -176,4 +180,5 @@ enum class AnonymousReadReceipt {
 fun ReadReceiptData.toMatrixItem() = MatrixItem.UserItem(
         userId, displayName, avatarUrl, avatarDecryption,
         colorPreference = ColorPreference(colorOnLight, colorOnDark).takeUnless { it.isEmpty() },
+        presentationRoomId = presentationRoomId,
 )

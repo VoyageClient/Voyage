@@ -323,7 +323,7 @@ class ReplyPreviewRetriever(
                 ?.takeUnless { it.isBlank() }
                 ?.let { membershipService.disambiguateDisplayName(userId, it) }
                 ?: fallback
-        return ProfileOverrides.displayNameOr(userId, currentName) ?: userId
+        return ProfileOverrides.displayNameOr(userId, currentName, roomId) ?: userId
     }
 
     // Redaction prunes m.relates_to, so revealing content can turn a cached NoReply into a reply.

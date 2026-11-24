@@ -40,6 +40,7 @@ import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.events.model.toValidDecryptedEvent
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReferencesAggregatedContent
@@ -72,6 +73,7 @@ class MessageInformationDataFactory @Inject constructor(
 ) {
 
     fun create(params: TimelineItemFactoryParams): MessageInformationData {
+        params.presentation?.let { return it.informationData }
         val event = params.event
         val nextDisplayableEvent = params.nextDisplayableEvent
         val prevDisplayableEvent = params.prevDisplayableEvent
@@ -121,7 +123,9 @@ class MessageInformationDataFactory @Inject constructor(
         }
         val liveMember = membershipService?.getRoomMember(senderId)
         val liveName = liveMember?.displayName?.takeUnless { it.isBlank() }?.let { membershipService.disambiguateDisplayName(senderId, it) }
-        val senderName = when {
+        // Taken here too, not only from the SDK's remapped sender: a settings change rebuilds these rows
+        // before the timeline has re-mapped its events.
+        val senderName = IdentityPresentation.name(senderId, event.roomId) ?: when {
             useLiveSenderInfo && liveMember != null -> liveName ?: senderId
             storedName == null -> liveName ?: event.senderInfo.disambiguatedDisplayName
             else -> event.senderInfo.disambiguatedDisplayName
@@ -189,6 +193,7 @@ class MessageInformationDataFactory @Inject constructor(
         val hideAvatars = mediaHiddenInRoom && vectorPreferences.hideAvatarsInHiddenMediaRooms() && !isSentByMe
 
         return MessageInformationData(
+                presentationRoomId = event.roomId,
                 isRevealedRedaction = params.isRevealedRedaction,
                 eventId = eventId,
                 senderColorOnLight = event.senderInfo.colorPreference?.onLight,

@@ -123,6 +123,7 @@ object GalleryGridBinder {
         val context = grid.context
         val layout = GalleryLayoutHelper.layout(tiles.map { it.aspect })
         grid.maxContentWidth = maxWidth
+        grid.cornerRadius = cornerRadiusPx.toFloat()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val r = cornerRadiusPx.toFloat()

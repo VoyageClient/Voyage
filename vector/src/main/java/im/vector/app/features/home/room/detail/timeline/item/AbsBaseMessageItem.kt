@@ -27,6 +27,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.view.TimelineMessageLayoutRenderer
 import im.vector.app.features.home.room.detail.timeline.view.scRenderMessageLayout
@@ -108,7 +109,7 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
     protected open fun renderSendState(root: View, textView: TextView?, failureIndicator: ImageView? = null) {
         root.isClickable = baseAttributes.informationData.sendState.isSent()
         val state = if (baseAttributes.informationData.hasPendingEdits) SendState.UNSENT else baseAttributes.informationData.sendState
-        textView?.setTextColor(baseAttributes.messageColorProvider.getMessageTextColor(state))
+        textView?.setTextColor(root.context.staticTimelineHost()?.messageTextColor ?: baseAttributes.messageColorProvider.getMessageTextColor(state))
         failureIndicator?.isVisible = baseAttributes.informationData.sendState.hasFailed()
     }
 

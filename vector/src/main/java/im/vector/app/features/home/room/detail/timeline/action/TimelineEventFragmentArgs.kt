@@ -21,4 +21,5 @@ data class TimelineEventFragmentArgs(
         val galleryItemIndex: Int? = null,
         /** Whether the host timeline supports multi-select. */
         val canSelect: Boolean = false,
+        val archiveId: String? = null,
 ) : Parcelable

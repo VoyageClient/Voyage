@@ -45,6 +45,7 @@ object MassRedactionBannerBinder {
 
     fun confirmCancel(activity: Activity, kind: BulkJobKind, onConfirmed: () -> Unit) {
         val (title, message) = when (kind) {
+            BulkJobKind.EXPORT -> CommonStrings.export_cancel_title to CommonStrings.export_cancel_message
             BulkJobKind.MASS_REDACTION -> CommonStrings.mass_redaction_cancel_confirmation_title to CommonStrings.mass_redaction_cancel_confirmation_message
             BulkJobKind.FORWARD -> CommonStrings.bulk_forward_cancel_confirmation_title to CommonStrings.bulk_forward_cancel_confirmation_message
             BulkJobKind.REDACT -> CommonStrings.bulk_redact_cancel_confirmation_title to CommonStrings.bulk_redact_cancel_confirmation_message

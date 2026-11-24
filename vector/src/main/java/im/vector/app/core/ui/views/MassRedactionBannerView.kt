@@ -11,6 +11,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.databinding.ViewMassRedactionBannerBinding
@@ -51,17 +52,16 @@ class MassRedactionBannerView @JvmOverloads constructor(
         } else {
             state.label
         }
-        // A digits-only progress counter.
         @SuppressLint("SetTextI18n")
-        views.massRedactionCount.text = "${state.completed}/${state.total}"
+        views.massRedactionCount.text = if (state.percentage) context.getString(CommonStrings.attachment_compression_percent, state.completed)
+                else "${state.completed}/${state.total}"
         views.massRedactionProgress.isIndeterminate = state.total == 0 && !state.paused
         if (state.total > 0) {
             views.massRedactionProgress.max = state.total
             views.massRedactionProgress.progress = state.completed
         }
-        views.massRedactionPauseButton.setImageResource(
-                if (state.paused) R.drawable.ic_play_arrow else R.drawable.ic_pause
-        )
+        views.massRedactionPauseButton.setImageDrawable(AppCompatResources.getDrawable(context,
+                if (state.paused) R.drawable.ic_play_arrow else R.drawable.ic_pause))
         views.massRedactionPauseButton.contentDescription = resources.getString(
                 if (state.paused) CommonStrings.mass_redaction_resume else CommonStrings.action_pause
         )

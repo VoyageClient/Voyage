@@ -37,6 +37,7 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.html.highlight.CodeBlockHighlighter
 import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.app.features.settings.VectorPreferences
@@ -196,7 +197,8 @@ class EventHtmlRenderer @Inject constructor(
 
     // The code block palette's colors where it has its own, else the theme's code background.
     private fun resolveCodeColors(): CodeColors {
-        val theme = codeBlockHighlighter.theme(vectorPreferences.codeBlockPalette(), ThemeUtils.isLightTheme(context))
+        val palette = TimelineRenderingScope.current()?.codePalette ?: vectorPreferences.codeBlockPalette()
+        val theme = codeBlockHighlighter.theme(palette, ThemeUtils.isLightTheme(context))
         return CodeColors(
                 background = theme?.background ?: ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.code_block_bg_color),
                 text = theme?.textColor,

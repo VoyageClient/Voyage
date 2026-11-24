@@ -33,6 +33,7 @@ internal class ThreadSummaryMapper @Inject constructor(
                 latestEvent = threadSummary.latestThreadEventEntity?.asDomain(),
                 rootEventId = threadSummary.rootThreadEventId.orEmpty(),
                 rootThreadSenderInfo = overriddenSenderInfo(
+                        roomId = roomId,
                         userId = threadSummary.rootThreadEventEntity?.sender ?: "",
                         displayName = threadSummary.rootThreadSenderName,
                         isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, threadSummary.rootThreadSenderName, threadSummary.rootThreadEventEntity?.sender)
@@ -40,6 +41,7 @@ internal class ThreadSummaryMapper @Inject constructor(
                         avatarUrl = threadSummary.rootThreadSenderAvatar
                 ),
                 latestThreadSenderInfo = overriddenSenderInfo(
+                        roomId = roomId,
                         userId = threadSummary.latestThreadEventEntity?.sender ?: "",
                         displayName = threadSummary.latestThreadSenderName,
                         isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, threadSummary.latestThreadSenderName, threadSummary.latestThreadEventEntity?.sender)

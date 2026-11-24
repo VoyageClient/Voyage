@@ -26,6 +26,7 @@ import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.bindSenderNameFades
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
@@ -35,6 +36,7 @@ import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdate
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.applyEmoteLineSpacing
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
@@ -165,7 +167,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         } else {
             messageView.textSize = 15.5F
         }
-        if (searchForPills) {
+        if (messageView.context.staticTimelineHost() != null) {
+            (activeMessage as? Spanned)?.getSpans(0, activeMessage.length, PillImageSpan::class.java)
+                    ?.forEach { it.bind(messageView) }
+        } else if (searchForPills) {
             val stableId = attributes.informationData.stableId
             activeMessage?.findPillsAndProcess(coroutineScope) {
                 // Posted to the main thread: by the time it runs the row may have been recycled onto

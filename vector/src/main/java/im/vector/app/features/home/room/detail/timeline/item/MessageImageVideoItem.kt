@@ -7,15 +7,14 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
-import android.graphics.Outline
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.SystemClock
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
@@ -119,38 +118,19 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val messageLayout = baseAttributes.informationData.messageLayout
         val cornerPx = messageLayout.mediaCornerRadiusPx(holder.view.context)
         val imageCornerTransformation = messageLayout.mediaCornerTransformation(holder.view.context)
-        // A view-level clip as well, so animated drawables (FrameAnimationDrawable / animated WebP /
-        // APNG / GIF) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
-        // Transformation and is silently skipped for those.
-        val r = cornerPx.toFloat()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            holder.imageView.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    val capped = cappedMediaCornerRadius(r, view.width.toFloat(), view.height.toFloat())
-                    outline.setRoundRect(0, 0, view.width, view.height, capped)
-                }
-            }
-            holder.imageView.clipToOutline = true
-            holder.imageView.tag = r
-        } else if (PerformanceMode.enabled) {
-            // The pre-Lollipop clip runs on a per-frame software layer. In performance mode skip it:
-            // static thumbnails are already rounded by Glide; animated ones just show square corners.
-            holder.imageView.setCornerRadii(0f, 0f, 0f, 0f)
-        } else {
-            // clipToOutline is API 21+: backport the same view-level clip with identical radii so
-            // animated drawables round on KitKat too (static bitmaps are already rounded by Glide).
-            holder.imageView.setCornerRadii(r, r, r, r)
-        }
+        if (Build.VERSION.SDK_INT < 21 && PerformanceMode.enabled) {
+            holder.imageView.setCornerRadius(0f)
+        } else holder.imageView.setMediaCornerRadius(cornerPx.toFloat())
+        // Read back by the navigator as the viewer transition's starting corner radius.
+        holder.imageView.tag = cornerPx.toFloat()
         // A just-sent message is rebound when its remote echo lands, often while the viewer holds its
         // thumbnail; only a different message may take the stand-in down.
         val sameMessage = holder.alphaProbeKey == mediaData.stableId
         holder.alphaProbeKey = mediaData.stableId
         holder.alphaProbeCornerPx = cornerPx
         if (!sameMessage) holder.resetViewerHandover()
-        holder.thumbnailBackdrop.backgroundCompat = GradientDrawable().apply {
-            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
-            cornerRadius = r
-        }
+        holder.thumbnailBackdrop.backgroundCompat = im.vector.app.features.media.cappedMediaBackground(
+                ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background), cornerPx.toFloat())
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
         // Same condition bindPlayButton uses: where that badge lands, the failure glyph must not.
         val showsPlayButton = playable && !(isImageMessage && attributes.autoplayAnimatedImages)
@@ -165,6 +145,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                     showFailureGlyph = !showsPlayButton
             )
         }
+        holder.mediaHiddenScrim.backgroundCompat = im.vector.app.features.media.cappedMediaBackground(0x66000000, cornerPx.toFloat())
         holder.mediaHiddenScrim.isVisible = hidden
         holder.mediaHiddenScrim.alpha = 1f
         holder.mediaShowButton.isVisible = hidden

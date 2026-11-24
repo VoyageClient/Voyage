@@ -98,10 +98,17 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         stores.roomSummary.upsert(entity)
     }
 
-    fun refreshDisplay(stores: SessionStores, roomId: String) {
+    /**
+     * @param onlyIfChanged skip the write when the stored name and avatar already match. Every write wakes every
+     * observer of the summary, but some callers rely on that to re-map state the summary doesn't store.
+     */
+    fun refreshDisplay(stores: SessionStores, roomId: String, onlyIfChanged: Boolean = false) {
         val entity = stores.roomSummary.get(roomId) ?: return
-        entity.setDisplayName(MatrixPerf.time("summary.displayName") { roomDisplayNameResolver.resolve(stores, roomId) })
-        entity.avatarUrl = MatrixPerf.time("summary.avatar") { roomAvatarResolver.resolve(stores, roomId) }
+        val name = MatrixPerf.time("summary.displayName") { roomDisplayNameResolver.resolve(stores, roomId) }
+        val avatar = MatrixPerf.time("summary.avatar") { roomAvatarResolver.resolve(stores, roomId) }
+        if (onlyIfChanged && entity.displayName() == name.name && entity.avatarUrl == avatar) return
+        entity.setDisplayName(name)
+        entity.avatarUrl = avatar
         stores.roomSummary.upsert(entity)
     }
 

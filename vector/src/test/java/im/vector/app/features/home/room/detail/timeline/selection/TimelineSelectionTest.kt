@@ -71,19 +71,19 @@ class TimelineSelectionTest {
     }
 
     @Test
-    fun `refresh drops events that were redacted meanwhile`() {
+    fun `refresh retains redacted events for export`() {
         selection.toggle(anEvent("\$a"))
         selection.toggle(anEvent("\$b"))
 
         selection.refresh { id -> if (id == "\$a") anEvent("\$a", redacted = true) else null }
 
-        selection.selected.value.keys shouldBeEqualTo setOf("\$b")
+        selection.selected.value.keys shouldBeEqualTo setOf("\$a", "\$b")
     }
 
     @Test
-    fun `unsent and non-message events are not selectable`() {
+    fun `synced timeline events are selectable independently of bulk message actions`() {
         TimelineSelection.isSelectable(anEvent("\$a", sendState = SendState.SENDING)) shouldBeEqualTo false
-        TimelineSelection.isSelectable(anEvent("\$b", type = EventType.STATE_ROOM_NAME)) shouldBeEqualTo false
+        TimelineSelection.isSelectable(anEvent("\$b", type = EventType.STATE_ROOM_NAME)) shouldBeEqualTo true
         TimelineSelection.isSelectable(anEvent("\$c")) shouldBeEqualTo true
         TimelineSelection.isSelectable(anEvent("\$sticker", type = EventType.STICKER)) shouldBeEqualTo true
     }

@@ -51,6 +51,8 @@ import im.vector.app.core.glide.ViewerDownsample
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.ui.model.Size
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.imagepack.EmoteFrameCache
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
@@ -65,6 +67,7 @@ import org.matrix.android.sdk.api.session.media.PreviewUrlData
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -133,9 +136,10 @@ class ImageContentRenderer @Inject constructor(
      * For url preview.
      */
     fun render(previewUrlData: PreviewUrlData, imageView: ImageView, retainedThumbnail: Drawable? = null): Boolean {
+        val host = imageView.timelineHost()
         val encryptedImage = previewUrlData.encryptedImage
-        val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
-        val imageUrl = contentUrlResolver.resolveFullSize(previewUrlData.mxcUrl)
+        val imageUrl = if (host != null) previewUrlData.mxcUrl
+                else activeSessionHolder.getActiveSession().contentUrlResolver().resolveFullSize(previewUrlData.mxcUrl)
         if (imageUrl == null && encryptedImage == null) return false
         val maxHeight = dimensionConverter.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.preview_url_view_image_max_height)
         val height = previewUrlData.imageHeight ?: URL_PREVIEW_IMAGE_MIN_FULL_HEIGHT_PX
@@ -149,10 +153,14 @@ class ImageContentRenderer @Inject constructor(
         // none of it. The declared box is what the picture ends up in anyway, override() decoding to it.
         val displayHeight = height.coerceAtMost(maxHeight)
         imageView.updateLayoutParams { this.height = displayHeight }
-        val data = previewUrlData.toImageData(encryptedImage)
+        val original = previewUrlData.toImageData(encryptedImage)
+        val data = host?.resolveMedia(original, imageView) ?: original
+        val pending = if (host != null) PendingRenders.startOn(imageView, data, Mode.FULL_SIZE) else null
         // Square: the card clips the image to its own top corners.
         val placeholder = placeholderFor(imageView, data, showGlyph = false, square = true)
-        val request = if (encryptedImage == null) {
+        val request = if (host != null) {
+            createGlideRequest(data, Mode.FULL_SIZE, imageView, Size(width, height), placeholder)
+        } else if (encryptedImage == null) {
             GlideApp.with(imageView).load(imageUrl)
         } else {
             // MSC4095 preview thumbnails of an encrypted room are attachments of their own, so they go
@@ -161,12 +169,13 @@ class ImageContentRenderer @Inject constructor(
         }
         request.override(width, displayHeight)
                 .withWaitingState(retainedThumbnail ?: placeholder)
-                .let { if (retainedThumbnail == null) it else it.transition(DrawableTransitionOptions().dontTransition()) }
+                .let { if (host != null || retainedThumbnail != null) it.transition(DrawableTransitionOptions().dontTransition()) else it }
                 // The box is reserved before there is a picture for it; a preview whose image never
                 // arrives must give it back rather than leave an empty fill in the card.
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                         imageView.visibility = View.GONE
+                        pending?.let { PendingRenders.finish(it, "preview failed") }
                         return false
                     }
 
@@ -176,7 +185,10 @@ class ImageContentRenderer @Inject constructor(
                             target: Target<Drawable>?,
                             dataSource: DataSource,
                             isFirstResource: Boolean,
-                    ): Boolean = false
+                    ): Boolean {
+                        pending?.let { PendingRenders.finish(it, "preview ready") }
+                        return false
+                    }
                 })
                 .into(imageView)
         return true
@@ -215,6 +227,13 @@ class ImageContentRenderer @Inject constructor(
             mode: Mode = previewMode(isSticker = false, mimeType = data.mimeType),
             animate: Boolean = true,
     ) {
+        imageView.timelineHost()?.let { host ->
+            val offline = host.resolveMedia(data, imageView)
+            if (offline != data) {
+                render(offline, imageView, width, height, fromRetryTap, mode, animate)
+                return
+            }
+        }
         // renderFailed leaves FIT_XY behind, which would stretch the picture a later load draws here.
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         // Same keep-the-drawn-picture rule as render(data, mode, …).
@@ -264,7 +283,7 @@ class ImageContentRenderer @Inject constructor(
         )
                 .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
-                .intoView(imageView, animate = animate, freshKey = freshKeyIf(restartsWedgedRender))
+                .intoView(imageView, animate = animate && imageView.timelineHost() == null, freshKey = freshKeyIf(restartsWedgedRender))
     }
 
     /**
@@ -512,6 +531,10 @@ class ImageContentRenderer @Inject constructor(
             showFailureGlyph: Boolean = true,
     ) {
         val size = processSize(data, mode)
+        imageView.timelineHost()?.let { host ->
+            val offline = host.resolveMedia(data, imageView)
+            if (offline != data) { render(offline, mode, imageView, cornerTransformation, crossFade, fromRetryTap, showFailureGlyph); return }
+        }
         val last = imageView.lastRender()
         DebugLog.i { "MEDIADBG render decide event=${data.eventId} view=${viewId(imageView)} mode=$mode retryTap=$fromRetryTap " +
                         "caller=${MediaDebug.callers(3)} last=${last?.let { "(event=${it.data.eventId} stable=${it.stableId} mode=${it.mode} " +
@@ -574,7 +597,7 @@ class ImageContentRenderer @Inject constructor(
         val restartsWedgedRender = restartsWedgedRender(last, data, mode)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         imageView.startRender()
-        val animate = animates(mode)
+        val animate = animates(mode) && imageView.timelineHost() == null
         // Retrying: keep the glyph up for the duration rather than dropping to the blank loading
         // fill, which reads as the failure state vanishing every time the row rebinds.
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
@@ -603,7 +626,7 @@ class ImageContentRenderer @Inject constructor(
         )
                 .addListener(listener(isFallback = false))
                 .placeholder(placeholder)
-                .let { if (crossFade && uploadFrame == null && pickerFrame == null) it.transition(fade(placeholder)) else it }
+                .let { if (crossFade && imageView.timelineHost() == null && uploadFrame == null && pickerFrame == null) it.transition(fade(placeholder)) else it }
                 .withDisplayOptions(data, mode, animate, cornerTransformation, size)
                 .intoView(imageView, animate, freshKey = freshKeyIf(restartsWedgedRender))
     }
@@ -890,6 +913,11 @@ class ImageContentRenderer @Inject constructor(
     }
 
     companion object {
+        fun decodeExportBitmap(context: Context, file: java.io.File, maxDimension: Int): Bitmap? {
+            val request = GlideApp.with(context.applicationContext).asBitmap().load(file).override(maxDimension, maxDimension).fitCenter().submit()
+            return try { request.get(30, TimeUnit.SECONDS).copy(Bitmap.Config.ARGB_8888, false) } finally { GlideApp.with(context.applicationContext).clear(request) }
+        }
+
         // Intrinsic pixel size of media whose event carried no dimensions, learned when it first
         // decoded, so a later render reserves its shape instead of growing out of a holding square.
         private val measuredMediaSizes = LruCache<String, Size>(256)
@@ -1057,6 +1085,7 @@ class ImageContentRenderer @Inject constructor(
             placeholderIsPicture: Boolean = false,
     ): GlideRequest<Drawable> {
         return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder, fallbackListener, placeholderIsPicture)
+                .let { if (imageView.timelineHost() != null) it.disallowHardwareConfig().transition(DrawableTransitionOptions().dontTransition()) else it }
     }
 
     /** @param fallbackListener told the outcome of the full-size load a failed THUMBNAIL falls back to. */
@@ -1071,7 +1100,8 @@ class ImageContentRenderer @Inject constructor(
     ): GlideRequest<Drawable> {
         data.preservedFile?.let { file ->
             DebugLog.i { "MEDIADBG request built event=${data.eventId} mode=$mode preservedFile=${MediaDebug.model(file)}" }
-            return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE).withWaitingState(placeholder, placeholderIsPicture)
+            return glideRequests.load(file).let { if (data.mimeType?.startsWith("video/") == true) it.frame(0) else it }
+                    .diskCacheStrategy(DiskCacheStrategy.NONE).withWaitingState(placeholder, placeholderIsPicture)
         }
         val localCopy = lazy { localCopyOf(data) }
         val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
@@ -1188,7 +1218,7 @@ class ImageContentRenderer @Inject constructor(
                         showGlyph = showGlyph,
                         square = square,
                         drawable = MediaPlaceholderDrawable(
-                                context = context,
+                                context = imageView.context,
                                 blurHash = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) },
                                 showGlyph = showGlyph && (data.url != null || data.preservedFile != null),
                                 hasNoSource = data.url == null && data.preservedFile == null,
@@ -1316,3 +1346,5 @@ class ImageContentRenderer @Inject constructor(
         return boxed ?: data.loadingSquare().atLeastMinimum(data.maxWidth, data.maxHeight)
     }
 }
+
+private fun ImageView.timelineHost() = context.staticTimelineHost() ?: TimelineRenderingScope.current()

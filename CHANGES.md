@@ -68,6 +68,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Selecting multiple messages**: select several messages to copy, forward or delete them at once.
 
+- **Room exports**: export selected messages as an image, animated WebP, HTML page or JSON, styled like your timeline and optionally with everyone's identities anonymized. Exports from Voyage and Element can be imported into an archive library and read offline.
+
 - **Swipe actions**: configurable message swipes let you easily reply, edit, copy, react and more. Choose actions for swipes and longer swipes in either direction, globally or per room.
 
 - **Polls**: create polls in the stable MSC3381 format, read both formats, and match votes, closure and edits to the original poll's format. Tap your selected answer to retract your votes; tallies update when responses are redacted.
@@ -253,6 +255,8 @@ New features, improvements, and notable removals in this fork.
 - **Session viewer**: a user's profile lists their sessions under Security, each with its trust status. A dehydrated device is noted rather than listed.
 
 - **Media hiding and spoilers**: hide timeline media, inline images and emoji until tapped, by room or privacy category. Send individual media messages as spoilers, which stay hidden until revealed even where media previews are otherwise enabled.
+
+- **Anonymization**: show people under assigned names and generic avatars instead of their own, either everyone except a list of exclusions or only the people on it. It applies across your account, and each room can follow it, turn it off or keep its own list.
 
 - **Ignored users fully silenced**: read receipts and presence from ignored users are dropped during sync, alongside the typing notifications already filtered.
 

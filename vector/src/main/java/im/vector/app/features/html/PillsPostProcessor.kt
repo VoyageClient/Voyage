@@ -17,6 +17,7 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.settings.VectorPreferences
 import io.noties.markwon.core.spans.LinkSpan
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -130,32 +131,30 @@ class PillsPostProcessor @AssistedInject constructor(
 
     // In a room the member event and the room summary are the authority; only what nothing local backs
     // is looked up on the server.
-    private fun createPillImageSpan(target: PillTarget) =
-            PillImageSpan(
-                    GlideApp.with(context),
-                    avatarRenderer,
-                    context,
-                    target.matrixItem,
-                    itemResolver = itemResolver.takeIf { roomId == null || !target.isLocallyKnown },
-                    roomId = roomId,
-            )
+    private fun createPillImageSpan(target: PillTarget): PillImageSpan {
+        val host = TimelineRenderingScope.current()
+        val renderingContext = (host as? Context) ?: context
+        return PillImageSpan(
+                GlideApp.with(renderingContext), avatarRenderer, renderingContext, target.matrixItem,
+                itemResolver = itemResolver.takeIf { host == null && (roomId == null || !target.isLocallyKnown) }, roomId = roomId,
+        )
+    }
 
     private fun LinkSpan.createPillSpan(linkText: String, originServerTs: Long?): PillImageSpan? {
+        val label = linkText.trim().takeUnless { it.isBlank() || it == url }
+        val host = TimelineRenderingScope.current()
         val supportedHosts = context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
-        val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, url).orFalse()
-        if (isPermalinkSupported) {
-            // What the mention was written as. A pill falls back to it rather than to a raw id when we
-            // don't know the user or room ourselves; a link whose text is just its target says nothing.
-            val label = linkText.trim().takeUnless { it.isBlank() || it == url }
-            val target = when (val permalinkData = PermalinkParser.parse(url)) {
-                is PermalinkData.UserLink -> permalinkData.toPillTarget(label, originServerTs)
-                is PermalinkData.RoomLink -> permalinkData.toPillTarget(label)
-                else -> null
-            } ?: return null
-            return createPillImageSpan(target)
-        } else {
-            return null
+        val isPermalinkSupported = if (host != null) PermalinkParser.isSupported(supportedHosts, url)
+                else sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, url).orFalse()
+        if (!isPermalinkSupported) return null
+        val permalink = PermalinkParser.parse(url)
+        val target = if (host != null) host.resolvePill(permalink, label)?.let { PillTarget(it, true) }
+        else when (permalink) {
+            is PermalinkData.UserLink -> permalink.toPillTarget(label, originServerTs)
+            is PermalinkData.RoomLink -> permalink.toPillTarget(label)
+            else -> null
         }
+        return target?.let(::createPillImageSpan)
     }
 
     private fun PermalinkData.UserLink.toPillTarget(label: String?, originServerTs: Long?): PillTarget? {

@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
@@ -32,6 +33,8 @@ import im.vector.app.features.home.room.detail.timeline.tools.setupUserTextInput
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
+import im.vector.app.features.roomprofile.RoomProfileSharedAction
+import im.vector.app.features.roomprofile.RoomProfileSharedActionViewModel
 import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.MessageSwipePreferenceBinder
 import im.vector.app.features.settings.MessageSwipeSlot
@@ -52,6 +55,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -149,6 +153,7 @@ class RoomPersonalizationSettingsFragment :
         setUpSyncOverride()
         setUpActivityOverrides()
         setUpMediaOverrides()
+        setUpAnonymizationLink()
         setUpTimelineOverrides()
         setUpSwipeOverrides()
         setUpRedactionOverrides()
@@ -327,6 +332,21 @@ class RoomPersonalizationSettingsFragment :
         refreshActivityResetState()
     }
 
+    // Its own screen, as in the global settings; the row says which choice this room makes.
+    private fun setUpAnonymizationLink() {
+        findPreference<VectorPreference>(SETTINGS_ROOM_ANONYMIZATION_KEY)?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            ViewModelProvider(requireActivity()).get(RoomProfileSharedActionViewModel::class.java).post(RoomProfileSharedAction.OpenRoomAnonymization)
+            true
+        }
+        refreshAnonymizationLink()
+    }
+
+    private fun refreshAnonymizationLink() {
+        val entries = resources.getStringArray(im.vector.lib.strings.R.array.redaction_inherit_bools)
+        findPreference<VectorPreference>(SETTINGS_ROOM_ANONYMIZATION_KEY)?.summary =
+                entries[when (IdentityPresentation.config(session.myUserId).rooms[roomId]?.enabled) { null -> 0; true -> 1; false -> 2 }]
+    }
+
     private val mediaCategory
         get() = findPreference<VectorPreferenceCategoryWithAction>(SETTINGS_ROOM_MEDIA_CATEGORY_KEY)
 
@@ -450,6 +470,7 @@ class RoomPersonalizationSettingsFragment :
         super.onResume()
         updateTimelineDebugPreferences()
         updateOwnRedactionPreference()
+        refreshAnonymizationLink()
     }
 
     private fun updateTimelineDebugPreferences() {
@@ -864,6 +885,7 @@ class RoomPersonalizationSettingsFragment :
         private const val SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY = "SETTINGS_ROOM_SEND_READ_RECEIPTS_KEY"
         private const val SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY = "SETTINGS_ROOM_SEND_TYPING_NOTIFS_KEY"
         private const val SETTINGS_ROOM_MEDIA_CATEGORY_KEY = "SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
+        private const val SETTINGS_ROOM_ANONYMIZATION_KEY = "SETTINGS_ROOM_ANONYMIZATION_KEY"
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
         private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"
         private const val SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY = "SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"

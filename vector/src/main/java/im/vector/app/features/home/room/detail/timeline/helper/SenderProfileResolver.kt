@@ -41,6 +41,7 @@ class SenderProfileResolver @Inject constructor(
 
         fun resolve(roomId: String, senderInfo: SenderInfo, isRedacted: Boolean = false): SenderInfo =
                 resolveWith(
+                        roomId,
                         senderInfo,
                         isRedacted,
                         disambiguate = { userId, name ->
@@ -67,6 +68,7 @@ class SenderProfileResolver @Inject constructor(
     }
 
     private inline fun resolveWith(
+            roomId: String,
             senderInfo: SenderInfo,
             isRedacted: Boolean,
             disambiguate: (userId: String, name: String) -> String,
@@ -99,10 +101,10 @@ class SenderProfileResolver @Inject constructor(
         // server for that user's profile, which a list of a few hundred senders turns into a flood.
         return senderInfo.copy(
                 // A per-user override outranks every source, as it does everywhere else it is applied.
-                displayName = ProfileOverrides.displayNameOr(senderInfo.userId, name),
+                displayName = ProfileOverrides.displayNameOr(senderInfo.userId, name, roomId),
                 isUniqueDisplayName = true,
-                avatarUrl = ProfileOverrides.avatarUrlOr(senderInfo.userId, avatar),
-                avatarDecryption = ProfileOverrides.avatarDecryptionFor(senderInfo.userId),
+                avatarUrl = ProfileOverrides.avatarUrlOr(senderInfo.userId, avatar, roomId),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(senderInfo.userId, roomId),
                 colorPreference = senderInfo.colorPreference ?: liveMember?.colorPreference,
         )
     }

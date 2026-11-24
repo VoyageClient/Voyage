@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <integer name="accent_color_trailing_row_count">3</integer>
 
     <string-array name="sc_theme_entries" translatable="false">
         <item>@string/light_theme</item>

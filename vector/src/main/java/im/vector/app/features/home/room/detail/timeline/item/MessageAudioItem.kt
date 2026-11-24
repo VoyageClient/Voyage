@@ -20,6 +20,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.SystemClock
 import android.text.format.DateUtils
@@ -148,6 +149,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     var previewUrlImageContentRenderer: ImageContentRenderer? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var staticDetails: (() -> AudioDetails.Details?)? = null
+
     private var isUserSeeking = false
 
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
@@ -216,6 +220,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
      * downloaded. Until then it reads as it always did.
      */
     private fun bindFileDetails(holder: Holder, onlyIfSourceChanged: Boolean = false) {
+        staticDetails?.let { showFileDetails(holder, it(), reset = true); return }
         // Tracked by message rather than by where its bytes are: an upload's source changes under
         // it — the picked file becomes a cached download, and its local echo becomes a real event —
         // and a row that resets there flickers back to the file name and the plain pill mid-send.
@@ -239,7 +244,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         if (onlyIfSourceChanged && (holder.detailsSource == source || holder.loadingDetailsSource == source)) return
         val known = source?.let { AudioDetails.cached(it, forTimeline = true) }
         showFileDetails(holder, known.withEventTags(), reset = changed)
-        if (source == null) return
+        if (source == null || attributes.informationData.isStatic) return
         if (known != null) {
             holder.detailsSource = source
             return
@@ -437,6 +442,17 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // In milliseconds rather than percent: a hundred steps across a five-minute song is a jump
         // of three seconds at a time, and nothing can glide between those.
         holder.audioSeekBar.max = duration.coerceAtLeast(1)
+        // thumbTint is API 21+, and offscreen export draws can't tint the theme thumb either.
+        if (!holder.thumbApplied) {
+            holder.audioSeekBar.thumb = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.WHITE)
+                val size = (12 * holder.view.resources.displayMetrics.density).toInt()
+                setSize(size, size)
+            }
+            holder.audioSeekBar.jumpDrawablesToCurrentState()
+            holder.thumbApplied = true
+        }
         holder.seekTouchListener?.dispose()
         var cancelled = false
         val touchListener = MessageSeekTouchListener(holder.audioSeekBar) { event ->
@@ -469,6 +485,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderStateBasedOnAudioPlayback(holder: Holder) {
+        if (attributes.informationData.isStatic) { renderIdleState(holder); return }
         val listener = AudioMessagePlaybackTracker.Listener { state ->
             if (state is AudioMessagePlaybackTracker.Listener.State.Playing ||
                     state is AudioMessagePlaybackTracker.Listener.State.Paused) {
@@ -584,6 +601,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val audioPlaybackDuration by bind<TextView>(R.id.audioPlaybackDuration)
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
         internal var seekTouchListener: MessageSeekTouchListener? = null
+        internal var thumbApplied = false
         var progressAnimator: ObjectAnimator? = null
         var backdropKey: String? = null
         var textColorAnimator: ValueAnimator? = null

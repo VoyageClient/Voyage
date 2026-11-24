@@ -53,6 +53,15 @@ class SettingsSearchIndexTest {
     }
 
     @Test
+    fun `anonymization settings are found on their screen inside Security and Privacy`() {
+        val entry = build().single { it.highlight?.key == "ANONYMIZATION_ENABLED" }
+
+        entry.breadcrumb.first() shouldBeEqualTo activity.getString(im.vector.lib.strings.R.string.settings_security_and_privacy)
+        entry.breadcrumb shouldContain activity.getString(im.vector.lib.strings.R.string.export_anonymization)
+        entry.screenPath.last() shouldBeEqualTo im.vector.app.features.settings.VectorSettingsAnonymizationFragment::class.java.name
+    }
+
+    @Test
     fun `skips rows hidden in XML`() {
         val keys = build().mapNotNull { it.highlight?.key }
 

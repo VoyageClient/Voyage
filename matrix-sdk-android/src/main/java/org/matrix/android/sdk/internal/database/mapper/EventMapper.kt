@@ -110,6 +110,7 @@ internal object EventMapper {
                     numberOfThreads = eventEntity.numberOfThreads,
                     threadSummarySenderInfo = eventEntity.threadSummaryLatestMessage?.let { timelineEventEntity ->
                         overriddenSenderInfo(
+                                roomId = eventEntity.roomId,
                                 userId = timelineEventEntity.root?.sender ?: "",
                                 displayName = timelineEventEntity.senderName,
                                 isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,

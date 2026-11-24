@@ -28,12 +28,11 @@ class VectorDateFormatter @Inject constructor(
         private val clock: Clock,
 ) {
 
+    private val twentyFourHourFormatter by lazy { DateTimeFormatter.ofPattern("HH:mm", localeProvider.current()) }
+    private val twelveHourFormatter by lazy { DateTimeFormatter.ofPattern("h:mm a", localeProvider.current()) }
+
     private val hourFormatter by lazy {
-        if (DateFormat.is24HourFormat(context)) {
-            DateTimeFormatter.ofPattern("HH:mm", localeProvider.current())
-        } else {
-            DateTimeFormatter.ofPattern("h:mm a", localeProvider.current())
-        }
+        if (DateFormat.is24HourFormat(context)) twentyFourHourFormatter else twelveHourFormatter
     }
 
     private val fullDateFormatter by lazy {
@@ -78,6 +77,15 @@ class VectorDateFormatter @Inject constructor(
             )
         }
     }
+
+    fun formatDayDivider(ts: Long, timeZone: java.util.TimeZone): String = formatDateWithYear(DateProvider.toLocalDateTime(ts, timeZone))
+
+    fun formatMessageTime(ts: Long, timeZone: java.util.TimeZone, twelveHour: Boolean): String =
+            (if (twelveHour) twelveHourFormatter else twentyFourHourFormatter).format(DateProvider.toLocalDateTime(ts, timeZone))
+
+    fun formatFullDate(ts: Long, timeZone: java.util.TimeZone, twelveHour: Boolean): String = DateTimeFormatter.ofPattern(
+            getBestDateTimePatternCompat(localeProvider.current(), if (twelveHour) "EEE, d MMM yyyy h:mm a" else "EEE, d MMM yyyy HH:mm"),
+            localeProvider.current()).format(DateProvider.toLocalDateTime(ts, timeZone))
 
     private fun formatFullDate(localDateTime: LocalDateTime): String {
         return fullDateFormatter.format(localDateTime)

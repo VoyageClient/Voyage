@@ -73,6 +73,7 @@ internal class TypingUserProfileResolver @Inject constructor(
                 val updated = current.map {
                     if (it.userId != userId) return@map it
                     overriddenSenderInfo(
+                            roomId = roomId,
                             userId = userId,
                             displayName = profile.displayName ?: it.displayName,
                             isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, profile.displayName ?: it.displayName, userId) != true,

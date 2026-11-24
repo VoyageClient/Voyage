@@ -32,6 +32,7 @@ data class SenderInfo(
         val avatarDecryption: ElementToDecrypt? = null,
         /** The sender's MSC4522 color in this room, when they set one. */
         val colorPreference: ColorPreference? = null,
+        val presentationRoomId: String? = null,
 ) {
     val disambiguatedDisplayName: String
         get() = when {

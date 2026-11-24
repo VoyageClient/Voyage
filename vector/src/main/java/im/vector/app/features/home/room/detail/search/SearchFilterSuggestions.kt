@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.search
 
 import androidx.annotation.DrawableRes
 import im.vector.app.R
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.search.SearchFilters
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -57,13 +58,14 @@ object SearchFilterSuggestions {
                     .take(MAX_MEMBERS)
                     .map {
                         val pillStart = prefix.length + key.length + 1
+                        val shownId = it.shownId()
                         SearchSuggestion(
-                                label = it.displayName ?: it.userId,
-                                hint = it.userId,
-                                query = "$prefix$key:${it.userId} ",
+                                label = it.displayName ?: shownId,
+                                hint = shownId,
+                                query = "$prefix$key:$shownId ",
                                 icon = keyIcon(key),
                                 avatar = it.toMatrixItem(),
-                                pillRange = pillStart until pillStart + it.userId.length,
+                                pillRange = pillStart until pillStart + shownId.length,
                         )
                     }
             // A date has nothing to enumerate and an unknown key is just text being typed: in both
@@ -72,8 +74,18 @@ object SearchFilterSuggestions {
         }
     }
 
+    /**
+     * The search term with every anonymized member's stand-in id swapped for their real one, which is what the
+     * search backend filters on. The term itself only ever shows the stand-in.
+     */
+    fun resolveIds(term: String, members: List<RoomMemberSummary>): String =
+            members.fold(term) { query, member -> member.shownId().takeIf { it != member.userId }?.let { query.replace(it, member.userId) } ?: query }
+
+    // Anonymized members are matched by what is shown of them, so typing a real id can't find someone.
+    private fun RoomMemberSummary.shownId() = IdentityPresentation.displayedId(userId, presentationRoomId)
+
     private fun RoomMemberSummary.matches(typed: String) = typed.isEmpty() ||
-            userId.contains(typed, ignoreCase = true) ||
+            shownId().contains(typed, ignoreCase = true) ||
             displayName?.contains(typed, ignoreCase = true) == true
 
     private fun RoomMemberSummary.matchRank(typed: String): Int {
@@ -81,7 +93,7 @@ object SearchFilterSuggestions {
         val term = typed.removePrefix("@")
         return when {
             displayName?.startsWith(term, ignoreCase = true) == true -> 0
-            userId.removePrefix("@").startsWith(term, ignoreCase = true) -> 1
+            shownId().removePrefix("@").startsWith(term, ignoreCase = true) -> 1
             else -> 2
         }
     }

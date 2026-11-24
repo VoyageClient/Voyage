@@ -31,4 +31,6 @@
         app:iconTint="?colorError"
         app:showAsAction="always" />
 
+    <item android:id="@+id/selection_export" android:title="@string/export_title" app:showAsAction="never" />
+    <item android:id="@+id/selection_between" android:title="@string/export_select_between" app:showAsAction="never" />
 </menu>

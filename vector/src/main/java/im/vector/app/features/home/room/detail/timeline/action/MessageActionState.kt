@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
+import im.vector.app.features.timelineexport.TimelineExportRenderer
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
@@ -52,6 +53,10 @@ data class MessageActionState(
         // When set, the sheet is scoped to that item of an MSC4274 gallery.
         val galleryItemIndex: Int? = null,
         val canSelect: Boolean = false,
+        val archiveId: String? = null,
+        val archiveDocument: TimelineExportRenderer.Document? = null,
+        val archiveMediaHidden: Boolean = false,
+        val archiveFailure: String? = null,
 ) : MavericksState {
 
     /**
@@ -69,6 +74,7 @@ data class MessageActionState(
             isFromThreadTimeline = args.isFromThreadTimeline,
             galleryItemIndex = args.galleryItemIndex,
             canSelect = args.canSelect,
+            archiveId = args.archiveId,
     )
 
     fun senderName(): String = informationData.memberName?.toString() ?: ""

@@ -31,7 +31,7 @@ class NoticeItemFactory @Inject constructor(
 
     fun create(params: TimelineItemFactoryParams): NoticeItem? {
         val event = params.event
-        val formattedText = eventFormatter.format(event, isDm = params.partialState.roomSummary?.isDirect.orFalse()) ?: return null
+        val formattedText = params.presentation?.noticeText ?: eventFormatter.format(event, isDm = params.partialState.roomSummary?.isDirect.orFalse()) ?: return null
         val maxLines = when {
             event.root.getClearType() == EventType.STATE_ROOM_TOPIC -> 1
             event.root.getClearType() == EventType.STATE_ROOM_MEMBER &&

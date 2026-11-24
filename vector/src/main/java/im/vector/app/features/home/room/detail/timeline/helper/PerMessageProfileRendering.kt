@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 
@@ -25,7 +26,8 @@ fun TimelineEvent.renderPerMessageProfile(
         senderAvatarUrl: String? = senderInfo.avatarUrl,
         senderAvatarDecryption: ElementToDecrypt? = senderInfo.avatarDecryption,
 ): PerMessageProfileRendering {
-    val profile = getPerMessageProfile()?.takeIf { enabled }
+    // A per-message profile names its sender by real id, which anonymization must not reveal.
+    val profile = getPerMessageProfile()?.takeIf { enabled && !IdentityPresentation.isAnonymous(senderInfo.userId, roomId) }
             ?: return PerMessageProfileRendering(
                     profileId = null,
                     senderName = senderName,

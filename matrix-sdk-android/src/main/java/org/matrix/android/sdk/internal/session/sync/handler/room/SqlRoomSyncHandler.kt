@@ -706,6 +706,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
             val member = memberHelper.getLastRoomMember(typingUser)
             if (member != null) {
                 overriddenSenderInfo(
+                        roomId = roomId,
                         userId = typingUser,
                         displayName = member.displayName,
                         isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, member.displayName, typingUser) != true,
@@ -716,6 +717,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 val user = if (fetched?.displayName == null || fetched.avatarUrl == null) stores.user.getUser(typingUser) else null
                 val displayName = fetched?.displayName ?: user?.displayName
                 overriddenSenderInfo(
+                        roomId = roomId,
                         userId = typingUser,
                         displayName = displayName,
                         isUniqueDisplayName = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName, typingUser) != true,

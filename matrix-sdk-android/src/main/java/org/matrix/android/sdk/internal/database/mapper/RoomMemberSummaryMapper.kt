@@ -26,11 +26,13 @@ internal object RoomMemberSummaryMapper {
     fun map(roomMemberSummaryEntity: RoomMemberSummaryEntity): RoomMemberSummary {
         return RoomMemberSummary(
                 userId = roomMemberSummaryEntity.userId,
+                presentationRoomId = roomMemberSummaryEntity.roomId,
                 userPresence = roomMemberSummaryEntity.userPresenceEntity?.toUserPresence(),
-                avatarUrl = ProfileOverrides.avatarUrlOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.avatarUrl),
-                avatarDecryption = ProfileOverrides.avatarDecryptionFor(roomMemberSummaryEntity.userId),
-                displayName = ProfileOverrides.displayNameOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.displayName),
+                avatarUrl = ProfileOverrides.avatarUrlOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.avatarUrl, roomMemberSummaryEntity.roomId),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.roomId),
+                displayName = ProfileOverrides.displayNameOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.displayName, roomMemberSummaryEntity.roomId),
                 originalDisplayName = roomMemberSummaryEntity.displayName,
+                originalAvatarUrl = roomMemberSummaryEntity.avatarUrl,
                 membership = roomMemberSummaryEntity.membership,
                 colorPreference = roomMemberSummaryEntity.colorPreference,
         )

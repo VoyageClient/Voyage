@@ -73,6 +73,7 @@ import im.vector.app.features.spaces.SpaceSettingsMenuBottomSheet
 import im.vector.app.features.spaces.invite.SpaceInviteBottomSheet
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.timelineexport.TimelineArchiveLibraryActivity
 import im.vector.app.features.workers.signout.ServerBackupStatusViewModel
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -594,6 +595,10 @@ class HomeActivity :
         return when (item.itemId) {
             R.id.menu_home_init_sync -> {
                 MainActivity.restartApp(this, MainActivityArgs(initSyncActiveAccount = true))
+                true
+            }
+            R.id.menu_home_archives -> {
+                startActivity(Intent(this, TimelineArchiveLibraryActivity::class.java))
                 true
             }
             R.id.menu_home_export_logs -> {

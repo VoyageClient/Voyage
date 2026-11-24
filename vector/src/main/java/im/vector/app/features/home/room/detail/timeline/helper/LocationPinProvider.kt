@@ -11,7 +11,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.util.LruCache
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -19,6 +19,7 @@ import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.location.LocationAccent
 import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
@@ -54,6 +55,10 @@ class LocationPinProvider @Inject constructor(
             callback(LocationAccent.pin(context))
             return
         }
+        TimelineRenderingScope.current()?.let { host ->
+            callback(createPinDrawable(matrixItem, host.pillAvatar(matrixItem), isError = false))
+            return
+        }
         val matrixUser = avatarRenderer.displayedItem(matrixItem, roomId)
         val size = dimensionConverter.dpToPx(44)
         avatarRenderer.render(glideRequests, matrixUser, object : CustomTarget<Drawable>(size, size) {
@@ -80,19 +85,22 @@ class LocationPinProvider @Inject constructor(
         })
     }
 
+    fun createForDrawable(userItem: MatrixItem, drawable: Drawable): Drawable = createPinDrawable(userItem, drawable, isError = false)
+
     private fun createPinDrawable(
             userItem: MatrixItem,
             drawable: Drawable,
             isError: Boolean,
     ): Drawable {
-        val fromCache = cache.get(userItem)
+        val frozen = TimelineRenderingScope.current() != null
+        val fromCache = if (frozen) null else cache.get(userItem)
         // Return the cached drawable only if it is valid, or the new drawable is again an error
         if (fromCache != null && (!fromCache.isError || isError)) {
             return fromCache.drawable
         }
 
         val bgTintColor = matrixItemColorProvider.getColor(userItem)
-        val bgUserPin = ContextCompat.getDrawable(context, R.drawable.bg_map_user_pin)!!
+        val bgUserPin = AppCompatResources.getDrawable(context, R.drawable.bg_map_user_pin)!!
         // use mutate on drawable to avoid sharing the color when we have multiple different user pins
         DrawableCompat.setTint(bgUserPin.mutate(), bgTintColor)
         val layerDrawable = LayerDrawable(arrayOf(bgUserPin, drawable))
@@ -100,7 +108,7 @@ class LocationPinProvider @Inject constructor(
         val topInset = dimensionConverter.dpToPx(4)
         val bottomInset = dimensionConverter.dpToPx(8)
         layerDrawable.setLayerInset(1, horizontalInset, topInset, horizontalInset, bottomInset)
-        cache.put(userItem, CachedDrawable(layerDrawable, isError))
+        if (!frozen) cache.put(userItem, CachedDrawable(layerDrawable, isError))
         return layerDrawable
     }
 }

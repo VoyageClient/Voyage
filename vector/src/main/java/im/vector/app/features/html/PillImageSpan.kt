@@ -47,6 +47,8 @@ import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.themes.ThemeUtils
@@ -80,7 +82,7 @@ class PillImageSpan(
         private val roomId: String? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
 
-    override var matrixItem: MatrixItem = matrixItem
+    override var matrixItem: MatrixItem = (matrixItem as? MatrixItem.UserItem)?.copy(presentationRoomId = roomId) ?: matrixItem
         private set
 
     override fun contentHash() = matrixItem.hashCode()
@@ -96,7 +98,7 @@ class PillImageSpan(
     private var textStyle: LabelStyle? = null
 
     // Display-only; the outgoing body built by [expandPillSpans] uses [bodyText].
-    private var displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
+    private var displayName = this.matrixItem.getBestName().neutralizeDirectionOverrides()
 
     // What a copy of the pill puts on the clipboard, and what backspacing into it restores: an id the
     // composer pills again. "@room" and a room known only by its id have none, so they use the name.
@@ -134,6 +136,7 @@ class PillImageSpan(
     @UiThread
     fun bind(textView: TextView, loadAvatar: Boolean = true) {
         tv = WeakReference(textView)
+        (context.staticTimelineHost() ?: TimelineRenderingScope.current())?.let { it.bindPill(this, matrixItem); return }
         if (!loadAvatar) {
             resolveItemIfNeeded(withAvatar = false)
             return
@@ -171,8 +174,8 @@ class PillImageSpan(
 
     // Redraw the pill now the server has told us what it points at.
     private fun applyResolvedItem(item: MatrixItem, loadAvatar: Boolean) {
-        matrixItem = item
-        displayName = item.getBestName().neutralizeDirectionOverrides()
+        matrixItem = (item as? MatrixItem.UserItem)?.copy(presentationRoomId = roomId) ?: item
+        displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
         fullEmojiLabel = null
         emojiLabel = null
         emojiLabelPaint = null
@@ -483,7 +486,9 @@ class PillImageSpan(
     private fun createChipDrawable(): ChipDrawable {
         val textPadding = context.resources.getDimension(im.vector.lib.ui.styles.R.dimen.pill_text_padding)
         val item = matrixItem
+        val host = context.staticTimelineHost() ?: TimelineRenderingScope.current()
         val icon = when {
+            host != null -> host.pillAvatar(item)
             item is MatrixItem.RoomAliasItem && item.avatarUrl.isNullOrEmpty() &&
                     item.displayName == context.getString(CommonStrings.pill_message_in_room, item.id) -> {
                 useGenericIcon = true

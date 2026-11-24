@@ -53,6 +53,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -105,8 +106,8 @@ class HomeDrawerFragment :
             if (user != null) {
                 headerUser = user
                 avatarRenderer.render(user.toMatrixItem(), views.homeDrawerHeaderAvatarView)
-                views.homeDrawerUsernameView.text = (user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).prepareForDisplay()
-                views.homeDrawerUserIdView.text = user.userId
+                views.homeDrawerUsernameView.text = (IdentityPresentation.name(user.userId) ?: user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).prepareForDisplay()
+                views.homeDrawerUserIdView.text = IdentityPresentation.displayedId(user.userId)
                 // Keep the switcher's active row in sync with profile edits when the panel is up.
                 if (switcherExpanded) refreshAccountList()
             }

@@ -22,6 +22,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -36,7 +37,12 @@ abstract class UserDirectoryUserItem : VectorEpoxyModel<UserDirectoryUserItem.Ho
         super.bind(holder)
         holder.view.onClick(clickListener)
         // If name is empty, use userId as name and force it being centered
-        if (matrixItem.displayName.isNullOrEmpty()) {
+        val anonymous = IdentityPresentation.name(matrixItem.id, (matrixItem as? MatrixItem.UserItem)?.presentationRoomId)
+        if (anonymous != null) {
+            holder.nameView.text = anonymous
+            holder.userIdView.text = IdentityPresentation.displayedId(matrixItem.id, (matrixItem as? MatrixItem.UserItem)?.presentationRoomId)
+            holder.userIdView.visibility = View.VISIBLE
+        } else if (matrixItem.displayName.isNullOrEmpty()) {
             holder.userIdView.visibility = View.GONE
             holder.nameView.text = matrixItem.id.neutralizeDirectionOverrides()
         } else {

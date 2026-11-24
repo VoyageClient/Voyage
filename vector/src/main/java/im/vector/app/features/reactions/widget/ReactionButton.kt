@@ -27,21 +27,19 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.EmojiSpanify
 import im.vector.app.R
-import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.layoutDirectionCompat
+import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.databinding.ReactionButtonBinding
+import im.vector.app.features.home.room.detail.timeline.render.staticTimelineHost
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.reactions.ReactionText
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
 /**
@@ -49,7 +47,6 @@ import kotlin.math.roundToInt
  * Displays a String reaction (emoji or mxc:// image), with a count, and that can be selected or
  * not (toggle).
  */
-@AndroidEntryPoint
 class ReactionButton @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
@@ -58,8 +55,8 @@ class ReactionButton @JvmOverloads constructor(
 ) :
         LinearLayout(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr), View.OnClickListener, View.OnLongClickListener {
 
-    @Inject lateinit var emojiSpanify: EmojiSpanify
-    @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    private val emojiSpanify by lazy { context.singletonEntryPoint().emojiSpanify() }
+    private val activeSessionHolder by lazy { context.singletonEntryPoint().activeSessionHolder() }
 
     private val views: ReactionButtonBinding
 
@@ -125,6 +122,20 @@ class ReactionButton @JvmOverloads constructor(
     }
 
     private fun applyReactionContent(value: String) {
+        context.staticTimelineHost()?.let { host ->
+            val image = ReactionText.singleImageUrl(value)
+            if (image != null && !blockImages && host.hasImage(image)) {
+                views.reactionText.isVisible = false
+                views.reactionImage.isVisible = true
+                host.renderImage(image, views.reactionImage)
+            } else {
+                views.reactionImage.isVisible = false
+                views.reactionText.setReactionTextLayoutForEmoji()
+                views.reactionText.isVisible = true
+                views.reactionText.text = host.renderText(ReactionText.renderImages(value.neutralizeDirectionOverrides(), blockImages) { it.takeIf(host::hasImage) })
+            }
+            return
+        }
         // A recycled button may have been caught mid-bounce (scale < 1) — rebinding must show the glyph.
         views.reactionText.animate().cancel()
         views.reactionText.scaleX = 1f

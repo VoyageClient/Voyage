@@ -163,16 +163,10 @@ import im.vector.app.features.home.room.detail.timeline.helper.FloatingDateHeade
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ReactionsSummaryFactory
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
+import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
-import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
-import im.vector.app.features.home.room.detail.timeline.item.MessageLocationItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
-import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
-import im.vector.app.features.home.room.detail.timeline.item.PollItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
@@ -230,6 +224,9 @@ import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.share.forwardPayload
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.timelineexport.TimelineExportActivity
+import im.vector.app.features.timelineexport.TimelineExportDraft
+import im.vector.app.features.timelineexport.TimelineExportStore
 import im.vector.app.features.widgets.WidgetActivity
 import im.vector.app.features.widgets.WidgetArgs
 import im.vector.app.features.widgets.WidgetKind
@@ -239,6 +236,7 @@ import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -267,6 +265,7 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
@@ -448,6 +447,14 @@ class TimelineFragment :
     private var selectionPermissions = ActionPermissions()
     private var dragBaseSelection: Map<String, TimelineEvent> = emptyMap()
     private var dragSelects = true
+    @Inject lateinit var timelineExportStore: TimelineExportStore
+    private var restoringExportSelection = false
+    private var exportSelectionSaveJob: Job? = null
+    @Volatile private var exportSelectionRevision = 0L
+    private var exportResumable = false
+    private val exportActivityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.data?.getBooleanExtra(TimelineExportActivity.EXTRA_DISCARDED, false) == true) timelineViewModel.selection.clear() else restoreExportSelection()
+    }
     private var selectionDecoration: TimelineSelectionDecoration? = null
     private var selectionTouchListener: TimelineSelectionTouchListener? = null
     private var rootBottomMarginBeforeSelection = 0
@@ -599,6 +606,23 @@ class TimelineFragment :
         ProfileOverrides.changes
                 .onEach { changedUsers ->
                     pendingProfileOverrideUsers.addAll(changedUsers)
+                    flushPendingProfileChanges()
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Anonymization settings can rename anyone shown here; only those whose presentation changed are rebuilt.
+        var shownIdentity = IdentityPresentation.config()
+        IdentityPresentation.changes
+                .drop(1)
+                .onEach {
+                    val current = IdentityPresentation.config()
+                    val people = timelineEventController.selectionSnapshot()
+                            .flatMapTo(HashSet()) { event -> event.readReceipts.map { it.roomMember.userId } + event.senderInfo.userId }
+                    people.filterTo(pendingProfileOverrideUsers) {
+                        IdentityPresentation.presentation(shownIdentity, it, timelineArgs.roomId) != IdentityPresentation.presentation(current, it, timelineArgs.roomId)
+                    }
+                    shownIdentity = current
+                    DebugLog.i { "IDPDBG fragment change room=${timelineArgs.roomId} users=${pendingProfileOverrideUsers.size} resumed=${lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)}" }
                     flushPendingProfileChanges()
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -1338,6 +1362,7 @@ class TimelineFragment :
         menu.forEach {
             it.isVisible = timelineViewModel.isMenuItemVisible(it.itemId)
         }
+        menu.findItem(R.id.timeline_resume_export)?.isVisible = exportResumable
 
         withState(timelineViewModel) { state ->
             val matrixAppsMenuItem = menu.findItem(R.id.open_matrix_apps)
@@ -1367,6 +1392,14 @@ class TimelineFragment :
 
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.timeline_resume_export -> {
+                openTimelineExport()
+                true
+            }
+            R.id.timeline_anonymization -> {
+                navigator.openRoomProfile(requireContext(), timelineArgs.roomId, RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_ANONYMIZATION)
+                true
+            }
             R.id.invite -> {
                 navigator.openInviteUsersToRoom(requireActivity(), timelineArgs.roomId)
                 true
@@ -1507,6 +1540,7 @@ class TimelineFragment :
 
     override fun onResume() {
         super.onResume()
+        refreshExportResumable()
         restoreToolbarBackground()
         renderedPins = null
         viewLifecycleOwner.lifecycleScope.launch {
@@ -1598,6 +1632,7 @@ class TimelineFragment :
     }
 
     override fun onPause() {
+        flushExportSelection()
         super.onPause()
         itemVisibilityTracker.detach(views.timelineRecyclerView)
         notificationDrawerManager.setCurrentRoom(null)
@@ -2742,7 +2777,7 @@ class TimelineFragment :
                 recycler,
                 selection,
                 selectableEventIdOf = { child -> selectableEventIdOfChild(child) },
-                isMessageRow = { child -> modelOfChild(child) is AbsMessageItem<*> },
+                isMessageRow = { child -> modelOfChild(child) is BaseEventItem<*> },
                 rowTintOf = { child ->
                     redactedRowTint.takeIf { (modelOfChild(child) as? AbsMessageItem<*>)?.attributes?.informationData?.isRevealedRedaction == true }
                 },
@@ -2782,9 +2817,7 @@ class TimelineFragment :
             override fun onDragRange(eventIds: List<String>) = applyDragRange(eventIds)
 
             private fun applyDragRange(eventIds: List<String>) {
-                val events = eventIds.mapNotNull { id ->
-                    (dragBaseSelection[id] ?: timelineEventController.findEventInSnapshot(id))?.takeIf { selection.canSelect(it) }
-                }
+                val events = eventIds.flatMap { id -> eventsInSelectableRow(id) }.distinctBy { it.eventId }
                 selection.applyRange(dragBaseSelection, events, dragSelects)
             }
         }).also { recycler.addOnItemTouchListener(it) }
@@ -2798,6 +2831,8 @@ class TimelineFragment :
             setNavigationOnClickListener { selection.clear() }
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.selection_export -> openTimelineExport()
+                    R.id.selection_between -> selectBetween()
                     R.id.selection_copy -> copySelection()
                     R.id.selection_forward -> forwardSelection()
                     R.id.selection_redact -> redactSelection()
@@ -2808,24 +2843,28 @@ class TimelineFragment :
         }
         selectionWasActive = false
         combine(selection.selected, selection.held) { selected, _ -> selected }
-                .onEach { renderSelection(it) }
+                .onEach { selected ->
+                    renderSelection(selected)
+                    if (!restoringExportSelection) {
+                        val revision = ++exportSelectionRevision
+                        exportSelectionSaveJob?.cancel()
+                        exportSelectionSaveJob = viewLifecycleOwner.lifecycleScope.launch {
+                            delay(150)
+                            withContext(Dispatchers.IO) {
+                                persistExportSelection(selected) { revision == exportSelectionRevision }
+                            }
+                            refreshExportResumable()
+                        }
+                    }
+                }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    // Decided from the model alone: it runs for every visible row on every frame while selecting.
+    // Runs for every visible row on every frame while selecting, so message rows skip the snapshot lookup.
     private fun selectableEventIdOf(model: EpoxyModel<*>): String? {
-        val informationData = when (model) {
-            is MessageFileItem,
-            is MessageAudioItem,
-            is MessageVoiceItem,
-            is MessageImageVideoItem,
-            is MessageGalleryItem,
-            is MessageTextItem,
-            is PollItem,
-            is MessageLocationItem -> (model as AbsMessageItem<*>).attributes.informationData
-            else -> return null
-        }
-        return informationData.eventId.takeIf { informationData.sendState == SendState.SYNCED }
+        if (model is AbsMessageItem<*>) return model.attributes.informationData.takeIf { it.sendState == SendState.SYNCED }?.eventId
+        if (model !is ItemWithEvents || model !is BaseEventItem<*>) return null
+        return model.getEventIds().firstOrNull { id -> timelineEventController.findEventInSnapshot(id)?.let { timelineViewModel.selection.canSelect(it) } == true }
     }
 
     private fun modelOfChild(child: View): EpoxyModel<*>? {
@@ -2837,10 +2876,27 @@ class TimelineFragment :
 
     private fun toggleSelection(eventId: String) {
         val selection = timelineViewModel.selection
+        if (!selection.isActive) {
+            eventsInSelectableRow(eventId).takeIf { it.isNotEmpty() }?.let(selection::replace)
+            return
+        }
         val event = selection.selected.value[eventId]
                 ?: timelineEventController.findEventInSnapshot(eventId)?.takeIf { selection.canSelect(it) }
                 ?: return
-        selection.toggle(event)
+        val events = eventsInSelectableRow(event.eventId).ifEmpty { listOf(event) }
+        val allSelected = events.all { it.eventId in selection }
+        selection.applyRange(selection.selected.value, events, !allSelected)
+    }
+
+    private fun eventsInSelectableRow(eventId: String): List<TimelineEvent> {
+        val position = timelineEventController.findEventPositionInAdapter(eventId)
+        val model = position?.let { tryOrNull { timelineEventController.adapter.getModelAtPosition(it) } }
+        val ids = (model as? ItemWithEvents)?.getEventIds()
+                ?.takeIf { eventId in it } ?: listOf(eventId)
+        return ids.mapNotNull { id ->
+            (timelineViewModel.selection.selected.value[id] ?: timelineEventController.findEventInSnapshot(id))
+                    ?.takeIf { timelineViewModel.selection.canSelect(it) }
+        }
     }
 
     private fun renderSelection(selected: Map<String, TimelineEvent>) {
@@ -2857,6 +2913,7 @@ class TimelineFragment :
             views.selectionToolbar.title = resources.getQuantityString(CommonPlurals.timeline_selection_count, selected.size, selected.size)
             val abilities = selected.values.map { abilitiesOf(it) }
             views.selectionToolbar.menu.apply {
+                findItem(R.id.selection_export)?.isVisible = selected.isNotEmpty()
                 findItem(R.id.selection_copy)?.isVisible = abilities.any { it.copy }
                 findItem(R.id.selection_forward)?.isVisible = abilities.all { it.forward }
                 findItem(R.id.selection_redact)?.isVisible = selectionPermissions.canSendRedaction && abilities.all { it.redact }
@@ -2944,6 +3001,91 @@ class TimelineFragment :
         }
     }
 
+    private fun persistExportSelection(selected: Map<String, TimelineEvent>, isCurrent: () -> Boolean) = synchronized(timelineExportStore) {
+        if (!isCurrent()) return@synchronized
+        val threadId = timelineArgs.threadTimelineArgs?.rootThreadEventId
+        val previous = timelineExportStore.read(session.myUserId, timelineArgs.roomId, threadId)
+        if (selected.isEmpty()) {
+            when {
+                previous == null -> Unit
+                !previous.started -> timelineExportStore.discard(previous.owner, previous.id)
+                previous.selectionActive -> timelineExportStore.save(previous.copy(selectionActive = false,
+                        updatedAt = maxOf(System.currentTimeMillis(), previous.updatedAt + 1)))
+            }
+            return@synchronized
+        }
+        val draft = previous ?: TimelineExportDraft(
+                timelineExportStore.draftId(session.myUserId, timelineArgs.roomId, threadId), session.myUserId, timelineArgs.roomId, threadId)
+        val ids = TimelineSelection.inTimelineOrder(selected.values).map { it.eventId }
+        if (ids != draft.eventIds || !draft.selectionActive) timelineExportStore.save(draft.copy(eventIds = ids, selectionActive = true,
+                updatedAt = maxOf(System.currentTimeMillis(), draft.updatedAt + 1)))
+    }
+
+    private fun refreshExportResumable() {
+        if (view == null) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            exportResumable = withContext(Dispatchers.IO) {
+                timelineExportStore.read(session.myUserId, timelineArgs.roomId, timelineArgs.threadTimelineArgs?.rootThreadEventId)
+                        ?.let { it.started && it.eventIds.isNotEmpty() } == true
+            }
+            views.roomToolbar.menu.findItem(R.id.timeline_resume_export)?.isVisible = exportResumable
+        }
+    }
+
+    // Saves a selection change still waiting out its debounce, which the lifecycle scope would drop.
+    private fun flushExportSelection() {
+        val pending = exportSelectionSaveJob?.takeIf { it.isActive } ?: return
+        pending.cancel()
+        val revision = ++exportSelectionRevision
+        val selected = timelineViewModel.selection.selected.value
+        session.coroutineScope.launch(Dispatchers.IO) { persistExportSelection(selected) { revision == exportSelectionRevision } }
+    }
+
+    private fun restoreExportSelection() {
+        if (view == null) return
+        val selection = timelineViewModel.selection
+        val before = selection.selected.value
+        val beforeActive = selection.isActive
+        viewLifecycleOwner.lifecycleScope.launch {
+            val ids = withContext(Dispatchers.IO) {
+                timelineExportStore.read(session.myUserId, timelineArgs.roomId, timelineArgs.threadTimelineArgs?.rootThreadEventId)
+                        ?.takeIf { it.selectionActive }?.eventIds.orEmpty()
+            }
+            if (ids.isEmpty()) return@launch
+            val shown = ids.associateWith { timelineEventController.findEventInSnapshot(it) }
+            val missing = shown.filterValues { it == null }.keys
+            val fetched = if (missing.isEmpty()) emptyMap() else withContext(Dispatchers.IO) {
+                val timeline = session.getRoom(timelineArgs.roomId)?.timelineService()
+                missing.mapNotNull { id -> timeline?.getTimelineEvent(id)?.let { id to it } }.toMap()
+            }
+            val events = ids.mapNotNull { shown[it] ?: fetched[it] }
+            if (events.isEmpty() || selection.selected.value !== before || selection.isActive != beforeActive) return@launch
+            restoringExportSelection = true
+            selection.replace(events)
+            restoringExportSelection = false
+        }
+    }
+
+    private fun openTimelineExport() {
+        exportSelectionSaveJob?.cancel()
+        val revision = ++exportSelectionRevision
+        val selected = timelineViewModel.selection.selected.value
+        viewLifecycleOwner.lifecycleScope.launch {
+            withContext(Dispatchers.IO) { persistExportSelection(selected) { revision == exportSelectionRevision } }
+            exportActivityLauncher.launch(TimelineExportActivity.intent(requireContext(), timelineArgs.roomId, timelineArgs.threadTimelineArgs?.rootThreadEventId))
+        }
+    }
+
+    private fun selectBetween() {
+        val ordered = TimelineSelection.inTimelineOrder(timelineEventController.selectionSnapshot())
+        val selected = timelineViewModel.selection.selected.value.keys
+        val indices = ordered.indices.filter { ordered[it].eventId in selected }
+        if (indices.size < 2) return
+        // The snapshot also holds events the timeline never draws (hidden types, aggregated relations).
+        val shown = ordered.subList(indices.first(), indices.last() + 1).filter { timelineEventController.findEventPositionInAdapter(it.eventId) != null }
+        timelineViewModel.selection.replace(timelineViewModel.selection.selected.value.values + shown)
+    }
+
     private fun readSelectionPermissions(): ActionPermissions = messageActionEligibility.roomPermissions(timelineArgs.roomId)
 
     private fun selectedInTimelineOrder(): List<TimelineEvent> =
@@ -3009,7 +3151,7 @@ class TimelineFragment :
 
     private fun redactSelection() {
         val events = selectedInTimelineOrder()
-        if (events.isEmpty()) return
+        if (events.isEmpty() || events.any { !abilitiesOf(it).redact }) return
         val eventIds = events.map { it.eventId }
         val redact = { reason: String? ->
             bulkActionQueue.enqueueRedact(timelineArgs.roomId, eventIds, reason)
@@ -3409,6 +3551,11 @@ class TimelineFragment :
                         val ids = batch.map { it.first }
                         timelineEventController.invalidateEventCaches(ids)
                         timelineViewModel.replyPreviewRetriever.onRevealChanged(ids)
+                        val selected = timelineViewModel.selection.selected.value
+                        if (ids.any(selected::containsKey)) {
+                            ids.forEach(selectionAbilities::remove)
+                            renderSelection(selected)
+                        }
                     }
         }
     }

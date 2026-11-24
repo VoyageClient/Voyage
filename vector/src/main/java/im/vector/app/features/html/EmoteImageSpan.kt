@@ -47,6 +47,7 @@ class EmoteImageSpan(
         override val mxcUrl: String,
         override val body: String?,
         private val resolvedUrl: String?,
+        private val bitmapProvider: (() -> Bitmap?)? = null,
 ) : ReplacementSpan(), MatrixEmoteSpan {
 
     companion object {
@@ -99,6 +100,7 @@ class EmoteImageSpan(
 
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
+        if (bitmapProvider != null) return
         if (drawable == null) {
             EmoteFrameCache.get(mxcUrl)?.let {
                 drawable = it.toDrawable(textView.resources)
@@ -146,11 +148,14 @@ class EmoteImageSpan(
     }
 
     override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
-        val dr = drawable ?: run {
+        val dr = if (bitmapProvider != null) {
+            bitmapProvider.invoke()?.let { BitmapDrawable(it) }
+        } else drawable
+        if (dr == null) {
             drawPlaceholder(canvas, x, y, paint)
             return
         }
-        if (!frameCached) {
+        if (bitmapProvider == null && !frameCached) {
             // Taken here rather than on load: an animated emote has decoded nothing yet at that point.
             frameCached = true
             EmoteFrameCache.snapshot(dr)?.let { EmoteFrameCache.put(mxcUrl, it) }
@@ -187,6 +192,6 @@ fun TextView.bindEmoteImageSpans() {
 fun TextView.applyEmoteLineSpacing(text: CharSequence?) {
     val default = getTag(R.id.emote_default_line_spacing) as? Float
             ?: (lineHeight - paint.getFontMetricsInt(null)).toFloat().also { setTag(R.id.emote_default_line_spacing, it) }
-    val hasEmotes = (text as? Spanned)?.let { it.getSpans(0, it.length, EmoteImageSpan::class.java).isNotEmpty() } == true
+    val hasEmotes = (text as? Spanned)?.let { it.getSpans(0, it.length, MatrixEmoteSpan::class.java).isNotEmpty() } == true
     setLineSpacing(if (hasEmotes) 0f else default, 1f)
 }

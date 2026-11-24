@@ -27,14 +27,19 @@ data class UserListViewState(
         val single3pidSelection: Boolean,
         val isE2EByDefault: Boolean = false,
         val configuredIdentityServer: String? = null,
-        val showContactBookAction: Boolean
+        val showContactBookAction: Boolean,
+        val roomId: String? = null,
+        val roomMembers: Async<List<User>> = Uninitialized,
+        val includeSelf: Boolean = false,
 ) : MavericksState {
 
     constructor(args: UserListFragmentArgs) : this(
             excludedUserIds = args.excludedUserIds,
             singleSelection = args.singleSelection,
             single3pidSelection = args.single3pidSelection,
-            showContactBookAction = args.showContactBookAction
+            showContactBookAction = args.showContactBookAction,
+            roomId = args.roomId,
+            includeSelf = args.includeSelf,
     )
 
     fun getSelectedMatrixId(): List<String> {

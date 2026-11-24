@@ -48,10 +48,10 @@ class TimelineItemFactory @Inject constructor(
      * Reminder: nextEvent is older and prevEvent is newer.
      */
     fun create(rawParams: TimelineItemFactoryParams): VectorEpoxyModel<*> {
-        val params = redactedContentRestorer.restore(rawParams)
+        val params = if (rawParams.presentation != null) rawParams else redactedContentRestorer.restore(rawParams)
         val event = params.event
         val computedModel = try {
-            if (!timelineEventVisibilityHelper.shouldShowEvent(
+            if (params.presentation == null && !timelineEventVisibilityHelper.shouldShowEvent(
                             timelineEvent = event,
                             highlightedEventId = params.highlightedEventId,
                             isFromThreadTimeline = params.isFromThreadTimeline(),
@@ -69,7 +69,7 @@ class TimelineItemFactory @Inject constructor(
 
             // Only the stable twin of a doubled-up state change renders; the unstable one must vanish
             // rather than reaching the hidden-event debug fallback below.
-            if (params.isDuplicateUnstableStateEvent() && !params.isHighlighted) {
+            if (params.presentation == null && params.isDuplicateUnstableStateEvent() && !params.isHighlighted) {
                 return buildEmptyItem(
                         event,
                         params.prevEvent,
@@ -171,6 +171,7 @@ class TimelineItemFactory @Inject constructor(
                 }
             }
         } catch (throwable: Throwable) {
+            if (params.presentation != null) throw throwable
             Timber.e(throwable, "failed to create message item")
             defaultItemFactory.create(params, throwable)
         }
@@ -194,7 +195,7 @@ class TimelineItemFactory @Inject constructor(
         // same fallback surfaces these events as debug items when "show hidden events" is on.
         val showHidden = userPreferencesProvider.shouldShowHiddenEvents(event.roomId) &&
                 (!params.isFromThreadTimeline() || event.ownedByThreadChunk)
-        return if (params.isHighlighted || showHidden) {
+        return if (params.presentation != null || params.isHighlighted || showHidden) {
             defaultItemFactory.create(params)
         } else {
             buildEmptyItem(

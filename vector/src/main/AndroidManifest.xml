@@ -84,6 +84,10 @@
             android:name=".features.MainActivity"
             android:theme="@style/Theme.Vector.Launcher" />
 
+        <activity android:name=".features.timelineexport.TimelineArchiveLibraryActivity" android:exported="false" />
+        <activity android:name=".features.timelineexport.TimelineArchiveActivity" android:exported="false" />
+        <activity android:name=".features.timelineexport.TimelineExportActivity" android:exported="false" />
+        <activity android:name=".features.timelineexport.AnonymizationPeoplePickerActivity" android:exported="false" />
         <activity android:name=".features.home.HomeActivity" />
 
         <!-- The SSO redirect intent-filter is declared by the app module: its scheme is the package id,

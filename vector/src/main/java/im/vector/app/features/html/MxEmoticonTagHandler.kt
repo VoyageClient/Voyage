@@ -8,6 +8,7 @@
 package im.vector.app.features.html
 
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import io.noties.markwon.MarkwonConfiguration
 import io.noties.markwon.RenderProps
 import io.noties.markwon.html.HtmlTag
@@ -16,11 +17,11 @@ import io.noties.markwon.html.tag.SimpleTagHandler
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 
 /**
- * Handles `<img>` tags. Inline `mxc://` images that are MSC2545 custom emoticons/stickers are rendered with a
- * self-sizing [EmoteImageSpan] that reserves its size up front, so they render at emoji size and don't
- * reflow/flicker on load. An image counts as an emote when it carries the `data-mx-emoticon` marker, or —
- * for clients that omit the marker — when its width or height is the conventional 32. Every other image is
- * delegated to the default Markwon image handler.
+ * Handles `<img>` tags. Inline `mxc://` images that are MSC2545 custom emoticons/stickers (or a static
+ * timeline's frozen copies of them) are rendered with a self-sizing span that reserves its size up front,
+ * so they render at emoji size and don't reflow/flicker on load. An image counts as an emote when it
+ * carries the `data-mx-emoticon` marker, or — for clients that omit the marker — when its width or height
+ * is the conventional 32. Every other image is delegated to the default Markwon image handler.
  */
 class MxEmoticonTagHandler(
         private val activeSessionHolder: ActiveSessionHolder,
@@ -36,10 +37,13 @@ class MxEmoticonTagHandler(
         val isEmoticon = attributes.containsKey("data-mx-emoticon") ||
                 dimensionIs32(attributes["width"]) ||
                 dimensionIs32(attributes["height"])
-        if (src != null && src.isMxcUrl() && isEmoticon) {
+        val host = TimelineRenderingScope.current()
+        if (src != null && isEmoticon && (src.isMxcUrl() || host?.hasImage(src) == true)) {
+            val shortcode = (attributes["title"] ?: attributes["alt"])?.removeSurrounding(":") ?: ""
+            if (host != null) return host.renderEmote(shortcode, src, attributes["alt"])
             val resolvedUrl = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(src)
             return EmoteImageSpan(
-                    shortcode = (attributes["title"] ?: attributes["alt"])?.removeSurrounding(":") ?: "",
+                    shortcode = shortcode,
                     mxcUrl = src,
                     body = attributes["alt"],
                     resolvedUrl = resolvedUrl,

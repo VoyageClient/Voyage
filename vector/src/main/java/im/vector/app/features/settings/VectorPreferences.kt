@@ -30,6 +30,7 @@ import im.vector.app.features.html.highlight.CodePalette
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.gradients.CustomGradient
 import im.vector.app.features.settings.useragent.UserAgentSettings
+import im.vector.app.features.themes.BubbleThemeUtils
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
 import im.vector.lib.strings.CommonStrings
@@ -1500,15 +1501,8 @@ class VectorPreferences @Inject constructor(
 
     private fun roomStripMetadataKey(roomId: String) = "${SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY}_$roomId"
 
-    /**
-     * Tells if the timeline messages should be shown in a bubble or not.
-     *
-     * @return true to show timeline message in bubble.
-     */
     fun useMessageBubblesLayout(): Boolean {
-        // Any bubble style implies bubble media sizing.
-        val none = im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
-        return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, none) != none
+        return BubbleThemeUtils(context).isBubbleEnabled()
     }
 
     /**

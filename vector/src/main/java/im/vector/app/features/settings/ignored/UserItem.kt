@@ -17,9 +17,11 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.features.displayname.shownId
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import org.matrix.android.sdk.api.session.profile.IdentityPresentation
 import org.matrix.android.sdk.api.util.MatrixItem
 
 /**
@@ -42,8 +44,8 @@ abstract class UserItem : VectorEpoxyModel<UserItem.Holder>(R.layout.item_user) 
         holder.root.onClick(itemClickAction)
 
         avatarRenderer.render(matrixItem, holder.avatarImage)
-        holder.userIdText.setTextOrHide(matrixItem.id.neutralizeDirectionOverrides())
-        holder.displayNameText.setTextOrHide(matrixItem.displayName?.prepareForDisplay())
+        holder.userIdText.setTextOrHide(matrixItem.shownId().neutralizeDirectionOverrides())
+        holder.displayNameText.setTextOrHide((IdentityPresentation.name(matrixItem.id) ?: matrixItem.displayName)?.prepareForDisplay())
     }
 
     class Holder : VectorEpoxyHolder() {

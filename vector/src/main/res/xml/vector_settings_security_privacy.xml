@@ -211,6 +211,13 @@
             android:summary="@string/settings_hide_invite_avatars_summary"
             android:title="@string/settings_hide_invite_avatars_title" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ANONYMIZATION_PREFERENCE_KEY"
+            android:persistent="false"
+            android:summary="@string/anonymization_settings_summary"
+            android:title="@string/export_anonymization"
+            app:fragment="im.vector.app.features.settings.VectorSettingsAnonymizationFragment" />
+
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY"

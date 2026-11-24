@@ -17,6 +17,7 @@ import android.view.View
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.render.TimelineRenderingScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.app.features.translation.TranslationLanguages
@@ -40,7 +41,8 @@ class MessageSuffixFormatter @Inject constructor(
             onEditedClick: (() -> Unit)? = null,
     ): CharSequence {
         if (!edited && translation == null) return body
-        if (!vectorPreferences.showMessageMarkers(roomId)) return body
+        // An export decides marker visibility with its own setting before the item gets here.
+        if (TimelineRenderingScope.current() == null && !vectorPreferences.showMessageMarkers(roomId)) return body
         val text = SpannableStringBuilder(body)
         if (edited) appendSuffix(text, stringProvider.getString(CommonStrings.edited_suffix), onEditedClick)
         if (translation != null) appendSuffix(text, translatedSuffix(translation), null)

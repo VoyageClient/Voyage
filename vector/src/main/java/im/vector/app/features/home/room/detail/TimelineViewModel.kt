@@ -214,7 +214,7 @@ class TimelineViewModel @AssistedInject constructor(
         private set
     val timeline: Timeline?
 
-    val selection = TimelineSelection(isRevealed = { redactedContentRestorer.isShowingRestoredContent(it) })
+    val selection = TimelineSelection()
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
     private val timelineRetrievers = timelineRetrieversFactory.create(initialState.roomId, viewModelScope, initialState.isThreadTimeline())
@@ -1035,6 +1035,7 @@ private fun handleSelectStickerAttachment() {
             // Frozen kicked/banned room: read-only entries only.
             return@withState when (itemId) {
                 R.id.timeline_setting -> true
+                R.id.timeline_anonymization -> true
                 R.id.search -> true
                 R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
                 R.id.dev_tools -> vectorPreferences.developerMode()
@@ -1058,6 +1059,7 @@ private fun handleSelectStickerAttachment() {
             else -> {
                 when (itemId) {
                     R.id.timeline_setting -> true
+                    R.id.timeline_anonymization -> true
                     R.id.invite -> state.canInvite
                     R.id.open_matrix_apps -> true
                     R.id.search -> state.isSearchAvailable(vectorPreferences.searchEncryptedRoomsEnabled())
