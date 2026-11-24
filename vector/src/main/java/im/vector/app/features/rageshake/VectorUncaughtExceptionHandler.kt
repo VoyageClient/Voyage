@@ -44,6 +44,7 @@ class VectorUncaughtExceptionHandler @Inject constructor(
     fun activate() {
         previousHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler(this)
+        FdDiagnostics.reserveDescriptor()
     }
 
     /**
@@ -55,6 +56,7 @@ class VectorUncaughtExceptionHandler @Inject constructor(
      */
     @Suppress("PrintStackTrace")
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
+        FdDiagnostics.releaseReserve()
         Timber.v("Uncaught exception: $throwable")
         preferences.edit(commit = true) {
             putBoolean(PREFS_CRASH_KEY, true)
@@ -84,6 +86,15 @@ class VectorUncaughtExceptionHandler @Inject constructor(
         b.append("usedSize   " + usedSize / 1048576L + " MB\n")
         b.append("freeSize   " + freeSize / 1048576L + " MB\n")
         b.append("totalSize   " + totalSize / 1048576L + " MB\n")
+
+        b.append(runCatching { FdDiagnostics.describe() }.getOrElse { "Open file descriptors: unavailable ($it)\n" })
+
+        if (FdDiagnostics.isMaskedWindowAddFailure(throwable)) {
+            b.append(
+                    "Note: adding the activity window failed inside ViewRootImpl.setView() and Android's cleanup threw this NPE " +
+                            "in place of the original exception, which is lost. Check the descriptor count above against the limit.\n"
+            )
+        }
 
         b.append("Thread: ")
         b.append(thread.name)
