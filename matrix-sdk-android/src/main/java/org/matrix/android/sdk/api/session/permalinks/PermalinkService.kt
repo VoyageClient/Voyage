@@ -28,15 +28,10 @@ interface PermalinkService {
         const val MATRIX_TO_URL_BASE = "https://matrix.to/#/"
 
         /**
-         * MSC2312 matrix: URIs. Only handled as input: we can't be sure this app is the one bound to the
-         * scheme, so our own scheme is still used for the links we create.
+         * MSC2312 matrix URIs. Sent in messages (see [MatrixUriBuilder]); links meant for outside Matrix use
+         * matrix.to or our own scheme, since nothing guarantees this app is the one bound to `matrix:`.
          */
         const val MATRIX_URI_SCHEME_PREFIX = "matrix:"
-    }
-
-    enum class SpanTemplateType {
-        HTML,
-        MARKDOWN
     }
 
     /**
@@ -98,17 +93,6 @@ interface PermalinkService {
      * @return the id from the url, ex: "@benoit:matrix.org", or null if the url is not a permalink
      */
     fun getLinkedId(url: String): String?
-
-    /**
-     * Creates a HTML or Markdown mention span template. Can be used to replace a mention with a permalink to mentioned user.
-     * Ex: "<a href=\"https://matrix.to/#/%1\$s\">%2\$s</a>" or "[%2\$s](https://matrix.to/#/%1\$s)"
-     *
-     * @param type type of template to create
-     * @param forceMatrixTo whether we should force using matrix.to base URL
-     *
-     * @return the created template
-     */
-    fun createMentionSpanTemplate(type: SpanTemplateType, forceMatrixTo: Boolean = false): String
 
     /**
      * Check if the url is a permalink. It must be a matrix.to link

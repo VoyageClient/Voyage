@@ -50,10 +50,6 @@ internal class DefaultPermalinkService @Inject constructor(
         return permalinkFactory.getLinkedId(url)
     }
 
-    override fun createMentionSpanTemplate(type: PermalinkService.SpanTemplateType, forceMatrixTo: Boolean): String {
-        return permalinkFactory.createMentionSpanTemplate(type, forceMatrixTo)
-    }
-
     override fun isPermalinkSupported(supportedHosts: Array<String>, url: String): Boolean {
         return PermalinkParser.isSupported(supportedHosts, url)
     }

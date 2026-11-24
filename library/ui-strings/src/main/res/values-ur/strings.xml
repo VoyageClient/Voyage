@@ -2321,7 +2321,6 @@
     <string name="command_description_jump_to_start">اس کمرے کے پہلے واقعے پر جائیں</string>
     <string name="command_description_send_event">حسبِ ضرورت واقعہ بھیجنے کے لیے ڈیولپر ٹولز کا فارم کھولیں</string>
     <string name="command_description_send_state">حسبِ ضرورت حالتی واقعہ بھیجنے کے لیے ڈیولپر ٹولز کا فارم کھولیں</string>
-    <string name="command_description_jump_to">دی گئی ID والے واقعے پر، یا matrix.to / matrix: ربط پر جائیں</string>
     <string name="command_description_jump_to_date">دی گئی تاریخ کے قریب ترین واقعے پر جائیں، مثلاً YYYY-MM-DD، YYYYMMDD، YYYY-MM، yesterday یا 7d</string>
     <string name="command_jump_to_start_unavailable">کمرے کا پہلا واقعہ نہیں مل سکا۔</string>
     <string name="command_jump_to_date_no_event">%1$s کے قریب کوئی واقعہ نہیں مل سکا۔ ممکن ہے سرور وقت کی بنیاد پر تلاش کی معاونت نہ کرتا ہو، یا اس سمت میں کوئی پیغامات نہ ہوں۔</string>
@@ -3874,4 +3873,5 @@
         <item quantity="one">%1$d منتخب ایونٹ برآمد ہو رہا ہے</item>
         <item quantity="other">%1$d منتخب ایونٹس برآمد ہو رہے ہیں</item>
     </plurals>
+    <string name="command_description_jump_to">دی گئی ID والے واقعے پر، یا matrix.to ربط یا matrix URI پر جائیں</string>
 </resources>

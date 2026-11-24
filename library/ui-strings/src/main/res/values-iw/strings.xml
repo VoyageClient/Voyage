@@ -2450,7 +2450,6 @@
     <string name="command_description_jump_to_start">עבור לאירוע הראשון בחדר זה</string>
     <string name="command_description_send_event">פתח את טופס כלי המפתחים לשליחת אירוע מותאם אישית</string>
     <string name="command_description_send_state">פתח את טופס כלי המפתחים לשליחת אירוע מצב מותאם אישית</string>
-    <string name="command_description_jump_to">עבור לאירוע עם המזהה הנתון, או לקישור matrix.to / matrix:</string>
     <string name="command_description_jump_to_date">עבור לאירוע הקרוב ביותר לתאריך הנתון, למשל YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday או 7d</string>
     <string name="command_jump_to_start_unavailable">לא ניתן היה לאתר את האירוע הראשון של החדר.</string>
     <string name="command_jump_to_date_no_event">לא נמצא אירוע בסביבת %1$s. ייתכן שהשרת אינו תומך בחיפוש לפי חותמת זמן, או שאין הודעות בכיוון זה.</string>
@@ -4103,4 +4102,5 @@
         <item quantity="many">מייצא %1$d אירועים נבחרים</item>
         <item quantity="other">מייצא %1$d אירועים נבחרים</item>
     </plurals>
+    <string name="command_description_jump_to">עבור לאירוע עם המזהה הנתון, או לקישור matrix.to או ל-matrix URI</string>
 </resources>

@@ -16,7 +16,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 /** The expected fallbacks are the MSC4553 examples, verbatim, except that a forwarded emote is styled as one. */
 class ForwardContentBuilderTest {
 
-    private val alice = "https://matrix.to/#/%40alice%3Aexample.org"
+    private val alice = "matrix:u/alice:example.org"
 
     private fun origin(eventId: String) = mapOf(
             "event_id" to eventId,
@@ -26,7 +26,7 @@ class ForwardContentBuilderTest {
     )
 
     private fun link(eventId: String) =
-            "https://matrix.to/#/!source%3Aexample.org/${ForwardContentBuilder.encodeComponent(eventId)}?via=example.org"
+            "matrix:roomid/source:example.org/e/${eventId.removePrefix("$")}?via=example.org"
 
     private fun build(forwarded: Map<String, Any>, silent: Boolean = false, displayName: String? = null) = ForwardContentBuilder.build(
             eventType = EventType.MESSAGE,
@@ -65,7 +65,7 @@ class ForwardContentBuilderTest {
                         "<br><blockquote><p>Meeting starts at noon.</p></blockquote>",
         ) + keys(forwarded)
         assertEquals(expected, build(forwarded))
-        assertEquals("https://matrix.to/#/!source%3Aexample.org/%24original%3Aexample.org?via=example.org", link("\$original:example.org"))
+        assertEquals("matrix:roomid/source:example.org/e/original:example.org?via=example.org", link("\$original:example.org"))
     }
 
     @Test
@@ -196,6 +196,23 @@ class ForwardContentBuilderTest {
                 as Map<String, Any?>)
         assertEquals(content["m.mentions"], named["m.mentions"])
         assertEquals(content["m.relates_to"], named["m.relates_to"])
+    }
+
+    @Test
+    fun `a silent forward of a reply counts a matrix URI mention as named`() {
+        val content = mapOf(
+                "msgtype" to "m.text",
+                "body" to "carol: see above",
+                "format" to "org.matrix.custom.html",
+                "formatted_body" to "<a href=\"matrix:u/carol:example.org\">carol</a>: see above",
+                "m.relates_to" to mapOf("m.in_reply_to" to mapOf("event_id" to "\$x")),
+                "m.mentions" to mapOf("user_ids" to listOf("@bob:example.org", "@carol:example.org")),
+        )
+
+        val silent = build(origin("\$original:example.org") + ("content" to content), silent = true)
+        @Suppress("UNCHECKED_CAST")
+        val inner = (silent[ForwardedInfo.STABLE_KEY] as Map<String, Any?>)["content"] as Map<String, Any?>
+        assertEquals(mapOf("user_ids" to listOf("@carol:example.org")), inner["m.mentions"])
     }
 
     @Test

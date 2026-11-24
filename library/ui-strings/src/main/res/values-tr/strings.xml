@@ -2369,7 +2369,6 @@
     <string name="command_description_jump_to_start">Bu odadaki ilk olaya git</string>
     <string name="command_description_send_event">Özel bir olay göndermek için geliştirici araçları formunu aç</string>
     <string name="command_description_send_state">Özel bir durum olayı göndermek için geliştirici araçları formunu aç</string>
-    <string name="command_description_jump_to">Verilen kimliğe sahip olaya veya bir matrix.to / matrix: bağlantısına git</string>
     <string name="command_description_jump_to_date">Verilen tarihe en yakın olaya git, örn. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday veya 7d</string>
     <string name="command_jump_to_start_unavailable">Odanın ilk olayı bulunamadı.</string>
     <string name="command_jump_to_date_no_event">%1$s yakınında bir olay bulunamadı. Sunucu zaman damgası aramasını desteklemiyor olabilir veya o yönde mesaj yok.</string>
@@ -3932,4 +3931,5 @@
         <item quantity="one">%1$d seçili olay dışa aktarılıyor</item>
         <item quantity="other">%1$d seçili olay dışa aktarılıyor</item>
     </plurals>
+    <string name="command_description_jump_to">Verilen kimliğe sahip olaya, bir matrix.to bağlantısına ya da bir matrix URI adresine git</string>
 </resources>

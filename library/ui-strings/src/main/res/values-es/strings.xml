@@ -2400,7 +2400,6 @@
     <string name="command_description_jump_to_start">Ir al primer evento de esta sala</string>
     <string name="command_description_send_event">Abrir el formulario de las herramientas de desarrollo para enviar un evento personalizado</string>
     <string name="command_description_send_state">Abrir el formulario de las herramientas de desarrollo para enviar un evento de estado personalizado</string>
-    <string name="command_description_jump_to">Ir al evento con el ID indicado, o a un enlace matrix.to / matrix:</string>
     <string name="command_description_jump_to_date">Ir al evento más cercano a la fecha indicada, p. ej. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday o 7d</string>
     <string name="command_jump_to_start_unavailable">No se pudo encontrar el primer evento de la sala.</string>
     <string name="command_jump_to_date_no_event">No se encontró ningún evento cerca de %1$s. Es posible que el servidor no admita la búsqueda por marca de tiempo o que no haya mensajes en esa dirección.</string>
@@ -3962,4 +3961,5 @@
         <item quantity="one">Exportando %1$d evento seleccionado</item>
         <item quantity="other">Exportando %1$d eventos seleccionados</item>
     </plurals>
+    <string name="command_description_jump_to">Ir al evento con el ID indicado, o a un enlace matrix.to o una URI matrix</string>
 </resources>

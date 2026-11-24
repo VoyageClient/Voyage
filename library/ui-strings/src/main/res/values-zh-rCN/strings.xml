@@ -2363,7 +2363,6 @@
     <string name="command_description_jump_to_start">跳至此房间的第一个事件</string>
     <string name="command_description_send_event">打开开发者工具表单以发送自定义事件</string>
     <string name="command_description_send_state">打开开发者工具表单以发送自定义状态事件</string>
-    <string name="command_description_jump_to">跳至具有给定 ID 的事件，或跳至 matrix.to / matrix: 链接</string>
     <string name="command_description_jump_to_date">跳至最接近给定日期的事件，例如 YYYY-MM-DD、YYYYMMDD、YYYY-MM、yesterday 或 7d</string>
     <string name="command_jump_to_start_unavailable">无法找到此房间的第一个事件。</string>
     <string name="command_jump_to_date_no_event">在 %1$s 附近找不到事件。服务器可能不支持按时间戳查找，或该方向上没有消息。</string>
@@ -3892,4 +3891,5 @@
     <plurals name="export_exporting_events">
         <item quantity="other">正在导出 %1$d 个所选事件</item>
     </plurals>
+    <string name="command_description_jump_to">跳至具有给定 ID 的事件，或跳至 matrix.to 链接或 matrix URI</string>
 </resources>

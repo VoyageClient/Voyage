@@ -10,7 +10,7 @@ package org.matrix.android.sdk.internal.session.room.send.pills
 import android.text.SpannableString
 import android.text.Spanned
 import org.commonmark.ext.explicitlinks.ExplicitLinksExtension
-import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.permalinks.MatrixUriBuilder
 import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
@@ -20,17 +20,18 @@ import javax.inject.Inject
 
 internal class AndroidTextPillsUtils @Inject constructor(
         private val mentionLinkSpecComparator: MentionLinkSpecComparator,
-        private val permalinkService: PermalinkService
 ) : TextPillsUtils {
 
     override fun processSpecialSpansToHtml(text: CharSequence): String? {
-        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.HTML)) { it.htmlEscape() }
+        return transformPills(text, link = { id, label -> "<a href=\"${MatrixUriBuilder.mentionLink(id).htmlEscape()}\">$label</a>" }) { it.htmlEscape() }
     }
 
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? {
-        val template = permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN)
-                .removeSuffix(")") + " \"${ExplicitLinksExtension.MENTION_TITLE}\")"
-        return transformPills(text, template, markdownLinkContext = true) { it.markdownEscape() }
+        return transformPills(
+                text,
+                link = { id, label -> "[$label](${MatrixUriBuilder.mentionLink(id)} \"${ExplicitLinksExtension.MENTION_TITLE}\")" },
+                markdownLinkContext = true,
+        ) { it.markdownEscape() }
     }
 
     override fun literalMentions(text: CharSequence): List<IntRange> {
@@ -41,7 +42,7 @@ internal class AndroidTextPillsUtils @Inject constructor(
 
     private fun transformPills(
             text: CharSequence,
-            template: String,
+            link: (id: String, escapedLabel: String) -> String,
             markdownLinkContext: Boolean = false,
             escapeLabel: (String) -> String,
     ): String? {
@@ -59,10 +60,10 @@ internal class AndroidTextPillsUtils @Inject constructor(
                     val end = spannableString.getSpanEnd(it)
                     // A link can't nest inside another link's text or target, so there the pill is just its text.
                     val replacement = when {
-                        !markdownLinkContext -> String.format(template, it.matrixItem.id, escapeLabel(label))
+                        !markdownLinkContext -> link(it.matrixItem.id, escapeLabel(label))
                         isMarkdownLinkDestination(text, start) -> label
                         isInMarkdownLinkLabel(text, start) -> escapeLabel(label)
-                        else -> String.format(template, it.matrixItem.id, escapeLabel(label))
+                        else -> link(it.matrixItem.id, escapeLabel(label))
                     }
                     MentionLinkSpec(replacement = replacement, start = start, end = end)
                 }

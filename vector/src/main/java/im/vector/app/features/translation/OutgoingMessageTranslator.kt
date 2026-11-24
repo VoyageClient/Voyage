@@ -9,6 +9,7 @@ package im.vector.app.features.translation
 
 import android.text.Spanned
 import im.vector.app.features.html.toEmoticonHtml
+import org.matrix.android.sdk.api.session.permalinks.MatrixUriBuilder
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import javax.inject.Inject
@@ -53,7 +54,7 @@ class OutgoingMessageTranslator @Inject constructor(
         val formatted = if (pills.isNotEmpty()) {
             expandPills(escape(translated), pills) { pill ->
                 when (pill) {
-                    is Pill.Mention -> "<a href=\"https://matrix.to/#/${pill.id}\">${escape(pill.text)}</a>"
+                    is Pill.Mention -> "<a href=\"${escape(MatrixUriBuilder.mentionLink(pill.id))}\">${escape(pill.text)}</a>"
                     is Pill.Emote -> pill.span.toEmoticonHtml()
                 }
             }.replace("\n", "<br />")

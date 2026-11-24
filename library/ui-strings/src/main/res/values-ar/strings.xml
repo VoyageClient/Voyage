@@ -2482,7 +2482,6 @@
     <string name="command_description_jump_to_start">انتقل إلى أول حدث في هذه الغرفة</string>
     <string name="command_description_send_event">افتح نموذج أدوات المطوّرين لإرسال حدث مخصّص</string>
     <string name="command_description_send_state">افتح نموذج أدوات المطوّرين لإرسال حدث حالة مخصّص</string>
-    <string name="command_description_jump_to">انتقل إلى الحدث ذي المعرّف المعطى، أو إلى رابط matrix.to / matrix:</string>
     <string name="command_description_jump_to_date">انتقل إلى أقرب حدث للتاريخ المعطى، مثل YYYY-MM-DD أو YYYYMMDD أو YYYY-MM أو yesterday أو 7d</string>
     <string name="command_jump_to_start_unavailable">تعذّر العثور على أول حدث في الغرفة.</string>
     <string name="command_jump_to_date_no_event">تعذّر العثور على حدث قرب %1$s. ربما لا يدعم الخادوم البحث بالطابع الزمني، أو لا توجد رسائل في ذلك الاتجاه.</string>
@@ -4201,4 +4200,5 @@
         <item quantity="many">جارٍ تصدير %1$d حدثًا محددًا</item>
         <item quantity="other">جارٍ تصدير %1$d حدث محدد</item>
     </plurals>
+    <string name="command_description_jump_to">انتقل إلى الحدث ذي المعرّف المعطى، أو إلى رابط matrix.to أو matrix URI</string>
 </resources>

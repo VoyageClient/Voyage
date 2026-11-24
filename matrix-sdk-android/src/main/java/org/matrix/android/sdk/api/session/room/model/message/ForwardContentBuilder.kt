@@ -9,7 +9,7 @@ package org.matrix.android.sdk.api.session.room.model.message
 
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.permalinks.MatrixUriBuilder
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 
 /**
@@ -76,7 +76,7 @@ object ForwardContentBuilder {
         val body = this["body"] as? String ?: ""
         val html = this["formatted_body"] as? String ?: ""
         val named = userIds.filter { userId ->
-            userId in body || userId in html || encodeComponent(userId) in html || "matrix:u/${userId.removePrefix("@")}" in html
+            userId in body || userId in html || encodeComponent(userId) in html || MatrixUriBuilder.mentionLink(userId) in html
         }
         if (named.size == userIds.size) return this
         return this + (MENTIONS to (mentions + ("user_ids" to named)))
@@ -127,14 +127,13 @@ object ForwardContentBuilder {
 
     private fun eventPermalink(roomId: String?, eventId: String?, via: List<String>): String? {
         if (roomId == null || eventId == null) return null
-        val query = via.distinct().joinToString("&") { "via=${encodeComponent(it)}" }.takeIf { it.isNotEmpty() }?.let { "?$it" } ?: ""
-        return "${PermalinkService.MATRIX_TO_URL_BASE}${encodeComponent(roomId)}/${encodeComponent(eventId)}$query"
+        return MatrixUriBuilder.build(roomId, eventId, via)
     }
 
-    private fun userPermalink(userId: String) = PermalinkService.MATRIX_TO_URL_BASE + encodeComponent(userId)
+    private fun userPermalink(userId: String) = MatrixUriBuilder.mentionLink(userId)
 
-    // encodeURIComponent: URLEncoder would also escape '!' and turn spaces into '+'.
-    internal fun encodeComponent(value: String): String = buildString {
+    // encodeURIComponent, as matrix.to mentions are written; URLEncoder would also escape '!' and turn spaces into '+'.
+    private fun encodeComponent(value: String): String = buildString {
         value.toByteArray(Charsets.UTF_8).forEach { byte ->
             val c = byte.toInt() and 0xFF
             if (c < 0x80 && (c.toChar().isLetterOrDigit() || c.toChar() in "-_.!~*'()")) {

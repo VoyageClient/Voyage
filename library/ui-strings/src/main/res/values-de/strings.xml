@@ -2411,7 +2411,6 @@
     <string name="command_description_jump_to_start">Zum ersten Ereignis in diesem Raum springen</string>
     <string name="command_description_send_event">Das Formular der Entwicklerwerkzeuge zum Senden eines benutzerdefinierten Ereignisses öffnen</string>
     <string name="command_description_send_state">Das Formular der Entwicklerwerkzeuge zum Senden eines benutzerdefinierten Zustandsereignisses öffnen</string>
-    <string name="command_description_jump_to">Zum Ereignis mit der angegebenen ID oder zu einem matrix.to- / matrix:-Link springen</string>
     <string name="command_description_jump_to_date">Zum Ereignis springen, das dem angegebenen Datum am nächsten liegt, z. B. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday oder 7d</string>
     <string name="command_jump_to_start_unavailable">Das erste Ereignis des Raums konnte nicht gefunden werden.</string>
     <string name="command_jump_to_date_no_event">Kein Ereignis in der Nähe von %1$s gefunden. Der Server unterstützt möglicherweise keine Zeitstempelsuche oder es gibt in dieser Richtung keine Nachrichten.</string>
@@ -3973,4 +3972,5 @@
         <item quantity="one">%1$d ausgewähltes Ereignis wird exportiert</item>
         <item quantity="other">%1$d ausgewählte Ereignisse werden exportiert</item>
     </plurals>
+    <string name="command_description_jump_to">Zum Ereignis mit der angegebenen ID oder zu einem matrix.to-Link oder einer matrix URI springen</string>
 </resources>

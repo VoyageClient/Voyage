@@ -2309,7 +2309,6 @@
     <string name="command_description_jump_to_start">इस रूम के पहले इवेंट पर जाएं</string>
     <string name="command_description_send_event">कस्टम इवेंट भेजने के लिए डेवलपर टूल फ़ॉर्म खोलें</string>
     <string name="command_description_send_state">कस्टम स्टेट इवेंट भेजने के लिए डेवलपर टूल फ़ॉर्म खोलें</string>
-    <string name="command_description_jump_to">दी गई ID वाले इवेंट पर, या किसी matrix.to / matrix: लिंक पर जाएं</string>
     <string name="command_description_jump_to_date">दी गई तारीख के सबसे पास वाले इवेंट पर जाएं, जैसे YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday या 7d</string>
     <string name="command_jump_to_start_unavailable">रूम का पहला इवेंट नहीं मिल सका।</string>
     <string name="command_jump_to_date_no_event">%1$s के आसपास कोई इवेंट नहीं मिला। हो सकता है सर्वर टाइमस्टैम्प से खोज का समर्थन न करता हो, या उस दिशा में कोई मैसेज न हो।</string>
@@ -3862,4 +3861,5 @@
         <item quantity="one">%1$d चुना गया इवेंट एक्सपोर्ट हो रहा है</item>
         <item quantity="other">%1$d चुने गए इवेंट एक्सपोर्ट हो रहे हैं</item>
     </plurals>
+    <string name="command_description_jump_to">दी गई ID वाले इवेंट पर, या किसी matrix.to लिंक या matrix URI पर जाएं</string>
 </resources>

@@ -83,6 +83,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.permalinks.MatrixUriBuilder
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
@@ -2419,7 +2420,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun mentionLink(id: String, name: String) = "<a href=\"https://matrix.to/#/$id\">$name</a>"
+    private fun mentionLink(id: String, name: String) = "<a href=\"${escapeHtml(MatrixUriBuilder.mentionLink(id))}\">$name</a>"
 
     private fun containsPillsOrEmotes(text: CharSequence): Boolean {
         val spanned = text as? Spanned ?: return false

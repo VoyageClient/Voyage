@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
-import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
@@ -96,15 +95,7 @@ internal object IntentionalMentions {
         }
     }
 
-    private fun userIdOf(href: String): String? {
-        (PermalinkParser.parse(href) as? PermalinkData.UserLink)?.let { return it.userId }
-        // matrix: URIs (MSC2312) are not handled by PermalinkParser.
-        return href.removePrefix("matrix:u/")
-                .takeIf { it != href }
-                ?.substringBefore('?')
-                ?.let { "@$it" }
-                ?.takeIf { MatrixPatterns.isUserId(it) }
-    }
+    private fun userIdOf(href: String): String? = (PermalinkParser.parse(href) as? PermalinkData.UserLink)?.userId
 
     private fun String.unescapeHtmlEntities(): String = replace("&quot;", "\"")
             .replace("&#39;", "'")

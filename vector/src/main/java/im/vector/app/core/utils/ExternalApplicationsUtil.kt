@@ -71,7 +71,7 @@ fun openUrlInExternalBrowser(context: Context, url: String?) {
  */
 fun openUrlInExternalBrowser(context: Context, uri: Uri?) {
     uri?.let {
-        // No browser opens a matrix: URI; handing it to the system only offers this app back through
+        // No browser opens a matrix URI; handing it to the system only offers this app back through
         // a chooser, so take it here whatever the caller thought it had.
         if (it.toString().isMatrixUri() && openPermalinkInApp(context, it.toString())) return
         val browserUri = if (it.scheme == "mxc") {

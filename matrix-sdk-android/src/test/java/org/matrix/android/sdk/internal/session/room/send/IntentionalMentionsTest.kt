@@ -28,6 +28,17 @@ class IntentionalMentionsTest {
     }
 
     @Test
+    fun `matrix URI pills are mentioned, percent-encoding and all`() {
+        val mentions = IntentionalMentions.build(
+                body = "hey",
+                formattedBody = """<a href="matrix:u/alice:example.org">Alice</a> <a href="matrix:u/b%2Fob:example.org">Bob</a> """ +
+                        """<a href="matrix:r/room:example.org">Room</a>""",
+        )
+
+        mentions?.userIds shouldBeEqualTo listOf("@alice:example.org", "@b/ob:example.org")
+    }
+
+    @Test
     fun `the sender is never mentioned by their own message`() {
         val mentions = IntentionalMentions.build(
                 body = "hi me",

@@ -78,6 +78,15 @@ class RainbowGeneratorTest {
     }
 
     @Test
+    fun testHtmlMatrixUriMentionTakesOneStep() {
+        val mention = """<a href="matrix:u/bob:example.org">Bob</a>"""
+        assertEquals(
+                """<font color="#000000">a</font>$mention<font color="#ffffff">b</font>""",
+                rainbowGenerator.colorizeHtml("a${mention}b", blackToWhite),
+        )
+    }
+
+    @Test
     fun testHtmlOrdinaryLinksAndEntities() {
         assertEquals(
                 """<a href="https://example.org"><font color="#000000">a</font></a><font color="#808080">&amp;</font><font color="#ffffff">b</font>""",

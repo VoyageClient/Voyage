@@ -90,7 +90,7 @@ class RainbowGenerator @Inject constructor() {
                     name == null || closing || (selfClosing && name != "img") -> pieces += Piece(tag, counted = false, colored = false)
                     name == "img" -> pieces += Piece(tag, counted = true, colored = false)
                     name in VERBATIM_TAGS || tag.contains("data-mx-maths") -> group = Group(name, counted = false)
-                    name == "a" && tag.contains("matrix.to/#/") -> group = Group(name, counted = true)
+                    name == "a" && (tag.contains("matrix.to/#/") || MATRIX_URI_HREF.containsMatchIn(tag)) -> group = Group(name, counted = true)
                     else -> pieces += Piece(tag, counted = false, colored = false)
                 }
                 group?.raw?.append(tag)
@@ -167,5 +167,6 @@ class RainbowGenerator @Inject constructor() {
         private val TAG_NAME = Regex("^</?([a-zA-Z][a-zA-Z0-9-]*)")
         private val ENTITY = Regex("&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);")
         private val VERBATIM_TAGS = setOf("code", "pre")
+        private val MATRIX_URI_HREF = Regex("""href\s*=\s*["']matrix:""", RegexOption.IGNORE_CASE)
     }
 }

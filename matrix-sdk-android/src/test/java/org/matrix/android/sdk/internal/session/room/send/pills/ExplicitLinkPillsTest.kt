@@ -9,8 +9,6 @@ package org.matrix.android.sdk.internal.session.room.send.pills
 
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import io.mockk.every
-import io.mockk.mockk
 import org.commonmark.ext.explicitlinks.ExplicitLinksExtension
 import org.commonmark.ext.gfm.tables.TablesExtension
 import org.commonmark.ext.maths.MathsExtension
@@ -21,7 +19,6 @@ import org.commonmark.renderer.html.HtmlRenderer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.internal.session.room.send.IntentionalMentions
@@ -31,11 +28,6 @@ import org.robolectric.RobolectricTestRunner
 /** Every kind of pill the composer makes, sent as a mention, and never nested inside a markdown link. */
 @RunWith(RobolectricTestRunner::class)
 class ExplicitLinkPillsTest {
-
-    private val permalinkService = mockk<PermalinkService> {
-        every { createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN, any()) } returns "[%2\$s](https://matrix.to/#/%1\$s)"
-        every { createMentionSpanTemplate(PermalinkService.SpanTemplateType.HTML, any()) } returns "<a href=\"https://matrix.to/#/%1\$s\">%2\$s</a>"
-    }
 
     private val extensions = listOf(
             MathsExtension.create(),
@@ -49,7 +41,7 @@ class ExplicitLinkPillsTest {
             Parser.builder().extensions(extensions).build(),
             Parser.builder().extensions(extensions).build(),
             HtmlRenderer.builder().extensions(extensions).softbreak("<br />").build(),
-            AndroidTextPillsUtils(MentionLinkSpecComparator(), permalinkService),
+            AndroidTextPillsUtils(MentionLinkSpecComparator()),
     )
 
     private class Pill(override val matrixItem: MatrixItem, override val bodyText: String) : MatrixItemSpan
@@ -69,13 +61,35 @@ class ExplicitLinkPillsTest {
     }
 
     @Test
-    fun `a pill of any kind is a plain mention anchor`() {
-        items.forEach { item ->
+    fun `a pill of any kind is a plain mention anchor with a matrix URI`() {
+        val hrefs = listOf(
+                "matrix:u/alice:example.org",
+                "matrix:r/room:example.org",
+                "matrix:roomid/room:example.org",
+                "matrix:roomid/space:example.org",
+        )
+        items.zip(hrefs).forEach { (item, href) ->
             assertEquals(
-                    """hi <a href="https://matrix.to/#/${item.id}">${item.id}</a> there""",
+                    """hi <a href="$href">${item.id}</a> there""",
                     send("hi ", item, item.id, " there")
             )
         }
+    }
+
+    @Test
+    fun `a pill without markdown is a mention anchor too`() {
+        val text = SpannableStringBuilder("hi Alice")
+        text.setSpan(Pill(items[0], "Alice"), 3, 8, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        assertEquals(
+                """hi <a href="matrix:u/alice:example.org">Alice</a>""",
+                AndroidTextPillsUtils(MentionLinkSpecComparator()).processSpecialSpansToHtml(text)
+        )
+    }
+
+    @Test
+    fun `a pill's matrix URI still yields its mention`() {
+        val html = send("hi ", items[0], "Alice", "")
+        assertEquals(listOf("@alice:example.org"), IntentionalMentions.build("hi Alice", html)?.userIds)
     }
 
     @Test
@@ -106,7 +120,7 @@ class ExplicitLinkPillsTest {
     fun `a pill after a finished link is still a mention`() {
         assertEquals(
                 """<a href="https://example.org" data-mx-link data-org.matrix.msc4550.link>x</a> """ +
-                        """<a href="https://matrix.to/#/@alice:example.org">Alice</a>""",
+                        """<a href="matrix:u/alice:example.org">Alice</a>""",
                 send("[x](https://example.org) ", items[0], "Alice", "")
         )
     }

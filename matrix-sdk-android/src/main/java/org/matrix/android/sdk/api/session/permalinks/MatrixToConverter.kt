@@ -37,7 +37,7 @@ object MatrixToConverter {
         return when {
             // URL is already a matrix.to
             uriString.startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> uriString
-            // MSC2312 matrix: URI
+            // MSC2312 matrix URI
             uriString.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) -> convertMatrixUri(uriString)
             // Web or client url
             SUPPORTED_PATHS.any { it in uriString } -> {
@@ -64,7 +64,7 @@ object MatrixToConverter {
     }
 
     /**
-     * Convert a matrix: URI to its matrix.to equivalent, e.g.
+     * Convert a matrix URI to its matrix.to equivalent, e.g.
      * - matrix:u/alice:example.org                            ->  https://matrix.to/#/@alice:example.org
      * - matrix:r/room:example.org/e/$abcdef?via=example.org   ->  https://matrix.to/#/#room:example.org/$abcdef?via=example.org
      */
@@ -90,7 +90,7 @@ object MatrixToConverter {
         return PermalinkService.MATRIX_TO_URL_BASE + entity + child + if (query.isEmpty()) "" else "?$query"
     }
 
-    // Sigils are dropped in matrix: URIs, but tolerate a sender that kept them.
+    // Sigils are dropped in matrix URIs, but tolerate a sender that kept them.
     private fun String.withSigil(sigil: String) = if (startsWith(sigil)) this else sigil + this
 
     // The `user`/`room`/`event` qualifiers are deprecated by MSC2312: parsed, never generated.

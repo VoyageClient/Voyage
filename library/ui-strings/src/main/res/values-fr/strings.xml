@@ -2412,7 +2412,6 @@
     <string name="command_description_jump_to_start">Aller au premier évènement de ce salon</string>
     <string name="command_description_send_event">Ouvrir le formulaire des outils de développement pour envoyer un évènement personnalisé</string>
     <string name="command_description_send_state">Ouvrir le formulaire des outils de développement pour envoyer un évènement d’état personnalisé</string>
-    <string name="command_description_jump_to">Aller à l’évènement ayant l’identifiant donné, ou à un lien matrix.to / matrix:</string>
     <string name="command_description_jump_to_date">Aller à l’évènement le plus proche de la date donnée, par ex. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday ou 7d</string>
     <string name="command_jump_to_start_unavailable">Impossible de trouver le premier évènement du salon.</string>
     <string name="command_jump_to_date_no_event">Aucun évènement trouvé près de %1$s. Le serveur ne prend peut-être pas en charge la recherche par horodatage, ou il n’y a aucun message dans cette direction.</string>
@@ -3974,4 +3973,5 @@
         <item quantity="one">Export de %1$d événement sélectionné</item>
         <item quantity="other">Export de %1$d événements sélectionnés</item>
     </plurals>
+    <string name="command_description_jump_to">Aller à l’évènement ayant l’identifiant donné, ou à un lien matrix.to ou une URI matrix</string>
 </resources>

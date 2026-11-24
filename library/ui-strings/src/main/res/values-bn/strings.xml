@@ -2368,7 +2368,6 @@
     <string name="command_description_jump_to_start">এই রুমের প্রথম ইভেন্টে যান</string>
     <string name="command_description_send_event">একটি কাস্টম ইভেন্ট পাঠাতে ডেভেলপার টুলসের ফর্ম খুলুন</string>
     <string name="command_description_send_state">একটি কাস্টম স্টেট ইভেন্ট পাঠাতে ডেভেলপার টুলসের ফর্ম খুলুন</string>
-    <string name="command_description_jump_to">প্রদত্ত ID-র ইভেন্টে, বা একটি matrix.to / matrix: লিংকে যান</string>
     <string name="command_description_jump_to_date">প্রদত্ত তারিখের সবচেয়ে কাছের ইভেন্টে যান, যেমন YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday বা 7d</string>
     <string name="command_jump_to_start_unavailable">রুমের প্রথম ইভেন্টটি খুঁজে পাওয়া যায়নি।</string>
     <string name="command_jump_to_date_no_event">%1$s-এর কাছাকাছি কোনো ইভেন্ট পাওয়া যায়নি। সার্ভারটি হয়তো টাইমস্ট্যাম্প অনুসন্ধান সমর্থন করে না, অথবা সেই দিকে কোনো বার্তা নেই।</string>
@@ -3934,4 +3933,5 @@
         <item quantity="one">%1$dটি নির্বাচিত ইভেন্ট এক্সপোর্ট হচ্ছে</item>
         <item quantity="other">%1$dটি নির্বাচিত ইভেন্ট এক্সপোর্ট হচ্ছে</item>
     </plurals>
+    <string name="command_description_jump_to">প্রদত্ত ID-র ইভেন্টে, বা একটি matrix.to লিংক বা matrix URI-তে যান</string>
 </resources>

@@ -2378,7 +2378,6 @@
     <string name="command_description_jump_to_start">Перейти к первому событию в этой комнате</string>
     <string name="command_description_send_event">Открыть форму инструментов разработчика для отправки произвольного события</string>
     <string name="command_description_send_state">Открыть форму инструментов разработчика для отправки произвольного события состояния</string>
-    <string name="command_description_jump_to">Перейти к событию с указанным ID или по ссылке matrix.to / matrix:</string>
     <string name="command_description_jump_to_date">Перейти к событию, ближайшему к указанной дате, например YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday или 7d</string>
     <string name="command_jump_to_start_unavailable">Не удалось найти первое событие комнаты.</string>
     <string name="command_jump_to_date_no_event">Не удалось найти событие около %1$s. Сервер может не поддерживать поиск по времени, или в этом направлении нет сообщений.</string>
@@ -4134,4 +4133,5 @@
         <item quantity="many">Экспорт %1$d выбранных событий</item>
         <item quantity="other">Экспорт %1$d выбранного события</item>
     </plurals>
+    <string name="command_description_jump_to">Перейти к событию с указанным ID, по ссылке matrix.to или по matrix URI</string>
 </resources>

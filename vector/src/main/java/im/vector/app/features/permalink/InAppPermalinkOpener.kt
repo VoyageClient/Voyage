@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import timber.log.Timber
 
-/** A `matrix:` URI is opaque, so [java.net.URL] rejects it: the link machinery has to spot it by scheme. */
+/** A matrix URI is opaque, so [java.net.URL] rejects it: the link machinery has to spot it by scheme. */
 fun String.isMatrixUri() = startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true)
 
 /**

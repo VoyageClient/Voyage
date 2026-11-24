@@ -77,7 +77,7 @@ class LinkHandlerActivity : VectorBaseActivity<ActivityProgressBinding>() {
                 Timber.w("Uri is null")
                 finish()
             }
-            // getQueryParameter throws on an opaque URI, which matrix: links are.
+            // getQueryParameter throws on an opaque URI, which matrix URIs are.
             uri.isHierarchical && uri.getQueryParameter(LoginConfig.CONFIG_HS_PARAMETER) != null -> handleConfigUrl(uri)
             uri.toString().startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> handleSupportedHostUrl()
             uri.toString().startsWith(PermalinkHandler.MATRIX_TO_CUSTOM_SCHEME_URL_BASE) -> handleSupportedHostUrl()

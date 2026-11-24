@@ -3276,7 +3276,7 @@
     <string name="command_description_jump_to_start">Jump to the first event in this room</string>
     <string name="command_description_send_event">Open the developer tools form to send a custom event</string>
     <string name="command_description_send_state">Open the developer tools form to send a custom state event</string>
-    <string name="command_description_jump_to">Jump to the event with the given ID, or to a matrix.to / matrix: link</string>
+    <string name="command_description_jump_to">Jump to the event with the given ID, or to a matrix.to link or matrix URI</string>
     <string name="command_description_jump_to_date">Jump to the event closest to the given date, e.g. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday or 7d</string>
     <string name="command_jump_to_start_unavailable">Could not locate the room\'s first event.</string>
     <string name="command_jump_to_date_no_event">Couldn\'t find an event near %1$s. The server may not support timestamp lookup, or there are no messages in that direction.</string>
