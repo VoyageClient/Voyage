@@ -6,6 +6,8 @@
  */
 package im.vector.app.core.linkify
 
+import org.matrix.android.sdk.api.MatrixPatterns
+
 /**
  * Better support for geo URI.
  */
@@ -15,8 +17,8 @@ object VectorAutoLinkPatterns {
     private const val LAT_OR_LONG_OR_ALT_NUMBER = "-?\\d+(?:\\.\\d+)?"
     private const val COORDINATE_SYSTEM = ";crs=[\\w-]+"
 
-    val MSC: Regex = Regex("\\bMSC(\\d{1,6})\\b", RegexOption.IGNORE_CASE)
-    const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
+    val MSC: Regex = MatrixPatterns.PATTERN_MSC_REFERENCE
+    const val MSC_SABLE_BASE_URL = "https://msc.sable.moe/"
 
     val MXC_URI: Regex = Regex("mxc://(?:\\[[0-9A-Fa-f:]+\\]|[A-Za-z0-9.-]+)(?::[0-9]+)?/[A-Za-z0-9_-]+")
 

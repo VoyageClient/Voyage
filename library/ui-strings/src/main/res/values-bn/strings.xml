@@ -3934,4 +3934,5 @@
         <item quantity="other">%1$dটি নির্বাচিত ইভেন্ট এক্সপোর্ট হচ্ছে</item>
     </plurals>
     <string name="command_description_jump_to">প্রদত্ত ID-র ইভেন্টে, বা একটি matrix.to লিংক বা matrix URI-তে যান</string>
+    <string name="settings_msc_link_service">MSC খোলার মাধ্যম</string>
 </resources>

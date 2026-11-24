@@ -3892,4 +3892,5 @@
         <item quantity="other">正在导出 %1$d 个所选事件</item>
     </plurals>
     <string name="command_description_jump_to">跳至具有给定 ID 的事件，或跳至 matrix.to 链接或 matrix URI</string>
+    <string name="settings_msc_link_service">MSC 打开方式</string>
 </resources>

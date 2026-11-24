@@ -9,6 +9,7 @@ package im.vector.app.core.utils
 
 import im.vector.app.core.linkify.VectorAutoLinkPatterns
 import im.vector.app.features.permalink.isMatrixUri
+import org.matrix.android.sdk.api.MatrixPatterns
 import java.net.URL
 
 fun String.isValidUrl(): Boolean {
@@ -22,9 +23,25 @@ fun String.isValidUrl(): Boolean {
 
 fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri() || VectorAutoLinkPatterns.SCHEME_URI.matches(this)
 
-fun String.isExpectedMscLink(title: String): Boolean {
-    val proposal = VectorAutoLinkPatterns.MSC.matchEntire(title)?.groupValues?.get(1) ?: return false
-    return this == "${VectorAutoLinkPatterns.MSC_PULL_URL}$proposal"
+private val MSC_URL = Regex(
+        "https?://(?:www\\.)?(github\\.com/matrix-org/matrix-spec-proposals/pull|msc\\.re|msc\\.sable\\.moe)/(\\d{1,6})/?(?:[?#]\\S*)?",
+        RegexOption.IGNORE_CASE
+)
+
+/**
+ * Where a tapped proposal link opens without confirmation, or null if it needs the usual checks.
+ * An "MSC1234" label opens on [configuredBaseUrl] when the link points at that same proposal. A bare
+ * msc.re link skips its redirect to GitHub; other bare proposal links open where they point.
+ */
+fun mscLinkTarget(url: String, label: String, configuredBaseUrl: String): String? {
+    val target = MSC_URL.matchEntire(url) ?: return null
+    val (site, number) = target.destructured
+    VectorAutoLinkPatterns.MSC.matchEntire(label)?.let {
+        return if (it.groupValues[1] == number) configuredBaseUrl + number else null
+    }
+    val shown = MSC_URL.matchEntire(if ("://" in label) label else "https://$label") ?: return null
+    if (!shown.groupValues[1].equals(site, ignoreCase = true) || shown.groupValues[2] != number) return null
+    return if (site.equals("msc.re", ignoreCase = true)) MatrixPatterns.MSC_GITHUB_BASE_URL + number else url
 }
 
 private val GITHUB_REF = Regex("[A-Za-z0-9-]+/[A-Za-z0-9._-]+(?:#\\d+)?")

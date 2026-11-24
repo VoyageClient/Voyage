@@ -39,6 +39,15 @@
         <item>server</item>
     </string-array>
 
+    <string-array name="msc_link_services">
+        <item>@string/msc_link_service_github</item>
+        <item>@string/msc_link_service_sable</item>
+    </string-array>
+    <string-array name="msc_link_service_values">
+        <item>github</item>
+        <item>sable</item>
+    </string-array>
+
     <string-array name="room_link_preview_sources">
         <item>@string/settings_use_account_setting</item>
         <item>@string/option_no</item>

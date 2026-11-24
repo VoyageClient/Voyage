@@ -25,6 +25,7 @@ import org.commonmark.node.Node
 import org.commonmark.node.Paragraph
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
+import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.session.room.AdvancedCommonmarkParser
 import org.matrix.android.sdk.internal.session.room.SimpleCommonmarkParser
@@ -46,12 +47,10 @@ internal class MarkdownParser @Inject constructor(
 
     private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^|]".toRegex()
 
-    // Mirrors VectorAutoLinkPatterns.MSC / the MSC render-side linkification
-    private val mscRegex = Regex("\\bMSC(\\d{1,6})\\b", RegexOption.IGNORE_CASE)
+    private val mscRegex = MatrixPatterns.PATTERN_MSC_REFERENCE
 
     private companion object {
         const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"
-        const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
         val listItemMarker = Regex("""^( {0,3})((?:[-*]|\d{1,9}[.)])[ \t]+)""")
         val plusListMarker = Regex("""^((?: {0,3}>[ \t]*)*)([ \t]*)\+(?=[ \t])""")
         val anyListItemMarker = Regex("""^(?: {0,3}>[ \t]*)*([ \t]*)((?:[-*]|\d{1,9}[.)])[ \t]+)""")
@@ -250,7 +249,7 @@ internal class MarkdownParser @Inject constructor(
         }
     }
 
-    private fun MatchResult.toMscAnchor() = "<a href=\"$MSC_PULL_URL${groupValues[1]}\">$value</a>"
+    private fun MatchResult.toMscAnchor() = "<a href=\"${StaticScSdkHelper.mscLinkBaseUrl()}${groupValues[1]}\">$value</a>"
 
     // Rewrites only text between tags, leaving anything already inside <a>/<code>/<pre> verbatim.
     private fun linkifyMscInHtml(html: String): String {

@@ -4201,4 +4201,5 @@
         <item quantity="other">جارٍ تصدير %1$d حدث محدد</item>
     </plurals>
     <string name="command_description_jump_to">انتقل إلى الحدث ذي المعرّف المعطى، أو إلى رابط matrix.to أو matrix URI</string>
+    <string name="settings_msc_link_service">فتح MSC باستخدام</string>
 </resources>

@@ -117,6 +117,8 @@
     <string name="code_palette_element_2015" translatable="false">Element (2015)</string>
     <string name="code_palette_schildichat" translatable="false">SchildiChat</string>
     <string name="code_palette_github" translatable="false">GitHub</string>
+    <string name="msc_link_service_github" translatable="false">GitHub</string>
+    <string name="msc_link_service_sable" translatable="false">msc.sable.moe</string>
     <string name="code_palette_visual_studio" translatable="false">Visual Studio</string>
     <string name="code_palette_intellij" translatable="false">IntelliJ</string>
     <string name="code_palette_stack_overflow" translatable="false">Stack Overflow</string>

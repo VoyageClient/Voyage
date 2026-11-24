@@ -3973,4 +3973,5 @@
         <item quantity="other">%1$d ausgewählte Ereignisse werden exportiert</item>
     </plurals>
     <string name="command_description_jump_to">Zum Ereignis mit der angegebenen ID oder zu einem matrix.to-Link oder einer matrix URI springen</string>
+    <string name="settings_msc_link_service">MSCs öffnen mit</string>
 </resources>

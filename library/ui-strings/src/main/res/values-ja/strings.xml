@@ -3890,4 +3890,5 @@
         <item quantity="other">選択した%1$d件のイベントをエクスポート中</item>
     </plurals>
     <string name="command_description_jump_to">指定したIDのイベント、またはmatrix.toリンクやmatrix URIに移動します</string>
+    <string name="settings_msc_link_service">MSCを開くサイト</string>
 </resources>

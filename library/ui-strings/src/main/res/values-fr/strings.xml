@@ -3974,4 +3974,5 @@
         <item quantity="other">Export de %1$d événements sélectionnés</item>
     </plurals>
     <string name="command_description_jump_to">Aller à l’évènement ayant l’identifiant donné, ou à un lien matrix.to ou une URI matrix</string>
+    <string name="settings_msc_link_service">Ouvrir les MSC avec</string>
 </resources>

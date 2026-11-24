@@ -3932,4 +3932,5 @@
         <item quantity="other">%1$d seçili olay dışa aktarılıyor</item>
     </plurals>
     <string name="command_description_jump_to">Verilen kimliğe sahip olaya, bir matrix.to bağlantısına ya da bir matrix URI adresine git</string>
+    <string name="settings_msc_link_service">MSC\'leri şununla aç</string>
 </resources>

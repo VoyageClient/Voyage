@@ -3892,4 +3892,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
         <item quantity="other">Mengekspor %1$d peristiwa yang dipilih</item>
     </plurals>
     <string name="command_description_jump_to">Lompat ke peristiwa dengan ID yang diberikan, atau ke tautan matrix.to atau URI matrix</string>
+    <string name="settings_msc_link_service">Buka MSC dengan</string>
 </resources>

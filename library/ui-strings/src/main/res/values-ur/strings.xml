@@ -3874,4 +3874,5 @@
         <item quantity="other">%1$d منتخب ایونٹس برآمد ہو رہے ہیں</item>
     </plurals>
     <string name="command_description_jump_to">دی گئی ID والے واقعے پر، یا matrix.to ربط یا matrix URI پر جائیں</string>
+    <string name="settings_msc_link_service">MSCs کھولنے کا ذریعہ</string>
 </resources>

@@ -4134,4 +4134,5 @@
         <item quantity="other">Экспорт %1$d выбранного события</item>
     </plurals>
     <string name="command_description_jump_to">Перейти к событию с указанным ID, по ссылке matrix.to или по matrix URI</string>
+    <string name="settings_msc_link_service">Открывать MSC через</string>
 </resources>

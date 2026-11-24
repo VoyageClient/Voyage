@@ -13,6 +13,7 @@ import android.text.TextPaint
 import android.text.style.URLSpan
 import android.text.util.Linkify
 import androidx.core.text.util.LinkifyCompat
+import de.spiritcroc.matrixsdk.StaticScSdkHelper
 
 // URLSpan that keeps the link colour but never draws an underline, so autolinked URLs match the rest.
 class NoUnderlineUrlSpan(url: String) : URLSpan(url) {
@@ -107,7 +108,7 @@ object VectorLinkify {
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
-        LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.MSC.toPattern(), VectorAutoLinkPatterns.MSC_PULL_URL, null, mscTransformFilter)
+        LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.MSC.toPattern(), StaticScSdkHelper.mscLinkBaseUrl(), null, mscTransformFilter)
         spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
             spannable.removeSpan(urlSpan)
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))

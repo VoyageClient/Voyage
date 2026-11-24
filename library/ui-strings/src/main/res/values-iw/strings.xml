@@ -4103,4 +4103,5 @@
         <item quantity="other">מייצא %1$d אירועים נבחרים</item>
     </plurals>
     <string name="command_description_jump_to">עבור לאירוע עם המזהה הנתון, או לקישור matrix.to או ל-matrix URI</string>
+    <string name="settings_msc_link_service">פתיחת MSC באמצעות</string>
 </resources>

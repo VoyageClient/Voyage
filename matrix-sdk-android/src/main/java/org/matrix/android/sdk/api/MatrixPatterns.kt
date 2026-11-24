@@ -82,6 +82,10 @@ object MatrixPatterns {
     // ascii characters in the range \x20 (space) to \x7E (~)
     val ORDER_STRING_REGEX = "[ -~]+".toRegex()
 
+    // A spec proposal reference like "MSC1234"; group 1 is the proposal number.
+    val PATTERN_MSC_REFERENCE = Regex("\\bMSC(\\d{1,6})\\b", RegexOption.IGNORE_CASE)
+    const val MSC_GITHUB_BASE_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
+
     // list of patterns to find some matrix item.
     // Note: only patterns that include a domain are used here, otherwise any text starting with
     // `!` or `$` would be turned into a clickable link.

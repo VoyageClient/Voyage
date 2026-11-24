@@ -4246,6 +4246,7 @@
     <string name="settings_category_message_composer">Message composer</string>
     <string name="settings_linkify_msc_references">Linkify MSCs</string>
     <string name="settings_linkify_msc_references_summary">Linkify MSCs in sent messages so that other clients can open them, rather than relying on render-side linkification.</string>
+    <string name="settings_msc_link_service">Open MSCs with</string>
     <string name="settings_sed_replacement_title">Sed substitutions</string>
     <string name="settings_sed_replacement_summary">Maubot-style s/typo/fixed/ substitutions, usable anywhere: your own messages are corrected as an edit, everyone else\'s with a notice</string>
     <string name="sed_error_invalid">Invalid sed expression: %1$s</string>

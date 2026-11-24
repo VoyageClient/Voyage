@@ -3862,4 +3862,5 @@
         <item quantity="other">%1$d चुने गए इवेंट एक्सपोर्ट हो रहे हैं</item>
     </plurals>
     <string name="command_description_jump_to">दी गई ID वाले इवेंट पर, या किसी matrix.to लिंक या matrix URI पर जाएं</string>
+    <string name="settings_msc_link_service">MSC खोलने का माध्यम</string>
 </resources>

@@ -13,6 +13,7 @@ import android.content.ContextWrapper
 import androidx.core.text.toSpannable
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.extensions.containsRtLOverride
 import im.vector.app.core.extensions.ensureEndsLeftToRight
 import im.vector.app.core.extensions.filterDirectionOverrides
@@ -23,19 +24,21 @@ import java.net.URL
  * Opens [url] in the browser, asking first when the [label] it was shown under doesn't match where it leads.
  */
 fun openExternalLinkWithConfirmation(context: Context, url: String, label: String) {
+    val mscTarget = if (url.containsRtLOverride()) null else mscLinkTarget(url, label, StaticScSdkHelper.mscLinkBaseUrl())
     val activity = context.findActivity()
     if (activity == null) {
-        openUrlInExternalBrowser(context, url)
+        openUrlInExternalBrowser(context, mscTarget ?: url)
         return
     }
     when {
+        mscTarget != null -> openUrlInExternalBrowser(activity, mscTarget)
         url.containsRtLOverride() -> {
             showMismatchDialog(activity, seenUrl = label.ensureEndsLeftToRight(), actualUrl = url.filterDirectionOverrides(), continueTo = url)
         }
         label.isValidUrl() && url.isValidUrl() && URL(label).host != URL(url).host -> {
             showMismatchDialog(activity, seenUrl = label, actualUrl = url, continueTo = url)
         }
-        !label.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(label) && !url.isExpectedGitHubLink(label) &&
+        !label.isValidUrl() && url.isValidUrl() && !url.isExpectedGitHubLink(label) &&
                 url != "http://$label" && url != "https://$label" -> {
             showDestinationDialog(activity, url)
         }

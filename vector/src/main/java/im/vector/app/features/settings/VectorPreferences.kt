@@ -17,6 +17,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.edit
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
+import im.vector.app.core.linkify.VectorAutoLinkPatterns
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.ui.views.RoomBadgeConfig
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import timber.log.Timber
@@ -211,6 +213,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
         private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
         private const val SETTINGS_LINKIFY_MSC_REFERENCES_KEY = "SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
+        private const val SETTINGS_MSC_LINK_SERVICE_KEY = "SETTINGS_MSC_LINK_SERVICE_KEY"
         private const val SETTINGS_CUSTOM_GRADIENTS_KEY = "SETTINGS_CUSTOM_GRADIENTS"
         private const val SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY = "SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY"
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
@@ -1972,6 +1975,13 @@ class VectorPreferences @Inject constructor(
 
     override fun linkifyMscReferencesOnSend(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LINKIFY_MSC_REFERENCES_KEY, true)
+    }
+
+    override fun mscLinkBaseUrl(): String {
+        return when (defaultPrefs.getString(SETTINGS_MSC_LINK_SERVICE_KEY, null)) {
+            "sable" -> VectorAutoLinkPatterns.MSC_SABLE_BASE_URL
+            else -> MatrixPatterns.MSC_GITHUB_BASE_URL
+        }
     }
 
     override fun preventUnintendedMarkdown(): Boolean {
