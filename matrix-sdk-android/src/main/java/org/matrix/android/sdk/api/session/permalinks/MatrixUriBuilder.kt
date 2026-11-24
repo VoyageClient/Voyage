@@ -16,9 +16,6 @@ object MatrixUriBuilder {
     /** A link to a user, room alias or room id, or null when [id] has no matrix URI form. */
     fun build(id: String): String? = entity(id)?.let { PermalinkService.MATRIX_URI_SCHEME_PREFIX + it }
 
-    /** The href of a mention pill to [id]; an id with no matrix URI form keeps its matrix.to link. */
-    fun mentionLink(id: String): String = build(id) ?: PermalinkService.MATRIX_TO_URL_BASE + id
-
     /** A link to [eventId] in [roomIdOrAlias], or null when that is not a room. */
     fun build(roomIdOrAlias: String, eventId: String, viaServers: List<String> = emptyList()): String? {
         if (roomIdOrAlias.startsWith('@') || eventId.length < 2) return null

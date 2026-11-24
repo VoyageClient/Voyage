@@ -2122,7 +2122,6 @@
     <string name="crosssigning_cannot_verify_this_session">この端末を認証できません</string>
     <string name="room_profile_section_more_polls">アンケートの履歴</string>
     <string name="command_description_table_flip">プレーンテキストメッセージの前に (╯°□°）╯︵ ┻━┻ を付ける</string>
-    <string name="permalink_unsupported_groups">このリンクを開けません：コミュニティー機能はスペース機能に変更されました</string>
     <string name="ftue_auth_email_title">電子メールを入力してください</string>
     <string name="ftue_auth_terms_subtitle">%sの利用規約と運営方針を確認してください</string>
     <string name="ftue_auth_terms_title">サーバーの運営方針</string>

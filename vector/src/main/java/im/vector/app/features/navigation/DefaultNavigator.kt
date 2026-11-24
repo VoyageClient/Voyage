@@ -13,7 +13,6 @@ import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.view.Window
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -95,7 +94,6 @@ import im.vector.app.features.spaces.people.SpacePeopleActivity
 import im.vector.app.features.terms.ReviewTermsActivity
 import im.vector.app.features.widgets.WidgetActivity
 import im.vector.app.features.widgets.WidgetArgsBuilder
-import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -393,10 +391,6 @@ class DefaultNavigator @Inject constructor(
 
     override fun openKeysBackupManager(context: Context) {
         context.startActivity(KeysBackupManageActivity.intent(context))
-    }
-
-    override fun showGroupsUnsupportedWarning(context: Context) {
-        Toast.makeText(context, context.getString(CommonStrings.permalink_unsupported_groups), Toast.LENGTH_LONG).show()
     }
 
     override fun openRoomProfile(context: Context, roomId: String, directAccess: Int?) {

@@ -2005,7 +2005,6 @@
     <string name="room_profile_section_restore_security">还原加密</string>
     <string name="contact_admin_to_restore_encryption">请联系管理员将加密还原到有效状态。</string>
     <string name="encryption_has_been_misconfigured">加密被错误地配置了。</string>
-    <string name="permalink_unsupported_groups">无法打开此链接：社群已被空间取代</string>
     <string name="login_splash_already_have_account">我已经有账户了</string>
     <string name="login_splash_create_account">创建账户</string>
     <string name="ftue_auth_login_username_entry">用户名/电子邮件/电话号码</string>

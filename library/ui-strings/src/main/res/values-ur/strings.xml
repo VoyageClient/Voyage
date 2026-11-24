@@ -1462,7 +1462,6 @@
     <string name="soft_logout_clear_data_dialog_e2e_warning_content">جب تک آپ اپنی مرموزکاری کی چابیاں بازیاب کرنے کے لیے داخل نہیں ہوتے، آپ محفوظ پیغامات تک رسائی کھو دیں گے۔</string>
     <string name="soft_logout_sso_not_same_user_error">موجودہ جلسہ صارف %1$s کا ہے اور آپ صارف %2$s کی اسناد فراہم کر رہے ہیں۔ ${app_name} اس کی سہولت نہیں دیتا۔\nبراہ کرم پہلے ڈیٹا صاف کریں، پھر دوسرے کھاتے میں دوبارہ داخل ہوں۔</string>
     <string name="permalink_malformed">آپ کا matrix.to ربط خراب تھا</string>
-    <string name="permalink_unsupported_groups">یہ ربط نہیں کھل سکتا: برادریوں کی جگہ اب جگہیں آ گئی ہیں</string>
     <string name="notification_initial_sync">ابتدائی ہم وقت سازی…</string>
     <string name="settings_advanced_settings">اعلیٰ ترتیبات</string>
     <string name="settings_developer_mode">ڈیولپر موڈ</string>

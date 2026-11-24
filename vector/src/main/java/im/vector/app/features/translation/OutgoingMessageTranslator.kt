@@ -54,7 +54,7 @@ class OutgoingMessageTranslator @Inject constructor(
         val formatted = if (pills.isNotEmpty()) {
             expandPills(escape(translated), pills) { pill ->
                 when (pill) {
-                    is Pill.Mention -> "<a href=\"${escape(MatrixUriBuilder.mentionLink(pill.id))}\">${escape(pill.text)}</a>"
+                    is Pill.Mention -> MatrixUriBuilder.build(pill.id)?.let { "<a href=\"${escape(it)}\">${escape(pill.text)}</a>" } ?: escape(pill.text)
                     is Pill.Emote -> pill.span.toEmoticonHtml()
                 }
             }.replace("\n", "<br />")

@@ -83,7 +83,7 @@ class PermalinkHandler @Inject constructor(
         return when (permalinkData) {
             is PermalinkData.RoomLink -> handleRoomLink(permalinkData, rawLink, fragmentActivity, navigationInterceptor, buildTask)
             is PermalinkData.UserLink -> handleUserLink(permalinkData, rawLink, fragmentActivity, navigationInterceptor, buildTask)
-            is PermalinkData.FallbackLink -> handleFallbackLink(permalinkData, fragmentActivity)
+            is PermalinkData.FallbackLink -> false
             is PermalinkData.RoomEmailInviteLink -> handleRoomInviteLink(permalinkData, fragmentActivity)
         }
     }
@@ -154,20 +154,6 @@ class PermalinkHandler @Inject constructor(
         )
         navigator.openRoomPreview(context, data)
         return true
-    }
-
-    private suspend fun handleFallbackLink(
-            permalinkData: PermalinkData.FallbackLink,
-            context: Context
-    ): Boolean {
-        return if (permalinkData.isLegacyGroupLink) {
-            withContext(Dispatchers.Main) {
-                navigator.showGroupsUnsupportedWarning(context)
-            }
-            true
-        } else {
-            false
-        }
     }
 
     private suspend fun PermalinkData.RoomLink.getRoomId(): String? {

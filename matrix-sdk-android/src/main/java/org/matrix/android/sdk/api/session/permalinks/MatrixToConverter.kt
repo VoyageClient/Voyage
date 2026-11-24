@@ -106,8 +106,7 @@ object MatrixToConverter {
 
     private val SUPPORTED_PATHS = listOf(
             "/#/room/",
-            "/#/user/",
-            "/#/group/"
+            "/#/user/"
     )
 
     private val WEB_FRAGMENT_PREFIXES = listOf("/room/", "/user/", "/")

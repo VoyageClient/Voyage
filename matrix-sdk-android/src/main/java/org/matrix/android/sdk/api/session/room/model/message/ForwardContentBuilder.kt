@@ -76,7 +76,7 @@ object ForwardContentBuilder {
         val body = this["body"] as? String ?: ""
         val html = this["formatted_body"] as? String ?: ""
         val named = userIds.filter { userId ->
-            userId in body || userId in html || encodeComponent(userId) in html || MatrixUriBuilder.mentionLink(userId) in html
+            userId in body || userId in html || encodeComponent(userId) in html || MatrixUriBuilder.build(userId)?.let { it in html } == true
         }
         if (named.size == userIds.size) return this
         return this + (MENTIONS to (mentions + ("user_ids" to named)))
@@ -99,7 +99,7 @@ object ForwardContentBuilder {
                 // Rendered as an emote, it would read as the forwarder's own action.
                 top = top + ("msgtype" to MessageType.MSGTYPE_TEXT)
                 val actor = links.sender?.let { links.senderDisplayName ?: it } ?: GENERIC_ACTOR
-                val actorHtml = links.sender?.let { "<a href=\"${escapeHtml(userPermalink(it))}\">${escapeHtml(actor)}</a>" } ?: GENERIC_ACTOR
+                val actorHtml = links.sender?.let { userLink(it, actor) } ?: GENERIC_ACTOR
                 // Styled the way most clients render an emote, so it doesn't read as the actor's own words.
                 quoted = ("$actor $body" to "<em><strong>$actorHtml</strong> ${html ?: escapeHtml(body).withBreaks()}</em>").takeIf { body.isNotEmpty() }
             }
@@ -115,7 +115,7 @@ object ForwardContentBuilder {
         val header = (if (sender != null) "Forwarded from $sender" else "Forwarded message") +
                 (links.eventPermalink?.let { " - view original message: $it" } ?: "")
         val headerHtml = "<strong>" +
-                (if (sender != null) "Forwarded from <a href=\"${escapeHtml(userPermalink(sender))}\">${escapeHtml(sender)}</a>" else "Forwarded message") +
+                (if (sender != null) "Forwarded from ${userLink(sender, sender)}" else "Forwarded message") +
                 (links.eventPermalink?.let { " - <a href=\"${escapeHtml(it)}\">view original message</a>" } ?: "") +
                 "</strong>"
         val shown = quoted.takeIf { quote }
@@ -130,7 +130,8 @@ object ForwardContentBuilder {
         return MatrixUriBuilder.build(roomId, eventId, via)
     }
 
-    private fun userPermalink(userId: String) = MatrixUriBuilder.mentionLink(userId)
+    private fun userLink(userId: String, label: String): String =
+            MatrixUriBuilder.build(userId)?.let { "<a href=\"${escapeHtml(it)}\">${escapeHtml(label)}</a>" } ?: escapeHtml(label)
 
     // encodeURIComponent, as matrix.to mentions are written; URLEncoder would also escape '!' and turn spaces into '+'.
     private fun encodeComponent(value: String): String = buildString {

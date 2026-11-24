@@ -51,7 +51,6 @@ internal class PermalinkFactory @Inject constructor(
                     when {
                         MatrixPatterns.isRoomId(id) || MatrixPatterns.isRoomAlias(id) -> append(ROOM_PATH)
                         MatrixPatterns.isUserId(id) -> append(USER_PATH)
-                        MatrixPatterns.isGroupId(id) -> append(GROUP_PATH)
                     }
                     append(escape(id))
                 }
@@ -149,6 +148,5 @@ internal class PermalinkFactory @Inject constructor(
         const val VIA_PARAMS_MAX = 3
         private const val ROOM_PATH = "room/"
         private const val USER_PATH = "user/"
-        private const val GROUP_PATH = "group/"
     }
 }

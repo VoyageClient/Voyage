@@ -2032,7 +2032,6 @@
     <string name="ftue_auth_create_account_choose_server_header">Где будут храниться ваши переписки</string>
     <string name="ftue_auth_create_account_password_entry_footer">Должно быть 8 или более символов</string>
     <string name="crosssigning_cannot_verify_this_session">Не удалось заверить этот сеанс</string>
-    <string name="permalink_unsupported_groups">Невозможно открыть эту ссылку: сообщества были заменены пространствами</string>
     <string name="ftue_auth_login_username_entry">Псевдоним / Почта / Телефон</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Следуйте инструкциям, отправленным на %s</string>
     <string name="ftue_auth_forgot_password">Забыли пароль</string>

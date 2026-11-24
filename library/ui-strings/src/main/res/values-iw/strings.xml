@@ -2157,7 +2157,6 @@
     <string name="ftue_auth_login_username_entry">שם משתמש / דוא\"ל / טלפון</string>
     <string name="login_splash_sign_in">כניסה</string>
     <string name="login_scan_qr_code">סרוק קוד QR</string>
-    <string name="permalink_unsupported_groups">לא ניתן לפתוח קישור זה: קהילות הוחלפו במרחבים</string>
     <string name="command_description_table_flip">מוסיף (╯°□°）╯︵ ┻━┻ בתחילת הודעת טקסט רגיל</string>
     <string name="verification_request_waiting_for_recovery">מאמת באמצעות מפתח או ביטוי אבטחה…</string>
     <string name="room_profile_section_more_polls">היסטוריית סקרים</string>

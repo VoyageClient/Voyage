@@ -1656,7 +1656,6 @@
     <string name="soft_logout_clear_data_dialog_e2e_warning_content">ستفقد النفاذ إلى الرسائل الآمنة ما لم تلِج لاسترداد مفاتيح التعمية.</string>
     <string name="soft_logout_sso_not_same_user_error">الجلسة الحالية للمستخدم %1$s وقد قدّمت بيانات اعتماد المستخدم %2$s. لا يدعم ${app_name} هذا.\nرجاءً امسح البيانات أولًا، ثم لِج مجددًا بالحساب الآخر.</string>
     <string name="permalink_malformed">رابط matrix.to مشوّه</string>
-    <string name="permalink_unsupported_groups">تعذّر فتح هذا الرابط: استُبدلت المجتمعات بالمساحات</string>
     <string name="notification_initial_sync">المزامنة الأولية…</string>
     <string name="settings_developer_mode">وضع المطوّرين</string>
     <string name="settings_developer_mode_summary">يفعّل وضع المطوّرين ميزات مخفية وقد يجعل التطبيق أقل استقرارًا. للمطوّرين فقط!</string>

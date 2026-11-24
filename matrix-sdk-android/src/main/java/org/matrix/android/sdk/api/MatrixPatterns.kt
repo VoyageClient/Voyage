@@ -62,10 +62,6 @@ object MatrixPatterns {
     private const val MATRIX_EVENT_IDENTIFIER_V4_REGEX = "\\$$BASE_64_URL_SAFE_ALPHABET"
     private val PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER_V4 = MATRIX_EVENT_IDENTIFIER_V4_REGEX.toRegex(RegexOption.IGNORE_CASE)
 
-    // regex pattern to find group ids in a string.
-    private const val MATRIX_GROUP_IDENTIFIER_REGEX = "\\+[A-Z0-9=_\\-./]+$DOMAIN_REGEX"
-    private val PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER = MATRIX_GROUP_IDENTIFIER_REGEX.toRegex(RegexOption.IGNORE_CASE)
-
     // regex pattern to find permalink with message id.
     // Android does not support in URL so extract it.
     private const val PERMALINK_BASE_REGEX = "https://matrix\\.to/#/"
@@ -94,7 +90,6 @@ object MatrixPatterns {
             PATTERN_CONTAIN_MATRIX_ALIAS,
             PATTERN_CONTAIN_MATRIX_ROOM_IDENTIFIER,
             PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER,
-            PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER,
             PATTERN_CONTAIN_MATRIX_URI
     )
 
@@ -141,16 +136,6 @@ object MatrixPatterns {
                 (str matches PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER ||
                         str matches PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER_V3 ||
                         str matches PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER_V4)
-    }
-
-    /**
-     * Tells if a string is a valid group id.
-     *
-     * @param str the string to test
-     * @return true if the string is a valid group id.
-     */
-    fun isGroupId(str: String?): Boolean {
-        return str != null && str matches PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER
     }
 
     fun isPermalink(str: String?): Boolean {

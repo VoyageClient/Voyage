@@ -2034,7 +2034,6 @@
     <string name="soft_logout_sso_not_same_user_error">The current session is for user %1$s and you provide credentials for user %2$s. This is not supported by ${app_name}.\nPlease first clear data, then sign in again on another account.</string>
 
     <string name="permalink_malformed">Your matrix.to link was malformed</string>
-    <string name="permalink_unsupported_groups">Cannot open this link: communities have been replaced by spaces</string>
 
     <string name="notification_initial_sync">Initial Sync…</string>
 

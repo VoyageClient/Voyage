@@ -1595,7 +1595,6 @@
     <string name="ftue_auth_login_username_entry">Kullanıcı adı / E-posta / Telefon</string>
     <string name="login_splash_sign_in">Oturum Aç</string>
     <string name="login_scan_qr_code">QR kodu tara</string>
-    <string name="permalink_unsupported_groups">Bu bağlantı açılamıyor: topluluklar yerini alanlara bıraktı</string>
     <string name="command_description_table_flip">Düz metin mesajın başına (╯°□°）╯︵ ┻━┻ ekler</string>
     <string name="verification_request_waiting_for_recovery">Güvenli Anahtar veya Parola Öbeği ile doğrulanıyor…</string>
     <string name="encryption_has_been_misconfigured">Şifreleme yanlış yapılandırılmış.</string>

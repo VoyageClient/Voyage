@@ -107,7 +107,7 @@ object PermalinkParser {
                         viaParameters = viaQueryParameters
                 )
             }
-            else -> PermalinkData.FallbackLink(uriString, MatrixPatterns.isGroupId(identifier))
+            else -> PermalinkData.FallbackLink(uriString)
         }
     }
 

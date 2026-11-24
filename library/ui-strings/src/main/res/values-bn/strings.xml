@@ -1507,7 +1507,6 @@
     <string name="soft_logout_clear_data_dialog_e2e_warning_content">এনক্রিপশন কী পুনরুদ্ধার করতে সাইন ইন না করলে আপনি নিরাপদ বার্তাগুলির অ্যাক্সেস হারাবেন।</string>
     <string name="soft_logout_sso_not_same_user_error">বর্তমান সেশনটি ব্যবহারকারী %1$s-এর এবং আপনি ব্যবহারকারী %2$s-এর তথ্য দিচ্ছেন। ${app_name} এটি সমর্থন করে না।\nঅনুগ্রহ করে প্রথমে ডেটা মুছুন, তারপর অন্য অ্যাকাউন্টে আবার সাইন ইন করুন।</string>
     <string name="permalink_malformed">আপনার matrix.to লিংকটি ত্রুটিপূর্ণ ছিল</string>
-    <string name="permalink_unsupported_groups">এই লিংকটি খোলা যাচ্ছে না: কমিউনিটির জায়গায় এখন স্পেস এসেছে</string>
     <string name="notification_initial_sync">প্রাথমিক সিঙ্ক…</string>
     <string name="settings_advanced_settings">উন্নত সেটিংস</string>
     <string name="settings_developer_mode">ডেভেলপার মোড</string>

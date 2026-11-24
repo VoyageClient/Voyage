@@ -87,6 +87,14 @@ class ExplicitLinkPillsTest {
     }
 
     @Test
+    fun `a pill whose id has no matrix URI is sent as its text`() {
+        val text = SpannableStringBuilder("hi <Message>")
+        text.setSpan(Pill(MatrixItem.EventItem("\$event:example.org", "<Message>"), "<Message>"), 3, 12, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        assertEquals("hi &lt;Message&gt;", AndroidTextPillsUtils(MentionLinkSpecComparator()).processSpecialSpansToHtml(text))
+        assertEquals(null, send("hi ", MatrixItem.EventItem("\$event:example.org", "Message"), "Message", ""))
+    }
+
+    @Test
     fun `a pill's matrix URI still yields its mention`() {
         val html = send("hi ", items[0], "Alice", "")
         assertEquals(listOf("@alice:example.org"), IntentionalMentions.build("hi Alice", html)?.userIds)

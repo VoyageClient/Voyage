@@ -112,8 +112,6 @@ interface Navigator {
 
     fun openKeysBackupManager(context: Context)
 
-    fun showGroupsUnsupportedWarning(context: Context)
-
     fun openRoomMemberProfile(userId: String, roomId: String?, context: Context, buildTask: Boolean = false)
 
     fun openRoomProfile(context: Context, roomId: String, directAccess: Int? = null)

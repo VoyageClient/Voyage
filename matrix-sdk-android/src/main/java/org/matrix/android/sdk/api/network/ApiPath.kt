@@ -80,11 +80,6 @@ enum class ApiPath(val path: String, val method: String) {
     // PushGatewayApi
     NOTIFY_PUSH_GATEWAY(NetworkConstants.URI_PUSH_GATEWAY_PREFIX_PATH + "notify", "POST"),
 
-    // GroupApi
-    GET_GROUP_SUMMARY(NetworkConstants.URI_API_PREFIX_PATH_V3 + "groups/{groupId}/summary", "GET"),
-    GET_GROUP_ROOMS(NetworkConstants.URI_API_PREFIX_PATH_V3 + "groups/{groupId}/rooms", "GET"),
-    GET_GROUP_USERS(NetworkConstants.URI_API_PREFIX_PATH_V3 + "groups/{groupId}/users", "GET"),
-
     // CapabilitiesApi
     GET_CAPABILITIES(NetworkConstants.URI_API_PREFIX_PATH_V3 + "capabilities", "GET"),
     GET_VERSIONS(NetworkConstants.URI_API_PREFIX_PATH_ + "versions", "GET"),

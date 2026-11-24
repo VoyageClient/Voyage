@@ -2057,7 +2057,6 @@
     <string name="poll_undisclosed_not_ended">Os resultados estarão visíveis quando a enquete terminar</string>
     <string name="send_your_first_msg_to_invite">Envie sua primeira mensagem para convidar %s a fazer chat</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Mensagens neste chat vão ser encriptadas ponta-a-ponta.</string>
-    <string name="permalink_unsupported_groups">Não dá para abrir este link: comunidades têm sido substituídas por espaços</string>
     <string name="ftue_auth_login_username_entry">Nome de Usuário / E-mail / Telefone</string>
     <string name="ftue_auth_captcha_title">Você é um humano\?</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Siga as instruções enviadas para %s</string>

@@ -2420,7 +2420,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun mentionLink(id: String, name: String) = "<a href=\"${escapeHtml(MatrixUriBuilder.mentionLink(id))}\">$name</a>"
+    private fun mentionLink(id: String, name: String) = MatrixUriBuilder.build(id)?.let { "<a href=\"${escapeHtml(it)}\">$name</a>" } ?: name
 
     private fun containsPillsOrEmotes(text: CharSequence): Boolean {
         val spanned = text as? Spanned ?: return false

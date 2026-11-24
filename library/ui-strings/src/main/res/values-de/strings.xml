@@ -2071,7 +2071,6 @@
     <string name="ftue_auth_phone_confirmation_title">Bestätige deine Telefonnummer</string>
     <string name="ftue_auth_email_verification_footer">Keine E-Mail erhalten\?</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Folge den Anweisungen, die an %s gesendet wurden</string>
-    <string name="permalink_unsupported_groups">Kann Link nicht öffnen: Communities wurden durch Spaces ersetzt</string>
     <string name="live_location_description">Echtzeit-Standort</string>
     <string name="create_room_action_go">Los</string>
     <string name="ftue_auth_create_account_edit_server_selection">Bearbeiten</string>

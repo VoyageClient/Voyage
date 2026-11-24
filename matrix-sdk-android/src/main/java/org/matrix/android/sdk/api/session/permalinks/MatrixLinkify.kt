@@ -57,7 +57,6 @@ object MatrixLinkify {
                             MatrixPatterns.isUserId(url) ||
                             MatrixPatterns.isRoomAlias(url) ||
                             MatrixPatterns.isRoomId(url) ||
-                            MatrixPatterns.isGroupId(url) ||
                             MatrixPatterns.isEventId(url)) {
                         if (!isPermalink) {
                             url = PermalinkService.MATRIX_TO_URL_BASE + url

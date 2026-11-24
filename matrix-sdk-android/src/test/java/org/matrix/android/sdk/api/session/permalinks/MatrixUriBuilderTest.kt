@@ -39,18 +39,17 @@ class MatrixUriBuilderTest {
 
     @Test
     fun `ids without a matrix URI form give null`() {
-        MatrixUriBuilder.build("+group:example.org") shouldBeEqualTo null
+        MatrixUriBuilder.build("alice:example.org") shouldBeEqualTo null
         MatrixUriBuilder.build("@") shouldBeEqualTo null
         MatrixUriBuilder.build("") shouldBeEqualTo null
         MatrixUriBuilder.build("@alice:example.org", eventId) shouldBeEqualTo null
-        MatrixUriBuilder.mentionLink("+group:example.org") shouldBeEqualTo "https://matrix.to/#/+group:example.org"
     }
 
     @Test
     fun `what is built parses back to the same target`() {
-        val user = PermalinkParser.parse(MatrixUriBuilder.mentionLink("@a/lice:example.org")) as PermalinkData.UserLink
+        val user = PermalinkParser.parse(MatrixUriBuilder.build("@a/lice:example.org")!!) as PermalinkData.UserLink
         user.userId shouldBeEqualTo "@a/lice:example.org"
-        val alias = PermalinkParser.parse(MatrixUriBuilder.mentionLink("#r+o=om:example.org")) as PermalinkData.RoomLink
+        val alias = PermalinkParser.parse(MatrixUriBuilder.build("#r+o=om:example.org")!!) as PermalinkData.RoomLink
         alias.roomIdOrAlias shouldBeEqualTo "#r+o=om:example.org"
         val event = PermalinkParser.parse(MatrixUriBuilder.build(domainlessRoomId, eventId, listOf("example.org", "example.com"))!!) as PermalinkData.RoomLink
         event.roomIdOrAlias shouldBeEqualTo domainlessRoomId

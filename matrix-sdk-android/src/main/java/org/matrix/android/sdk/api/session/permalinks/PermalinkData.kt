@@ -52,5 +52,5 @@ sealed class PermalinkData {
     /** [startChat] is MSC2312's `action=chat`. */
     data class UserLink(val userId: String, val startChat: Boolean = false) : PermalinkData()
 
-    data class FallbackLink(val uri: String, val isLegacyGroupLink: Boolean = false) : PermalinkData()
+    data class FallbackLink(val uri: String) : PermalinkData()
 }

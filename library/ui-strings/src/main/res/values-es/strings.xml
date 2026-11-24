@@ -2064,7 +2064,6 @@
     <string name="verify_invalid_qr_notice">Este código QR parece incorrecto. Por favor, intente verificar con otro método.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">No serás capaz de acceder al historial de mensajes encriptado. Restablece tu backup de mensajes seguro y las claves de verificación para empezar de cero.</string>
     <string name="crosssigning_cannot_verify_this_session">No se ha podido verificar el dispositivo</string>
-    <string name="permalink_unsupported_groups">No se puede abrir este enlace: las comunidades han sido reemplazadas por espacios</string>
     <string name="ftue_auth_login_username_entry">Usuario / Email / Teléfono</string>
     <string name="ftue_auth_captcha_title">¿Eres una persona\?</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Sigue las instrucciones enviadas a %s</string>

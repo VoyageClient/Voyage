@@ -1456,7 +1456,6 @@
     <string name="soft_logout_clear_data_dialog_e2e_warning_content">जब तक आप अपनी एन्क्रिप्शन कुंजियां वापस पाने के लिए साइन इन नहीं करते, आप सुरक्षित मैसेज तक पहुंच खो देंगे।</string>
     <string name="soft_logout_sso_not_same_user_error">मौजूदा सेशन उपयोगकर्ता %1$s का है और आपने उपयोगकर्ता %2$s के क्रेडेंशियल दिए हैं। ${app_name} इसका समर्थन नहीं करता।\nकृपया पहले डेटा मिटाएं, फिर दूसरे खाते से साइन इन करें।</string>
     <string name="permalink_malformed">आपका matrix.to लिंक गलत फ़ॉर्मेट में था</string>
-    <string name="permalink_unsupported_groups">यह लिंक नहीं खुल सकता: कम्युनिटी की जगह अब स्पेस हैं</string>
     <string name="notification_initial_sync">प्रारंभिक सिंक…</string>
     <string name="settings_advanced_settings">उन्नत सेटिंग</string>
     <string name="settings_developer_mode">डेवलपर मोड</string>

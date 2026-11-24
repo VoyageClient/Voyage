@@ -23,13 +23,13 @@ internal class AndroidTextPillsUtils @Inject constructor(
 ) : TextPillsUtils {
 
     override fun processSpecialSpansToHtml(text: CharSequence): String? {
-        return transformPills(text, link = { id, label -> "<a href=\"${MatrixUriBuilder.mentionLink(id).htmlEscape()}\">$label</a>" }) { it.htmlEscape() }
+        return transformPills(text, link = { uri, label -> "<a href=\"${uri.htmlEscape()}\">$label</a>" }) { it.htmlEscape() }
     }
 
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? {
         return transformPills(
                 text,
-                link = { id, label -> "[$label](${MatrixUriBuilder.mentionLink(id)} \"${ExplicitLinksExtension.MENTION_TITLE}\")" },
+                link = { uri, label -> "[$label]($uri \"${ExplicitLinksExtension.MENTION_TITLE}\")" },
                 markdownLinkContext = true,
         ) { it.markdownEscape() }
     }
@@ -42,7 +42,7 @@ internal class AndroidTextPillsUtils @Inject constructor(
 
     private fun transformPills(
             text: CharSequence,
-            link: (id: String, escapedLabel: String) -> String,
+            link: (uri: String, escapedLabel: String) -> String,
             markdownLinkContext: Boolean = false,
             escapeLabel: (String) -> String,
     ): String? {
@@ -58,12 +58,12 @@ internal class AndroidTextPillsUtils @Inject constructor(
                             ?: it.matrixItem.id
                     val start = spannableString.getSpanStart(it)
                     val end = spannableString.getSpanEnd(it)
+                    val uri = MatrixUriBuilder.build(it.matrixItem.id)
                     // A link can't nest inside another link's text or target, so there the pill is just its text.
                     val replacement = when {
-                        !markdownLinkContext -> link(it.matrixItem.id, escapeLabel(label))
-                        isMarkdownLinkDestination(text, start) -> label
-                        isInMarkdownLinkLabel(text, start) -> escapeLabel(label)
-                        else -> link(it.matrixItem.id, escapeLabel(label))
+                        markdownLinkContext && isMarkdownLinkDestination(text, start) -> label
+                        uri == null || (markdownLinkContext && isInMarkdownLinkLabel(text, start)) -> escapeLabel(label)
+                        else -> link(uri, escapeLabel(label))
                     }
                     MentionLinkSpec(replacement = replacement, start = start, end = end)
                 }
