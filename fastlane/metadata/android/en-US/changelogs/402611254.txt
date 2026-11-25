@@ -1,0 +1,9 @@
+• Drop legacy +group ID support
+• Open MSC links on a chosen site without a confirmation
+• Send matrix URIs instead of matrix.to links in messages
+• Report open file descriptors in crash reports
+• Add room exports, an offline archive library and identity anonymization
+• Use the trashcan icon for every redact and delete action
+• Keep mention pills intact through drafts whatever the name holds
+• Show airplane mode banner only when network toggles are off
+…and 11 more
